@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="etc">
+      <UniqueIdentifier>{5b009f94-40f1-4681-b187-0f98b4de9857}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="etc\리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Actor">
+      <UniqueIdentifier>{390a0637-449b-42f1-95e7-354f9de1f742}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Actor\Player">
+      <UniqueIdentifier>{9be12d64-aad3-41d5-801a-0ca261120ef8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="etc\ImGUI">
+      <UniqueIdentifier>{fcb3bbb4-8500-4c80-b38d-01bcb6a92607}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Launch.cpp">
+      <Filter>etc</Filter>
+    </ClCompile>
+    <ClCompile Include="MyGame.cpp" />
+    <ClCompile Include="Player.cpp">
+      <Filter>Actor\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\backends\imgui_impl_dx11.cpp">
+      <Filter>etc\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\backends\imgui_impl_win32.cpp">
+      <Filter>etc\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\imgui.cpp">
+      <Filter>etc\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\imgui_tables.cpp">
+      <Filter>etc\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\imgui_widgets.cpp">
+      <Filter>etc\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc\imgui_draw.cpp">
+      <Filter>etc\ImGUI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="MyGame.h" />
+    <ClInclude Include="Player.h">
+      <Filter>Actor\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\backends\imgui_impl_dx11.h">
+      <Filter>etc\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\backends\imgui_impl_win32.h">
+      <Filter>etc\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\imgui.h">
+      <Filter>etc\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\imconfig.h">
+      <Filter>etc\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\imgui_internal.h">
+      <Filter>etc\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\imstb_rectpack.h">
+      <Filter>etc\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\imstb_textedit.h">
+      <Filter>etc\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc\imstb_truetype.h">
+      <Filter>etc\ImGUI</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
