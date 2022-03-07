@@ -9,7 +9,6 @@
 
 #include <string>
 #include <functional>
-#include <chrono>
 #include <exception>
 #include <random>
 class __declspec(dllexport) std::exception;
@@ -26,7 +25,6 @@ class __declspec(dllexport) std::exception;
 
 #include <d3d11.h>
 #include <d3dcompiler.h>
-#include <DirectXMath.h>
 #include <Xinput.h>
 
 #define DIRECTINPUT_VERSION 0x0800

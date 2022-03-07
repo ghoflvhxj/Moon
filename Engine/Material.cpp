@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "Material.h"
 
-#include "MapUtility.h"
-
 #include "MainGameSetting.h"
 
 #include "GraphicDevice.h"
@@ -10,7 +8,6 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "ConstantBuffer.h"
-#include "ConstantBufferStruct.h"
 
 #include "ShaderManager.h"
 
@@ -18,11 +15,8 @@
 
 #include "TextureComponent.h"
 #include "PrimitiveComponent.h"
-#include "DynamicMeshComponent.h"
 
 using namespace Graphic;
-namespace VertexConstantBufferStruct = ConstantBufferStruct::VertexStruct;
-namespace PixelConstantBufferStruct = ConstantBufferStruct::PixelStruct;
 
 Material::Material(std::vector<Vertex> &vertexList)
 	: _vertexOffsetList(1, 0)
@@ -91,6 +85,8 @@ Material::Material(std::vector<VertexList> &verticesList)
 {
 	VertexList vertexList;
 
+
+
 	initializeBuffers(vertexList);
 	initializeConstantBuffers();
 }
@@ -130,11 +126,11 @@ Material::Material(std::vector<VertexList> &verticesList, std::vector<IndexList>
 	}
 
 	initializeBuffers(vertexList);
+	initializeConstantBuffers();
 }
 
 Material::~Material()
 {
-	releaseShader();
 }
 
 void Material::initializeVertexListFromVerticesList(VertexList &vertexList, std::vector<VertexList> &verticesList)
@@ -184,19 +180,28 @@ void Material::initializeBuffers(std::vector<Vertex> &vertexList, std::vector<In
 	_pIndexBuffer	= std::make_shared<IndexBuffer>(static_cast<int>(sizeof(Index)), static_cast<int>(indexList.size()), &indexList[0]);
 }
 
-void Material::setVertexConstantBuffer(const VertexConstantBufferSlot slot, std::shared_ptr<ConstantBuffer> buffer)
+void Material::initializeConstantBuffers()
 {
-	_vertexConstantBufferList[enumToIndex(slot)] = buffer;
-}
+	// VertexShader Constant Buffer
+	{
+		VertexShaderConstantBuffer data = {
+			IDENTITYMATRIX,
+			IDENTITYMATRIX,
+			IDENTITYMATRIX
+		};
 
-std::shared_ptr<ConstantBuffer>& Material::getVertexConstantBuffer(const VertexConstantBufferSlot slot)
-{
-	return _vertexConstantBufferList[enumToIndex(slot)];
-}
+		_pVertexConstantBuffer = std::make_shared<ConstantBuffer>(static_cast<int>(sizeof(VertexShaderConstantBuffer)), &data);
+	}
 
-std::shared_ptr<ConstantBuffer>& Material::getPixelConstantBuffer()
-{
-	return std::shared_ptr<ConstantBuffer>(nullptr);
+	// PixelShader Constant Buffer
+	{
+		PixelShaderConstantBuffer data = {
+			false,
+			false
+		};
+
+		_pPixelConstantBuffer = std::make_shared<ConstantBuffer>(static_cast<int>(sizeof(PixelShaderConstantBuffer)), &data);
+	}
 }
 
 void Material::setOwner(std::shared_ptr<PrimitiveComponent> pOwner)
@@ -204,32 +209,17 @@ void Material::setOwner(std::shared_ptr<PrimitiveComponent> pOwner)
 	_pOwner = pOwner;
 }
 
-void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
+void Material::setShader(const wchar_t *vertexShader, const wchar_t *pixelShader)
 {
-	releaseShader();
-
-	if (false == g_pShaderManager->getVertexShader(vertexShaderFileName, &_pVertexShader))
+	if (false == g_pShaderManager->getVertexShader(vertexShader, &_pVertexShader))
 	{
 		DEV_ASSERT_MSG(TEXT("쉐이더 파일을 찾을 수 없습니다!"));
 	}
-	_pVertexShader->AddRef();
-	_vertexShaderFileName = vertexShaderFileName;
 
-	if (false == g_pShaderManager->getPixelShader(pixelShaderFileName, &_pPixelShader))
+	if (false == g_pShaderManager->getPixelShader(pixelShader, &_pPixelShader))
 	{
 		DEV_ASSERT_MSG(TEXT("쉐이더 파일을 찾을 수 없습니다!"));
 	}
-	_pPixelShader->AddRef();
-	_pixelShaderFileName	= pixelShaderFileName;
-}
-
-void Material::releaseShader()
-{
-	SafeRelease(_pVertexShader);
-	SafeRelease(_pPixelShader);
-
-	_vertexShaderFileName.clear();
-	_pixelShaderFileName.clear();
 }
 
 void Material::render(std::shared_ptr<PrimitiveComponent> pComponent)
@@ -257,17 +247,9 @@ void Material::render(std::shared_ptr<PrimitiveComponent> pComponent)
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-
-	// 쉐이더에서 콘스탄트 버퍼를 얻어오고, 콘스탄트 버퍼를 업데이트 한다.
-	/* sudo
-	auto pShader = g_pShaderManager->getVertexShader(_vertexShaderFileName);
-	uint32 constantBufferCount = pShader->getConstantBufferCount();
-	for
-
-	*/
 	g_pGraphicDevice->getContext()->VSSetShader(_pVertexShader, nullptr, 0);
 	{
-		VertexConstantBufferStruct::WorldViewMatrix data = {
+		VertexShaderConstantBuffer data = {
 			pComponent->getWorldMatrix(),
 			g_pMainGame->getMainCameraViewMatrix(),
 			g_pMainGame->getMainCameraProjectioinMatrix()
@@ -275,35 +257,25 @@ void Material::render(std::shared_ptr<PrimitiveComponent> pComponent)
 
 		if (PrimitiveComponent::RenderMode::Orthogonal == pComponent->getRenderMdoe())
 		{
-			data._worldViewMatrix = IDENTITYMATRIX;
-			data._projectionMatrix = g_pMainGame->getMainCameraOrthographicProjectionMatrix();
+			data.cameraViewMatrix = IDENTITYMATRIX;
+			data.projectionMatrix = g_pMainGame->getMainCameraOrthographicProjectionMatrix();
 		}
 
 		auto pConstantBuffer = _pVertexConstantBuffer->getBuffer();
-		_pVertexConstantBuffer->update(&data, sizeof(VertexConstantBufferStruct::WorldViewMatrix));
+		_pVertexConstantBuffer->Update(&data, sizeof(VertexShaderConstantBuffer));
 
 		g_pGraphicDevice->getContext()->VSSetConstantBuffers(0u, 1u, &pConstantBuffer);
 	}
-
-	// 리스트로 변경
-	ID3D11Buffer* bufferArray[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { nullptr, };
-	const uint32 slotCount = enumToUInt32(VertexConstantBufferSlot::End);
-	for (uint32 slotIndex = 0; slotIndex < slotCount; ++slotIndex)
-	{
-		if (nullptr == _vertexConstantBufferList[slotIndex])
-		{
-			continue;
-		}
-
-		bufferArray[slotIndex] = _vertexConstantBufferList[slotIndex]->getBuffer();
-	}
-	g_pGraphicDevice->getContext()->VSSetConstantBuffers(0u, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, bufferArray);
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
 	g_pGraphicDevice->getContext()->PSSetShader(_pPixelShader, nullptr, 0);
 	{
-		PixelConstantBufferStruct::TextureInfo data;
+		PixelShaderConstantBuffer data = {
+			false,
+			false,
+		};
+
 		if (nullptr != _textureList[enumToIndex(TextureType::Normal)])
 		{
 			data.usingNormalTexture = true;
@@ -315,7 +287,7 @@ void Material::render(std::shared_ptr<PrimitiveComponent> pComponent)
 		}
 
 		auto pPSConstantBuffer = _pPixelConstantBuffer->getBuffer();
-		_pPixelConstantBuffer->update(&data, sizeof(data));
+		_pPixelConstantBuffer->Update(&data, sizeof(PixelShaderConstantBuffer));
 		g_pGraphicDevice->getContext()->PSSetConstantBuffers(0u, 1u, &pPSConstantBuffer);
 	}
 
@@ -358,11 +330,6 @@ void Material::render(std::shared_ptr<PrimitiveComponent> pComponent)
 		g_pGraphicDevice->getContext()->Draw(static_cast<UINT>(_pVertexBuffer->getVertexCount() - _vertexOffsetList[vertexOffsetCount - 1])
 										   , static_cast<UINT>(_vertexOffsetList[vertexOffsetCount - 1]));
 	}
-}
-
-void Material::render(std::shared_ptr<DynamicMeshComponent> pComponent)
-{
-
 }
 
 void Material::setTexture(const TextureType textureType, std::shared_ptr<TextureComponent> pTexture)

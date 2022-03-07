@@ -1,6 +1,9 @@
 #pragma once
 #ifndef __TYPE_H__
 
+#include <chrono>
+#include <DirectXMath.h>
+
 using Byte		= unsigned char;
 using uint8		= unsigned char;
 using uint32	= unsigned int;
@@ -21,6 +24,5 @@ using Vec2 = DirectX::XMFLOAT2;
 using Mat4 = DirectX::XMFLOAT4X4;
 
 using DIRECTORY = const wchar_t *;
-
 
 #endif __TYPE_H__

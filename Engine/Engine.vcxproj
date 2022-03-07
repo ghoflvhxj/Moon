@@ -166,8 +166,6 @@ call CopyRelease.bat</Command>
     <ClInclude Include="CollisionShapeComponent.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ConstantBuffer.h" />
-    <ClInclude Include="ConstantBufferManager.h" />
-    <ClInclude Include="ConstantBufferStruct.h" />
     <ClInclude Include="DebugRenderer.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="DirectInput.h" />
@@ -232,8 +230,7 @@ call CopyRelease.bat</Command>
     <ClCompile Include="CollisionShapeComponent.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ConstantBuffer.cpp" />
-    <ClCompile Include="ConstantBufferManager.cpp" />
-    <ClCompile Include="ConstantBufferStruct.cpp" />
+    <ClInclude Include="ConstantBufferStruct.h" />
     <ClCompile Include="DebugRenderer.cpp" />
     <ClCompile Include="DirectInput.cpp" />
     <ClCompile Include="DirectionalLightComponent.cpp" />

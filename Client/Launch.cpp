@@ -73,6 +73,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 				continue;
 			}
 
+			getRenderer()->render();
+
 			//std::wostringstream out;
 			//out << pGame->getFrame();
 			//SetWindowText(pWindow->getHandle(), out.str().c_str());

@@ -24,7 +24,7 @@ ConstantBuffer::~ConstantBuffer()
 	m_pBuffer->Release();
 }
 
-void ConstantBuffer::update(const void * pData, const size_t dataSize)
+void ConstantBuffer::Update(const void * pData, const size_t dataSize)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedSubResource = {};
 	g_pGraphicDevice->getContext()->Map(m_pBuffer, 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedSubResource);

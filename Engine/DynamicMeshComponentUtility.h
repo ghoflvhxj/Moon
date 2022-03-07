@@ -7,11 +7,9 @@ struct KeyFrame
 {
 	KeyFrame()
 		: _matrix()
-#ifdef _DEBUG
 		, _scale{ VEC3ZERO }
 		, _rotation{ VEC3ZERO }
 		, _translation{ VEC3ZERO }
-#endif
 	{
 	}
 	DirectX::XMFLOAT4X4	_matrix;

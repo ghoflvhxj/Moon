@@ -30,19 +30,6 @@ void ShaderManager::releaseShader()
 	_blobMapList.clear();
 }
 
-const bool ShaderManager::addShader(const ShaderType type, const wchar_t *fileName, ID3D11DeviceChild *pShader, ID3D10Blob *pBlob)
-{
-	if (false == MapUtility::FindInsert(getShaderMap(type), fileName, pShader))
-	{
-		return false;
-	}
-
-	if (false == MapUtility::FindInsert(getBlobMap(type), fileName, pBlob))
-	{
-		return false;
-	}
-}
-
 ShaderManager::ShaderMap &ShaderManager::getShaderMap(const ShaderType type)
 {
 	return _shaderMapList[EnumIndex(type)];
@@ -60,7 +47,17 @@ const bool ShaderManager::getVertexShader(const wchar_t *fileName, ID3D11VertexS
 
 const bool ShaderManager::addVertexShader(const wchar_t *fileName, ID3D11VertexShader *pShader, ID3D10Blob *pBlob)
 {
-	return addShader(ShaderType::Vertex, fileName, pShader, pBlob);
+	if (false == MapUtility::FindInsert(getShaderMap(ShaderType::Vertex), fileName, pShader))
+	{
+		return false;
+	}
+
+	if (false == MapUtility::FindInsert(getBlobMap(ShaderType::Vertex), fileName, pBlob))
+	{
+		return false;
+	}
+
+	return true;
 }
 
 const bool ShaderManager::getPixelShader(const wchar_t *fileName, ID3D11PixelShader **pShader)
@@ -70,7 +67,17 @@ const bool ShaderManager::getPixelShader(const wchar_t *fileName, ID3D11PixelSha
 
 const bool ShaderManager::addPixelShader(const wchar_t *fileName, ID3D11PixelShader *pShader, ID3D10Blob *pBlob)
 {
-	return addShader(ShaderType::Pixel, fileName, pShader, pBlob);
+	if (false == MapUtility::FindInsert(getShaderMap(ShaderType::Pixel), fileName, pShader))
+	{
+		return false;
+	}
+
+	if (false == MapUtility::FindInsert(getBlobMap(ShaderType::Pixel), fileName, pBlob))
+	{
+		return false;
+	}
+
+	return true;
 }
 
 ID3D10Blob *ShaderManager::getVertexShaderBlob(const wchar_t *shaderName)
@@ -94,9 +101,4 @@ void ShaderManager::releaseBlob()
 inline ShaderManager::BlobMap &ShaderManager::getBlobMap(const ShaderType type)
 {
 	return _blobMapList[EnumIndex(type)];
-}
-
-ShaderManager::ShaderReflectionMap& ShaderManager::getReflectionMap(const ShaderType type)
-{
-	return _reflectionMapList[EnumIndex(type)];
 }

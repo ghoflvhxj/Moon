@@ -12,7 +12,6 @@
 
 // Graphics
 #include "GraphicDevice.h"
-#include "ConstantBufferManager.h"
 
 // Renderer
 #include "Renderer.h"
@@ -46,12 +45,8 @@ const bool MainGame::Loop()
 	if (nullptr != _pMainCamera)
 		_pMainCamera->update(_deltaTime);
 
-	ConstantBufferManager::GetInstance()->updatePerFrame();
-
 	Tick(_deltaTime);
 	Update(_deltaTime);
-
-	g_pRenderer->render();
 
 	_deltaTime = 0.f;
 

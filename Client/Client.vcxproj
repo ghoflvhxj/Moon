@@ -104,14 +104,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Header;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Libraries\Debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\Bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Header;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Libraries\Debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\Bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -148,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\Header\;C:\Program Files\Autodesk\FBX\FBX SDK\2020.2\include;C:\Users\ghofl\Desktop\ProjectMoon\Client\Misc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Header\;C:\Program Files\Autodesk\FBX\FBX SDK\2020.2\include;$(ProjectDir)Misc</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -173,7 +173,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\Header\;C:\Program Files\Autodesk\FBX\FBX SDK\2020.2\include;C:\Users\ghofl\Desktop\ProjectMoon\Client\Misc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Header\;C:\Program Files\Autodesk\FBX\FBX SDK\2020.2\include;$(ProjectDir)Misc</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

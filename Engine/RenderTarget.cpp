@@ -84,7 +84,7 @@ void RenderTarget::initializeTexture()
 
 void RenderTarget::initializeMesh()
 {
-	_pMeshComponent = std::make_shared<MeshComponent>();	// BoxComponent
+	_pMeshComponent = std::make_shared<MeshComponent>();
 	_pMeshComponent->setScale(Vec3{ 200.f ,200.f, 1.f });
 	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	_pMeshComponent->setRenderMode(MeshComponent::RenderMode::Orthogonal);

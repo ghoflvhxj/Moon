@@ -42,8 +42,8 @@ void Player::initialize()
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 
-	//_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
-	//addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
+	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
+	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
 	//_pDynamicMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 
 	_pSkyComponent = std::make_shared<SkyComponent>();

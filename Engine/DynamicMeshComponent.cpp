@@ -5,8 +5,6 @@
 
 #include "GraphicDevice.h"
 #include "Material.h"
-#include "ConstantBuffer.h"
-#include "ConstantBufferStruct.h"
 
 #include "TextureComponent.h"
 
@@ -72,13 +70,9 @@ void DynamicMeshComponent::initializeMeshInformation(const char *filePathName)
 			indicesList.push_back(_indicesList[linkIndex]);
 		}
 
-		ConstantBufferStruct::VertexStruct::JointMatrices jointMatrices;
-		std::shared_ptr<ConstantBuffer> buffer = std::make_shared<ConstantBuffer>(static_cast<int>(sizeof(jointMatrices)), &jointMatrices);
-
 		std::shared_ptr<Material> pMaterial = std::make_shared<Material>(verticesList, indicesList);
 		pMaterial->setTexture(_texturesList[materialIndex]);
 		pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader2.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
-		pMaterial->setVertexConstantBuffer(Material::VertexConstantBufferSlot::JointMatrix, buffer);
 
 		_materialList.push_back(pMaterial);
 	}
@@ -86,10 +80,10 @@ void DynamicMeshComponent::initializeMeshInformation(const char *filePathName)
 
 void DynamicMeshComponent::playAnimation(const uint32 index)
 {
-	//XMMATRIX parentJointMatrix;
-	//XMMATRIX currentjointMatrix;
+	XMMATRIX parentJointMatrix;
+	XMMATRIX currentjointMatrix;
 
-	//uint32 keyFrameListCount = sizeToUint32(_animationClipList[0]._keyFrameLists.size());
+	uint32 keyFrameListCount = sizeToUint32(_animationClipList[0]._keyFrameLists.size());
 	//for (int listIndex = 0; listIndex < keyFrameListCount; ++listIndex)
 	//{
 	//	int time = 0;
@@ -99,28 +93,9 @@ void DynamicMeshComponent::playAnimation(const uint32 index)
 
 void DynamicMeshComponent::render()
 {
-	static int matrixIndex = 0;
-	uint32 materialCount = sizeToUint32(_materialList.size());
-	uint32 keyFrameCount = sizeToUint32(_animationClipList[0]._keyFrameLists.size());
+	uint32 materialCount = static_cast<int32>(_materialList.size());
 	for (uint32 i = 0; i < materialCount; ++i)
 	{
-		if (true == _animationClipList[0]._keyFrameLists[0].empty())
-		{
-			continue;
-		}
-
-		auto pConstantBuffer = _materialList[i]->getVertexConstantBuffer(Material::VertexConstantBufferSlot::JointMatrix);
-		if (nullptr != pConstantBuffer)
-		{
-			ConstantBufferStruct::VertexStruct::JointMatrices jointMatrices;
-			for (uint32 j = 0; j < keyFrameCount; ++j)
-			{
-				//jointMatrices.jointMatrixList[j] = _animationClipList[0]._keyFrameLists[j][0]._matrix;
-				jointMatrices.jointMatrixList[j] = _animationClipList[0]._keyFrameLists[j][matrixIndex]._matrix;
-			}
-
-			pConstantBuffer->update(&jointMatrices, sizeof(jointMatrices));
-		}
 		_materialList[i]->render(shared_from_this());
 	}
 }

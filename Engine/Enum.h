@@ -16,49 +16,31 @@ enum class MOUSEAXIS
 	X, Y, Z, END
 };
 
-enum class TextureType : uint32
+enum class TextureType
 {
-	// 기본
-	Diffuse
-	, Normal
-	, Specular
-
-	// 특수효과
-	, Distortion
-	, Emssive
-
-	, End
+	Diffuse, Normal, Specular, End
 };
 
 namespace Graphic
 {
 	enum class FillMode
 	{
-		WireFrame
-		, Solid
-		, End
+		WireFrame, Solid, End
 	};
 
 	enum class CullMode
 	{
-		None
-		, Frontface
-		, Backface
-		, End
+		None, Frontface, Backface, End
 	};
 
 	enum class DepthWriteMode
 	{
-		Enable
-		, Disable
-		, End
+		Enable, Disable, End
 	};
 
 	enum class Blend
 	{
-		Object
-		, Light
-		, End
+		Object, Light, End
 	};
 }
 
