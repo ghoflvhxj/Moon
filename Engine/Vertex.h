@@ -3,7 +3,7 @@
 
 #include <DirectXMath.h>
 
-namespace Grahpic
+namespace Graphic
 {
 	struct VERTEX_COLOR
 	{
@@ -26,7 +26,7 @@ namespace Grahpic
 		Vec3 Normal;
 	};
 
-	struct VERTEX
+	struct VERTEX_COMMON
 	{
 		Vec3 Pos;
 		Vec4 Color;
@@ -52,10 +52,9 @@ namespace Grahpic
 			inputDescVector.assign(std::begin(inputDesc), std::end(inputDesc));
 		}
 	};
-
 }
 
-using Vertex	= Grahpic::VERTEX;
+using Vertex	= Graphic::VERTEX_COMMON;
 using Index		= uint32;
 
 using VertexList	= std::vector<Vertex>;

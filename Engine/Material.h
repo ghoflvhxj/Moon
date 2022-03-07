@@ -9,24 +9,41 @@ class ConstantBuffer;
 
 class TextureComponent;
 class PrimitiveComponent;
+class DynamicMeshComponent;
 
 class ENGINE_DLL Material
 {
-	using VertexBufferLis	= std::vector<std::shared_ptr<VertexBuffer>>;
-	using IndexBufferLis	= std::vector<std::shared_ptr<IndexBuffer>>;
-
+public:
 	__declspec(align(16)) struct VertexShaderConstantBuffer
 	{
-		Mat4 worldMatrix;
-		Mat4 cameraViewMatrix;
-		Mat4 projectionMatrix;
+		Mat4 _worldMatrix;
+		Mat4 _cameraViewMatrix;
+		Mat4 _projectionMatrix;
 	};
 
 	__declspec(align(16)) struct PixelShaderConstantBuffer
 	{
-		BOOL usingNormalTexture;
-		BOOL usingSepcuarTexture;
+		BOOL _usingNormalTexture;
+		BOOL _usingSepcuarTexture;
 	};
+
+	enum class VertexConstantBufferSlot
+	{
+		Default
+		, JointMatrix	// 애니메이션에 사용되는 조인트 변환 행렬
+		, End
+	};
+
+	enum class PixelConstantBufferSlot
+	{
+		Default
+		, End
+	};
+
+public:
+	using VertexBufferLis		= std::vector<std::shared_ptr<VertexBuffer>>;
+	using IndexBufferLis		= std::vector<std::shared_ptr<IndexBuffer>>;
+	using ConstantBufferList	= std::vector<std::shared_ptr<ConstantBuffer>>;
 
 public:
 	explicit Material(std::vector<Vertex> &vertexList);
@@ -42,13 +59,22 @@ private:
 	void initializeVertexListFromVerticesList(VertexList &vertexList, std::vector<VertexList> &verticesList);
 	void initializeIndexListFromIndicesList(IndexList &indexList, std::vector<IndexList> &IndicesList);
 	void initializeBuffers(std::vector<Vertex> &vertexList);
-	void initializeBuffers(std::vector<Vertex> &vertexList, std::vector<Index> &indexList);
+	void initializeBuffers(std::vector<Vertex> &vertexList, std::vector<Index> &indexList); 
 	void initializeConstantBuffers();
+
 private:
 	std::shared_ptr<VertexBuffer>	_pVertexBuffer;
 	std::shared_ptr<IndexBuffer>	_pIndexBuffer;
 	std::shared_ptr<ConstantBuffer> _pVertexConstantBuffer;
 	std::shared_ptr<ConstantBuffer> _pPixelConstantBuffer;
+
+public:
+	void setVertexConstantBuffer(const VertexConstantBufferSlot slot, std::shared_ptr<ConstantBuffer> buffer);
+	std::shared_ptr<ConstantBuffer>& getVertexConstantBuffer(const VertexConstantBufferSlot slot);
+	std::shared_ptr<ConstantBuffer>& getPixelConstantBuffer();
+private:
+	ConstantBufferList _vertexConstantBufferList;
+	ConstantBufferList _pixelConstantBufferList;
 
 	// 삭제 예정
 public:
@@ -57,13 +83,18 @@ private:
 	std::shared_ptr<PrimitiveComponent> _pOwner;
 
 public:
-	void setShader(const wchar_t *vertexShader, const wchar_t *pixelShader);
+	void setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
 private:
+	void releaseShader();
+private:
+	std::wstring _vertexShaderFileName;
+	std::wstring _pixelShaderFileName;
 	ID3D11VertexShader *_pVertexShader;
 	ID3D11PixelShader *_pPixelShader;
 
 public:
 	void render(std::shared_ptr<PrimitiveComponent> pComponent);
+	void render(std::shared_ptr<DynamicMeshComponent> pComponent);
 
 public:
 	void setTexture(const TextureType textureType, std::shared_ptr<TextureComponent> pTexture);

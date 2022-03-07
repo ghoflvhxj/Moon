@@ -8,7 +8,7 @@
 class TextureComponent;
 class Material;
 
-class ENGINE_DLL MeshComponent : public PrimitiveComponent
+class ENGINE_DLL MeshComponent /* abstract */ : public PrimitiveComponent
 {
 public:
 	explicit MeshComponent();

@@ -71,5 +71,21 @@ inline uint32 sizeToUint32(const size_t value)
 	return static_cast<uint32>(value);
 }
 
+inline bool checkFlag(const uint32 value, const uint32 flag)
+{
+	return value && flag;
+}
+
+/* Com객체 릴리즈에 사용 */
+template <class T>
+inline void SafeRelease(T * &p)
+{
+	if (nullptr != p)
+	{
+		p->Release();
+		p = nullptr;
+	}
+}
+
 #define __FUNCTION_H__
 #endif

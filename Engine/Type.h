@@ -25,4 +25,5 @@ using Mat4 = DirectX::XMFLOAT4X4;
 
 using DIRECTORY = const wchar_t *;
 
+
 #endif __TYPE_H__

@@ -113,7 +113,7 @@ void DirectionalLightComponent::render()
 		};
 
 		auto pConstantBuffer = _pVertexConstantBuffer->getBuffer();
-		_pVertexConstantBuffer->Update(&data, sizeof(VertexShaderConstantBuffer));
+		_pVertexConstantBuffer->update(&data, sizeof(VertexShaderConstantBuffer));
 
 		g_pGraphicDevice->getContext()->VSSetConstantBuffers(0u, 1u, &pConstantBuffer);
 	}
@@ -143,7 +143,7 @@ void DirectionalLightComponent::render()
 		};
 
 		auto pPSConstantBuffer = _pPixelConstantBuffer->getBuffer();
-		_pPixelConstantBuffer->Update(&data, sizeof(PixelShaderConstantBuffer));
+		_pPixelConstantBuffer->update(&data, sizeof(PixelShaderConstantBuffer));
 		g_pGraphicDevice->getContext()->PSSetConstantBuffers(0u, 1u, &pPSConstantBuffer);
 	}
 	//---------------------------------------------------------------------------------------------------------------------------------

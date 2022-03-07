@@ -78,9 +78,6 @@
     <Filter Include="Module\System\Window">
       <UniqueIdentifier>{466bcade-0ebd-4554-ac62-fad2537f430d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Render">
-      <UniqueIdentifier>{0ad1672a-f524-46c1-a772-e34d3bced7b8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module\Input">
       <UniqueIdentifier>{0c2b556b-5120-4867-ae5f-88fe750dc29d}</UniqueIdentifier>
     </Filter>
@@ -114,18 +111,6 @@
     <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\StaticMeshComopnent">
       <UniqueIdentifier>{d7f0624b-a4ec-4e30-9518-01ca87728ab8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Render\CollisionRenderer">
-      <UniqueIdentifier>{670b85c5-fd0e-423b-8044-cb4ebe5c254b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Module\Render\SceneRenderer">
-      <UniqueIdentifier>{2595bd76-d662-4529-af0f-c05598e4d29b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Module\Render\SceneRenderer\RenderTarget">
-      <UniqueIdentifier>{818f2817-ac1f-4bb7-bf93-6aea28429176}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Module\Render\DebugRenderer">
-      <UniqueIdentifier>{d39b251c-e940-41b5-a297-7d741ffebfd6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\CollisionShapeComponent">
       <UniqueIdentifier>{914d0aa0-ea37-480e-87e8-d27c2238583b}</UniqueIdentifier>
     </Filter>
@@ -134,6 +119,21 @@
     </Filter>
     <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent">
       <UniqueIdentifier>{f1e831b6-d990-4448-8368-6004027cfccb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Renderer">
+      <UniqueIdentifier>{0ad1672a-f524-46c1-a772-e34d3bced7b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Renderer\CollisionRenderer">
+      <UniqueIdentifier>{670b85c5-fd0e-423b-8044-cb4ebe5c254b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Renderer\SceneRenderer">
+      <UniqueIdentifier>{2595bd76-d662-4529-af0f-c05598e4d29b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Renderer\SceneRenderer\RenderTarget">
+      <UniqueIdentifier>{818f2817-ac1f-4bb7-bf93-6aea28429176}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Renderer\DebugRenderer">
+      <UniqueIdentifier>{d39b251c-e940-41b5-a297-7d741ffebfd6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -264,10 +264,10 @@
       <Filter>Module\Utility</Filter>
     </ClInclude>
     <ClInclude Include="RenderTarget.h">
-      <Filter>Module\Render\SceneRenderer\RenderTarget</Filter>
+      <Filter>Module\Renderer\SceneRenderer\RenderTarget</Filter>
     </ClInclude>
     <ClInclude Include="MultiRenderTarget.h">
-      <Filter>Module\Render\SceneRenderer\RenderTarget</Filter>
+      <Filter>Module\Renderer\SceneRenderer\RenderTarget</Filter>
     </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent</Filter>
@@ -294,16 +294,16 @@
       <Filter>Module\Framework\Component</Filter>
     </ClInclude>
     <ClInclude Include="SceneRenderer.h">
-      <Filter>Module\Render\SceneRenderer</Filter>
+      <Filter>Module\Renderer\SceneRenderer</Filter>
     </ClInclude>
     <ClInclude Include="DebugRenderer.h">
-      <Filter>Module\Render\DebugRenderer</Filter>
+      <Filter>Module\Renderer\DebugRenderer</Filter>
     </ClInclude>
     <ClInclude Include="CollisionRenderer.h">
-      <Filter>Module\Render\CollisionRenderer</Filter>
+      <Filter>Module\Renderer\CollisionRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Renderer.h">
-      <Filter>Module\Render</Filter>
+      <Filter>Module\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="CollisionShapeComponent.h">
       <Filter>헤더 파일</Filter>
@@ -322,9 +322,6 @@
     </ClInclude>
     <ClInclude Include="AnimationController.h">
       <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="ConstantBufferStruct.h">
-      <Filter>Module\Graphics\Material</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -419,10 +416,10 @@
       <Filter>Module\Utility</Filter>
     </ClCompile>
     <ClCompile Include="RenderTarget.cpp">
-      <Filter>Module\Render\SceneRenderer\RenderTarget</Filter>
+      <Filter>Module\Renderer\SceneRenderer\RenderTarget</Filter>
     </ClCompile>
     <ClCompile Include="MultiRenderTarget.cpp">
-      <Filter>Module\Render\SceneRenderer\RenderTarget</Filter>
+      <Filter>Module\Renderer\SceneRenderer\RenderTarget</Filter>
     </ClCompile>
     <ClCompile Include="LightComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent</Filter>
@@ -449,16 +446,16 @@
       <Filter>Module\Framework\Component</Filter>
     </ClCompile>
     <ClCompile Include="SceneRenderer.cpp">
-      <Filter>Module\Render\SceneRenderer</Filter>
+      <Filter>Module\Renderer\SceneRenderer</Filter>
     </ClCompile>
     <ClCompile Include="DebugRenderer.cpp">
-      <Filter>Module\Render\DebugRenderer</Filter>
+      <Filter>Module\Renderer\DebugRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
-      <Filter>Module\Render</Filter>
+      <Filter>Module\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="CollisionRenderer.cpp">
-      <Filter>Module\Render\CollisionRenderer</Filter>
+      <Filter>Module\Renderer\CollisionRenderer</Filter>
     </ClCompile>
     <ClCompile Include="CollisionShapeComponent.cpp" />
     <ClCompile Include="DirectionalLightComponent.cpp">
