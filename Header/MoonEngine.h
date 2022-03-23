@@ -1,0 +1,27 @@
+#pragma once
+#ifndef __MOON_ENGINE_H__
+
+class Window;
+class MainGame;
+class GraphicDevice;
+class Renderer;
+
+ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow);
+ENGINE_DLL const bool EngineRelease();
+ENGINE_DLL std::shared_ptr<GraphicDevice> getGraphicDevice();
+ENGINE_DLL std::shared_ptr<Renderer> getRenderer();
+
+template <class T>
+const bool createMainGame(std::shared_ptr<T> &pGame)
+{
+	std::shared_ptr<T> pMainGame = std::make_shared<T>();
+	pMainGame->MainGame::initialize();
+	pGame = pMainGame;
+
+	return true;
+}
+
+ENGINE_DLL const bool setGame(std::shared_ptr<MainGame> pGame);
+
+#define __MOON_ENGINE_H__
+#endif
