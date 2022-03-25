@@ -18,6 +18,7 @@ public:
 
 public:
 	void setScale(const Vec3 &scale);
+	void setScale(const float scaleX, const float scaleY, const float scaleZ);
 	const Vec3& getScale() const;
 private:
 	Vec3 m_scale;
@@ -30,6 +31,7 @@ private:
 
 public:
 	void setTranslation(const Vec3 &translation);
+	void setTranslation(const float transX, const float transY, const float transZ);
 	const Vec3&	getTranslation() const;
 private:
 	Vec3 m_translation;

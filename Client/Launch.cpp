@@ -44,7 +44,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		wndClass.lpszMenuName = nullptr;
 		pWindowManager->AddWindowClass(wndClass);
 
-		pWindow = pWindowManager->CreateWindow(title, 1600, 900, title);
+		RECT rt = { 0, 0, 1600, 900 };
+		AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, FALSE);
+
+		pWindow = pWindowManager->CreateWindow(title, rt.right, rt.bottom, title);
 		g_hWnd = pWindow->getHandle();
 
 		EngineInit(hInstance, pWindow);

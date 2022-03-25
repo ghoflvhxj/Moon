@@ -41,6 +41,11 @@ void SceneComponent::setScale(const Vec3 &scale)
 	m_scale = scale;
 }
 
+void SceneComponent::setScale(const float scaleX, const float scaleY, const float scaleZ)
+{
+	m_scale = { scaleX, scaleY, scaleZ };
+}
+
 const Vec3& SceneComponent::getScale() const
 {
 	return m_scale;
@@ -59,6 +64,11 @@ const Vec3& SceneComponent::getRotation() const
 void SceneComponent::setTranslation(const Vec3 &translation)
 {
 	m_translation = translation;
+}
+
+void SceneComponent::setTranslation(const float transX, const float transY, const float transZ)
+{
+	m_translation = { transX, transY, transZ };
 }
 
 const Vec3& SceneComponent::getTranslation() const

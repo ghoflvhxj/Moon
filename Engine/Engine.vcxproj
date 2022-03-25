@@ -189,10 +189,10 @@ call CopyRelease.bat</Command>
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MoonEngine.h" />
-    <ClInclude Include="MultiRenderTarget.h" />
     <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="PrimitiveComponent.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="RenderPass.h" />
     <ClInclude Include="SceneRenderer.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="SceneComponent.h" />
@@ -249,10 +249,10 @@ call CopyRelease.bat</Command>
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="MoonEngine.cpp" />
-    <ClCompile Include="MultiRenderTarget.cpp" />
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="PrimitiveComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="SceneRenderer.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="SceneComponent.cpp" />

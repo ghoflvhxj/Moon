@@ -10,6 +10,9 @@ class LightComponent;
 class SkyComponent;
 class CollisionShapeComponent;
 
+class RenderTarget;
+class RenderPass;
+
 class ENGINE_DLL Renderer 
 {
 	enum class RenderType
@@ -25,8 +28,23 @@ private:
 private:
 	std::shared_ptr<MeshComponent> _pMeshComponent;
 
+	// ·»´õ Å¸°Ù
 public:
-	void render(void) const noexcept;
+	const bool addRenderTarget(const std::wstring name);
+private:
+	std::unordered_map<std::wstring, std::shared_ptr<RenderTarget>> _renderTargetMap;
+#ifdef _DEBUG
+	std::unordered_map<std::wstring, std::shared_ptr<MeshComponent>> _renderTargetMeshMap;
+#endif
+
+	// ·»´õ ÆÐ½º
+public:
+	const bool addRenderPass(const std::wstring name);
+private:
+	std::unordered_map<std::wstring, std::shared_ptr<RenderPass>> _renderPassMap;
+
+public:
+	void render(void);
 
 public:
 	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> pComponent) noexcept;

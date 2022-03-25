@@ -41,6 +41,8 @@ const bool ShaderManager::addShader(const ShaderType type, const wchar_t *fileNa
 	{
 		return false;
 	}
+
+	return true;
 }
 
 ShaderManager::ShaderMap &ShaderManager::getShaderMap(const ShaderType type)

@@ -28,8 +28,9 @@ TextureComponent::TextureComponent(const char *fileName)
 	loadTextureFile(wFileName);
 }
 
-TextureComponent::TextureComponent(ID3D11Texture2D *pTexture)
-	: _pTexture{ pTexture }
+TextureComponent::TextureComponent(TextureComponent::TexturePtr pTexture)
+	: Component()
+	,_pTexture{ pTexture }
 	, _pResourceView{ nullptr }
 {
 	D3D11_TEXTURE2D_DESC texturDesc = {};
@@ -44,10 +45,19 @@ TextureComponent::TextureComponent(ID3D11Texture2D *pTexture)
 }
 
 TextureComponent::TextureComponent(ID3D11ShaderResourceView *pShaderResourceView)
-	: _pTexture{ nullptr }
+	: Component()
+	, _pTexture{ nullptr }
 	, _pResourceView{ pShaderResourceView }
 {
-	_pResourceView->AddRef();
+	SAFE_ADDREF(_pResourceView);
+}
+
+TextureComponent::TextureComponent()
+	: Component()
+	, _pTexture{ nullptr }
+	, _pResourceView{ nullptr }
+{
+
 }
 
 TextureComponent::~TextureComponent()
@@ -71,4 +81,14 @@ const bool TextureComponent::loadTextureFile(const wchar_t *fileName)
 void TextureComponent::setTexture(const uint32 index)
 {
 	g_pGraphicDevice->getContext()->PSSetShaderResources(index, 1, &_pResourceView);
+}
+
+TextureComponent::TexturePtr& TextureComponent::getTextureRowPointer()
+{
+	return _pTexture;
+}
+
+TextureComponent::ResourceViewPtr& TextureComponent::getResourceViewRowPointer()
+{
+	return _pResourceView;
 }

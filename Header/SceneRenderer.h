@@ -27,8 +27,6 @@ private:
 
 public:
 	void render();
-public:
-	void renderRenderTargets(void) noexcept;
 
 private:
 	void renderObject();
@@ -52,12 +50,12 @@ private:
 
 public:
 	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> pComponent);
-private:
+public:
 	PrimitiveComponentList _primitiveComponentList;
 
 public:
 	void addLightComponent(std::shared_ptr<LightComponent> pComponent);
-private:
+public:
 	LightComponentList _lightComponentList;
 
 public:

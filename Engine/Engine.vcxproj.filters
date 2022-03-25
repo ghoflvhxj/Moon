@@ -105,9 +105,6 @@
     <Filter Include="Module\Graphics\Buffer">
       <UniqueIdentifier>{4d0ae518-9a78-4b0c-b869-9392d899bb8d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Graphics\Material">
-      <UniqueIdentifier>{df3170ab-7971-4609-ab36-803b4ad66cd6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\StaticMeshComopnent">
       <UniqueIdentifier>{d7f0624b-a4ec-4e30-9518-01ca87728ab8}</UniqueIdentifier>
     </Filter>
@@ -129,11 +126,17 @@
     <Filter Include="Module\Renderer\SceneRenderer">
       <UniqueIdentifier>{2595bd76-d662-4529-af0f-c05598e4d29b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Renderer\SceneRenderer\RenderTarget">
-      <UniqueIdentifier>{818f2817-ac1f-4bb7-bf93-6aea28429176}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module\Renderer\DebugRenderer">
       <UniqueIdentifier>{d39b251c-e940-41b5-a297-7d741ffebfd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Material">
+      <UniqueIdentifier>{df3170ab-7971-4609-ab36-803b4ad66cd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Renderer\RenderTarget">
+      <UniqueIdentifier>{818f2817-ac1f-4bb7-bf93-6aea28429176}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Renderer\RenderPass">
+      <UniqueIdentifier>{8d181add-9a54-4fc9-a5e0-cafc3420c93c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -264,10 +267,7 @@
       <Filter>Module\Utility</Filter>
     </ClInclude>
     <ClInclude Include="RenderTarget.h">
-      <Filter>Module\Renderer\SceneRenderer\RenderTarget</Filter>
-    </ClInclude>
-    <ClInclude Include="MultiRenderTarget.h">
-      <Filter>Module\Renderer\SceneRenderer\RenderTarget</Filter>
+      <Filter>Module\Renderer\RenderTarget</Filter>
     </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent</Filter>
@@ -288,7 +288,7 @@
       <Filter>Module\Graphics\Buffer</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
-      <Filter>Module\Graphics\Material</Filter>
+      <Filter>Module\Material</Filter>
     </ClInclude>
     <ClInclude Include="SkyComponent.h">
       <Filter>Module\Framework\Component</Filter>
@@ -322,6 +322,9 @@
     </ClInclude>
     <ClInclude Include="AnimationController.h">
       <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>Module\Renderer\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -416,10 +419,7 @@
       <Filter>Module\Utility</Filter>
     </ClCompile>
     <ClCompile Include="RenderTarget.cpp">
-      <Filter>Module\Renderer\SceneRenderer\RenderTarget</Filter>
-    </ClCompile>
-    <ClCompile Include="MultiRenderTarget.cpp">
-      <Filter>Module\Renderer\SceneRenderer\RenderTarget</Filter>
+      <Filter>Module\Renderer\RenderTarget</Filter>
     </ClCompile>
     <ClCompile Include="LightComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent</Filter>
@@ -440,7 +440,7 @@
       <Filter>Module\Graphics\Buffer</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
-      <Filter>Module\Graphics\Material</Filter>
+      <Filter>Module\Material</Filter>
     </ClCompile>
     <ClCompile Include="SkyComponent.cpp">
       <Filter>Module\Framework\Component</Filter>
@@ -472,6 +472,9 @@
     </ClCompile>
     <ClCompile Include="AnimationController.cpp">
       <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPass.cpp">
+      <Filter>Module\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -18,8 +18,11 @@
 #define ToFloat(x)	static_cast<float>(x)
 #define ToUint32(x) static_cast<uint32>(x)
 
+#define SAFE_ADDREF(x)		if( nullptr != x )											\
+	{ x->AddRef(); }	
+
 #define SAFE_RELEASE(x)		if( nullptr != x )											\
-	{ x->Release(); x = nullptr; }
+	{ ULONG refCount = x->Release(); if(0 == refCount) { x = nullptr; } }
 
 #define FAILED_CHECK(_hr)	if( ((HRESULT)(_hr)) < 0 )									\
 	{ MessageBox(NULL, L"Failed", L"System Error",MB_OK); return;}

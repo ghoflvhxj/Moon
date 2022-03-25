@@ -74,12 +74,19 @@ void MyGame::render()
 {
 	std::shared_ptr<PointLightComponent> p	= std::static_pointer_cast<PointLightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
 	std::shared_ptr<SceneComponent>	p2		= _pPlayer->getComponent(TEXT("test2"));
-	Vec3 color = p->getColor();
+	//Vec3 color = p->getColor();
+	//float range = p->getRange();
+	//Vec3 pos = p->getTranslation();
+	//Vec3 rot = p->getRotation();
+	//float intensitiy = p->getIntensity();
+
+	Vec3 color = VEC3ZERO;
+	float range = 0.f;
+	float intensity = 0.f;
+
+	Vec3 pos = p2->getScale();
+	Vec3 rot = p2->getScale();
 	Vec3 scale = p2->getScale();
-	float range = p->getRange();
-	Vec3 pos = p->getTranslation();
-	Vec3 rot = p->getRotation();
-	float intensitiy = p->getIntensity();
 
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -100,12 +107,12 @@ void MyGame::render()
 	ImGui::SliderAngle("rotationZ", &rot.z);
 	ImGui::ColorEdit3("clear color", (float *)&color);
 	ImGui::SliderFloat("range", &range, 0.f, 100.f);
-	ImGui::SliderFloat("intensity", &intensitiy, 0.f, 10.f);
-	p->setTranslation(pos);
-	p->setRotation(rot);
-	p->setColor(color);
-	p->setRange(range);
-	p->setIntensity(intensitiy);
+	ImGui::SliderFloat("intensity", &intensity, 0.f, 10.f);
+	//p->setTranslation(pos);
+	//p->setRotation(rot);
+	//p->setColor(color);
+	//p->setRange(range);
+	//p->setIntensity(intensitiy);
 
 	p2->setTranslation(pos);
 	p2->setScale(scale);

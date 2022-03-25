@@ -373,14 +373,17 @@ void Material::render(std::shared_ptr<PrimitiveComponent> pComponent)
 	}
 	else
 	{
-		uint32 vertexOffsetCount = static_cast<uint32>(_vertexOffsetList.size());
-		for (uint32 index = 0; index + 1 < vertexOffsetCount; ++index)
+		if (nullptr != _pVertexBuffer)
 		{
-			g_pGraphicDevice->getContext()->Draw(static_cast<UINT>(_vertexOffsetList[index + 1] - _vertexOffsetList[index])
-											   , static_cast<UINT>(_vertexOffsetList[index]));
+			uint32 vertexOffsetCount = static_cast<uint32>(_vertexOffsetList.size());
+			for (uint32 index = 0; index + 1 < vertexOffsetCount; ++index)
+			{
+				g_pGraphicDevice->getContext()->Draw(static_cast<UINT>(_vertexOffsetList[index + 1] - _vertexOffsetList[index])
+					, static_cast<UINT>(_vertexOffsetList[index]));
+			}
+			g_pGraphicDevice->getContext()->Draw(static_cast<UINT>(_pVertexBuffer->getVertexCount() - _vertexOffsetList[vertexOffsetCount - 1])
+				, static_cast<UINT>(_vertexOffsetList[vertexOffsetCount - 1]));
 		}
-		g_pGraphicDevice->getContext()->Draw(static_cast<UINT>(_pVertexBuffer->getVertexCount() - _vertexOffsetList[vertexOffsetCount - 1])
-										   , static_cast<UINT>(_vertexOffsetList[vertexOffsetCount - 1]));
 	}
 }
 

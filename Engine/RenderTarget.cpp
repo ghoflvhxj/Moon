@@ -14,23 +14,21 @@
 RenderTarget::RenderTarget()
 	: _pRenderTargetTexture{ nullptr }
 	, _pRenderTargetView{ nullptr }
-	, _pShaderResouceView{ nullptr }
 	, _pDepthStencilTexture{ nullptr }
 	, _pDepthStencilView{ nullptr }
 {
 	initializeTexture();
-	initializeMesh();
 }
 
 RenderTarget::~RenderTarget()
 {
-	SAFE_RELEASE(_pRenderTargetView);
-	SAFE_RELEASE(_pRenderTargetTexture);
+	SAFE_RELEASE(_pRenderTargetView)
+	SAFE_RELEASE(_pDepthStencilView);
 }
 
-void RenderTarget::Update(const Time deltaTime)
+std::shared_ptr<TextureComponent> RenderTarget::getRenderTargetTexture()
 {
-	_pMeshComponent->SceneComponent::Update(deltaTime);
+	return _pRenderTargetTexture;
 }
 
 void RenderTarget::initializeTexture()
@@ -49,20 +47,21 @@ void RenderTarget::initializeTexture()
 	renderTagetDesc.CPUAccessFlags = 0;
 	renderTagetDesc.MiscFlags = 0;
 
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&renderTagetDesc, nullptr, &_pRenderTargetTexture));
+	_pRenderTargetTexture = std::make_shared<TextureComponent>();
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&renderTagetDesc, nullptr, &_pRenderTargetTexture->getTextureRowPointer()));
 
-	D3D11_RENDER_TARGET_VIEW_DESC rvd = { };
-	rvd.Format = renderTagetDesc.Format;
-	rvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-	rvd.Texture2D.MipSlice = 0;
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(_pRenderTargetTexture, &rvd, &_pRenderTargetView));
+	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
+	renderTargetViewDesc.Format = renderTagetDesc.Format;
+	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	renderTargetViewDesc.Texture2D.MipSlice = 0;
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(_pRenderTargetTexture->getTextureRowPointer(), &renderTargetViewDesc, &_pRenderTargetView));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC svd = { };
 	svd.Format = renderTagetDesc.Format;
 	svd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	svd.Texture2D.MipLevels = -1;
 	svd.Texture2D.MostDetailedMip = 0;
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(_pRenderTargetTexture, &svd, &_pShaderResouceView));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(_pRenderTargetTexture->getTextureRowPointer(), &svd, &_pRenderTargetTexture->getResourceViewRowPointer()));
 
 	// DepthStencilView
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
@@ -78,24 +77,9 @@ void RenderTarget::initializeTexture()
 	depthStencilDesc.CPUAccessFlags = 0;
 	depthStencilDesc.MiscFlags = 0;
 
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&depthStencilDesc, nullptr, &_pDepthStencilTexture));
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(_pDepthStencilTexture, nullptr, &_pDepthStencilView));
-}
-
-void RenderTarget::initializeMesh()
-{
-	_pMeshComponent = std::make_shared<MeshComponent>();	// BoxComponent
-	_pMeshComponent->setScale(Vec3{ 200.f ,200.f, 1.f });
-	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
-	_pMeshComponent->setRenderMode(MeshComponent::RenderMode::Orthogonal);
-
-	std::shared_ptr<TextureComponent> _pTextureComponent = std::make_shared<TextureComponent>(_pRenderTargetTexture);
-	_pMeshComponent->setTexture(TextureType::Diffuse, _pTextureComponent);
-}
-
-std::shared_ptr<MeshComponent> RenderTarget::getMeshComponent()
-{
-	return _pMeshComponent;
+	_pDepthStencilTexture = std::make_shared<TextureComponent>();
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&depthStencilDesc, nullptr, &_pDepthStencilTexture->getTextureRowPointer()));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(_pDepthStencilTexture->getTextureRowPointer(), nullptr, &_pDepthStencilView));
 }
 
 ID3D11RenderTargetView* RenderTarget::getRenderTargetView()
@@ -103,17 +87,7 @@ ID3D11RenderTargetView* RenderTarget::getRenderTargetView()
 	return _pRenderTargetView;
 }
 
-ID3D11ShaderResourceView* RenderTarget::getShaderResouceView()
-{
-	return _pShaderResouceView;
-}
-
 ID3D11DepthStencilView* RenderTarget::getDepthStencilView()
 {
 	return _pDepthStencilView;
-}
-
-void RenderTarget::Render()
-{
-	_pMeshComponent->render();
 }
