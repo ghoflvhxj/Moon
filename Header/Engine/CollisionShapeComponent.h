@@ -26,8 +26,8 @@ private:
 public:
 	virtual void Update(const Time deltaTime) override;
 
-public:
-	virtual void render() override;
+//public:
+//	virtual void render() override;
 };
 
 #define __COLLSION_SHAPE_COMPONENT_H__

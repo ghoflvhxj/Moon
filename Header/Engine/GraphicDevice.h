@@ -4,6 +4,9 @@
 #include "EngineException.h"
 #include "Vertex.h"
 
+class VertexShader;
+class PixelShader;
+
 class ENGINE_DLL GraphicDevice
 {
 public:
@@ -46,19 +49,28 @@ public:
 	void Begin();
 	void End();
 
+	//-------------------------------------------------------------------------
+	// State
+private:
+	const bool buildSamplerState();
+public:
+	ID3D11SamplerState* getSamplerState();
+private:
+	std::vector<ID3D11SamplerState*> _samplerList;
+
 private:
 	const bool buildRasterizerState();
 public:
 	ID3D11RasterizerState *getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode);
 private:
-	std::vector<ID3D11RasterizerState *> rasterizerList;
+	std::vector<ID3D11RasterizerState*> _rasterizerList;
 
 private:
 	const bool buildDepthStencilState();
 public:
 	ID3D11DepthStencilState *getDepthStencilState(const Graphic::DepthWriteMode eDetphWrite);
 private:
-	std::vector<ID3D11DepthStencilState *> depthStencilStateList;
+	std::vector<ID3D11DepthStencilState *> _depthStencilStateList;
 
 private:
 	const bool buildBlendState();
@@ -66,6 +78,12 @@ public:
 	ID3D11BlendState *getBlendState(const Graphic::Blend eBlend);
 private:
 	std::vector<ID3D11BlendState*> _blendStateList;
+
+	//-------------------------------------------------------------------------
+	// 인터페이스 래핑
+public:
+	void SetVertexShader(std::shared_ptr<VertexShader> &vertexShader);
+	void SetPixelShader(std::shared_ptr<PixelShader> &pixelShader);
 
 public:
 	ID3D11Device *getDevice();
@@ -97,6 +115,7 @@ private:
 };
 
 #define FAILED_CHECK_THROW(hr) if((HRESULT)hr < 0) throw GraphicDevice::Exception(__LINE__, __FILE__, GetLastError());
+#define FAILED_CHECK_THROW_MSG(hr, message) if((HRESULT)hr < 0) { assert(false && TEXT(message)); throw GraphicDevice::Exception(__LINE__, __FILE__, GetLastError()); }
 
 #define __GRAPHIC_DEVICE_H__
 #endif

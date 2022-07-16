@@ -8,21 +8,22 @@
 class TextureComponent;
 class Material;
 
-class ENGINE_DLL MeshComponent /* abstract */ : public PrimitiveComponent
+class ENGINE_DLL MeshComponent abstract : public PrimitiveComponent
 {
 public:
 	explicit MeshComponent();
 	virtual ~MeshComponent();
 
-private:
-	void initializeMeshInformation();
-private:
-	std::vector<Vertex> _vertexList;
-	std::vector<Index>	_indexList;
+// 삭제 예정
+//private:
+//	void initializeMeshInformation();
+//private:
+//	std::vector<Vertex> _vertexList;
+//	std::vector<Index>	_indexList;
 
-public:
+//public:
 	//virtual void Update(const Time deltaTime) override;
-	virtual void render() override;
+	//virtual void render() override;
 
 public:
 	const bool addTexture(std::shared_ptr<TextureComponent> pTexture);

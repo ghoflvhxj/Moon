@@ -28,7 +28,7 @@ IndexBuffer::IndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, 
 
 IndexBuffer::~IndexBuffer()
 {
-	_pBuffer->Release();
+	SafeRelease(_pBuffer);
 }
 
 void IndexBuffer::setBufferToDevice(UINT &offset)

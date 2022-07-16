@@ -16,39 +16,40 @@ MeshComponent::MeshComponent()
 	: PrimitiveComponent()
 	, _textureList(5, nullptr)
 {
-	initializeMeshInformation();
+	//initializeMeshInformation();
 }
 
 MeshComponent::~MeshComponent()
 {
 }
 
-void MeshComponent::initializeMeshInformation()
-{
-	_vertexList.reserve(4);
-	_vertexList.push_back({ Vec3{ -0.5f, 0.5f, 1.f }, static_cast<Vec4>(Colors::White), Vec2{0.f, 0.f}, Vec3{0.f, 0.f, -1.f} });
-	_vertexList.push_back({ Vec3{ 0.5f, 0.5f, 1.f }, static_cast<Vec4>(Colors::Red), Vec2(1.f, 0.f), Vec3{0.f, 0.f, -1.f} });
-	_vertexList.push_back({ Vec3{ 0.5f, -0.5f, 1.f }, static_cast<Vec4>(Colors::Green), Vec2(1.f, 1.f), Vec3{0.f, 0.f, -1.f} });
-	_vertexList.push_back({ Vec3{ -0.5f, -0.5f, 1.f }, static_cast<Vec4>(Colors::Yellow), Vec2(0.f, 1.f), Vec3{0.f, 0.f, -1.f} });
+// 삭제예정
+//void MeshComponent::initializeMeshInformation() 
+//{
+//	_vertexList.reserve(4);
+//	_vertexList.push_back({ Vec3{ -0.5f, 0.5f, 1.f }, static_cast<Vec4>(Colors::White), Vec2{0.f, 0.f}, Vec3{0.f, 0.f, -1.f} });
+//	_vertexList.push_back({ Vec3{ 0.5f, 0.5f, 1.f }, static_cast<Vec4>(Colors::Red), Vec2(1.f, 0.f), Vec3{0.f, 0.f, -1.f} });
+//	_vertexList.push_back({ Vec3{ 0.5f, -0.5f, 1.f }, static_cast<Vec4>(Colors::Green), Vec2(1.f, 1.f), Vec3{0.f, 0.f, -1.f} });
+//	_vertexList.push_back({ Vec3{ -0.5f, -0.5f, 1.f }, static_cast<Vec4>(Colors::Yellow), Vec2(0.f, 1.f), Vec3{0.f, 0.f, -1.f} });
+//
+//	_indexList.reserve(6);
+//	_indexList.push_back(0);
+//	_indexList.push_back(1);
+//	_indexList.push_back(2);
+//
+//	_indexList.push_back(0);
+//	_indexList.push_back(2);
+//	_indexList.push_back(3);
+//
+//	_pMaterial = std::make_shared<Material>(_vertexList, _indexList);
+//	_pMaterial->setTexture(_textureList);
+//	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
+//}
 
-	_indexList.reserve(6);
-	_indexList.push_back(0);
-	_indexList.push_back(1);
-	_indexList.push_back(2);
-
-	_indexList.push_back(0);
-	_indexList.push_back(2);
-	_indexList.push_back(3);
-
-	_pMaterial = std::make_shared<Material>(_vertexList, _indexList);
-	_pMaterial->setTexture(_textureList);
-	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
-}
-
-void MeshComponent::render()
-{
-	_pMaterial->render(shared_from_this());
-}
+//void MeshComponent::render()
+//{
+//	_pMaterial->render(shared_from_this());
+//}
 
 const bool MeshComponent::addTexture(std::shared_ptr<TextureComponent> pTexture)
 {

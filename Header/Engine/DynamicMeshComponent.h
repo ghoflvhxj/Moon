@@ -27,7 +27,7 @@ private:
 	std::vector<Vec3>			_originVertexPositionList;
 
 public:
-	virtual void render() override;
+	//virtual void render() override;
 	std::shared_ptr<Material> getMaterial(const uint32 index);
 private:
 	MaterialList _materialList;

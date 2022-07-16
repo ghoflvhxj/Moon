@@ -18,8 +18,7 @@ LightComponent::~LightComponent(void)
 void LightComponent::Update(const Time deltaTime)
 {
 	SceneComponent::Update(deltaTime);
-
-	g_pRenderer->addLightComponent(shared_from_this());
+	//g_pRenderer->addLightComponent(shared_from_this());
 }
 
 const Vec3& LightComponent::getColor(void) const

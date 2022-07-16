@@ -5,13 +5,8 @@
 
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
-#include "DynamicMeshComponent.h"
-#include "TerrainComponent.h"
 #include "TextureComponent.h"
-#include "PointLightComponent.h"
-#include "DirectionalLightComponent.h"
-#include "SkyComponent.h"
-#include "CollisionShapeComponent.h"
+#include "Material.h"
 
 #include "imgui.h"
 
@@ -28,22 +23,23 @@ Player::~Player()
 
 void Player::initialize()
 {
-	//_pMeshComponent = std::make_shared<MeshComponent>();
+	_pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
+
+	//_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
+	//_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
 	//addComponent(ROOT_COMPONENT, _pMeshComponent);
+	//_pMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
-	//_pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
-	//_pMeshComponent->setTexture(TextureType::Diffuse, _pTextureComponent);
+	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Table/Table.fbx");
+	addComponent(TEXT("test"), _pStaticMeshComponent);
+	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 
-	//_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Table/Table.fbx");
-	//addComponent(TEXT("test"), _pStaticMeshComponent);
-	//_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	//_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
+	//addComponent(TEXT("test2"), _pStaticMeshComponent2);
+	//_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 
-	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
-	addComponent(TEXT("test2"), _pStaticMeshComponent2);
-	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-
-	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
-	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
+	//_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
+	//addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
 
 	//_pSkyComponent = std::make_shared<SkyComponent>();
 	//addComponent(TEXT("Sky"), _pSkyComponent);
@@ -51,9 +47,9 @@ void Player::initialize()
 	//_pLightComponent = std::make_shared<PointLightComponent>();
 	//addComponent(TEXT("PointLight"), _pLightComponent);
 
-	_pLightComponent2 = std::make_shared<DirectionalLightComponent>();
-	addComponent(TEXT("DirectionalLight"), _pLightComponent2);
-	_pLightComponent2->setRotation(Vec3{ XMConvertToRadians(45.f), 0.f, 0.f });
+	//_pLightComponent2 = std::make_shared<DirectionalLightComponent>();
+	//addComponent(TEXT("DirectionalLight"), _pLightComponent2);
+	//_pLightComponent2->setRotation(Vec3{ XMConvertToRadians(45.f), 0.f, 0.f });
 
 	//_pCollisionShapeComponent = std::make_shared<CollisionShapeComponent>();
 	//addComponent(TEXT("CollisionShape"), _pCollisionShapeComponent);
@@ -86,8 +82,6 @@ void Player::initializeImGui()
 
 void Player::tick(const Time deltaTime)
 {
-	initializeImGui();
-
 	//Vec3 trans = _pLightComponent->getTranslation();
 	//Vec3 look = _pLightComponent->getLook();
 	//Vec3 right = _pLightComponent->getRight();
@@ -130,39 +124,39 @@ void Player::tick(const Time deltaTime)
 	//}
 }
 
-void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)
-{
-	Vec3 trans	= _pMeshComponent->getTranslation();
-	Vec3 look	= _pMeshComponent->getLook();
-	Vec3 right	= _pMeshComponent->getRight();
-
-	float speed = 0.1f;
-
-	if (keyPress(DIK_UP))
-	{
-		trans.x += look.x * speed;
-		trans.z += look.z * speed;
-	}
-	else if (keyPress(DIK_DOWN))
-	{
-		trans.x -= look.x * speed;
-		trans.z -= look.z * speed;
-	}
-	else if (keyPress(DIK_RIGHT))
-	{
-		trans.x += right.x * speed;
-		trans.z += right.z * speed;
-	}
-	else if (keyPress(DIK_LEFT))
-	{
-		trans.x -= right.x * speed;
-		trans.z -= right.z * speed;
-	}
-
-	float y = 0.f;
-	if (pTerrainComponent->Test(trans, &trans.y))
-	{
-		_pMeshComponent->setTranslation({ trans.x, trans.y, trans.z });
-	}
-
-}
+//void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)
+//{
+//	Vec3 trans	= _pMeshComponent->getTranslation();
+//	Vec3 look	= _pMeshComponent->getLook();
+//	Vec3 right	= _pMeshComponent->getRight();
+//
+//	float speed = 0.1f;
+//
+//	if (keyPress(DIK_UP))
+//	{
+//		trans.x += look.x * speed;
+//		trans.z += look.z * speed;
+//	}
+//	else if (keyPress(DIK_DOWN))
+//	{
+//		trans.x -= look.x * speed;
+//		trans.z -= look.z * speed;
+//	}
+//	else if (keyPress(DIK_RIGHT))
+//	{
+//		trans.x += right.x * speed;
+//		trans.z += right.z * speed;
+//	}
+//	else if (keyPress(DIK_LEFT))
+//	{
+//		trans.x -= right.x * speed;
+//		trans.z -= right.z * speed;
+//	}
+//
+//	float y = 0.f;
+//	if (pTerrainComponent->Test(trans, &trans.y))
+//	{
+//		_pMeshComponent->setTranslation({ trans.x, trans.y, trans.z });
+//	}
+//
+//}

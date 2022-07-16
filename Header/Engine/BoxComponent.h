@@ -16,7 +16,7 @@ public:
 
 public:
 	//virtual void Update(const Time deltaTime) override;
-	virtual void render() override;
+	//virtual void render() override;
 
 public:
 	void setMaterial(std::shared_ptr<Material> pMaterial);

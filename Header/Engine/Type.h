@@ -2,6 +2,7 @@
 #ifndef __TYPE_H__
 
 #include <chrono>
+#include <d3d11.h>
 #include <DirectXMath.h>
 
 using Byte		= unsigned char;
@@ -24,6 +25,5 @@ using Vec2 = DirectX::XMFLOAT2;
 using Mat4 = DirectX::XMFLOAT4X4;
 
 using DIRECTORY = const wchar_t *;
-
 
 #endif __TYPE_H__

@@ -38,9 +38,9 @@ private:
 	std::vector<Index>	_indexList;
 
 
-public:
-	// PrimitiveComponent을(를) 통해 상속됨
-	virtual void render() override;
+//public:
+//	// PrimitiveComponent을(를) 통해 상속됨
+//	virtual void render() override;
 
 public:
 	const TileNum getTileX() const;

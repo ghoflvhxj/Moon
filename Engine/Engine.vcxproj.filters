@@ -45,9 +45,6 @@
     <Filter Include="Module\Graphics">
       <UniqueIdentifier>{ca02078a-0659-4518-a729-b9878d0ccb7e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Shader">
-      <UniqueIdentifier>{687ee663-5f7d-4461-affc-dd55914615e0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module\Framework\Component\SceneComponent">
       <UniqueIdentifier>{804a531e-3813-46e7-9a83-58152c5c7fd0}</UniqueIdentifier>
     </Filter>
@@ -84,12 +81,6 @@
     <Filter Include="Module\System\File">
       <UniqueIdentifier>{9a169f7a-d291-4820-a196-0ccfe74cb404}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Shader\Vertex">
-      <UniqueIdentifier>{0786ad9c-77f8-44b0-9b01-cf3d59a98ca8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Module\Shader\Pixel">
-      <UniqueIdentifier>{58ad6522-0dab-41c7-9e20-25fce008ca95}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module\MoonEngine">
       <UniqueIdentifier>{895a998f-6eb0-4fd0-85da-5756ce5bffdb}</UniqueIdentifier>
     </Filter>
@@ -117,26 +108,41 @@
     <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent">
       <UniqueIdentifier>{f1e831b6-d990-4448-8368-6004027cfccb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Renderer">
-      <UniqueIdentifier>{0ad1672a-f524-46c1-a772-e34d3bced7b8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Module\Renderer\CollisionRenderer">
-      <UniqueIdentifier>{670b85c5-fd0e-423b-8044-cb4ebe5c254b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Module\Renderer\SceneRenderer">
-      <UniqueIdentifier>{2595bd76-d662-4529-af0f-c05598e4d29b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Module\Renderer\DebugRenderer">
-      <UniqueIdentifier>{d39b251c-e940-41b5-a297-7d741ffebfd6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module\Material">
       <UniqueIdentifier>{df3170ab-7971-4609-ab36-803b4ad66cd6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Renderer\RenderTarget">
+    <Filter Include="Module\Render">
+      <UniqueIdentifier>{0ad1672a-f524-46c1-a772-e34d3bced7b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Render\RenderTarget">
       <UniqueIdentifier>{818f2817-ac1f-4bb7-bf93-6aea28429176}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Renderer\RenderPass">
+    <Filter Include="Module\Render\RenderPass">
       <UniqueIdentifier>{8d181add-9a54-4fc9-a5e0-cafc3420c93c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Render\RenderPass\Combine">
+      <UniqueIdentifier>{a5c085f6-090f-4d2a-83dc-60a80c5eb74d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Render\Renderer">
+      <UniqueIdentifier>{88f578d4-480d-41da-b3fd-8242c06dc4a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Graphics\Shader">
+      <UniqueIdentifier>{687ee663-5f7d-4461-affc-dd55914615e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Graphics\Shader\Vertex">
+      <UniqueIdentifier>{0786ad9c-77f8-44b0-9b01-cf3d59a98ca8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Graphics\Shader\Pixel">
+      <UniqueIdentifier>{58ad6522-0dab-41c7-9e20-25fce008ca95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Graphics\Shader\Vertex\hlsl">
+      <UniqueIdentifier>{826df07d-68d7-4705-a723-10c762442bbf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Graphics\Shader\Pixel\hlsl">
+      <UniqueIdentifier>{50a12c2c-2c8b-49a3-9e6b-38937eacd832}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Graphics\Shader\Common">
+      <UniqueIdentifier>{0ac45d8b-e774-4628-a4fd-fd96b33a5287}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -249,10 +255,10 @@
       <Filter>Module\Framework\Component</Filter>
     </ClInclude>
     <ClInclude Include="ShaderManager.h">
-      <Filter>Module\Shader</Filter>
+      <Filter>Module\Graphics\Shader</Filter>
     </ClInclude>
     <ClInclude Include="ShaderLoader.h">
-      <Filter>Module\Shader</Filter>
+      <Filter>Module\Graphics\Shader</Filter>
     </ClInclude>
     <ClInclude Include="InputLayout.h">
       <Filter>Module\Graphics</Filter>
@@ -267,7 +273,7 @@
       <Filter>Module\Utility</Filter>
     </ClInclude>
     <ClInclude Include="RenderTarget.h">
-      <Filter>Module\Renderer\RenderTarget</Filter>
+      <Filter>Module\Render\RenderTarget</Filter>
     </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent</Filter>
@@ -293,18 +299,6 @@
     <ClInclude Include="SkyComponent.h">
       <Filter>Module\Framework\Component</Filter>
     </ClInclude>
-    <ClInclude Include="SceneRenderer.h">
-      <Filter>Module\Renderer\SceneRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugRenderer.h">
-      <Filter>Module\Renderer\DebugRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="CollisionRenderer.h">
-      <Filter>Module\Renderer\CollisionRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Module\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="CollisionShapeComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -324,7 +318,25 @@
       <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
     </ClInclude>
     <ClInclude Include="RenderPass.h">
-      <Filter>Module\Renderer\RenderPass</Filter>
+      <Filter>Module\Render\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="CombinePass.h">
+      <Filter>Module\Render\RenderPass\Combine</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Module\Render\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Render.h">
+      <Filter>Module\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Module\Graphics\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexShader.h">
+      <Filter>Module\Graphics\Shader\Vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelShader.h">
+      <Filter>Module\Graphics\Shader\Pixel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -401,10 +413,10 @@
       <Filter>Module\Framework\Component</Filter>
     </ClCompile>
     <ClCompile Include="ShaderManager.cpp">
-      <Filter>Module\Shader</Filter>
+      <Filter>Module\Graphics\Shader</Filter>
     </ClCompile>
     <ClCompile Include="ShaderLoader.cpp">
-      <Filter>Module\Shader</Filter>
+      <Filter>Module\Graphics\Shader</Filter>
     </ClCompile>
     <ClCompile Include="InputLayout.cpp">
       <Filter>Module\Graphics</Filter>
@@ -419,7 +431,7 @@
       <Filter>Module\Utility</Filter>
     </ClCompile>
     <ClCompile Include="RenderTarget.cpp">
-      <Filter>Module\Renderer\RenderTarget</Filter>
+      <Filter>Module\Render\RenderTarget</Filter>
     </ClCompile>
     <ClCompile Include="LightComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent</Filter>
@@ -445,18 +457,6 @@
     <ClCompile Include="SkyComponent.cpp">
       <Filter>Module\Framework\Component</Filter>
     </ClCompile>
-    <ClCompile Include="SceneRenderer.cpp">
-      <Filter>Module\Renderer\SceneRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugRenderer.cpp">
-      <Filter>Module\Renderer\DebugRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Module\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="CollisionRenderer.cpp">
-      <Filter>Module\Renderer\CollisionRenderer</Filter>
-    </ClCompile>
     <ClCompile Include="CollisionShapeComponent.cpp" />
     <ClCompile Include="DirectionalLightComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent\DirectionalLightComponent</Filter>
@@ -474,39 +474,65 @@
       <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
     </ClCompile>
     <ClCompile Include="RenderPass.cpp">
-      <Filter>Module\Renderer\RenderPass</Filter>
+      <Filter>Module\Render\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="CombinePass.cpp">
+      <Filter>Module\Render\RenderPass\Combine</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Module\Render\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Module\Graphics\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexShader.cpp">
+      <Filter>Module\Graphics\Shader\Vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="PixelShader.cpp">
+      <Filter>Module\Graphics\Shader\Pixel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="TexPixelShader.hlsl">
-      <Filter>Module\Shader\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="PixelShader.hlsl">
-      <Filter>Module\Shader\Pixel</Filter>
-    </FxCompile>
     <FxCompile Include="TexVertexShader.hlsl">
-      <Filter>Module\Shader\Vertex</Filter>
+      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="DepthPre.hlsl">
+      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
-      <Filter>Module\Shader\Vertex</Filter>
+      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="TexPixelShader2.hlsl">
-      <Filter>Module\Shader\Pixel</Filter>
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="DeferredShader.hlsl">
-      <Filter>Module\Shader\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="PointLightShader.hlsl">
-      <Filter>Module\Shader\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="SkyPixelShader.hlsl">
-      <Filter>Module\Shader\Pixel</Filter>
-    </FxCompile>
-    <FxCompile Include="LinePixelShader.hlsl">
-      <Filter>Module\Shader\Pixel</Filter>
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="DirectionalLightShader.hlsl">
-      <Filter>Module\Shader\Pixel</Filter>
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
+    <FxCompile Include="LinePixelShader.hlsl">
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="PixelShader.hlsl">
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="PointLightShader.hlsl">
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyPixelShader.hlsl">
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="TexPixelShader.hlsl">
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="Deferred.hlsl">
+      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Header.hlsli">
+      <Filter>Module\Graphics\Shader\Common</Filter>
+    </None>
   </ItemGroup>
 </Project>

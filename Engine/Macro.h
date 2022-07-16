@@ -58,11 +58,11 @@
 		{ return;}
 
 #define ASSERT_CONDITION_MSG(_condition, _msg)											\
-		{ assert(_condition && _msg); }
+		{ assert(_condition && TEXT(_msg)); }
 
 #ifdef DEBUG																			
 	#define DEV_ASSERT_MSG(_msg)														\
-		{ assert(false && _msg); }														
+		{ assert(false && TEXT(_msg)); }														
 #else																					
 	#define DEV_ASSERT_MSG(_msg)														
 #endif																							

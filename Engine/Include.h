@@ -18,17 +18,22 @@ class __declspec(dllexport) std::exception;
 #include <map>
 #include <unordered_map>
 
-#include <sdkddkver.h>
-#include <afx.h>
-#include <Windows.h>
-#include <Shlwapi.h>
+// Window Platform
+#ifdef _WIN64
+	#include <sdkddkver.h>
+	#include <afx.h>
+	#include <Windows.h>
+	#include <Shlwapi.h>	// 문자열 처리용
 
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include <Xinput.h>
 
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
+	// DirectX
+	#include <d3d11.h>
+	#include <d3dcompiler.h>
+	#include <Xinput.h>
+
+	#define DIRECTINPUT_VERSION 0x0800
+	#include <dinput.h>
+#endif
 
 #include "Type.h"
 #include "Enum.h"

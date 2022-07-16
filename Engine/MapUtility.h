@@ -30,21 +30,13 @@ namespace MapUtility
 	}
 
 	template<class Map, class Key = Map::key_type, class Value = Map::mapped_type>
-	const Value &FindGet(Map &refMap, Key &refKey)
-	{
-		if (false == Find(refMap, refKey))
-			return nullptr;
-
-		return refMap[refKey];
-	}
-
-	template<class Map, class Key = Map::key_type, class Value = Map::mapped_type>
-	const bool FindGet(Map &refMap, Key &refKey, Value *pValue)
+	const bool FindGet(Map &refMap, Key &refKey, Value &outRefValue)
 	{
 		if (false == Find(refMap, refKey))
 			return false;
 
-		*pValue = refMap[refKey];
+		outRefValue = refMap[refKey];
+
 		return true;
 	}
 

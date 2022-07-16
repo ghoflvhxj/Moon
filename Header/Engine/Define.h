@@ -45,7 +45,5 @@ namespace Colors
 	XMGLOBALCONST DirectX::XMVECTORF32 LightSteelBlue = { 0.69f, 0.77f, 0.87f, 1.0f };
 }
 
-#define EnumIndex(x) static_cast<uint32>(x)
-
 #define __DEFINE_H__
 #endif

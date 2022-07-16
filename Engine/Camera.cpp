@@ -43,7 +43,7 @@ void Camera::initialize()
 {
 	_pSceneComponent = CreateDefaultSubObject<SceneComponent>();
 	addComponent(ROOT_COMPONENT, _pSceneComponent);
-	_pSceneComponent->setTranslation({ 0.f, 0.f, -1.f });
+	//_pSceneComponent->setTranslation({ 0.f, 0.f, -1.f });
 
 	_pSceneComponent->Update(0.f);
 }
@@ -126,7 +126,7 @@ const Mat4& Camera::getProjectionMatrix()
 	}
 	default:
 	{
-		DEV_ASSERT_MSG(TEXT("알 수 없는 투영모드 입니다!"));
+		DEV_ASSERT_MSG("알 수 없는 투영모드 입니다!");
 		return _perspectiveProjectionMatrix;
 	}
 	}
@@ -156,7 +156,7 @@ const Mat4& Camera::getInverseProjectionMatrix()
 	}
 	default:
 	{
-		DEV_ASSERT_MSG(TEXT("알 수 없는 투영모드 입니다!"));
+		DEV_ASSERT_MSG("알 수 없는 투영모드 입니다!");
 		return _inversePerspectiveProjectionMatrix;
 	}
 	}

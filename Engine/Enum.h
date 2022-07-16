@@ -36,7 +36,7 @@ namespace Graphic
 	{
 		WireFrame
 		, Solid
-		, End
+		, Count
 	};
 
 	enum class CullMode
@@ -44,14 +44,14 @@ namespace Graphic
 		None
 		, Frontface
 		, Backface
-		, End
+		, Count
 	};
 
 	enum class DepthWriteMode
 	{
 		Enable
 		, Disable
-		, End
+		, Count
 	};
 
 	enum class Blend

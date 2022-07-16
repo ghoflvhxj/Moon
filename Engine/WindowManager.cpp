@@ -46,7 +46,10 @@ const std::shared_ptr<Window> WindowManager::CreateWindow(LPCWSTR title, const i
 
 const std::shared_ptr<Window> WindowManager::GetWindow(const HWND hWnd)
 {
-	return MapUtility::FindGet(m_windowMap, hWnd);
+	std::shared_ptr<Window> pWindow = nullptr;
+	MapUtility::FindGet(m_windowMap, hWnd, pWindow);
+
+	return pWindow;
 }
 
 const bool WindowManager::FindWindow(const HWND hWnd)

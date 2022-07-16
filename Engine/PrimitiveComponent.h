@@ -3,6 +3,10 @@
 
 #include "SceneComponent.h"
 
+class RenderPass;
+
+struct PrimitiveData;
+
 class ENGINE_DLL PrimitiveComponent abstract : public SceneComponent, public std::enable_shared_from_this<PrimitiveComponent>
 {
 public:
@@ -17,8 +21,9 @@ public:
 
 public:
 	virtual void Update(const Time deltaTime) override;
+
 public:
-	virtual void render() = 0;
+	virtual const bool getPrimitiveData(PrimitiveData &primitiveData);
 
 public:
 	void				setRenderMode(const RenderMode renderMode);

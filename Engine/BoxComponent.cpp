@@ -16,9 +16,9 @@ BoxComponent::~BoxComponent()
 {
 }
 
-void BoxComponent::render()
-{
-}
+//void BoxComponent::render()
+//{
+//}
 
 void BoxComponent::setMaterial(std::shared_ptr<Material> pMaterial)
 {

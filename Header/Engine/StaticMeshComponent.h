@@ -4,6 +4,37 @@
 
 #include "Vertex.h"
 
+class VertexBuffer;
+class IndexBuffer;
+
+class ENGINE_DLL StaticMesh
+{
+public:
+	StaticMesh() = default;
+	
+public: //삭제예정
+	void initializeMeshInformation(const char *filePathName);
+private:
+	std::vector<VertexList>		_verticesList;
+	std::vector<IndexList >		_indicesList;
+	std::vector<TextureList>	_textureList;
+
+public:
+	std::shared_ptr<Material> getMaterial(const uint32 index);
+	const uint32 getMaterialCount() const;
+private:
+	MaterialList _materialList;
+
+
+public:
+	std::shared_ptr<VertexBuffer> getVertexBuffer();
+	std::shared_ptr<IndexBuffer> getIndexBuffer();
+private:
+	std::shared_ptr<VertexBuffer> _pVertexBuffer = nullptr;
+	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
+
+};
+
 class ENGINE_DLL StaticMeshComponent : public PrimitiveComponent
 {
 public:
@@ -11,22 +42,17 @@ public:
 	explicit StaticMeshComponent(const char *filePathName);
 	virtual ~StaticMeshComponent();
 
-private:
-	void initializeMeshInformation(const char *filePathName);
-private:
-	// 서브 셋의 개수에 따라 사이즈가 결정됨
-	std::vector<VertexList>		_vertexList;		
-	std::vector<IndexList >		_indexList;
-	std::vector<TextureList>	_textureList;
+public:
+	virtual const bool getPrimitiveData(PrimitiveData &primitiveData) override;
 
 public:
-	virtual void render() override;
-	std::shared_ptr<Material> getMaterial(const uint32 index);
-private:
-	MaterialList _materialList;
+	virtual std::shared_ptr<StaticMesh>& getStaticMesh();
 
 private:
-	bool _bNormalTexture;
+	std::shared_ptr<StaticMesh> _pStaticMesh = nullptr;
+
+private:
+	bool _bNormalTexture = false;
 };
 
 #define __STATIC_MESH_COMPONENT_H__

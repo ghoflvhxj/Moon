@@ -36,7 +36,7 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 	g_pGraphicDevice	= std::make_shared<GraphicDevice>();
 	
-	g_pShaderManager	= std::make_shared<ShaderManager>();
+	g_pShaderManager = std::make_shared<ShaderManager>();
 	ShaderLoader shaderLoader;
 	shaderLoader.loadShader(g_pShaderManager);
 
@@ -49,6 +49,8 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 const bool EngineRelease()
 {
+	g_pShaderManager->Release();
+	g_pRenderer->Release();
 	g_pGraphicDevice->Release();
 
 	return true;

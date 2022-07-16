@@ -95,9 +95,9 @@ void CollisionShapeComponent::initialize()
 	_indexList.push_back(2);
 	_indexList.push_back(3);
 
-	_pMaterial = std::make_shared<Material>(_vertexList, _indexList);
-	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("LinePixelShader.cso"));
-	_pMaterial->setTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	//_pMaterial = std::make_shared<Material>(_vertexList, _indexList);
+	//_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("LinePixelShader.cso"));
+	//_pMaterial->setTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 }
 
 void CollisionShapeComponent::initialize(std::vector<Vertex> &positionList)
@@ -111,19 +111,19 @@ void CollisionShapeComponent::initialize(std::vector<Vertex> &positionList)
 		_indexList.push_back(indedx);
 	}
 
-	_pMaterial = std::make_shared<Material>(_vertexList, _indexList);
-	_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINELIST);
-	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("LinePixelShader.cso"));
+	//_pMaterial = std::make_shared<Material>(_vertexList, _indexList);
+	//_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINELIST);
+	//_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("LinePixelShader.cso"));
 }
 
 void CollisionShapeComponent::Update(const Time deltaTime)
 {
 	SceneComponent::Update(deltaTime);
 
-	g_pRenderer->addCollisionShapeComponent(shared_from_this());
+	//g_pRenderer->addCollisionShapeComponent(shared_from_this());
 }
 
-void CollisionShapeComponent::render()
-{
-	_pMaterial->render(shared_from_this());
-}
+//void CollisionShapeComponent::render()
+//{
+//	_pMaterial->render(shared_from_this());
+//}

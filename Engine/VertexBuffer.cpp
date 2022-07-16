@@ -28,7 +28,7 @@ VertexBuffer::VertexBuffer(const uint32 vertexSize, const uint32 vertexCount, vo
 
 VertexBuffer::~VertexBuffer()
 {
-	_pBuffer->Release();
+	SafeRelease(_pBuffer);
 }
 
 void VertexBuffer::setBufferToDevice(UINT &stride, UINT &offset)

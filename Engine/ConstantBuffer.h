@@ -1,10 +1,12 @@
 #pragma once
 #ifndef __CONSTANT_BUFFER_H__
 
+class Material;
+
 class ConstantBuffer
 {
 public:
-	explicit ConstantBuffer(const int bufferSize, const void *buffer);
+	explicit ConstantBuffer(const uint32 size, const void *buffer, const uint32 countOfVariables);
 	~ConstantBuffer();
 
 public:
@@ -12,9 +14,19 @@ public:
 	//void setBufferToDevice(UINT &stride, UINT &offset);
 
 public:
-	ID3D11Buffer *const getBuffer();
+	const uint32 getSize() const;
 private:
-	ID3D11Buffer *m_pBuffer;
+	uint32 _size;
+
+public:
+	ID3D11Buffer *const getRaw();
+private:
+	ID3D11Buffer *_pBuffer;
+
+public:
+	const uint32 getCountOfVariables() const;
+private:
+	uint32 _countOfVarialbes;
 
 };
 

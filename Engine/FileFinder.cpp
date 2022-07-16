@@ -125,6 +125,8 @@ const uint32 FileFinder::getPathFileNum(WCHAR path[])
 	}
 
 	return count;
+
+	return 0;
 }
 
 const FileFinder::FileList& FileFinder::getFileList() const

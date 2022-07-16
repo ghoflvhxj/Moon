@@ -6,6 +6,13 @@
 
 #include "ShaderManager.h"
 #include "ShaderLoader.h"
+#include "VertexShader.h"
+#include "PixelShader.h"
+
+#include <dxgidebug.h>
+#include <dxgi1_3.h>
+
+#pragma comment(lib, "dxgi.lib")
 
 GraphicDevice::GraphicDevice()
 	: m_pDevice{ nullptr }
@@ -76,13 +83,11 @@ const bool GraphicDevice::initialize()
 		&m_pDevice, nullptr, &m_pImmediateContext
 	));	
 
-	FAILED_CHECK_THROW(m_pDevice->CreateDeferredContext(0, &m_pDeferredContext));
-
 	// ·»´õ Å¸°Ù ºä »ý¼º
 	ID3D11Texture2D *pBackBuffer = nullptr;
 	FAILED_CHECK_THROW(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pBackBuffer));
 	FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView));
-	pBackBuffer->Release();
+	SafeRelease(pBackBuffer);
 
 	// ±íÀÌ ½ºÅÙ½Ç ºä »ý¼º
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
@@ -101,34 +106,8 @@ const bool GraphicDevice::initialize()
 	m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &m_pDepthStencilBuffer);
 	FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(m_pDepthStencilBuffer, nullptr, &m_pDepthStencilView));
 
-	//BuildInputLayout();
-
 	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
-	m_pDeferredContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pDeferredContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
-
-	float color[] = { 1.f, 1.f, 1.f, 1.f };
-
-	// »ùÇÃ·¯ ½ºÅÂÀÌÆ®
-	ID3D11SamplerState *pSamplerState = nullptr;
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
-	samplerDesc.BorderColor[0] = 1.f;
-	samplerDesc.BorderColor[1] = 1.f;
-	samplerDesc.BorderColor[2] = 1.f;
-	samplerDesc.BorderColor[3] = 1.f;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	samplerDesc.MaxAnisotropy = 1u;
-	samplerDesc.MaxLOD = FLT_MAX;
-	samplerDesc.MinLOD = -FLT_MAX;
-	samplerDesc.MipLODBias = 0.f;
-
-	HRESULT a = m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState);
-	m_pImmediateContext->PSSetSamplers(0, 1, &pSamplerState);
 
 	// ºäÆ÷Æ®
 	_viewport.TopLeftX = 0;
@@ -139,8 +118,8 @@ const bool GraphicDevice::initialize()
 	_viewport.MinDepth = 0.f;
 
 	m_pImmediateContext->RSSetViewports(1, &_viewport);
-	m_pDeferredContext->RSSetViewports(1, &_viewport);
 
+	buildSamplerState();
 	buildRasterizerState();
 	buildDepthStencilState();
 	buildBlendState();
@@ -159,13 +138,9 @@ const bool GraphicDevice::BuildInputLayout()
 	FAILED_CHECK_THROW(m_pDevice->CreateInputLayout(&inputDescList[0], elementCount, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &m_pInputLayout));
 
 	m_pImmediateContext->IASetInputLayout(m_pInputLayout);
-	m_pDeferredContext->IASetInputLayout(m_pInputLayout);
 
 	//m_pImmediateContext->VSSetShader(g_pShaderManager->getVertexShader(TEXT("TexVertexShader.cso")), nullptr, 0);
 	//m_pImmediateContext->PSSetShader(g_pShaderManager->getPixelShader(TEXT("TexPixelShader2.cso")), nullptr, 0);
-
-	//m_pDeferredContext->VSSetShader(g_pShaderManager->getVertexShader(TEXT("TexVertexShader.cso")), nullptr, 0);
-	//m_pDeferredContext->PSSetShader(g_pShaderManager->getPixelShader(TEXT("TexPixelShader.cso")), nullptr, 0);
 
 	return true;
 }
@@ -181,48 +156,48 @@ const bool GraphicDevice::Refresh()
 
 void GraphicDevice::Release()
 {
-	m_pInputLayout->Release();
+	SafeReleaseArray(_samplerList);
+	SafeReleaseArray(_rasterizerList);
+	SafeReleaseArray(_depthStencilStateList);
+	SafeReleaseArray(_blendStateList);
 
-	m_pDepthStencilView->Release();
-	m_pDepthStencilBuffer->Release();
+	SafeRelease(m_pInputLayout);
+	SafeRelease(m_pDepthStencilView);
+	SafeRelease(m_pDepthStencilBuffer);
+	SafeRelease(m_pRenderTargetView);
 
-	m_pRenderTargetView->Release();
+	SafeRelease(m_pSwapChain);
 
-	m_pSwapChain->Release();
+	//m_pDeferredContext->ClearState();
+	//m_pDeferredContext->Flush();
+	//SafeRelease(m_pDeferredContext);
+	if (m_pImmediateContext)
+	{
+		m_pImmediateContext->ClearState();
+		m_pImmediateContext->Flush();
+	}
+	SafeRelease(m_pImmediateContext);
 
-	m_pDeferredContext->Release();
-	m_pImmediateContext->Release();
-	m_pDevice->Release();
+	SafeRelease(m_pDevice);
+
+	IDXGIDebug1* debug = nullptr;
+	//g_pGraphicDevice->getDevice()->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debug));
+	DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug));
+	OutputDebugStringW(TEXT("----------------ReportLiveObjectsBegin-------------------\r\n"));
+	debug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
+	OutputDebugStringW(TEXT("----------------ReportLiveObjectsEnd-------------------\r\n"));
+	SafeRelease(debug);
 }
 
 void GraphicDevice::Begin()
 {
-#ifdef MULTITHREAD
-	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
-	m_pDeferredContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pDeferredContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
-
-	m_pImmediateContext->RSSetViewports(1, &_viewport);
-	m_pDeferredContext->RSSetViewports(1, &_viewport);
-
-	m_pImmediateContext->PSSetShader(m_pPixelShader, nullptr, 0);
-	m_pDeferredContext->PSSetShader(m_pPixelShader, nullptr, 0);
-
-	m_pImmediateContext->VSSetShader(m_pVertexShader, nullptr, 0);
-	m_pDeferredContext->VSSetShader(m_pVertexShader, nullptr, 0);
-
-	m_pImmediateContext->IASetInputLayout(m_pInputLayout);
-	m_pDeferredContext->IASetInputLayout(m_pInputLayout);
-#endif
-
 	getContext()->ClearRenderTargetView(m_pRenderTargetView, reinterpret_cast<const float *>(&Colors::Blue));
 	getContext()->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 }
 
 const bool GraphicDevice::buildRasterizerState()
 {
-	rasterizerList.reserve(enumSize<Graphic::FillMode>() + enumSize<Graphic::CullMode>());
+	_rasterizerList.reserve(CastValue<uint32>(Graphic::FillMode::Count) + CastValue<uint32>(Graphic::CullMode::Count));
 	ID3D11RasterizerState *pRasterizerState = nullptr;
 
 	//-------------------------------------------------------------------------------------
@@ -247,7 +222,7 @@ const bool GraphicDevice::buildRasterizerState()
 			rd.CullMode = D3D11_CULL_MODE(cullMode);
 
 			FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &pRasterizerState));
-			rasterizerList.push_back(pRasterizerState);
+			_rasterizerList.push_back(pRasterizerState);
 		}
 	}
 
@@ -256,12 +231,12 @@ const bool GraphicDevice::buildRasterizerState()
 
 ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode)
 {
-	return rasterizerList[(enumToIndex(eFillMode) * enumSize<Graphic::CullMode>()) + enumToIndex(eCullMode)];
+	return _rasterizerList[(enumToIndex(eFillMode) * CastValue<uint32>(Graphic::CullMode::Count)) + enumToIndex(eCullMode)];
 }
 
 const bool GraphicDevice::buildDepthStencilState()
 {
-	rasterizerList.reserve(enumSize<Graphic::DepthWriteMode>());
+	_rasterizerList.reserve(CastValue<uint32>(Graphic::DepthWriteMode::Count));
 	ID3D11DepthStencilState *pDepthStencilState = nullptr;
 
 	//-------------------------------------------------------------------------------------
@@ -280,20 +255,20 @@ const bool GraphicDevice::buildDepthStencilState()
 
 	//-------------------------------------------------------------------------------------
 	FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&dsd, &pDepthStencilState));
-	depthStencilStateList.push_back(pDepthStencilState);
+	_depthStencilStateList.push_back(pDepthStencilState);
 
 	//-------------------------------------------------------------------------------------
 	dsd.DepthEnable = FALSE;
 
 	FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&dsd, &pDepthStencilState));
-	depthStencilStateList.push_back(pDepthStencilState);
+	_depthStencilStateList.push_back(pDepthStencilState);
 
 	return true;
 }
 
 ID3D11DepthStencilState *GraphicDevice::getDepthStencilState(const Graphic::DepthWriteMode eDetphWrite)
 {
-	return depthStencilStateList[enumToIndex(eDetphWrite)];
+	return _depthStencilStateList[enumToIndex(eDetphWrite)];
 }
 
 const bool GraphicDevice::buildBlendState()
@@ -345,6 +320,46 @@ ID3D11BlendState *GraphicDevice::getBlendState(const Graphic::Blend eBlend)
 void GraphicDevice::End()
 {
 	m_pSwapChain->Present(0u, 0u);
+}
+
+const bool GraphicDevice::buildSamplerState()
+{
+	// »ùÇÃ·¯ ½ºÅÂÀÌÆ®
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.BorderColor[0] = 1.f;
+	samplerDesc.BorderColor[1] = 1.f;
+	samplerDesc.BorderColor[2] = 1.f;
+	samplerDesc.BorderColor[3] = 1.f;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MaxAnisotropy = 1u;
+	samplerDesc.MaxLOD = FLT_MAX;
+	samplerDesc.MinLOD = -FLT_MAX;
+	samplerDesc.MipLODBias = 0.f;
+
+	ID3D11SamplerState *pSamplerState = nullptr;
+	FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState), false);
+	m_pImmediateContext->PSSetSamplers(0, 1, &pSamplerState);
+
+	_samplerList.emplace_back(pSamplerState);
+}
+
+ID3D11SamplerState* GraphicDevice::getSamplerState()
+{
+	return nullptr;
+}
+
+void GraphicDevice::SetVertexShader(std::shared_ptr<VertexShader> &vertexShader)
+{
+	getContext()->VSSetShader(vertexShader->getRaw(), nullptr, 0);
+}
+
+void GraphicDevice::SetPixelShader(std::shared_ptr<PixelShader> &pixelShader)
+{
+	getContext()->PSSetShader(pixelShader->getRaw(), nullptr, 0);
 }
 
 ID3D11Device *GraphicDevice::getDevice()

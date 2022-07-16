@@ -9,7 +9,7 @@ using namespace DirectX;
 
 TextureComponent::TextureComponent(const wchar_t *fileName)
 	: Component()
-	, _pTexture{ nullptr }
+	, _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
 {
 	loadTextureFile(fileName);
@@ -17,7 +17,7 @@ TextureComponent::TextureComponent(const wchar_t *fileName)
 
 TextureComponent::TextureComponent(const char *fileName)
 	: Component()
-	, _pTexture{ nullptr }
+	, _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
 {
 	wchar_t wFileName[MAX_PATH] = {};
@@ -28,9 +28,9 @@ TextureComponent::TextureComponent(const char *fileName)
 	loadTextureFile(wFileName);
 }
 
-TextureComponent::TextureComponent(TextureComponent::TexturePtr pTexture)
+TextureComponent::TextureComponent(TextureComponent::RawTexturePtr pTexture)
 	: Component()
-	,_pTexture{ pTexture }
+	,_rawTexture{ pTexture }
 	, _pResourceView{ nullptr }
 {
 	D3D11_TEXTURE2D_DESC texturDesc = {};
@@ -41,12 +41,12 @@ TextureComponent::TextureComponent(TextureComponent::TexturePtr pTexture)
 	desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	desc.Texture2D.MipLevels = 1;
 
-	g_pGraphicDevice->getDevice()->CreateShaderResourceView(_pTexture, &desc, &_pResourceView);
+	g_pGraphicDevice->getDevice()->CreateShaderResourceView(_rawTexture, &desc, &_pResourceView);
 }
 
 TextureComponent::TextureComponent(ID3D11ShaderResourceView *pShaderResourceView)
 	: Component()
-	, _pTexture{ nullptr }
+	, _rawTexture{ nullptr }
 	, _pResourceView{ pShaderResourceView }
 {
 	SAFE_ADDREF(_pResourceView);
@@ -54,7 +54,7 @@ TextureComponent::TextureComponent(ID3D11ShaderResourceView *pShaderResourceView
 
 TextureComponent::TextureComponent()
 	: Component()
-	, _pTexture{ nullptr }
+	, _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
 {
 
@@ -63,17 +63,17 @@ TextureComponent::TextureComponent()
 TextureComponent::~TextureComponent()
 {
 	SAFE_RELEASE(_pResourceView);
-	SAFE_RELEASE(_pTexture);
+	SAFE_RELEASE(_rawTexture);
 }
 
 const bool TextureComponent::loadTextureFile(const wchar_t *fileName)
 {
 	if(nullptr != _pResourceView)
 		_pResourceView->Release();
-	if (nullptr != _pTexture)
-		_pTexture->Release();
+	if (nullptr != _rawTexture)
+		_rawTexture->Release();
 
-	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource **)&_pTexture, &_pResourceView));
+	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource **)&_rawTexture, &_pResourceView));
 	
 	return true;
 }
@@ -83,9 +83,9 @@ void TextureComponent::setTexture(const uint32 index)
 	g_pGraphicDevice->getContext()->PSSetShaderResources(index, 1, &_pResourceView);
 }
 
-TextureComponent::TexturePtr& TextureComponent::getTextureRowPointer()
+TextureComponent::RawTexturePtr& TextureComponent::getTextureRowPointer()
 {
-	return _pTexture;
+	return _rawTexture;
 }
 
 TextureComponent::ResourceViewPtr& TextureComponent::getResourceViewRowPointer()

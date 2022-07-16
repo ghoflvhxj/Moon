@@ -26,10 +26,10 @@ protected:
 	virtual void tick(const Time deltaTime) override;
 
 public:
-	void rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent);
+	//void rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent);
 
 private:
-	std::shared_ptr<MeshComponent>			_pMeshComponent;
+	std::shared_ptr<StaticMeshComponent>	_pMeshComponent;
 	std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent;
 	std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent2;
 	std::shared_ptr<DynamicMeshComponent>	_pDynamicMeshComponent;

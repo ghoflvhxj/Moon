@@ -1,65 +1,70 @@
 #pragma once
 #ifndef __RENDERER_H__
 
-class SceneRenderer;
-class CollisionRenderer;
+#include "Render.h"
 
-class PrimitiveComponent;
-class MeshComponent;
 class LightComponent;
-class SkyComponent;
-class CollisionShapeComponent;
+class StaticMeshComponent;
 
-class RenderTarget;
-class RenderPass;
+class StaticMesh;
 
 class ENGINE_DLL Renderer 
 {
-	enum class RenderType
+public:
+	template <class T>
+	static std::shared_ptr<T> CreateRenderPass()
 	{
-		Scene, Collision
-	};
+		return std::make_shared<T>();
+	}
 
 public:
 	explicit Renderer(void) noexcept;
 	~Renderer(void) noexcept;
+	void Release();
+
 private:
 	void initialize(void) noexcept;
 private:
-	std::shared_ptr<MeshComponent> _pMeshComponent;
+	std::shared_ptr<StaticMeshComponent> _pMeshComponent;
+
+	// ∑ª¥ı ø¿∫Í¡ß∆Æ
+public:
+	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> pComponent);
+private:
+	std::vector<std::shared_ptr<PrimitiveComponent>> _primitiveComponents;
 
 	// ∑ª¥ı ≈∏∞Ÿ
 public:
-	const bool addRenderTarget(const std::wstring name);
+	void addRenderTargetForDebug(const std::wstring name);
 private:
-	std::unordered_map<std::wstring, std::shared_ptr<RenderTarget>> _renderTargetMap;
+	RenderTargets _renderTargets;
 #ifdef _DEBUG
-	std::unordered_map<std::wstring, std::shared_ptr<MeshComponent>> _renderTargetMeshMap;
+	std::unordered_map<std::wstring, std::shared_ptr<StaticMeshComponent>> _renderTargetMeshs;
 #endif
 
 	// ∑ª¥ı ∆–Ω∫
-public:
-	const bool addRenderPass(const std::wstring name);
 private:
-	std::unordered_map<std::wstring, std::shared_ptr<RenderPass>> _renderPassMap;
+	std::vector<std::shared_ptr<RenderPass>> _renderPasses;
 
 public:
 	void render(void);
-
-public:
-	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> pComponent) noexcept;
-	void addLightComponent(std::shared_ptr<LightComponent> pComponent) noexcept;
-	void addSkyComponent(std::shared_ptr<SkyComponent> pComponent) noexcept;
-	void addCollisionShapeComponent(std::shared_ptr<PrimitiveComponent> pComponent) noexcept;
 private:
-	std::shared_ptr<SceneRenderer> _pSceneRenderer;
-	std::shared_ptr<CollisionRenderer> _pCollisionRenderer;
+	void updateConstantBuffer();
+	inline void copyBufferData(std::vector<std::vector<VariableInfo>> &infos, ConstantBuffersLayer layer, uint32 index, const void *pData);
 
 public:
 	void toggleRenderTarget();
 private:
 	bool _drawRenderTarget;
 
+private:
+	void renderMesh();
+	void test(PrimitiveData &renderData);
+
+public:
+	const bool IsDirtyConstant() const;
+private:
+	bool _bDirtyConstant;
 };
 
 #define __RENDERER_H__

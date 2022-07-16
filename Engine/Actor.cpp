@@ -34,7 +34,10 @@ void Actor::tick(const Time deltaTime)
 
 std::shared_ptr<SceneComponent> Actor::getComponent(const wchar_t componentName[])
 {
-	return MapUtility::FindGet(_components, componentName);
+	std::shared_ptr<SceneComponent> pComponent = nullptr;
+	MapUtility::FindGet(_components, componentName, pComponent);
+
+	return pComponent;
 }
 
 const bool Actor::addComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> pComponent)

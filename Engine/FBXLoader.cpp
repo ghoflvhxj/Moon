@@ -2,7 +2,7 @@
 #include "FBXLoader.h"
 
 #include "TextureComponent.h"
-
+#include <Shlwapi.h>
 using namespace fbxsdk;
 
 FbxManager *FBXLoader::_pFbxManager = nullptr;
@@ -18,6 +18,7 @@ FBXLoader::FBXLoader(const char *filePathName)
 	, _materialCount{ 0 }
 {
 	initializeFbxSdk();
+	convertScene();
 	loadModel();
 }
 
@@ -32,6 +33,7 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 	, _materialCount{ 0 }
 {
 	initializeFbxSdk();
+	convertScene();
 	loadModel();
 
 	//---------------------------------------------------------------
@@ -54,8 +56,8 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 		animationClipList[animStackIndex]._frameCount = ToUint32((endTime - startTime).GetFrameCount(FbxTime::eFrames24));
 		animationClipList[animStackIndex]._duration = (endTime - startTime).GetSecondDouble();
 
-		uint32 meshCount = sizeToUint32(_meshList.size());
-		for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex)
+		uint32 meshCount = CastValue<uint32>(_meshList.size());
+		for (uint32 meshIndex = 0; meshIndex < meshCount; ++meshIndex)
 		{
 			FbxSkin *pSkin = nullptr;
 			int deformerCount = _meshList[meshIndex]->GetDeformerCount();
@@ -167,8 +169,9 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 
 FBXLoader::~FBXLoader()
 {
-	_pImporter->Destroy();
 	_pScene->Destroy();
+	_pImporter->Destroy();
+	//_pFbxManager->Destroy();
 }
 
 void FBXLoader::initializeFbxSdk()
@@ -181,24 +184,33 @@ void FBXLoader::initializeFbxSdk()
 	_pImporter = FbxImporter::Create(_pFbxManager, "");
 	if (nullptr == _pImporter)
 	{
-		DEV_ASSERT_MSG(TEXT("FbxImporter가 nullptr 입니다!"));
+		DEV_ASSERT_MSG("FbxImporter가 nullptr 입니다!");
 	}
 
 	if (false == _pImporter->Initialize(_filePathName.c_str()))
 	{
-		DEV_ASSERT_MSG(TEXT("FbxImporter 초기화에 실패했습니다!"));
+		DEV_ASSERT_MSG("FbxImporter 초기화에 실패했습니다!");
 	}
 
 	_pScene = FbxScene::Create(_pFbxManager, "Scene");
 	if (nullptr == _pScene)
 	{
-		DEV_ASSERT_MSG(TEXT("FbxScene이 nullptr  입니다!"));
+		DEV_ASSERT_MSG("FbxScene이 nullptr  입니다!");
 	}
 
 	if (false == _pImporter->Import(_pScene))
 	{
-		DEV_ASSERT_MSG(TEXT("FbxImporter가 FbxScene을 불러오지 못했습니다!"));
+		DEV_ASSERT_MSG("FbxImporter가 FbxScene을 불러오지 못했습니다!");
 	}
+}
+
+void FBXLoader::convertScene()
+{
+	FbxAxisSystem directXAxisSys(FbxAxisSystem::EPreDefinedAxisSystem::eDirectX);
+	directXAxisSys.ConvertScene(_pScene);
+
+	FbxGeometryConverter geometryConverter(_pFbxManager);
+	geometryConverter.Triangulate(_pScene, true);
 }
 
 void FBXLoader::loadModel()
@@ -210,9 +222,6 @@ void FBXLoader::loadModel()
 
 	_materialCount = static_cast<uint32>(_pScene->GetMaterialCount());
 	_texturesList.reserve(_materialCount);
-
-	FbxGeometryConverter geometryConverter(_pFbxManager);
-	geometryConverter.Triangulate(_pScene, true);
 
 	loadNode();
 	loadTexture();
@@ -236,12 +245,17 @@ const uint32 FBXLoader::getMaterialCount() const
 	return _materialCount;
 }
 
-std::vector<VertexList> &FBXLoader::getVertices()
+const uint32 FBXLoader::getVertexCount() const
+{
+	return _vertexCount;
+}
+
+std::vector<VertexList> &FBXLoader::getVerticesList()
 {
 	return _verticesList;
 }
 
-std::vector<IndexList> &FBXLoader::getIndices()
+std::vector<IndexList> &FBXLoader::getIndicesList()
 {
 	return _indicesList;
 }
@@ -272,7 +286,7 @@ void FBXLoader::loadNode()
 			switch (pNodeAttribute->GetAttributeType())
 			{
 			case FbxNodeAttribute::EType::eMesh:
-				loadMeshNode(pNode);
+				parseMeshNode(pNode);
 				break;
 			case FbxNodeAttribute::EType::eSkeleton:
 				loadSkeletonNode(pNode);
@@ -290,7 +304,7 @@ void FBXLoader::loadNode()
 	}
 }
 
-void FBXLoader::loadMeshNode(FbxNode *pNode)
+void FBXLoader::parseMeshNode(FbxNode *pNode)
 {
 	_pMesh = pNode->GetMesh();
 	_meshList.push_back(_pMesh);
@@ -303,6 +317,8 @@ void FBXLoader::loadMeshNode(FbxNode *pNode)
 	int vertexCount = polygonCount * 3;
 	_verticesList.back().reserve(polygonCount * 3);
 	_indicesList.back().reserve(polygonCount * 3);
+
+	_vertexCount += vertexCount;
 
 	linkMaterial(pNode);
 
@@ -351,6 +367,7 @@ void FBXLoader::linkMaterial(FbxNode *pNode)
 
 void FBXLoader::loadPosition(Vertex &vertex, const int controlPointIndex)
 {
+	double a = _pMesh->GetControlPointAt(controlPointIndex).mData[0];
 	vertex.Pos.x = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[0]);
 	vertex.Pos.y = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[1]);
 	vertex.Pos.z = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[2]);
@@ -367,8 +384,8 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 		{
 		case FbxLayerElement::EReferenceMode::eDirect:
 		{
-			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[0]);
-			vertex.Tex0.y = ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[1]);
+			vertex.Tex0.x = 1.f - ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[0]);
+			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[1]);
 		}
 		break;
 		case FbxLayerElement::EReferenceMode::eIndex:
@@ -379,13 +396,13 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 		case FbxLayerElement::EReferenceMode::eIndexToDirect:
 		{
 			int index = uv->GetIndexArray().GetAt(controlPointIndex);
-			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
+			vertex.Tex0.x = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
 			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[1]);
 		}
 		break;
 		default:
 		{
-			DEV_ASSERT_MSG(TEXT("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint"));
+			DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
 		}
 		break;
 		}
@@ -398,7 +415,7 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 		{
 		case FbxLayerElement::EReferenceMode::eDirect:
 		{
-			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(vertexCounter).mData[0]);
+			vertex.Tex0.x = 1.f - ToFloat(uv->GetDirectArray().GetAt(vertexCounter).mData[0]);
 			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(vertexCounter).mData[1]);
 		}
 		break;
@@ -410,7 +427,7 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 		case FbxLayerElement::EReferenceMode::eIndexToDirect:
 		{
 			int index = uv->GetIndexArray().GetAt(vertexCounter);
-			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
+			vertex.Tex0.x = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
 			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[1]);
 		}
 		break;
@@ -452,7 +469,7 @@ void FBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const in
 		break;
 		default:
 		{
-			DEV_ASSERT_MSG(TEXT("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint"));
+			DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
 		}
 		break;
 		}
@@ -521,7 +538,7 @@ void FBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const i
 		break;
 		default:
 		{
-			DEV_ASSERT_MSG(TEXT("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint"));
+			DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
 		}
 		break;
 		}
@@ -590,7 +607,7 @@ void FBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const 
 		break;
 		default:
 		{
-			DEV_ASSERT_MSG(TEXT("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint"));
+			DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
 		}
 		break;
 		}
@@ -651,13 +668,13 @@ void FBXLoader::loadTexture()
 		if (nullptr == pSurfaceMaterial)
 			continue;
 
-		_texturesList.push_back(TextureList(enumToUInt32(TextureType::End), nullptr));
-		for (uint32 j = 0; j < enumToUInt32(TextureType::End); ++j)
+		_texturesList.push_back(TextureList(enumToIndex(TextureType::End), nullptr));
+		for (uint32 j = 0; j < enumToIndex(TextureType::End); ++j)
 		{
-			const char *propertyString = getSurfacePropertyString(uint32ToEnum<TextureType>(j));
+			const char *propertyString = getSurfacePropertyString(CastValue<TextureType>(j));
 			if (nullptr != propertyString)
 			{
-				loadTexture(&pSurfaceMaterial->FindProperty(propertyString), uint32ToEnum<TextureType>(j));
+				loadTexture(&pSurfaceMaterial->FindProperty(propertyString), CastValue<TextureType>(j));
 			}
 		}
 	}

@@ -2,6 +2,7 @@
 #ifndef __FBXLOADER_H__
 
 #include <fbxsdk.h>
+#include <FBXSDK/scene/fbxaxissystem.h>
 #include "Vertex.h"
 
 #include "DynamicMeshComponentUtility.h"
@@ -16,6 +17,7 @@ public:
 	~FBXLoader();
 private:
 	void initializeFbxSdk();
+	void convertScene();
 	void loadModel();
 
 private:
@@ -41,7 +43,7 @@ private:
 private:
 	void loadNode();
 private:
-	void loadMeshNode(fbxsdk::FbxNode *pNode);
+	void parseMeshNode(fbxsdk::FbxNode *pNode);
 	void loadPosition(Vertex &vertex, const int controlPointIndex);
 	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
 	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
@@ -63,8 +65,8 @@ private:
 	const char* getSurfacePropertyString(const TextureType textureType);
 
 public:
-	std::vector<VertexList>&	getVertices();
-	std::vector<IndexList>&		getIndices();
+	std::vector<VertexList>&	getVerticesList();
+	std::vector<IndexList>&		getIndicesList();
 	std::vector<TextureList>&	getTextures();
 	const std::vector<int>&		getLinkList() const;
 private:
@@ -80,7 +82,10 @@ private:
 	uint32 _geometryCount;
 	uint32 _materialCount;
 
-
+public:
+	const uint32 getVertexCount() const;
+private:
+	uint32 _vertexCount;
 };
 
 DirectX::XMMATRIX ToXMMatrix(const FbxAMatrix& pSrc);

@@ -18,11 +18,6 @@ struct PixelOut
 	float4	color	: SV_TARGET0;
 };
 
-cbuffer Dummy
-{
-	float4 a;
-};
-
 PixelOut main(PixelIn pIn)
 {
 	PixelOut pOut;
@@ -31,8 +26,8 @@ PixelOut main(PixelIn pIn)
 	float4 light	= g_Light.Sample(g_Sampler, pIn.uv);
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
 	
-	//pOut.color = diffuse;
-	pOut.color = diffuse * (light + specular);
+	pOut.color = diffuse;
+	//pOut.color = diffuse * (light + specular);
 
 	return pOut;
 }

@@ -1,43 +1,37 @@
 #include "stdafx.h"
 #include "ShaderManager.h"
 
-#include "MapUtility.h"
+#include "Shader.h"
+#include "VertexShader.h"
+#include "PixelShader.h"
 
 #include "ShaderLoader.h"
 
+#include "MapUtility.h"
+
 ShaderManager::ShaderManager()
-	: _shaderMapList(EnumIndex(ShaderType::End), ShaderMap())
-	, _blobMapList(EnumIndex(ShaderType::End), BlobMap())
+	: _shadersPerShaderType(enumToIndex(ShaderType::Count), ShaderMap())
 {
 }
 
 ShaderManager::~ShaderManager()
 {
-	releaseShader();
-	releaseBlob();
+	Release();
 }
 
-void ShaderManager::releaseShader()
+void ShaderManager::Release()
 {
-	for (auto &shaderMap : _shaderMapList)
+	for (auto &shaderList : _shadersPerShaderType)
 	{
-		for (auto iter = shaderMap.begin(); iter != shaderMap.end(); ++iter)
-		{
-			iter->second->Release();
-		}
+		shaderList.clear();
 	}
 
-	_blobMapList.clear();
+	//_blobMapList.clear();
 }
 
-const bool ShaderManager::addShader(const ShaderType type, const wchar_t *fileName, ID3D11DeviceChild *pShader, ID3D10Blob *pBlob)
+const bool ShaderManager::addShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<Shader> &pShader)
 {
 	if (false == MapUtility::FindInsert(getShaderMap(type), fileName, pShader))
-	{
-		return false;
-	}
-
-	if (false == MapUtility::FindInsert(getBlobMap(type), fileName, pBlob))
 	{
 		return false;
 	}
@@ -47,58 +41,68 @@ const bool ShaderManager::addShader(const ShaderType type, const wchar_t *fileNa
 
 ShaderManager::ShaderMap &ShaderManager::getShaderMap(const ShaderType type)
 {
-	return _shaderMapList[EnumIndex(type)];
+	return _shadersPerShaderType[enumToIndex(type)];
 }
 
-const bool ShaderManager::getShader(const ShaderType type, const wchar_t *fileName, ID3D11DeviceChild **pShader)
+const bool ShaderManager::getShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<Shader> &shader)
 {
-	return MapUtility::FindGet(getShaderMap(type), std::wstring(fileName), pShader);
+	if (false == MapUtility::FindGet(getShaderMap(type), std::wstring(fileName), shader))
+	{
+		DEV_ASSERT_MSG("쉐이더 파일을 찾을 수 없습니다!");
+		return false;
+	}
+
+	return true;
 }
 
-const bool ShaderManager::getVertexShader(const wchar_t *fileName, ID3D11VertexShader **pShader)
+const bool ShaderManager::getVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader)
 {
-	return getShader(ShaderType::Vertex, fileName, reinterpret_cast<ID3D11DeviceChild**>(pShader));
+	std::shared_ptr<Shader> pShader = nullptr;
+	if (true == getShader(ShaderType::Vertex, fileName, pShader))
+	{
+		vertexShader = std::static_pointer_cast<VertexShader>(pShader);
+		return true;
+	}
+
+	return false;
 }
 
-const bool ShaderManager::addVertexShader(const wchar_t *fileName, ID3D11VertexShader *pShader, ID3D10Blob *pBlob)
+const bool ShaderManager::addVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader)
 {
-	return addShader(ShaderType::Vertex, fileName, pShader, pBlob);
+	std::shared_ptr<Shader> pShader = vertexShader;
+	return addShader(ShaderType::Vertex, fileName, pShader);
 }
 
-const bool ShaderManager::getPixelShader(const wchar_t *fileName, ID3D11PixelShader **pShader)
+const bool ShaderManager::getPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader)
 {
-	return getShader(ShaderType::Pixel, fileName, reinterpret_cast<ID3D11DeviceChild**>(pShader));
+	std::shared_ptr<Shader> pShader = nullptr;
+	if (true == getShader(ShaderType::Pixel, fileName, pShader))
+	{
+		pixelShader = std::static_pointer_cast<PixelShader>(pShader);
+		return true;
+	}
+
+	return false;
 }
 
-const bool ShaderManager::addPixelShader(const wchar_t *fileName, ID3D11PixelShader *pShader, ID3D10Blob *pBlob)
+const bool ShaderManager::addPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader)
 {
-	return addShader(ShaderType::Pixel, fileName, pShader, pBlob);
+	std::shared_ptr<Shader> pShader = pixelShader;
+	return addShader(ShaderType::Pixel, fileName, pShader);
+}
+
+ShaderManager::ShaderMap& ShaderManager::getShaders(const ShaderType shaderType)
+{
+	return _shadersPerShaderType[CastValue<uint32>(shaderType)];
 }
 
 ID3D10Blob *ShaderManager::getVertexShaderBlob(const wchar_t *shaderName)
 {
-	return MapUtility::FindGet(getBlobMap(ShaderType::Vertex), shaderName);
-}
-
-void ShaderManager::releaseBlob()
-{
-	for (auto &blobMap : _blobMapList)
+	std::shared_ptr<VertexShader> pShader = nullptr;
+	if (true == getVertexShader(shaderName, pShader))
 	{
-		for (auto iter = blobMap.begin(); iter != blobMap.end(); ++iter)
-		{
-			iter->second->Release();
-		}
+		return pShader->getBlob();
 	}
 
-	_blobMapList.clear();
-}
-
-inline ShaderManager::BlobMap &ShaderManager::getBlobMap(const ShaderType type)
-{
-	return _blobMapList[EnumIndex(type)];
-}
-
-ShaderManager::ShaderReflectionMap& ShaderManager::getReflectionMap(const ShaderType type)
-{
-	return _reflectionMapList[EnumIndex(type)];
+	return nullptr;
 }

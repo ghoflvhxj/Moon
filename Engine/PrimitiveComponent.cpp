@@ -27,6 +27,11 @@ void PrimitiveComponent::Update(const Time deltaTime)
 	g_pRenderer->addPrimitiveComponent(shared_from_this());
 }
 
+const bool PrimitiveComponent::getPrimitiveData(PrimitiveData &primitiveData)
+{
+	return false;
+}
+
 void PrimitiveComponent::setRenderMode(const RenderMode renderMode)
 {
 	_eRenderMdoe = renderMode;

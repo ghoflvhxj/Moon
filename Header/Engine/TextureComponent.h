@@ -6,19 +6,26 @@
 class ENGINE_DLL TextureComponent : public Component
 {
 public:
+	using RawTexture	= ID3D11Texture2D;
+	using RawTexturePtr = ID3D11Texture2D*;
+	using ResourceView	= ID3D11ShaderResourceView;
+	using ResourceViewPtr = ID3D11ShaderResourceView*;
+public:
 	explicit TextureComponent(const wchar_t *fileName);
 	explicit TextureComponent(const char *fileName);
-	explicit TextureComponent(ID3D11Texture2D *pTexture);
+	explicit TextureComponent(RawTexturePtr pTexture);
 	explicit TextureComponent(ID3D11ShaderResourceView *pShaderResourceView);
-	//explicit TextureComponent();
+	explicit TextureComponent();
 	virtual ~TextureComponent();
 
 public:
 	const bool loadTextureFile(const wchar_t *fileName);
 	void setTexture(const uint32 index = 0);
+	RawTexturePtr& getTextureRowPointer();
+	ResourceViewPtr& getResourceViewRowPointer();
 private:
-	ID3D11Texture2D				*_pTexture;
-	ID3D11ShaderResourceView	*_pResourceView;
+	RawTexture		*_rawTexture;
+	ResourceView	*_pResourceView;
 };
 
 #define __TEXTURE_COMPONENT_H__

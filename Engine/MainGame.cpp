@@ -43,14 +43,18 @@ const bool MainGame::Loop()
 	g_pDirectInput->update();
 
 	if (nullptr != _pMainCamera)
+	{
 		_pMainCamera->update(_deltaTime);
-
+	}
 	//ConstantBufferManager::GetInstance()->updatePerFrame();
 
 	Tick(_deltaTime);
 	Update(_deltaTime);
 
-	g_pRenderer->render();
+	if (nullptr != g_pRenderer)
+	{
+		g_pRenderer->render();
+	}
 
 	_deltaTime = 0.f;
 

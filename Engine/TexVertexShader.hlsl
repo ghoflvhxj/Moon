@@ -1,29 +1,4 @@
-struct VertexIn
-{
-	float3 pos		: POSITION0;
-	float4 color	: COLOR0;
-	float2 uv		: TEXCOORD0;
-	float3 normal	: NORMAL0;
-	float3 tangent	: NORMAL1;
-	float3 binormal : NORMAL2;
-};
-
-struct VertexOut
-{
-	float4 pos		: SV_POSITION;
-	//float4 color	: COLOR0;
-	float2 uv		: TEXCOORD0;
-	float3 normal	: NORMAL0;
-	float3 tangent	: NORMAL1;
-	float3 binormal : NORMAL2;
-};
-
-cbuffer CBuffer
-{
-	row_major matrix worldMatrix;
-	row_major matrix viewMatrix;
-	row_major matrix projectionMatrix;
-};
+#include "Header.hlsli"
 
 VertexOut main(VertexIn vIn)
 {
@@ -31,12 +6,12 @@ VertexOut main(VertexIn vIn)
 
 	matrix worldView = mul(worldMatrix, viewMatrix);
 	matrix worldViewProj = mul(worldView, projectionMatrix);
-	vOut.pos	= mul(float4(vIn.pos.x, vIn.pos.y, vIn.pos.z, 1.f), worldViewProj);
+	vOut.pos		= mul(float4(vIn.pos.x, vIn.pos.y, vIn.pos.z, 1.f), worldViewProj);
 	//vOut.color	= vIn.color;
-	vOut.uv		= vIn.uv;
-	vOut.normal		= mul(vIn.normal, worldView); 
-	vOut.tangent	= mul(vIn.tangent, worldView);
-	vOut.binormal	= mul(vIn.binormal, worldView);
+	vOut.uv			= vIn.uv;
+	vOut.normal		= mul(float4(vIn.normal, 0.f), worldView).xyz; 
+	vOut.tangent	= mul(float4(vIn.tangent, 0.f), worldView).xyz;
+	vOut.binormal	= mul(float4(vIn.binormal, 0.f), worldView).xyz;
 
 	return vOut;
 }
