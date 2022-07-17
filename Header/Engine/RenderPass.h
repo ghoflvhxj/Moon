@@ -17,6 +17,9 @@ public:
 
 	virtual void doPass(RenderQueue &renderQueue) = 0;
 
+	virtual void render(PrimitiveData &primitiveData);
+
+
 public:
 	void initializeRenderTarget(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList);
 private:

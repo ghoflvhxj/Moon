@@ -1,35 +1,14 @@
+#include "PSCommon.hlsli"
+
 Texture2D g_Diffuse		: register(t0);
 Texture2D g_Normal		: register(t1);
 Texture2D g_Specular	: register(t2);
 
 SamplerState g_Sampler;
 
-struct PixelIn
+PixelOut_GeometryPass main(PixelIn pIn)
 {
-	float4 pos		: SV_POSITION;
-	float2 uv		: TEXCOORD0;
-	float3 normal	: NORMAL0;
-	float3 tangent	: NORMAL1;
-	float3 binormal : NORMAL2;
-};
-
-struct PixelOut
-{
-	float4 color	: SV_TARGET0;
-	float4 depth	: SV_TARGET1;
-	float4 normal	: SV_TARGET2;
-	float4 specular : SV_TARGET3;
-};
-
-cbuffer CBuffer
-{
-	bool bUseNormalTexture;
-	bool bUseSpecularTexture;
-};
-
-PixelOut main(PixelIn pIn)
-{
-	PixelOut pOut;
+	PixelOut_GeometryPass pOut;
 
 	pOut.color		= g_Diffuse.Sample(g_Sampler, pIn.uv);
 

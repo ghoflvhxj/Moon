@@ -7,6 +7,7 @@ class MainGame;
 
 class ENGINE_DLL SceneComponent : public Component
 {
+public:
 	enum class Transform { Scale, Rotation, Translation, End };
 
 public:
@@ -41,7 +42,8 @@ public:
 	const Vec3			getUp() const;
 	const Vec3			getRight() const;
 	const Vec3			getWorldTranslation() const;
-	const Mat4&	getWorldMatrix() const;
+	const Mat4&			getWorldMatrix() const;
+	Mat4&				getWorldMatrix();
 private:
 	Mat4 _worldMatrix;
 

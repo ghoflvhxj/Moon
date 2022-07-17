@@ -1,18 +1,19 @@
 #pragma once
 #ifndef __LIGHT_COMPONENT_H__
 
-#include "SceneComponent.h"
+#include "PrimitiveComponent.h"
 
-class ENGINE_DLL LightComponent : public SceneComponent, public std::enable_shared_from_this<LightComponent>
+struct PrimitiveData;
+class StaticMesh;
+
+class ENGINE_DLL LightComponent : public PrimitiveComponent
 {
 public:
 	explicit LightComponent(void);
 	virtual ~LightComponent(void);
 
 public:
-	virtual void Update(const Time deltaTime) override;
-public:
-	virtual void render() = 0;
+	virtual const bool getPrimitiveData(PrimitiveData &primitiveData) override;
 
 public:
 	const Vec3&	getColor(void) const;
@@ -36,6 +37,11 @@ public:
 	const bool isShown() const;
 private:
 	bool _shown;
+
+protected:
+	std::shared_ptr<StaticMesh> getMesh() { return _pStaticMesh; }
+private:
+	std::shared_ptr<StaticMesh> _pStaticMesh;
 };
 
 #define __LIGHT_COMPONENT_H__

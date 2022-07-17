@@ -105,6 +105,8 @@ const bool StaticMeshComponent::getPrimitiveData(PrimitiveData &primitiveData)
 	primitiveData._pMaterial = pStaticMesh->getMaterial(0);
 	primitiveData._pVertexShader = pStaticMesh->getMaterial(0)->getVertexShader();
 	primitiveData._pPixelShader = pStaticMesh->getMaterial(0)->getPixelShader();
+	primitiveData._primitiveType = EPrimitiveType::Mesh;
+
 	return true;
 }
 

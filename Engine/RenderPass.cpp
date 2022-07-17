@@ -1,7 +1,19 @@
 #include "stdafx.h"
 #include "RenderPass.h"
 
+// Graphic
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "Material.h"
+
+// Render
 #include "RenderTarget.h"
+
+// Game
+#include "MainGame.h"
+
+// Actor
+#include "Camera.h"
 
 #include "TextureComponent.h"
 
@@ -68,6 +80,57 @@ void RenderPass::end()
 
 	SafeRelease(_pOldRenderTargetView);
 	SafeRelease(_pOldDepthStencilView);
+}
+
+void RenderPass::render(PrimitiveData &primitiveData)
+{
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Input Assembler
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	if (nullptr != primitiveData._pVertexBuffer)
+	{
+		primitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
+	}
+
+	if (nullptr != primitiveData._pIndexBuffer)
+	{
+		primitiveData._pIndexBuffer->setBufferToDevice(offset);
+	}
+
+	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterial->getTopology());
+
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Vertex Shader
+	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
+	primitiveData._pVertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	primitiveData._pVertexShader->SetToDevice();
+
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Pixel Shader
+	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
+	primitiveData._pPixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	primitiveData._pPixelShader->SetToDevice();
+
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// RasterizerState
+	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	// DepthStencilState
+	g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::DepthWriteMode::Enable), 1);
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	// OutputMerge
+	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
+	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
+	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
+
+	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
 void RenderPass::initializeRenderTarget(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList)

@@ -1,17 +1,10 @@
+#include "PSCommon.hlsli"
+
 Texture2D g_Albedo		: register(t0);
 Texture2D g_Light		: register(t1);
 Texture2D g_Specular	: register(t2);
 
 SamplerState g_Sampler;
-
-struct PixelIn
-{
-	float4 pos		: SV_POSITION;
-	float2 uv		: TEXCOORD0;
-	float3 normal	: NORMAL0;
-	float3 tangent	: NORMAL1;
-	float3 binormal : NORMAL2;
-};
 
 struct PixelOut
 {
@@ -26,8 +19,8 @@ PixelOut main(PixelIn pIn)
 	float4 light	= g_Light.Sample(g_Sampler, pIn.uv);
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
 	
-	pOut.color = diffuse;
-	//pOut.color = diffuse * (light + specular);
+	//pOut.color = diffuse;
+	pOut.color = diffuse * (light + specular);
 
 	return pOut;
 }

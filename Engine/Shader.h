@@ -28,12 +28,24 @@ public:
 		, _size{ size }
 		, _pValue{ nullptr }
 	{
-		if (size > 0)
+		if (_size > 0)
 		{
 			_pValue = new Byte[_size];
 			ZeroMemory(_pValue, _size);
 		}
 	}
+	VariableInfo(const VariableInfo &rhs)
+	{
+		_offset = rhs._offset;
+		_size = rhs._size;
+
+		if (_size > 0)
+		{
+			_pValue = new Byte[_size];
+			memcpy(_pValue, rhs._pValue, _size);
+		}
+	}
+
 	~VariableInfo()
 	{
 		if (_pValue != nullptr)

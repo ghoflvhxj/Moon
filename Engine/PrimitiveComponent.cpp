@@ -23,7 +23,7 @@ PrimitiveComponent::~PrimitiveComponent()
 void PrimitiveComponent::Update(const Time deltaTime)
 {
 	SceneComponent::Update(deltaTime);
-	
+
 	g_pRenderer->addPrimitiveComponent(shared_from_this());
 }
 

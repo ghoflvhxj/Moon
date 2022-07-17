@@ -22,14 +22,17 @@ enum class ERenderTarget
 	Depth,
 	Normal,
 	Specular,
+
 	LightDiffuse,
 	LightSpecular,
+
 	Count
 };
 
 enum class ERenderPass
 {
 	Geometry,
+	Light,
 	Combine,
 	Count
 };
@@ -39,6 +42,13 @@ enum class CBufferElementType
 	Int,
 	Float,
 	Double,
+	Count
+};
+
+enum class EPrimitiveType
+{
+	Mesh,
+	Light,
 	Count
 };
 
@@ -53,6 +63,8 @@ struct PrimitiveData
 	std::shared_ptr<Material>		_pMaterial;
 	std::shared_ptr<Shader>			_pVertexShader;
 	std::shared_ptr<Shader>			_pPixelShader;
+
+	EPrimitiveType _primitiveType;
 };
 
 #define __RENDER_H__

@@ -54,7 +54,6 @@ void Renderer::initialize(void) noexcept
 	_pMeshComponent->getStaticMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 15.f });
 	_pMeshComponent->setScale(Vec3{ CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f });
-	//_pMeshComponent->setScale(Vec3{ CastValue<float>(g_pSetting->getResolutionWidth()) / 100.f, CastValue<float>(g_pSetting->getResolutionHeight()) / 100.f, 1.f });
 	_pMeshComponent->SceneComponent::Update(0.f);
 
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
@@ -126,6 +125,23 @@ void Renderer::initialize(void) noexcept
 		_renderPasses[enumToIndex(ERenderPass::Geometry)]->initializeRenderTarget(rt);
 	}
 
+	_renderPasses.emplace_back(CreateRenderPass<LightPass>());
+	{
+		std::vector<std::shared_ptr<RenderTarget>> rt = {
+			_renderTargets[enumToIndex(ERenderTarget::LightDiffuse)],
+			_renderTargets[enumToIndex(ERenderTarget::LightSpecular)],
+		};
+
+		std::vector<std::shared_ptr<RenderTarget>> textureList = {
+			_renderTargets[enumToIndex(ERenderTarget::Depth)],
+			_renderTargets[enumToIndex(ERenderTarget::Normal)],
+			_renderTargets[enumToIndex(ERenderTarget::Specular)]
+		};
+
+		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeRenderTarget(rt);
+		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeResourceViewByRenderTarget(textureList);
+	}
+
 	_renderPasses.emplace_back(CreateRenderPass<CombinePass>());
 	{
 		std::vector<std::shared_ptr<RenderTarget>> textureList = {
@@ -133,7 +149,7 @@ void Renderer::initialize(void) noexcept
 			_renderTargets[enumToIndex(ERenderTarget::LightDiffuse)],
 			_renderTargets[enumToIndex(ERenderTarget::LightSpecular)]
 		};
-		_renderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("TexVertexShader.cso"), TEXT("DeferredShader.cso"));
+		_renderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 		_renderPasses[enumToIndex(ERenderPass::Combine)]->initializeResourceViewByRenderTarget(textureList);
 	}
 }

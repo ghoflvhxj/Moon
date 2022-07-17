@@ -3,8 +3,6 @@
 
 #include "SceneComponent.h"
 
-class RenderPass;
-
 struct PrimitiveData;
 
 class ENGINE_DLL PrimitiveComponent abstract : public SceneComponent, public std::enable_shared_from_this<PrimitiveComponent>

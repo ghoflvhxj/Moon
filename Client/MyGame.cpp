@@ -29,9 +29,9 @@ MyGame::MyGame()
 
 MyGame::~MyGame()
 {
-	//ImGui_ImplDX11_Shutdown();
-	//ImGui_ImplWin32_Shutdown();
-	//ImGui::DestroyContext();
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
 
 const bool MyGame::initialize()
@@ -58,14 +58,14 @@ const bool MyGame::initialize()
 
 void MyGame::intializeImGui()
 {
-	//// ImGui
-	//IMGUI_CHECKVERSION();
-	//ImGui::CreateContext();
-	//ImGuiIO &io = ImGui::GetIO();
-	//ImGui::StyleColorsDark();
-	//// ÇÃ·§Æû/·»´õ·¯¸¦ ¹ÙÀÎµù
-	//ImGui_ImplWin32_Init(g_hWnd);
-	//ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
+	// ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO &io = ImGui::GetIO();
+	ImGui::StyleColorsDark();
+	// ÇÃ·§Æû/·»´õ·¯¸¦ ¹ÙÀÎµù
+	ImGui_ImplWin32_Init(g_hWnd);
+	ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
 }
 
 void MyGame::Tick(const Time deltaTime)

@@ -47,9 +47,6 @@ private:
 	std::shared_ptr<IndexBuffer> _pIndexBuffer;
 	std::shared_ptr<ConstantBuffer> _pVertexConstantBuffer;
 	std::shared_ptr<ConstantBuffer> _pPixelConstantBuffer;
-
-public:
-	virtual void render() override;
 };
 
 #define __DIRECTIONAL_LIGHT_COMPONENT_H__

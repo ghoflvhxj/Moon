@@ -43,7 +43,7 @@ Material::~Material()
 	releaseShader();
 }
 
-void Material::SetToDevice()
+void Material::SetTexturesToDevice()
 {
 	std::vector<ID3D11ShaderResourceView*> rawData;
 	rawData.reserve(_textureList.size());
@@ -52,7 +52,7 @@ void Material::SetToDevice()
 		rawData.emplace_back(texture ? texture->getResourceViewRowPointer() : nullptr);
 	}
 
-	g_pGraphicDevice->getContext()->PSSetShaderResources(0, rawData.size(), &rawData[0]);
+	g_pGraphicDevice->getContext()->PSSetShaderResources(0, CastValue<UINT>(rawData.size()), &rawData[0]);
 }
 
 void Material::setOwner(std::shared_ptr<PrimitiveComponent> pOwner)
@@ -132,6 +132,11 @@ std::vector<VariableInfo>& Material::getConstantBufferVariableInfos(const Shader
 std::vector<VariableInfo>& Material::getConstantBufferVariableInfos(const ShaderType shaderType, const ConstantBuffersLayer layer)
 {
 	return _variableInfosPerShaderType[CastValue<uint32>(shaderType)][CastValue<uint32>(layer)];
+}
+
+const bool Material::useTextureType(const TextureType type)
+{
+	return _textureList[CastValue<uint32>(type)] != nullptr ? true : false;
 }
 
 //void Material::setFillMode(const Graphic::FillMode eFillMode)

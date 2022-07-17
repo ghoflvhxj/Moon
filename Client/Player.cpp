@@ -6,6 +6,7 @@
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
 #include "TextureComponent.h"
+#include "PointLightComponent.h"
 #include "Material.h"
 
 #include "imgui.h"
@@ -44,8 +45,8 @@ void Player::initialize()
 	//_pSkyComponent = std::make_shared<SkyComponent>();
 	//addComponent(TEXT("Sky"), _pSkyComponent);
 
-	//_pLightComponent = std::make_shared<PointLightComponent>();
-	//addComponent(TEXT("PointLight"), _pLightComponent);
+	_pLightComponent = std::make_shared<PointLightComponent>();
+	addComponent(TEXT("PointLight"), _pLightComponent);
 
 	//_pLightComponent2 = std::make_shared<DirectionalLightComponent>();
 	//addComponent(TEXT("DirectionalLight"), _pLightComponent2);

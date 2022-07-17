@@ -2,23 +2,38 @@
 #include "LightComponent.h"
 
 #include "Renderer.h"
+#include "MainGameSetting.h"
+#include "StaticMeshComponent.h"
 
 LightComponent::LightComponent(void)
-	: SceneComponent()
+	: PrimitiveComponent()
 	, _color		{ 1.f, 1.f, 1.f }
 	, _intensity	{ 1.f }
 	, _shown		{ true }
 {
+	_pStaticMesh = std::make_shared<StaticMesh>();
+	_pStaticMesh->initializeMeshInformation("Base/Box.fbx");
+
+	if (_pStaticMesh->getMaterialCount() == 0)
+	{
+		
+	}
+
+	setScale(CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f);
+	setTranslation(0.f, 0.f, 1.f);
 }
 
 LightComponent::~LightComponent(void)
 {
 }
 
-void LightComponent::Update(const Time deltaTime)
+const bool LightComponent::getPrimitiveData(PrimitiveData &primitiveData)
 {
-	SceneComponent::Update(deltaTime);
-	//g_pRenderer->addLightComponent(shared_from_this());
+	primitiveData._pVertexBuffer = _pStaticMesh->getVertexBuffer();
+	primitiveData._pIndexBuffer = _pStaticMesh->getIndexBuffer();
+	primitiveData._primitiveType = EPrimitiveType::Light;
+
+	return true;
 }
 
 const Vec3& LightComponent::getColor(void) const

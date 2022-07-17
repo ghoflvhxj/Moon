@@ -59,7 +59,6 @@ void Camera::tick(const Time deltaTime)
 
 void Camera::updateViewMatrix()
 {
-	const Mat4 &worldMatrix = _pSceneComponent->getWorldMatrix();
 	Vec3 eye	= _pSceneComponent->getWorldTranslation();
 	Vec3 at		= { 0.f, 0.f, 0.f };
 	Vec3 up		= { 0.f, 1.f, 0.f };

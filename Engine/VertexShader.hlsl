@@ -1,4 +1,4 @@
-#include "Header.hlsli"
+#include "VSCommon.hlsli"
 
 VertexOut_Simple main(	float3 pos : SV_POSITION,
 				float4 color : COLOR)

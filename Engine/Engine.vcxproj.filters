@@ -529,10 +529,16 @@
     <FxCompile Include="Deferred.hlsl">
       <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
     </FxCompile>
+    <FxCompile Include="Light.hlsl">
+      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Header.hlsli">
-      <Filter>Module\Graphics\Shader\Common</Filter>
+    <None Include="VSCommon.hlsli">
+      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
+    </None>
+    <None Include="PSCommon.hlsli">
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </None>
   </ItemGroup>
 </Project>

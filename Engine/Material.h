@@ -25,7 +25,7 @@ public:
 	~Material();
 
 public:
-	void SetToDevice();
+	void SetTexturesToDevice();
 
 	// 삭제 예정
 public:
@@ -64,6 +64,8 @@ private:
 	std::vector<std::vector<std::vector<VariableInfo>>> _variableInfosPerShaderType;	// 각 쉐이더 당 콘스탄트 버퍼의 변수 정보 저장
 	
 
+public:
+	const bool useTextureType(const TextureType type);
 //public:
 //	void setFillMode(const Graphic::FillMode eFillMode);
 //private:

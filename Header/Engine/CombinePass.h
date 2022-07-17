@@ -33,6 +33,21 @@ private:
 	void render(PrimitiveData &primitiveData);
 };
 
+class LightPass : public RenderPass
+{
+	using Super = RenderPass;
+
+public:
+	explicit LightPass() = default;
+	virtual ~LightPass() = default;
+
+public:
+	virtual void doPass(RenderQueue &renderQueue) override;
+
+private:
+	void render(PrimitiveData &primitiveData);
+};
+
 #define __COMBINE_PASS_H__
 #endif
 

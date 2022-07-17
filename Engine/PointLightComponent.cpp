@@ -1,18 +1,11 @@
 #include "stdafx.h"
 #include "PointLightComponent.h"
 
-#include "MainGameSetting.h"
+#include "Render.h"
 
-#include "GraphicDevice.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "ConstantBuffer.h"
+#include "Material.h"
 
-#include "ShaderManager.h"
-
-#include "MainGame.h"
-
-#include "Camera.h"
+#include "StaticMeshComponent.h"
 
 using namespace DirectX;
 
@@ -20,64 +13,43 @@ PointLightComponent::PointLightComponent(void)
 	: LightComponent()
 	, _range{ 1.f }
 {
-	initializeVertices();
-	initializeBuffers();
+	getMesh()->getMaterial(0)->setShader(TEXT("Light.cso"), TEXT("PointLightShader.cso"));
 }
 
 PointLightComponent::~PointLightComponent(void)
 {
 }
 
-void PointLightComponent::initializeVertices()
+void PointLightComponent::Update(const Time deltaTime)
 {
-	//float halfWidth = g_pSetting->getResolutionWidth() / 2.f;
-	//float halfHeight = g_pSetting->getResolutionHeight() / 2.f;
+	PrimitiveComponent::Update(deltaTime);
 
-	//_vertexList.push_back({ Vec3{ -halfWidth, halfHeight, 1.f }, static_cast<Vec4>(Colors::White), Vec2{0.f, 0.f}, Vec3{0.f, 0.f, -1.f} });
-	//_vertexList.push_back({ Vec3{ halfWidth, halfHeight, 1.f }, static_cast<Vec4>(Colors::Red), Vec2(1.f, 0.f), Vec3{0.f, 0.f, -1.f} });
-	//_vertexList.push_back({ Vec3{ halfWidth, -halfHeight, 1.f }, static_cast<Vec4>(Colors::Green), Vec2(1.f, 1.f), Vec3{0.f, 0.f, -1.f} });
-	//_vertexList.push_back({ Vec3{ -halfWidth, -halfHeight, 1.f }, static_cast<Vec4>(Colors::Yellow), Vec2(0.f, 1.f), Vec3{0.f, 0.f, -1.f} });
+	XMVECTOR scaleVector = XMLoadFloat3(&getScale());
+	XMVECTOR trasnlationVector = XMLoadFloat3(&getTranslation());
+	XMMATRIX IdentityMatrix = XMLoadFloat4x4(&IDENTITYMATRIX);
+	
+	XMMATRIX matrices[(int)Transform::End] = {
+		XMMatrixScalingFromVector(scaleVector),
+		IdentityMatrix,
+		XMMatrixTranslationFromVector(trasnlationVector)
+	};
 
-	//_indexList.push_back(0);
-	//_indexList.push_back(1);
-	//_indexList.push_back(2);
-
-	//_indexList.push_back(0);
-	//_indexList.push_back(2);
-	//_indexList.push_back(3);
-
-	//_pVertexBuffer = std::make_shared<VertexBuffer>(static_cast<uint32>(sizeof(Vertex)), 4, &_vertexList[0]);
-	//_pIndexBuffer = std::make_shared<IndexBuffer>(static_cast<uint32>(sizeof(Index)), 6, &_indexList[0]);
+	XMStoreFloat4x4(&getWorldMatrix(), matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
 }
 
-void PointLightComponent::initializeBuffers()
+const bool PointLightComponent::getPrimitiveData(PrimitiveData &primitiveData)
 {
-	//_pVertexBuffer = std::make_shared<VertexBuffer>(static_cast<int>(sizeof(Vertex)), static_cast<int>(_vertexList.size()), &_vertexList[0]);
+	LightComponent::getPrimitiveData(primitiveData);
 
-	//{
-	//	VertexShaderConstantBuffer data = {
-	//		IDENTITYMATRIX,
-	//		IDENTITYMATRIX,
-	//		IDENTITYMATRIX
-	//	};
+	primitiveData._pMaterial = getMesh()->getMaterial(0);
+	primitiveData._pVertexShader = getMesh()->getMaterial(0)->getVertexShader();
+	primitiveData._pPixelShader = getMesh()->getMaterial(0)->getPixelShader();
 
-	//	_pVertexConstantBuffer = std::make_shared<ConstantBuffer>(static_cast<int>(sizeof(VertexShaderConstantBuffer)), &data);
-	//}
-
-	//{
-	//	PixelShaderConstantBuffer data = {
-	//		Vec4{0.f, 0.f, 0.f, _range},
-	//		Vec4{0.f, 0.f, 0.f, getIntensity()},
-	//		IDENTITYMATRIX,
-	//		IDENTITYMATRIX
-	//	};
-
-	//	_pPixelConstantBuffer = std::make_shared<ConstantBuffer>(static_cast<int>(sizeof(PixelShaderConstantBuffer)), &data);
-	//}
+	return true;
 }
 
-void PointLightComponent::render()
-{
+//void PointLightComponent::render()
+//{
 	//VertexShader vertexShader = nullptr;
 	//if (false == g_pShaderManager->getVertexShader(TEXT("TexVertexShader.cso"), vertexShader))
 	//{
@@ -159,7 +131,7 @@ void PointLightComponent::render()
 
 	////---------------------------------------------------------------------------------------------------------------------------------
 	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(_indexList.size()), 0u, 0u);
-}
+//}
 
 void PointLightComponent::addRange(float addRange)
 {

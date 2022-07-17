@@ -77,8 +77,8 @@ void DirectionalLightComponent::initializeBuffers()
 	//}
 }
 
-void DirectionalLightComponent::render()
-{
+//void DirectionalLightComponent::render()
+//{
 	//VertexShader vertexShader = nullptr;
 	//if (false == g_pShaderManager->getVertexShader(TEXT("TexVertexShader.cso"), vertexShader))
 	//{
@@ -160,4 +160,4 @@ void DirectionalLightComponent::render()
 
 	////---------------------------------------------------------------------------------------------------------------------------------
 	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(_indexList.size()), 0u, 0u);
-}
+//}

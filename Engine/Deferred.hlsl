@@ -1,4 +1,4 @@
-#include "Header.hlsli"
+#include "VSCommon.hlsli"
 
 VertexOut main(VertexIn vIn)
 {

@@ -102,6 +102,11 @@ const Mat4 &SceneComponent::getWorldMatrix() const
 	return _worldMatrix;
 }
 
+Mat4& SceneComponent::getWorldMatrix()
+{
+	return _worldMatrix;
+}
+
 void SceneComponent::setUpdateable(const bool updateable)
 {
 	_bUpdateable = updateable;
