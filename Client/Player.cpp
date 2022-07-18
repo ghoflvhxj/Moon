@@ -7,6 +7,7 @@
 #include "StaticMeshComponent.h"
 #include "TextureComponent.h"
 #include "PointLightComponent.h"
+#include "DirectionalLightComponent.h"
 #include "Material.h"
 
 #include "imgui.h"
@@ -26,10 +27,11 @@ void Player::initialize()
 {
 	_pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
 
-	//_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
-	//_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
-	//addComponent(ROOT_COMPONENT, _pMeshComponent);
-	//_pMeshComponent->setTranslation(0.f, 0.f, 5.f);
+	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
+	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
+	addComponent(ROOT_COMPONENT, _pMeshComponent);
+	_pMeshComponent->setScale(100.f, 1.f, 100.f);
+	_pMeshComponent->setTranslation(1.f, -1.f, 3.f);
 
 	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Table/Table.fbx");
 	addComponent(TEXT("test"), _pStaticMeshComponent);
@@ -58,22 +60,22 @@ void Player::initialize()
 	//_pBoneShapeComponent = std::make_shared<CollisionShapeComponent>(_pDynamicMeshComponent->_originBoneVertexList);
 	//addComponent(TEXT("BoneShape"), _pBoneShapeComponent);
 
-	//std::random_device rd;
-	//std::mt19937 gen(rd());
-	//std::uniform_int_distribution<int> colorDis(0, 255);
-	//std::uniform_int_distribution<int> transDis(0, 100);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> colorDis(0, 255);
+	std::uniform_int_distribution<int> transDis(0, 100);
 
-	//for (int i = 0; i < 100; ++i)
-	//{
-	//	std::shared_ptr<PointLightComponent> pLight = std::make_shared<PointLightComponent>();
-	//	pLight->setTranslation(Vec3(transDis(gen) / 1.f, 0.5f, transDis(gen) / 1.f));
-	//	pLight->setColor(Vec3(colorDis(gen) / 255.f, colorDis(gen) / 255.f, colorDis(gen) / 255.f));
-	//	pLight->setRange(3.f);
-	//	_pLightComponentList.push_back(pLight);
+	for (int i = 0; i < 50; ++i)
+	{
+		std::shared_ptr<PointLightComponent> pLight = std::make_shared<PointLightComponent>();
+		pLight->setTranslation(Vec3(transDis(gen) / 1.f, 1.f, transDis(gen) / 1.f));
+		pLight->setColor(Vec3(colorDis(gen) / 255.f, colorDis(gen) / 255.f, colorDis(gen) / 255.f));
+		pLight->setRange(3.f);
+		_pLightComponentList.push_back(pLight);
 
-	//	std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
-	//	addComponent(tag.c_str(), pLight);
-	//}
+		std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
+		addComponent(tag.c_str(), pLight);
+	}
 }
 
 void Player::initializeImGui()
@@ -111,18 +113,18 @@ void Player::tick(const Time deltaTime)
 	//}
 
 
-	//std::random_device rd;
-	//std::mt19937 gen(rd());
-	//std::uniform_int_distribution<int> moveDis(-3, 3);
-	//for (int i = 0; i < 100; ++i)
-	//{
-	//	Vec3 trans = _pLightComponentList[i]->getTranslation();
-	//	trans.x += moveDis(gen) * deltaTime;
-	//	//trans.y += moveDis(gen) * deltaTime;
-	//	trans.z += moveDis(gen) * deltaTime;
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> moveDis(-10, 10);
+	for (int i = 0; i < 50; ++i)
+	{
+		Vec3 trans = _pLightComponentList[i]->getTranslation();
+		trans.x += moveDis(gen) * deltaTime;
+		//trans.y += moveDis(gen) * deltaTime;
+		trans.z += moveDis(gen) * deltaTime;
 
-	//	_pLightComponentList[i]->setTranslation(trans);
-	//}
+		_pLightComponentList[i]->setTranslation(trans);
+	}
 }
 
 //void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)

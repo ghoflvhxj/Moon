@@ -50,9 +50,6 @@ public:
 
 private:
 	std::shared_ptr<StaticMesh> _pStaticMesh = nullptr;
-
-private:
-	bool _bNormalTexture = false;
 };
 
 #define __STATIC_MESH_COMPONENT_H__

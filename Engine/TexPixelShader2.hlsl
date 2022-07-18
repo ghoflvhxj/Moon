@@ -6,6 +6,12 @@ Texture2D g_Specular	: register(t2);
 
 SamplerState g_Sampler;
 
+cbuffer PS_CBuffer_Texture : register(b2)
+{
+	bool bUseNormalTexture;
+	bool bUseSpecularTexture;
+};
+
 PixelOut_GeometryPass main(PixelIn pIn)
 {
 	PixelOut_GeometryPass pOut;
@@ -16,25 +22,21 @@ PixelOut_GeometryPass main(PixelIn pIn)
 	// 0 < x < width, 0 < y < height, 0 < z < 1.f
 	// 0 < w < z나누기 전의 z
 	pOut.depth		= float4(pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.w);
-	pOut.normal		= float4(pIn.normal, 0.f);
+	pOut.normal		= float4(pIn.normal, 1.f);
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
+
+	const float3x3 tanToView = float3x3(
+		normalize(pIn.tangent),
+		normalize(pIn.binormal),
+		normalize(pIn.normal)
+		);
 
 	if (true == bUseNormalTexture)
 	{
-		const float3x3 tanToView = float3x3(
-			normalize(pIn.tangent),
-			normalize(pIn.binormal),
-			normalize(pIn.normal)
-		);
-
 		float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
 		normal.x = (normal.x * 2.f) - 1.f;
 		normal.y = -(normal.y * 2.f) + 1.f;
 		normal.z = normal.z;
-
-		//normal = pIn.normal + (normal.x * pIn.tangent) + (normal.y * pIn.binormal);
-		//normal = normalize(normal);
-
 		normal = mul(normal, tanToView);
 
 		pOut.normal = float4(normal, 1.f);

@@ -19,18 +19,3 @@ struct PixelOut_CombinePass
 {
 	float4	color	: SV_TARGET0;
 };
-
-cbuffer PS_CBuffer_Texture : register(b1)
-{
-	bool bUseNormalTexture;
-	bool bUseSpecularTexture;
-};
-
-cbuffer PixelShaderConstantBuffer : register (b2)
-{
-	float4 g_lightPosition;	// w = Range
-	float4 g_lightColor;		// w = Power
-
-	row_major matrix g_inverseCameraViewMatrix;
-	row_major matrix g_inverseProjectiveMatrix;
-};

@@ -12,6 +12,8 @@
 // Actor
 #include "Camera.h"
 
+using namespace DirectX;
+
 CombinePass::CombinePass()
 	: RenderPass()
 {
@@ -115,10 +117,10 @@ void GeometryPass::doPass(RenderQueue &renderQueue)
 		auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
 		memcpy(VS_CBuffer_PerObject[0]._pValue, &primitive->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
 
-		auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerTick);
-		bool bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Normal);
+		auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
+		BOOL bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Normal) ? TRUE : FALSE;
 		memcpy(PS_CBuffer_PerObject[0]._pValue, &bUseTexture, PS_CBuffer_PerObject[0]._size);
-		bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Specular);
+		bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Specular) ? TRUE : FALSE;
 		memcpy(PS_CBuffer_PerObject[1]._pValue, &bUseTexture, PS_CBuffer_PerObject[1]._size);
 
 		render(primitiveData);
@@ -155,6 +157,10 @@ void GeometryPass::render(PrimitiveData &primitiveData)
 	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
 	primitiveData._pPixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
 	primitiveData._pPixelShader->SetToDevice();
+
+	//auto &variableInfosPS2 = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
+	//primitiveData._pPixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS2);
+	//primitiveData._pPixelShader->SetToDevice();
 
 	primitiveData._pMaterial->SetTexturesToDevice();
 
@@ -199,9 +205,15 @@ void LightPass::doPass(RenderQueue &renderQueue)
 		Vec4 color = { 1.f, 1.f, 1.f, 1.f };
 		auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
 		memcpy(PS_CBuffer_PerObject[0]._pValue, &transAndRange, PS_CBuffer_PerObject[0]._size);
-		memcpy(PS_CBuffer_PerObject[1]._pValue, &color, PS_CBuffer_PerObject[1]._size);
-		memcpy(PS_CBuffer_PerObject[2]._pValue, &g_pMainGame->getMainCamera()->getInvesrViewMatrix(), PS_CBuffer_PerObject[2]._size);
-		memcpy(PS_CBuffer_PerObject[3]._pValue, &g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix(), PS_CBuffer_PerObject[3]._size);
+		XMVECTOR rotationVector = XMLoadFloat3(&primitive->getRotation());
+		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(rotationVector);
+		Mat4 rotMatrix = IDENTITYMATRIX;
+		XMStoreFloat4x4(&rotMatrix, rotationMatrix);
+		Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
+		memcpy(PS_CBuffer_PerObject[1]._pValue, &look, PS_CBuffer_PerObject[1]._size);
+		memcpy(PS_CBuffer_PerObject[2]._pValue, &color, PS_CBuffer_PerObject[2]._size);
+		memcpy(PS_CBuffer_PerObject[3]._pValue, &g_pMainGame->getMainCamera()->getInvesrViewMatrix(), PS_CBuffer_PerObject[3]._size);
+		memcpy(PS_CBuffer_PerObject[4]._pValue, &g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix(), PS_CBuffer_PerObject[4]._size);
 
 		render(primitiveData);
 	}
@@ -246,7 +258,7 @@ void LightPass::render(PrimitiveData &primitiveData)
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// DepthStencilState
-	g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::DepthWriteMode::Enable), 1);
+	g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::DepthWriteMode::Disable), 1);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// OutputMerge

@@ -6,6 +6,16 @@ Texture2D g_Specular	: register(t2);
 
 SamplerState g_Sampler;
 
+cbuffer PixelShaderConstantBuffer : register (b2)
+{
+	float4 g_lightPosition;		// w = Range
+	float4 g_lightDirection;
+	float4 g_lightColor;		// w = Power
+
+	row_major matrix g_inverseCameraViewMatrix;
+	row_major matrix g_inverseProjectiveMatrix;
+};
+
 struct PixelOut
 {
 	float4 diffuse	: SV_TARGET0;
@@ -47,9 +57,10 @@ PixelOut main(PixelIn pIn)
 
 	////-------------------------------------------------------------------------------------------------
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
-	float3 diffuseFactor = saturate(dot(normalInWorld, direction));	//	float으로 해도 되는데 편할려고
+	float diffuseFactor = saturate(dot(normalInWorld, direction));
 	pOut.diffuse = float4(color * diffuseFactor * attenuation * intensity, 1.f);
-	//pOut.diffuse = float4(1.f - distance > 0.f ? 1.f - distance : 0.f, 0.f, 0.f, 1.f);
+	//pOut.diffuse = float4(range - distance > 0.f ? 1.f - distance / range : 0.f, 0.f, 0.f, 1.f);
+	//pOut.diffuse = float4(normal.xyz, 1.f);
 
 	//-------------------------------------------------------------------------------------------------
 	deltaPosition	= pixelWorldPosition.xyz - g_lightPosition.xyz;

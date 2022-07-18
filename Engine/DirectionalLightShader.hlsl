@@ -1,16 +1,19 @@
+#include "PSCommon.hlsli"
+
 Texture2D g_Depth		: register(t0);
 Texture2D g_Normal		: register(t1);
 Texture2D g_Specular	: register(t2);
 
 SamplerState g_Sampler;
 
-struct PixelIn
+cbuffer CBuffer : register(b2)
 {
-	float4 pos		: SV_POSITION;
-	float2 uv		: TEXCOORD0;
-	float3 normal	: NORMAL0;
-	float3 tangent	: NORMAL1;
-	float3 binormal : NORMAL2;
+	float4 g_lightPosition;		// w = Range
+	float4 g_lightDirection;
+	float4 g_lightColor;		// w = Power
+
+	row_major float4x4 g_inverseCameraViewMatrix;
+	row_major float4x4 g_inverseProjectiveMatrix;
 };
 
 struct PixelOut
@@ -19,21 +22,13 @@ struct PixelOut
 	float4 specular	: SV_TARGET1;
 };
 
-cbuffer CBuffer
-{
-	float4	g_lightDirection;
-	float4	g_lightColor;
-
-	float4x4 g_inverseCameraViewMatrix;
-	float4x4 g_inverseProjectiveMatrix;
-};
-
 PixelOut main(PixelIn pIn)
 {
 	PixelOut pOut;
 
 	float4 depth = g_Depth.Sample(g_Sampler, pIn.uv);
 	float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);
+	normal.w = 0.f;
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
 
 	// uv좌표를 (0 <= x, y <= 1) 투영좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 1이다)
@@ -51,7 +46,8 @@ PixelOut main(PixelIn pIn)
 	float intensity = g_lightColor.w;
 
 	//-------------------------------------------------------------------------------------------------
-	float3 diffuseFactor = saturate(dot(normal.xyz, -direction));	//	float으로 해도 되는데 편할려고
+	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
+	float diffuseFactor = saturate(dot(normalInWorld, -direction));	//	float으로 해도 되는데 편할려고
 	pOut.diffuse = float4(color * diffuseFactor * intensity, 1.f);
 
 	//-------------------------------------------------------------------------------------------------
