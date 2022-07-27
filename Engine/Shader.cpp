@@ -78,11 +78,6 @@ Shader::Shader(const std::wstring &filePathName)
 	: _constantBuffers(CastValue<uint32>(ConstantBuffersLayer::Count), nullptr)
 	, _variableInfos(CastValue<uint32>(ConstantBuffersLayer::Count), std::vector<VariableInfo>())
 {
-	if (filePathName == TEXT(".\\Resources\\Shader\\Vertex\\Deferred.cso"))
-	{
-		int a = 0;
-	}
-
 	FAILED_CHECK_THROW(D3DReadFileToBlob(filePathName.c_str(), &_pBlob));
 	MakeCosntantBuffers();
 }

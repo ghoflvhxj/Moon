@@ -18,10 +18,6 @@ VertexShader::VertexShader(const std::wstring &filePathName)
 
 VertexShader::~VertexShader()
 {
-	if (fileName == TEXT(".\\Resources\\Shader\\Vertex\\Deferred.cso"))
-	{
-		int a = 0;
-	}
 	SafeRelease(_pVertexShader);
 }
 
