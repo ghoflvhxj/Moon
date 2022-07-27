@@ -38,6 +38,7 @@ cbuffer VS_CBuffer_PerTick : register(b1)
 	// 직교 투영용
 	row_major matrix identityMatrix;
 	row_major matrix orthographicProjectionMatrix;
+	row_major matrix inverseOrthographicProjectionMatrix;
 };
 
 cbuffer VS_CBuffer_PerObject : register(b2)

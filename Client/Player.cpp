@@ -13,7 +13,7 @@
 
 #include "imgui.h"
 
-#define UseLight 1
+#define UseLight 0
 
 using namespace DirectX;
 

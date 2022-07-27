@@ -27,6 +27,8 @@
 #include "LightComponent.h"
 #include "StaticMeshComponent.h"
 
+#include "Camera.h"
+
 Renderer::Renderer(void) noexcept
 	: _drawRenderTarget{ true }
 	, _bDirtyConstant{ true }
@@ -194,6 +196,7 @@ void Renderer::updateConstantBuffer()
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 1, &g_pMainGame->getMainCameraProjectioinMatrix());
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 2, &IDENTITYMATRIX);
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 3, &g_pMainGame->getMainCameraOrthographicProjectionMatrix());
+			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 4, &g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
 			shader->UpdateConstantBuffer(ConstantBuffersLayer::PerTick, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::PerTick)]);
 		}
 	}

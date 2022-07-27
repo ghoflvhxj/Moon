@@ -384,7 +384,7 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 		{
 		case FbxLayerElement::EReferenceMode::eDirect:
 		{
-			vertex.Tex0.x = 1.f - ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[0]);
+			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[0]);
 			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[1]);
 		}
 		break;
@@ -396,7 +396,7 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 		case FbxLayerElement::EReferenceMode::eIndexToDirect:
 		{
 			int index = uv->GetIndexArray().GetAt(controlPointIndex);
-			vertex.Tex0.x = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
+			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
 			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[1]);
 		}
 		break;
@@ -415,7 +415,7 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 		{
 		case FbxLayerElement::EReferenceMode::eDirect:
 		{
-			vertex.Tex0.x = 1.f - ToFloat(uv->GetDirectArray().GetAt(vertexCounter).mData[0]);
+			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(vertexCounter).mData[0]);
 			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(vertexCounter).mData[1]);
 		}
 		break;
@@ -427,7 +427,7 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 		case FbxLayerElement::EReferenceMode::eIndexToDirect:
 		{
 			int index = uv->GetIndexArray().GetAt(vertexCounter);
-			vertex.Tex0.x = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
+			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
 			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[1]);
 		}
 		break;
