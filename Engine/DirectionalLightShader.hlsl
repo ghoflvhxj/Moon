@@ -1,11 +1,5 @@
 #include "PSCommon.hlsli"
 
-Texture2D g_Depth		: register(t0);
-Texture2D g_Normal		: register(t1);
-Texture2D g_Specular	: register(t2);
-
-SamplerState g_Sampler;
-
 cbuffer CBuffer : register(b2)
 {
 	float4 g_lightPosition;		// w = Range
@@ -16,15 +10,9 @@ cbuffer CBuffer : register(b2)
 	row_major float4x4 g_inverseProjectiveMatrix;
 };
 
-struct PixelOut
+PixelOut_LightPass main(PixelIn pIn)
 {
-	float4 diffuse	: SV_TARGET0;
-	float4 specular	: SV_TARGET1;
-};
-
-PixelOut main(PixelIn pIn)
-{
-	PixelOut pOut;
+	PixelOut_LightPass pOut;
 
 	float4 depth = g_Depth.Sample(g_Sampler, pIn.uv);
 	float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);
@@ -48,14 +36,14 @@ PixelOut main(PixelIn pIn)
 	//-------------------------------------------------------------------------------------------------
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
 	float diffuseFactor = saturate(dot(normalInWorld, -direction));	//	float으로 해도 되는데 편할려고
-	pOut.diffuse = float4(color * diffuseFactor * intensity, 1.f);
+	pOut.lightDiffuse = float4(color * diffuseFactor * intensity, 1.f);
 
 	//-------------------------------------------------------------------------------------------------
 	direction = normalize(reflect(direction, normal.xyz));
 	float3 toEye = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - pixelWorldPosition.xyz;
 
 	float3 specularFactor = pow(saturate(dot(normalize(toEye), direction)), 10.f);
-	pOut.specular = float4(specular.xyz * specularFactor, 1.f);
+	pOut.lightSpecular = float4(specular.xyz * specularFactor, 1.f);
 
 	return pOut;
 }

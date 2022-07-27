@@ -1,30 +1,27 @@
 #pragma once
 #ifndef __SKY_COMPONENT_H__
 
-#include "SceneComponent.h"
+#include "PrimitiveComponent.h"
 
-class StaticMeshComponent;
-
-class ENGINE_DLL SkyComponent : public SceneComponent, public std::enable_shared_from_this<SkyComponent>
+struct PrimitiveData;
+class StaticMesh;
+class Material;
+class ENGINE_DLL SkyComponent : public PrimitiveComponent
 {
 public:
 	explicit SkyComponent();
-	~SkyComponent();
+	virtual ~SkyComponent();
+
+public:
+	virtual const bool getPrimitiveData(PrimitiveData &primitiveData);
+
 private:
 	void initialize();
-
-public:
-	void Update(const Time deltaTime) override;
-public:
-	void render();
-
-public:
-	void Test(ID3D11ShaderResourceView * p);
 
 private:
 	Vec3 _baseColor;
 
-	std::shared_ptr<StaticMeshComponent> _pStaticMeshComponent;
+	std::shared_ptr<StaticMesh> _pSkyMesh;
 };
 
 #define __SKY_COMPONENT_H__

@@ -139,9 +139,6 @@ const bool GraphicDevice::BuildInputLayout()
 
 	m_pImmediateContext->IASetInputLayout(m_pInputLayout);
 
-	//m_pImmediateContext->VSSetShader(g_pShaderManager->getVertexShader(TEXT("TexVertexShader.cso")), nullptr, 0);
-	//m_pImmediateContext->PSSetShader(g_pShaderManager->getPixelShader(TEXT("TexPixelShader2.cso")), nullptr, 0);
-
 	return true;
 }
 
@@ -345,6 +342,8 @@ const bool GraphicDevice::buildSamplerState()
 	m_pImmediateContext->PSSetSamplers(0, 1, &pSamplerState);
 
 	_samplerList.emplace_back(pSamplerState);
+
+	return true;
 }
 
 ID3D11SamplerState* GraphicDevice::getSamplerState()

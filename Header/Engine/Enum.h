@@ -20,6 +20,7 @@ enum class TextureType : uint32
 {
 	// ±âº»
 	Diffuse
+	, Depth
 	, Normal
 	, Specular
 

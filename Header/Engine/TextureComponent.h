@@ -21,8 +21,8 @@ public:
 public:
 	const bool loadTextureFile(const wchar_t *fileName);
 	void setTexture(const uint32 index = 0);
-	RawTexturePtr& getTextureRowPointer();
-	ResourceViewPtr& getResourceViewRowPointer();
+	RawTexturePtr& getRawTexturePointer();
+	ResourceViewPtr& getRawResourceViewPointer();
 private:
 	RawTexture		*_rawTexture;
 	ResourceView	*_pResourceView;

@@ -81,7 +81,7 @@ void TerrainComponent::initializeMeshInfromation()
 
 	_pMaterial = std::make_shared<Material>();
 	_pMaterial->setTexture(_textureList);
-	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader2.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
+	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 }
 
 //void TerrainComponent::render()

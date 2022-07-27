@@ -85,9 +85,6 @@ void SceneRenderer::renderObject()
 
 void SceneRenderer::fowardRender()
 {
-	//g_pGraphicDevice->getContext()->VSSetShader(g_pShaderManager->getVertexShader(TEXT("TexVertexShader.cso")), nullptr, 0);
-	//g_pGraphicDevice->getContext()->PSSetShader(g_pShaderManager->getPixelShader(TEXT("TexPixelShader.cso")), nullptr, 0);
-
 	for (auto iter = _primitiveComponentList.begin(); iter != _primitiveComponentList.end(); ++iter)
 		(*iter)->render();
 }

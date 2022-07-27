@@ -26,7 +26,7 @@ RenderTarget::~RenderTarget()
 	SAFE_RELEASE(_pDepthStencilView);
 }
 
-std::shared_ptr<TextureComponent> RenderTarget::getRenderTargetTexture()
+std::shared_ptr<TextureComponent> RenderTarget::AsTexture()
 {
 	return _pRenderTargetTexture;
 }
@@ -48,20 +48,20 @@ void RenderTarget::initializeTexture()
 	renderTagetDesc.MiscFlags = 0;
 
 	_pRenderTargetTexture = std::make_shared<TextureComponent>();
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&renderTagetDesc, nullptr, &_pRenderTargetTexture->getTextureRowPointer()));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&renderTagetDesc, nullptr, &_pRenderTargetTexture->getRawTexturePointer()));
 
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
 	renderTargetViewDesc.Format = renderTagetDesc.Format;
 	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(_pRenderTargetTexture->getTextureRowPointer(), &renderTargetViewDesc, &_pRenderTargetView));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(_pRenderTargetTexture->getRawTexturePointer(), &renderTargetViewDesc, &_pRenderTargetView));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC svd = { };
 	svd.Format = renderTagetDesc.Format;
 	svd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	svd.Texture2D.MipLevels = -1;
 	svd.Texture2D.MostDetailedMip = 0;
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(_pRenderTargetTexture->getTextureRowPointer(), &svd, &_pRenderTargetTexture->getResourceViewRowPointer()));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(_pRenderTargetTexture->getRawTexturePointer(), &svd, &_pRenderTargetTexture->getRawResourceViewPointer()));
 
 	// DepthStencilView
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
@@ -78,11 +78,11 @@ void RenderTarget::initializeTexture()
 	depthStencilDesc.MiscFlags = 0;
 
 	_pDepthStencilTexture = std::make_shared<TextureComponent>();
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&depthStencilDesc, nullptr, &_pDepthStencilTexture->getTextureRowPointer()));
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(_pDepthStencilTexture->getTextureRowPointer(), nullptr, &_pDepthStencilView));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&depthStencilDesc, nullptr, &_pDepthStencilTexture->getRawTexturePointer()));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(_pDepthStencilTexture->getRawTexturePointer(), nullptr, &_pDepthStencilView));
 }
 
-ID3D11RenderTargetView* RenderTarget::getRenderTargetView()
+ID3D11RenderTargetView* RenderTarget::AsRenderTargetView()
 {
 	return _pRenderTargetView;
 }

@@ -1,11 +1,5 @@
 #include "PSCommon.hlsli"
 
-Texture2D g_Depth		: register(t0);
-Texture2D g_Normal		: register(t1);
-Texture2D g_Specular	: register(t2);
-
-SamplerState g_Sampler;
-
 cbuffer PixelShaderConstantBuffer : register (b2)
 {
 	float4 g_lightPosition;		// w = Range
@@ -16,15 +10,9 @@ cbuffer PixelShaderConstantBuffer : register (b2)
 	row_major matrix g_inverseProjectiveMatrix;
 };
 
-struct PixelOut
+PixelOut_LightPass main(PixelIn pIn)
 {
-	float4 diffuse	: SV_TARGET0;
-	float4 specular : SV_TARGET1;
-};
-
-PixelOut main(PixelIn pIn)
-{
-	PixelOut pOut;
+	PixelOut_LightPass pOut;
 
 	float4 depth	= g_Depth.Sample(g_Sampler, pIn.uv);
 	float4 normal	= g_Normal.Sample(g_Sampler, pIn.uv);
@@ -58,7 +46,7 @@ PixelOut main(PixelIn pIn)
 	////-------------------------------------------------------------------------------------------------
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
 	float diffuseFactor = saturate(dot(normalInWorld, direction));
-	pOut.diffuse = float4(color * diffuseFactor * attenuation * intensity, 1.f);
+	pOut.lightDiffuse = float4(color * diffuseFactor * attenuation * intensity, 1.f);
 	//pOut.diffuse = float4(range - distance > 0.f ? 1.f - distance / range : 0.f, 0.f, 0.f, 1.f);
 	//pOut.diffuse = float4(normal.xyz, 1.f);
 
@@ -68,7 +56,7 @@ PixelOut main(PixelIn pIn)
 	float3 toEye	= float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - pixelWorldPosition.xyz;
 
 	float3 specularFactor = saturate(dot(direction, normalize(toEye)));
-	pOut.specular = float4(specular.xyz * attenuation * specularFactor, 1.f);
+	pOut.lightSpecular = float4(specular.xyz * attenuation * specularFactor, 1.f);
 
 	return pOut;
 }

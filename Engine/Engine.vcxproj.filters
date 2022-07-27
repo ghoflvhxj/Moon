@@ -296,9 +296,6 @@
     <ClInclude Include="Material.h">
       <Filter>Module\Material</Filter>
     </ClInclude>
-    <ClInclude Include="SkyComponent.h">
-      <Filter>Module\Framework\Component</Filter>
-    </ClInclude>
     <ClInclude Include="CollisionShapeComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -337,6 +334,9 @@
     </ClInclude>
     <ClInclude Include="PixelShader.h">
       <Filter>Module\Graphics\Shader\Pixel</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyComponent.h">
+      <Filter>Module\Framework\Component\SceneComponent</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -454,9 +454,6 @@
     <ClCompile Include="Material.cpp">
       <Filter>Module\Material</Filter>
     </ClCompile>
-    <ClCompile Include="SkyComponent.cpp">
-      <Filter>Module\Framework\Component</Filter>
-    </ClCompile>
     <ClCompile Include="CollisionShapeComponent.cpp" />
     <ClCompile Include="DirectionalLightComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent\DirectionalLightComponent</Filter>
@@ -491,6 +488,9 @@
     <ClCompile Include="PixelShader.cpp">
       <Filter>Module\Graphics\Shader\Pixel</Filter>
     </ClCompile>
+    <ClCompile Include="SkyComponent.cpp">
+      <Filter>Module\Framework\Component\SceneComponent</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="TexVertexShader.hlsl">
@@ -502,7 +502,7 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
     </FxCompile>
-    <FxCompile Include="TexPixelShader2.hlsl">
+    <FxCompile Include="TexPixelShader.hlsl">
       <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="DeferredShader.hlsl">
@@ -521,9 +521,6 @@
       <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="SkyPixelShader.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="TexPixelShader.hlsl">
       <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="Deferred.hlsl">

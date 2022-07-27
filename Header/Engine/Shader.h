@@ -38,6 +38,7 @@ public:
 	{
 		_offset = rhs._offset;
 		_size = rhs._size;
+		_pValue = nullptr;
 
 		if (_size > 0)
 		{
@@ -51,7 +52,33 @@ public:
 		if (_pValue != nullptr)
 		{
 			delete[] _pValue;
+			_pValue = nullptr;
+			_size = -1;
+			_offset = -1;
 		}
+	}
+
+	VariableInfo& operator=(VariableInfo &rhs)
+	{
+		if (_pValue != nullptr)
+		{
+			delete[] _pValue;
+			_pValue = nullptr;
+			_size = -1;
+			_offset = -1;
+		}
+
+		_offset = rhs._offset;
+		_size = rhs._size;
+		_pValue = nullptr;
+
+		if (_size > 0)
+		{
+			_pValue = new Byte[_size];
+			memcpy(_pValue, rhs._pValue, _size);
+		}
+
+		return *this;
 	}
 
 public:
@@ -59,6 +86,8 @@ public:
 	uint32 _size;
 	Byte* _pValue;
 };
+
+
 
 class Shader abstract : public std::enable_shared_from_this<Shader>
 {
@@ -88,7 +117,7 @@ protected:
 	std::vector<std::shared_ptr<ConstantBuffer>> _constantBuffers;	// 속도를 위해 레이어당 하나의 버퍼만 저장하기!
 
 public:
-	std::vector<std::vector<VariableInfo>>& getVariableInfo();
+	std::vector<std::vector<VariableInfo>>& getVariableInfos();
 private:
 	std::vector<std::vector<VariableInfo>> _variableInfos;
 };

@@ -18,16 +18,16 @@
 #include "TextureComponent.h"
 
 RenderPass::RenderPass()
-	: _renderTargetList()
+	: _renderTargetList(RT_COUNT, nullptr)
+	, _resourceViewList(RT_COUNT, nullptr)
 	, _pOldRenderTargetView{ nullptr }
 	, _pOldDepthStencilView{ nullptr }
 	, _vertexShader{ nullptr }
 	, _pixelShader{ nullptr }
 	, _bShaderSet{ false }
 	, _bRenderTargetSet{ false }
-	, _renderTargetCount{ 0 }
+	, _renderTargetCount{ RT_COUNT }
 {
-	_renderTargetList.reserve(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
 }
 
 RenderPass::~RenderPass()
@@ -46,19 +46,29 @@ void RenderPass::begin()
 
 		for (uint32 i = 0; i < _renderTargetCount; ++i)
 		{
-			g_pGraphicDevice->getContext()->ClearRenderTargetView(_renderTargetList[i]->getRenderTargetView(), reinterpret_cast<const float *>(&Colors::Black));
+			if (_renderTargetList[i] == nullptr)
+			{
+				continue;
+			}
+
+			g_pGraphicDevice->getContext()->ClearRenderTargetView(_renderTargetList[i]->AsRenderTargetView(), reinterpret_cast<const float *>(&Colors::Black));
 			g_pGraphicDevice->getContext()->ClearDepthStencilView(_renderTargetList[i]->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
-			rowRenderTargetViewArray[i] = _renderTargetList[i]->getRenderTargetView();
+			rowRenderTargetViewArray[i] = _renderTargetList[i]->AsRenderTargetView();
 		}
 
 		g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(_renderTargetCount), &rowRenderTargetViewArray[0], _pOldDepthStencilView);
 	}
 
 	// Ω¶¿Ã¥ı ∏Æº“Ω∫ ∫‰ º≥¡§
-	uint32 resorceViewCount = CastValue<uint32>(_resourceViewList.size());
-	for (uint32 i = 0; i < resorceViewCount; ++i)
+	uint32 resourceViewCount = CastValue<uint32>(_resourceViewList.size());
+	for (uint32 i = 0; i < resourceViewCount; ++i)
 	{
-		g_pGraphicDevice->getContext()->PSSetShaderResources(i, 1, &_resourceViewList[i]->getResourceViewRowPointer());
+		if (_resourceViewList[i] == nullptr)
+		{
+			continue;
+		}
+
+		g_pGraphicDevice->getContext()->PSSetShaderResources(i, 1, &_resourceViewList[i]->AsTexture()->getRawResourceViewPointer());
 	}
 }
 
@@ -131,23 +141,6 @@ void RenderPass::render(PrimitiveData &primitiveData)
 	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
 
 	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
-}
-
-void RenderPass::initializeRenderTarget(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList)
-{
-	_renderTargetList.swap(renderTargetList);
-	_bRenderTargetSet = true;
-	_renderTargetCount = CastValue<uint32>(_renderTargetList.size());
-}
-
-void RenderPass::initializeResourceViewByRenderTarget(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList)
-{
-	_resourceViewList.reserve(renderTargetList.size());
-
-	for (auto& renderTarget : renderTargetList)
-	{
-		_resourceViewList.emplace_back(renderTarget->getRenderTargetTexture());
-	}
 }
 
 void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)

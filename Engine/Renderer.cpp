@@ -61,96 +61,42 @@ void Renderer::initialize(void) noexcept
 		_renderTargets.emplace_back(std::make_shared<RenderTarget>());
 	}
 
-	/*
-	_pMeshComponent->getStaticMesh()->getMaterial(0)->setDepthWriteMode(Graphic::DepthWriteMode::Disable);
-	_pMeshComponent->getStaticMesh()->getMaterial(0)->setShader(TEXT("TexVertexShader.cso"), TEXT("DeferredShader.cso"));
-
-	addRenderPass(TEXT("DepthPrePass"));
-	{
-		std::vector<std::shared_ptr<RenderTarget>> rt = {
-			_renderTargetMap[TEXT("DepthPre")],
-		};
-		_renderPassMap[TEXT("DepthPrePass")]->initializeRenderTarget(rt);
-		_renderPassMap[TEXT("DepthPrePass")]->setShader(TEXT("DepthPre.cso"), TEXT(""));
-	}
-
-	addRenderPass(TEXT("GeometryPass"));
-	{
-		std::vector<std::shared_ptr<RenderTarget>> rt = {
-			_renderTargetMap[TEXT("Albedo")],
-			_renderTargetMap[TEXT("Depth")],
-			_renderTargetMap[TEXT("Normal")],
-			_renderTargetMap[TEXT("Specular")]
-		};
-		_renderPassMap[TEXT("GeometryPass")]->initializeRenderTarget(rt);
-	}
-
-	addRenderPass(TEXT("LightPass"));
-	{
-		std::vector<std::shared_ptr<RenderTarget>> rt = {
-			_renderTargetMap[TEXT("LightDiffuse")],
-			_renderTargetMap[TEXT("LightSpecular")],
-		};
-
-		std::vector<std::shared_ptr<TextureComponent>> textureList = {
-			_renderTargetMap[TEXT("Depth")]->getRenderTargetTexture(),
-			_renderTargetMap[TEXT("Normal")]->getRenderTargetTexture(),
-			_renderTargetMap[TEXT("Specular")]->getRenderTargetTexture()
-		};
-
-		_renderPassMap[TEXT("LightPass")]->initializeRenderTarget(rt);
-		_renderPassMap[TEXT("LightPass")]->initializeTexture(textureList);
-	}
-
-	addRenderPass(TEXT("CombinePass"));
-	{
-		std::vector<std::shared_ptr<TextureComponent>> textureList = {
-			_renderTargetMap[TEXT("Albedo")]->getRenderTargetTexture(),
-			_renderTargetMap[TEXT("LightDiffuse")]->getRenderTargetTexture(),
-			_renderTargetMap[TEXT("LightSpecular")]->getRenderTargetTexture()
-		};
-
-		_renderPasses[TEXT("CombinePass")]->initializeTexture(textureList);
-	}
-	*/
-
 	_renderPasses.emplace_back(CreateRenderPass<GeometryPass>());
 	{
-		RenderTargets rt = {
-			_renderTargets[enumToIndex(ERenderTarget::Albedo)],
-			_renderTargets[enumToIndex(ERenderTarget::Depth)],
-			_renderTargets[enumToIndex(ERenderTarget::Normal)],
-			_renderTargets[enumToIndex(ERenderTarget::Specular)]
-		};
-		_renderPasses[enumToIndex(ERenderPass::Geometry)]->initializeRenderTarget(rt);
+		_renderPasses[enumToIndex(ERenderPass::Geometry)]->initializeRenderTargets(_renderTargets,
+			ERenderTarget::Diffuse, 
+			ERenderTarget::Depth, 
+			ERenderTarget::Normal, 
+			ERenderTarget::Specular);
 	}
+
+	//_renderPasses.emplace_back(CreateRenderPass<SkyPass>());
+	//{
+	//	_renderPasses[enumToIndex(ERenderPass::SkyPass)]->initializeRenderTargets(_renderTargets,
+	//		ERenderTarget::Diffuse,
+	//		ERenderTarget::Depth);
+	//}
 
 	_renderPasses.emplace_back(CreateRenderPass<LightPass>());
 	{
-		std::vector<std::shared_ptr<RenderTarget>> rt = {
-			_renderTargets[enumToIndex(ERenderTarget::LightDiffuse)],
-			_renderTargets[enumToIndex(ERenderTarget::LightSpecular)],
-		};
+		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeRenderTargets(_renderTargets,
+			ERenderTarget::LightDiffuse,
+			ERenderTarget::LightSpecular);
 
-		std::vector<std::shared_ptr<RenderTarget>> textureList = {
-			_renderTargets[enumToIndex(ERenderTarget::Depth)],
-			_renderTargets[enumToIndex(ERenderTarget::Normal)],
-			_renderTargets[enumToIndex(ERenderTarget::Specular)]
-		};
-
-		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeRenderTarget(rt);
-		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeResourceViewByRenderTarget(textureList);
+		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeResourceViews(_renderTargets,
+			ERenderTarget::Depth,
+			ERenderTarget::Normal,
+			ERenderTarget::Specular);
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<CombinePass>());
 	{
-		std::vector<std::shared_ptr<RenderTarget>> textureList = {
-			_renderTargets[enumToIndex(ERenderTarget::Albedo)],
-			_renderTargets[enumToIndex(ERenderTarget::LightDiffuse)],
-			_renderTargets[enumToIndex(ERenderTarget::LightSpecular)]
-		};
+		_renderPasses[enumToIndex(ERenderPass::Combine)]->initializeResourceViews(_renderTargets,
+			ERenderTarget::Diffuse,
+			ERenderTarget::LightDiffuse,
+			ERenderTarget::LightSpecular);
+
 		_renderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
-		_renderPasses[enumToIndex(ERenderPass::Combine)]->initializeResourceViewByRenderTarget(textureList);
 	}
 }
 
@@ -185,6 +131,8 @@ void Renderer::render(void)
 	updateConstantBuffer();
 
 	// 기본 패스
+	auto& LighPass = _renderPasses[(int)ERenderPass::Light];
+
 	uint32 combinePassIndex = CastValue<uint32>(ERenderPass::Combine);
 	for (uint32 i = 0; i < combinePassIndex; ++i)
 	{
@@ -228,7 +176,7 @@ void Renderer::updateConstantBuffer()
 		for (auto& pair : shaders)
 		{
 			std::shared_ptr<Shader> shader = pair.second;
-			auto &VS_CBuffers = shader->getVariableInfo();
+			auto &VS_CBuffers = shader->getVariableInfos();
 
 			// PerConstant 레이어
 			if (bUpdateConstantLayer)

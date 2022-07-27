@@ -83,12 +83,12 @@ void TextureComponent::setTexture(const uint32 index)
 	g_pGraphicDevice->getContext()->PSSetShaderResources(index, 1, &_pResourceView);
 }
 
-TextureComponent::RawTexturePtr& TextureComponent::getTextureRowPointer()
+TextureComponent::RawTexturePtr& TextureComponent::getRawTexturePointer()
 {
 	return _rawTexture;
 }
 
-TextureComponent::ResourceViewPtr& TextureComponent::getResourceViewRowPointer()
+TextureComponent::ResourceViewPtr& TextureComponent::getRawResourceViewPointer()
 {
 	return _pResourceView;
 }

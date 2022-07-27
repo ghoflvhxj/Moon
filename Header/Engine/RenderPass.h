@@ -8,27 +8,62 @@
 class ENGINE_DLL RenderPass abstract
 {
 public:
+	static const int RT_COUNT = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+
+public:
 	explicit RenderPass();
 	virtual ~RenderPass();
 
 public:
-	void begin();
-	void end();
-
+	virtual void begin();
+	/*virtual*/ void end();
 	virtual void doPass(RenderQueue &renderQueue) = 0;
-
 	virtual void render(PrimitiveData &primitiveData);
 
-
 public:
-	void initializeRenderTarget(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList);
+	template<class... TList>
+	void initializeRenderTargets(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList, TList... args)
+	{
+		bindFunction = [&](std::vector<std::shared_ptr<RenderTarget>> &bindList, int index)->void {
+			bindList[index] = renderTargetList[index];
+		};
+
+		makeBindList(renderTargetList, _renderTargetList, args...);
+
+		_bRenderTargetSet = true;
+		_renderTargetCount = CastValue<uint32>(_renderTargetList.size());
+	}
 private:
 	std::vector<std::shared_ptr<RenderTarget>> _renderTargetList;
 
 public:
-	void initializeResourceViewByRenderTarget(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList);
+	template<class... TList>
+	void initializeResourceViews(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList, TList... args)
+	{
+		bindFunction = [&](std::vector<std::shared_ptr<RenderTarget>> &bindList, int index)->void {
+			bindList[index] = renderTargetList[index];
+		};
+
+		makeBindList(renderTargetList, _resourceViewList, args...);
+	}
 private:
-	std::vector<std::shared_ptr<TextureComponent>> _resourceViewList;
+	std::vector<std::shared_ptr<RenderTarget>> _resourceViewList;
+
+private:
+	template<class T, class... TList>
+	void makeBindList(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList, std::vector<std::shared_ptr<RenderTarget>> &bindList, T arg)
+	{
+		bindFunction(bindList, (int)arg);
+	}
+
+	template<class T, class... TList>
+	void makeBindList(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList, std::vector<std::shared_ptr<RenderTarget>> &bindList, T arg, TList... args)
+	{
+		bindFunction(bindList, (int)arg);
+		makeBindList(renderTargetList, bindList, args...);
+	}
+
+	std::function<void(std::vector<std::shared_ptr<RenderTarget>>&, int)> bindFunction;
 
 private:
 	ID3D11RenderTargetView *_pOldRenderTargetView;

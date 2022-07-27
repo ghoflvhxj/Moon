@@ -17,8 +17,8 @@ using RenderTargets = std::vector<std::shared_ptr<RenderTarget>>;
 
 enum class ERenderTarget
 {
-	DepthPre,
-	Albedo,
+	//DepthPre,
+	Diffuse,
 	Depth,
 	Normal,
 	Specular,
@@ -32,6 +32,7 @@ enum class ERenderTarget
 enum class ERenderPass
 {
 	Geometry,
+	//SkyPass,
 	Light,
 	Combine,
 	Count
@@ -47,8 +48,13 @@ enum class CBufferElementType
 
 enum class EPrimitiveType
 {
+	// Mesh
 	Mesh,
+	Sky,
+
+	// Light
 	Light,
+	
 	Count
 };
 

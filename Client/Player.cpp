@@ -8,9 +8,12 @@
 #include "TextureComponent.h"
 #include "PointLightComponent.h"
 #include "DirectionalLightComponent.h"
+#include "SkyComponent.h"
 #include "Material.h"
 
 #include "imgui.h"
+
+#define UseLight 1
 
 using namespace DirectX;
 
@@ -50,9 +53,9 @@ void Player::initialize()
 	_pLightComponent = std::make_shared<PointLightComponent>();
 	addComponent(TEXT("PointLight"), _pLightComponent);
 
-	//_pLightComponent2 = std::make_shared<DirectionalLightComponent>();
-	//addComponent(TEXT("DirectionalLight"), _pLightComponent2);
-	//_pLightComponent2->setRotation(Vec3{ XMConvertToRadians(45.f), 0.f, 0.f });
+	_pLightComponent2 = std::make_shared<DirectionalLightComponent>();
+	addComponent(TEXT("DirectionalLight"), _pLightComponent2);
+	_pLightComponent2->setRotation(Vec3{ XMConvertToRadians(45.f), 0.f, 0.f });
 
 	//_pCollisionShapeComponent = std::make_shared<CollisionShapeComponent>();
 	//addComponent(TEXT("CollisionShape"), _pCollisionShapeComponent);
@@ -60,6 +63,7 @@ void Player::initialize()
 	//_pBoneShapeComponent = std::make_shared<CollisionShapeComponent>(_pDynamicMeshComponent->_originBoneVertexList);
 	//addComponent(TEXT("BoneShape"), _pBoneShapeComponent);
 
+#if UseLight == 1
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> colorDis(0, 255);
@@ -76,6 +80,7 @@ void Player::initialize()
 		std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
 		addComponent(tag.c_str(), pLight);
 	}
+#endif
 }
 
 void Player::initializeImGui()
@@ -116,14 +121,17 @@ void Player::tick(const Time deltaTime)
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> moveDis(-10, 10);
-	for (int i = 0; i < 50; ++i)
+	if (!_pLightComponentList.empty())
 	{
-		Vec3 trans = _pLightComponentList[i]->getTranslation();
-		trans.x += moveDis(gen) * deltaTime;
-		//trans.y += moveDis(gen) * deltaTime;
-		trans.z += moveDis(gen) * deltaTime;
+		for (int i = 0; i < 50; ++i)
+		{
+			Vec3 trans = _pLightComponentList[i]->getTranslation();
+			trans.x += moveDis(gen) * deltaTime;
+			//trans.y += moveDis(gen) * deltaTime;
+			trans.z += moveDis(gen) * deltaTime;
 
-		_pLightComponentList[i]->setTranslation(trans);
+			_pLightComponentList[i]->setTranslation(trans);
+		}
 	}
 }
 

@@ -76,9 +76,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 				continue;
 			}
 
-			//std::wostringstream out;
-			//out << pGame->getFrame();
-			//SetWindowText(pWindow->getHandle(), out.str().c_str());
+			std::wostringstream out;
+			out << pGame->getFrame();
+			SetWindowText(pWindow->getHandle(), out.str().c_str());
 		}
 	}
 

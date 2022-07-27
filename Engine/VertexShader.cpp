@@ -8,6 +8,7 @@
 VertexShader::VertexShader(const std::wstring &filePathName)
 	: Shader(filePathName)
 	, _pVertexShader{ nullptr }
+	, fileName(filePathName)
 {
 	ID3D11Device *pDevice	= g_pGraphicDevice->getDevice();
 	ID3D10Blob *pBlob		= getBlob();
@@ -17,6 +18,10 @@ VertexShader::VertexShader(const std::wstring &filePathName)
 
 VertexShader::~VertexShader()
 {
+	if (fileName == TEXT(".\\Resources\\Shader\\Vertex\\Deferred.cso"))
+	{
+		int a = 0;
+	}
 	SafeRelease(_pVertexShader);
 }
 

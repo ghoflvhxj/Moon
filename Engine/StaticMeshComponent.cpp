@@ -35,7 +35,7 @@ void StaticMesh::initializeMeshInformation(const char *filePathName)
 		{
 			pMaterial->setTexture(_textureList[i]);
 		}
-		pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader2.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
+		pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 
 		_materialList.push_back(pMaterial);
 	}
@@ -94,17 +94,16 @@ StaticMeshComponent::~StaticMeshComponent()
 
 const bool StaticMeshComponent::getPrimitiveData(PrimitiveData &primitiveData)
 {
-	std::shared_ptr<StaticMesh> &pStaticMesh = getStaticMesh();
-	if (nullptr == pStaticMesh)
+	if (nullptr == _pStaticMesh)
 	{
 		return false;
 	}
 
-	primitiveData._pVertexBuffer = pStaticMesh->getVertexBuffer();
-	primitiveData._pIndexBuffer = pStaticMesh->getIndexBuffer();
-	primitiveData._pMaterial = pStaticMesh->getMaterial(0);
-	primitiveData._pVertexShader = pStaticMesh->getMaterial(0)->getVertexShader();
-	primitiveData._pPixelShader = pStaticMesh->getMaterial(0)->getPixelShader();
+	primitiveData._pVertexBuffer = _pStaticMesh->getVertexBuffer();
+	primitiveData._pIndexBuffer = _pStaticMesh->getIndexBuffer();
+	primitiveData._pMaterial = _pStaticMesh->getMaterial(0);
+	primitiveData._pVertexShader = _pStaticMesh->getMaterial(0)->getVertexShader();
+	primitiveData._pPixelShader = _pStaticMesh->getMaterial(0)->getPixelShader();
 	primitiveData._primitiveType = EPrimitiveType::Mesh;
 
 	return true;

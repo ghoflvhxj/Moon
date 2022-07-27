@@ -10,14 +10,14 @@ public:
 	virtual ~RenderTarget();
 	
 public:
-	std::shared_ptr<TextureComponent> getRenderTargetTexture();
+	std::shared_ptr<TextureComponent> AsTexture();
 private:
 	void initializeTexture();
 	std::shared_ptr<TextureComponent> _pRenderTargetTexture;
 	std::shared_ptr<TextureComponent> _pDepthStencilTexture;
 
 public:
-	ID3D11RenderTargetView* getRenderTargetView();
+	ID3D11RenderTargetView* AsRenderTargetView();
 private:
 	ID3D11RenderTargetView *_pRenderTargetView;
 

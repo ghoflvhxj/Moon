@@ -49,7 +49,7 @@ void Material::SetTexturesToDevice()
 	rawData.reserve(_textureList.size());
 	for (auto &texture : _textureList)
 	{
-		rawData.emplace_back(texture ? texture->getResourceViewRowPointer() : nullptr);
+		rawData.emplace_back(texture ? texture->getRawResourceViewPointer() : nullptr);
 	}
 
 	g_pGraphicDevice->getContext()->PSSetShaderResources(0, CastValue<UINT>(rawData.size()), &rawData[0]);
@@ -94,7 +94,7 @@ void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pix
 
 	for (size_t shaderTypeIndex = 0; shaderTypeIndex < shaderTypeCount; ++shaderTypeIndex)
 	{
-		_variableInfosPerShaderType[shaderTypeIndex] = shaders[shaderTypeIndex]->getVariableInfo(); // 각 쉐이더의 콘스탄트 버퍼 변수 정보를 등록
+		_variableInfosPerShaderType[shaderTypeIndex] = shaders[shaderTypeIndex]->getVariableInfos(); // 각 쉐이더의 콘스탄트 버퍼 변수 정보를 등록
 	}
 }
 

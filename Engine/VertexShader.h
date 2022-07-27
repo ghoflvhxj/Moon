@@ -17,6 +17,8 @@ public:
 	ID3D11VertexShader* getRaw();
 private:
 	ID3D11VertexShader *_pVertexShader;
+
+	std::wstring fileName;
 };
 
 #endif
