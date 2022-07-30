@@ -19,14 +19,14 @@ PixelOut_GeometryPass main(PixelIn pIn)
 	pOut.normal		= float4(pIn.normal, 1.f);
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
 
-	const float3x3 tanToView = float3x3(
-		normalize(pIn.tangent),
-		normalize(pIn.binormal),
-		normalize(pIn.normal)
-		);
-
 	if (true == bUseNormalTexture)
 	{
+		const float3x3 tanToView = float3x3(
+			normalize(pIn.tangent),
+			normalize(pIn.binormal),
+			normalize(pIn.normal)
+			);
+
 		float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
 		normal.x = (normal.x * 2.f) - 1.f;
 		normal.y = -(normal.y * 2.f) + 1.f;

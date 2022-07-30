@@ -52,7 +52,7 @@ void Renderer::Release()
 
 void Renderer::initialize(void) noexcept
 {
-	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
+	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Plane.fbx");
 	_pMeshComponent->getStaticMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 15.f });
 	_pMeshComponent->setScale(Vec3{ CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f });
