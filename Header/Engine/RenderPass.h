@@ -82,6 +82,11 @@ protected:
 	bool _bShaderSet;
 	bool _bRenderTargetSet;
 	uint32 _renderTargetCount;
+
+public:
+	void SetClearTargets(const bool bClear);
+private:
+	bool _bClearTargets;
 };
 
 #endif

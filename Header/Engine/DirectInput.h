@@ -23,7 +23,6 @@ public:
 	const bool mouseUp(const MOUSEBUTTON eMouseButton);
 	const bool mousePress(const MOUSEBUTTON eMouseButton);
 	const LONG mouseMove(const MOUSEAXIS eMouseAxis);
-
 private:
 	IDirectInput8 *_pDirectInput;
 	IDirectInputDevice8 *_pKeyboard;

@@ -142,7 +142,7 @@ void MyGame::controlCamera(const Time deltaTime)
 	Vec3 trans = pComponent->getTranslation();
 	Vec3 look = pComponent->getLook();
 	Vec3 right = pComponent->getRight();
-	float speed = 1.f * deltaTime;
+	float speed = _cameraSpeedScale * 1.f * deltaTime;
 
 	if (keyPress(DIK_LSHIFT))
 	{
@@ -173,6 +173,9 @@ void MyGame::controlCamera(const Time deltaTime)
 		trans.y -= right.y * speed;
 		trans.z -= right.z * speed;
 	}
+
+	_cameraSpeedScale += static_cast<float>(mouseMove(MOUSEAXIS::Z)) / 10.f;
+	_cameraSpeedScale = _cameraSpeedScale >= 1.f ? _cameraSpeedScale : 1.f;
 
 	pComponent->setTranslation(trans);
 

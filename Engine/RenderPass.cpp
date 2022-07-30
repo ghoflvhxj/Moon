@@ -27,6 +27,7 @@ RenderPass::RenderPass()
 	, _bShaderSet{ false }
 	, _bRenderTargetSet{ false }
 	, _renderTargetCount{ RT_COUNT }
+	, _bClearTargets{ true }
 {
 }
 
@@ -51,8 +52,11 @@ void RenderPass::begin()
 				continue;
 			}
 
-			g_pGraphicDevice->getContext()->ClearRenderTargetView(_renderTargetList[i]->AsRenderTargetView(), reinterpret_cast<const float *>(&Colors::Black));
-			g_pGraphicDevice->getContext()->ClearDepthStencilView(_renderTargetList[i]->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+			if (true == _bClearTargets)
+			{
+				g_pGraphicDevice->getContext()->ClearRenderTargetView(_renderTargetList[i]->AsRenderTargetView(), reinterpret_cast<const float *>(&Colors::Black));
+				g_pGraphicDevice->getContext()->ClearDepthStencilView(_renderTargetList[i]->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+			}
 			rowRenderTargetViewArray[i] = _renderTargetList[i]->AsRenderTargetView();
 		}
 
@@ -188,5 +192,10 @@ void RenderPass::releaseShader()
 
 	_vertexShaderFileName.clear();
 	_pixelShaderFileName.clear();
+}
+
+void RenderPass::SetClearTargets(const bool bClear)
+{
+	_bClearTargets = bClear;
 }
 

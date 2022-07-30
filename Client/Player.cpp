@@ -39,8 +39,8 @@ void Player::initialize()
 
 	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
 	_pStaticMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
-	_pStaticMeshComponent->setScale(100.f, 5.f, 100.f);
-	_pStaticMeshComponent->setTranslation(0.f, -10.f, 0.f);
+	_pStaticMeshComponent->setScale(10.f, 1.f, 10.f);
+	_pStaticMeshComponent->setTranslation(0.f, -2.f, 0.f);
 	addComponent(TEXT("test"), _pStaticMeshComponent);
 
 	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Table/Table.fbx");
@@ -54,8 +54,9 @@ void Player::initialize()
 	//_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
 	//addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
 
-	//_pSkyComponent = std::make_shared<SkyComponent>();
-	//addComponent(TEXT("Sky"), _pSkyComponent);
+	_pSkyComponent = std::make_shared<SkyComponent>();
+	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
+	addComponent(TEXT("Sky"), _pSkyComponent);
 
 	_pLightComponent = std::make_shared<PointLightComponent>();
 	addComponent(TEXT("PointLight"), _pLightComponent);
@@ -140,6 +141,10 @@ void Player::tick(const Time deltaTime)
 			_pLightComponentList[i]->setTranslation(trans);
 		}
 	}
+
+	Vec3 rotation = _pMeshComponent->getRotation();
+	rotation.y += DirectX::XMConvertToRadians(10.f) * deltaTime;
+	_pMeshComponent->setRotation(rotation);
 }
 
 //void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)

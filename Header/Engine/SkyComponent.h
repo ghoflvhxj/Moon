@@ -13,6 +13,9 @@ public:
 	virtual ~SkyComponent();
 
 public:
+	std::shared_ptr<StaticMesh> getSkyMesh();
+
+public:
 	virtual const bool getPrimitiveData(PrimitiveData &primitiveData);
 
 private:

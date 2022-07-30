@@ -24,6 +24,11 @@ SkyComponent::~SkyComponent()
 {
 }
 
+std::shared_ptr<StaticMesh> SkyComponent::getSkyMesh()
+{
+	return _pSkyMesh;
+}
+
 const bool SkyComponent::getPrimitiveData(PrimitiveData &primitiveData)
 {
 	if (nullptr == _pSkyMesh)

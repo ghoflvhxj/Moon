@@ -72,13 +72,6 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::Specular);
 	}
 
-	//_renderPasses.emplace_back(CreateRenderPass<SkyPass>());
-	//{
-	//	_renderPasses[enumToIndex(ERenderPass::SkyPass)]->initializeRenderTargets(_renderTargets,
-	//		ERenderTarget::Diffuse,
-	//		ERenderTarget::Depth);
-	//}
-
 	_renderPasses.emplace_back(CreateRenderPass<LightPass>());
 	{
 		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeRenderTargets(_renderTargets,
@@ -89,6 +82,18 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::Depth,
 			ERenderTarget::Normal,
 			ERenderTarget::Specular);
+	}
+
+	_renderPasses.emplace_back(CreateRenderPass<SkyPass>());
+	{
+		_renderPasses[enumToIndex(ERenderPass::SkyPass)]->initializeRenderTargets(_renderTargets,
+			ERenderTarget::Diffuse,
+			ERenderTarget::LightDiffuse);
+
+		//_renderPasses[enumToIndex(ERenderPass::SkyPass)]->initializeResourceViews(_renderTargets,
+		//	ERenderTarget::Diffuse);
+
+		_renderPasses[enumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<CombinePass>());

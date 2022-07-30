@@ -308,7 +308,7 @@ void SkyPass::render(PrimitiveData & primitiveData)
 	primitiveData._pPixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
 	primitiveData._pPixelShader->SetToDevice();
 
-	//primitiveData._pMaterial->SetTexturesToDevice();
+	primitiveData._pMaterial->SetTexturesToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
@@ -316,11 +316,11 @@ void SkyPass::render(PrimitiveData & primitiveData)
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// DepthStencilState
-	g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::DepthWriteMode::Disable), 1);
+	g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::DepthWriteMode::Enable), 1);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// OutputMerge
-	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
+	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
