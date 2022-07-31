@@ -29,7 +29,7 @@ LightComponent::~LightComponent(void)
 
 const bool LightComponent::getPrimitiveData(PrimitiveData &primitiveData)
 {
-	primitiveData._pVertexBuffer = _pStaticMesh->getVertexBuffer();
+	primitiveData._pVertexBuffers = _pStaticMesh->getVertexBuffers();
 	primitiveData._pIndexBuffer = _pStaticMesh->getIndexBuffer();
 	primitiveData._primitiveType = EPrimitiveType::Light;
 

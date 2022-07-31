@@ -37,9 +37,11 @@ void Player::initialize()
 	_pMeshComponent->setTranslation(1.f, -1.f, 20.f);
 	//_pMeshComponent->setRotation(Vec3(0.f, DirectX::XMConvertToRadians(180.f), 0.f));
 
-	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
-	_pStaticMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
-	_pStaticMeshComponent->setScale(10.f, 1.f, 10.f);
+	//_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
+	//_pStaticMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
+	//_pStaticMeshComponent->setScale(10.f, 1.f, 10.f);
+	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
+	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 	_pStaticMeshComponent->setTranslation(0.f, -2.f, 0.f);
 	addComponent(TEXT("test"), _pStaticMeshComponent);
 
@@ -47,10 +49,6 @@ void Player::initialize()
 	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
-	//_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
-	//_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	//addComponent(TEXT("test2"), _pStaticMeshComponent2);
-	// 
 	//_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
 	//addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
 

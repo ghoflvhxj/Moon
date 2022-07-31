@@ -68,12 +68,12 @@ public:
 	std::vector<VertexList>&	getVerticesList();
 	std::vector<IndexList>&		getIndicesList();
 	std::vector<TextureList>&	getTextures();
-	const std::vector<int>&		getLinkList() const;
+	const std::vector<uint32>&	getLinkList() const;
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
 	std::vector<TextureList>	_texturesList;
-	std::vector<int>			_linkList;
+	std::vector<uint32>			_linkList;
 
 public:
 	const uint32 getGeometryCount() const;

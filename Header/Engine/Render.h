@@ -62,14 +62,15 @@ class IndexBuffer;
 class VertexBuffer;
 class Material;
 class Shader;
+
 struct PrimitiveData
 {
-	std::shared_ptr<VertexBuffer>	_pVertexBuffer;
-	std::shared_ptr<IndexBuffer>	_pIndexBuffer;
-	std::shared_ptr<Material>		_pMaterial;
-	std::shared_ptr<Shader>			_pVertexShader;
-	std::shared_ptr<Shader>			_pPixelShader;
-
+	std::vector<std::shared_ptr<VertexBuffer>>	_pVertexBuffers;
+	std::shared_ptr<IndexBuffer>				_pIndexBuffer;
+	std::vector<std::shared_ptr<Material>>		_pMaterials;
+	std::shared_ptr<Shader>						_pVertexShader;
+	std::shared_ptr<Shader>						_pPixelShader;
+	std::vector<uint32>							_geometryMaterialLinkIndex;
 	EPrimitiveType _primitiveType;
 };
 

@@ -265,7 +265,7 @@ std::vector<TextureList> &FBXLoader::getTextures()
 	return _texturesList;
 }
 
-const std::vector<int>& FBXLoader::getLinkList() const
+const std::vector<uint32>& FBXLoader::getLinkList() const
 {
 	return _linkList;
 }

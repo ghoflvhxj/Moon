@@ -22,6 +22,11 @@ void StaticMesh::initializeMeshInformation(const char *filePathName)
 	_verticesList = std::move(fbxLoader.getVerticesList());
 	_indicesList = std::move(fbxLoader.getIndicesList());
 	_textureList = std::move(fbxLoader.getTextures());
+	_geometryLinkMaterialIndices = std::move(fbxLoader.getLinkList());
+	if (_geometryLinkMaterialIndices.size() == 0)
+	{
+		_geometryLinkMaterialIndices.emplace_back(0);
+	}
 
 	uint32 materialCount = fbxLoader.getMaterialCount();
 	uint32 fixedMaterialCount = (materialCount > 0) ? materialCount : 1;
@@ -40,18 +45,37 @@ void StaticMesh::initializeMeshInformation(const char *filePathName)
 		_materialList.push_back(pMaterial);
 	}
 
-	uint32 vertexCount = fbxLoader.getVertexCount();
-	std::vector<Vertex> allVertex;
-	allVertex.reserve(CastValue<size_t>(vertexCount));
+	// 모든 버텍스를 모아 하나의 버텍스만 사용... 굳이?
+	//uint32 vertexCount = fbxLoader.getVertexCount();
+	//std::vector<Vertex> allVertex;
+	//allVertex.reserve(CastValue<size_t>(vertexCount));
 
-	for (auto &vertices : _verticesList)
-	{
-		allVertex.assign(vertices.begin(), vertices.end());
-	}
-	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), vertexCount, allVertex.data());
+	//for (auto &vertices : _verticesList)
+	//{
+	//	allVertex.assign(vertices.begin(), vertices.end());
+	//}
+	//_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), vertexCount, allVertex.data());
 
+	// 인덱스 버퍼
 	//uint32 indexCount = CastValue<uint32>(_indicesList[0].size());
 	//_pIndexBuffer = std::make_shared<IndexBuffer>(sizeof(Index), indexCount, &_indicesList[0]);
+
+	uint32 geometryCount = fbxLoader.getGeometryCount();
+	_pVertexBuffers.reserve(CastValue<size_t>(geometryCount));
+	for (uint32 i = 0; i < geometryCount; ++i)
+	{
+		_pVertexBuffers.emplace_back(std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_verticesList[i].size()), _verticesList[i].data()));
+	}
+}
+
+const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
+{
+	return _geometryLinkMaterialIndices;
+}
+
+MaterialList StaticMesh::getMaterials() const
+{
+	return _materialList;
 }
 
 std::shared_ptr<Material> StaticMesh::getMaterial(const uint32 index)
@@ -65,9 +89,9 @@ const uint32 StaticMesh::getMaterialCount() const
 }
 
 
-std::shared_ptr<VertexBuffer> StaticMesh::getVertexBuffer()
+std::vector<std::shared_ptr<VertexBuffer>> StaticMesh::getVertexBuffers()
 {
-	return _pVertexBuffer;
+	return _pVertexBuffers;
 }
 
 std::shared_ptr<IndexBuffer> StaticMesh::getIndexBuffer()
@@ -99,11 +123,12 @@ const bool StaticMeshComponent::getPrimitiveData(PrimitiveData &primitiveData)
 		return false;
 	}
 
-	primitiveData._pVertexBuffer = _pStaticMesh->getVertexBuffer();
+	primitiveData._pVertexBuffers = _pStaticMesh->getVertexBuffers();
 	primitiveData._pIndexBuffer = _pStaticMesh->getIndexBuffer();
-	primitiveData._pMaterial = _pStaticMesh->getMaterial(0);
+	primitiveData._pMaterials = _pStaticMesh->getMaterials();
 	primitiveData._pVertexShader = _pStaticMesh->getMaterial(0)->getVertexShader();
 	primitiveData._pPixelShader = _pStaticMesh->getMaterial(0)->getPixelShader();
+	primitiveData._geometryMaterialLinkIndex = _pStaticMesh->getGeometryLinkMaterialIndex();
 	primitiveData._primitiveType = EPrimitiveType::Mesh;
 
 	return true;

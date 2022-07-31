@@ -103,9 +103,9 @@ void RenderPass::render(PrimitiveData &primitiveData)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	if (nullptr != primitiveData._pVertexBuffer)
+	if (nullptr != primitiveData._pVertexBuffers[0])
 	{
-		primitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
+		primitiveData._pVertexBuffers[0]->setBufferToDevice(stride, offset);
 	}
 
 	if (nullptr != primitiveData._pIndexBuffer)
@@ -113,17 +113,17 @@ void RenderPass::render(PrimitiveData &primitiveData)
 		primitiveData._pIndexBuffer->setBufferToDevice(offset);
 	}
 
-	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterial->getTopology());
+	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterials[0]->getTopology());
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
+	auto &variableInfosVS = primitiveData._pMaterials[0]->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
 	primitiveData._pVertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
 	primitiveData._pVertexShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
+	auto &variableInfosPS = primitiveData._pMaterials[0]->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
 	primitiveData._pPixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
 	primitiveData._pPixelShader->SetToDevice();
 
@@ -144,7 +144,7 @@ void RenderPass::render(PrimitiveData &primitiveData)
 	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
 	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
 
-	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
+	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffers[0]->getVertexCount(), 0);
 }
 
 void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)

@@ -52,7 +52,7 @@
 		{ assert(false) } 
 
 #define FALSE_CHECK_ASSERT_MSG(_bool, _msg)	if( false == _bool)							\
-		{ assert(false && _msg); } 
+		{ assert(false && TEXT(_msg)); } 
 
 #define TRUE_CHECK(_bool)	if( _bool )													\
 		{ return;}
