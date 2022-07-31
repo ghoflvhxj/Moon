@@ -5,6 +5,7 @@
 
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
+#include "DynamicMeshComponent.h"
 #include "TextureComponent.h"
 #include "PointLightComponent.h"
 #include "DirectionalLightComponent.h"
@@ -49,8 +50,8 @@ void Player::initialize()
 	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
-	//_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
-	//addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
+	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
+	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
 
 	_pSkyComponent = std::make_shared<SkyComponent>();
 	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);

@@ -2,9 +2,16 @@
 #ifndef __DYNAMIC_MESH_COMPONENT_H__
 #include "PrimitiveComponent.h"
 
+#include "StaticMeshComponent.h"
 #include "DynamicMeshComponentUtility.h"
 
 #include "Vertex.h"
+
+class ENGINE_DLL DynamicMesh : public StaticMesh
+{
+public:
+	explicit DynamicMesh() = default;
+};
 
 class ENGINE_DLL DynamicMeshComponent : public PrimitiveComponent
 {
@@ -13,27 +20,17 @@ public:
 	explicit DynamicMeshComponent(const char *filePathName);
 	virtual ~DynamicMeshComponent();
 
-private:
-	void initializeMeshInformation(const char *filePathName);
-private:
-	// 서브 셋의 개수에 따라 사이즈가 결정됨
-	std::vector<VertexList>		_verticesList;
-	std::vector<IndexList >		_indicesList;
-	std::vector<TextureList>	_texturesList;
+public:
+	virtual const bool getPrimitiveData(PrimitiveData &primitiveData) override;
 
 public:
-	void playAnimation(const uint32 index);
-private:
-	std::vector<Vec3>			_originVertexPositionList;
+	void DynamicMeshComponent::playAnimation(const uint32 index);
 
 public:
-	//virtual void render() override;
-	std::shared_ptr<Material> getMaterial(const uint32 index);
-private:
-	MaterialList _materialList;
+	virtual std::shared_ptr<DynamicMesh>& getDynamicMesh();
 
 private:
-	std::vector<AnimationClip> _animationClipList;
+	std::shared_ptr<DynamicMesh> _pDynamicMesh = nullptr;
 };
 
 #define __STATIC_MESH_COMPONENT_H__

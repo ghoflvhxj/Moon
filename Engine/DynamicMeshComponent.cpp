@@ -7,6 +7,8 @@
 #include "Material.h"
 #include "ConstantBuffer.h"
 
+#include "Render.h"
+
 #include "TextureComponent.h"
 
 #include "MainGame.h"
@@ -18,65 +20,42 @@ using namespace DirectX;
 
 DynamicMeshComponent::DynamicMeshComponent()
 	: PrimitiveComponent()
-	, _verticesList()
-	, _indicesList()
-	, _texturesList()
 {
 
 }
 
 DynamicMeshComponent::DynamicMeshComponent(const char *filePathName)
 	: PrimitiveComponent()
-	, _verticesList()
-	, _indicesList()
-	, _texturesList()
 {
-	initializeMeshInformation(filePathName);
+	_pDynamicMesh = std::make_shared<DynamicMesh>();
+	_pDynamicMesh->initializeMeshInformation(filePathName);
 }
 
 DynamicMeshComponent::~DynamicMeshComponent()
 {
 }
 
-void DynamicMeshComponent::initializeMeshInformation(const char *filePathName)
+const bool DynamicMeshComponent::getPrimitiveData(PrimitiveData &primitiveData)
 {
-	//FBXLoader fbxLoader(filePathName, _animationClipList);
+	if (nullptr == _pDynamicMesh)
+	{
+		return false;
+	}
 
-	//_verticesList = std::move(fbxLoader.getVerticesList());
-	//_indicesList = std::move(fbxLoader.getIndicesList());
-	//_texturesList = std::move(fbxLoader.getTextures());
+	primitiveData._pVertexBuffers = _pDynamicMesh->getVertexBuffers();
+	primitiveData._pIndexBuffer = _pDynamicMesh->getIndexBuffer();
+	primitiveData._pMaterials = _pDynamicMesh->getMaterials();
+	primitiveData._pVertexShader = _pDynamicMesh->getMaterial(0)->getVertexShader();
+	primitiveData._pPixelShader = _pDynamicMesh->getMaterial(0)->getPixelShader();
+	primitiveData._geometryMaterialLinkIndex = _pDynamicMesh->getGeometryLinkMaterialIndex();
+	primitiveData._primitiveType = EPrimitiveType::Mesh;
 
-	//uint32 vertexCount = ToUint32(_verticesList.size());
-	//_originVertexPositionList.reserve(vertexCount);
-	//for (uint32 i = 0; i < vertexCount; ++i)
-	//{
-	//	_originVertexPositionList.push_back(_verticesList[0][i].Pos);
-	//}
+	return true;
+}
 
-	//const std::vector<int> &linkList = fbxLoader.getLinkList();
-	//const uint32 linkListCount = static_cast<uint32>(linkList.size());
-
-	//uint32 materialCount = fbxLoader.getMaterialCount();
-	//_materialList.reserve(materialCount);
-	//for (uint32 materialIndex = 0; materialIndex < materialCount; ++materialIndex)
-	//{
-	//	std::vector<VertexList> verticesList;
-	//	std::vector<IndexList> indicesList;
-	//	for (uint32 linkIndex = 0; linkIndex < linkListCount; ++linkIndex)
-	//	{
-	//		if (linkList[linkIndex] != materialIndex)
-	//			continue;
-
-	//		verticesList.push_back(_verticesList[linkIndex]);
-	//		indicesList.push_back(_indicesList[linkIndex]);
-	//	}
-
-	//	std::shared_ptr<Material> pMaterial = std::make_shared<Material>(verticesList, indicesList);
-	//	pMaterial->setTexture(_texturesList[materialIndex]);
-	//	pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader2.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
-
-	//	_materialList.push_back(pMaterial);
-	//}
+std::shared_ptr<DynamicMesh>& DynamicMeshComponent::getDynamicMesh()
+{
+	return _pDynamicMesh;
 }
 
 void DynamicMeshComponent::playAnimation(const uint32 index)
@@ -120,8 +99,3 @@ void DynamicMeshComponent::playAnimation(const uint32 index)
 //		_materialList[i]->render(shared_from_this());
 //	}
 //}
-
-std::shared_ptr<Material> DynamicMeshComponent::getMaterial(const uint32 index)
-{
-	return _materialList[index];
-}
