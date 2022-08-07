@@ -96,55 +96,21 @@ void RenderPass::end()
 	SafeRelease(_pOldDepthStencilView);
 }
 
-void RenderPass::render(PrimitiveData &primitiveData)
+void RenderPass::doPass(RenderQueue &renderQueue)
 {
-	//---------------------------------------------------------------------------------------------------------------------------------
-	// Input Assembler
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-
-	if (nullptr != primitiveData._pVertexBuffers[0])
+	for (auto& primitive : renderQueue)
 	{
-		primitiveData._pVertexBuffers[0]->setBufferToDevice(stride, offset);
+		std::vector<PrimitiveData> primitiveDataList = {};
+		primitive->getPrimitiveData(primitiveDataList);
+
+		for (auto &primitiveData : primitiveDataList)
+		{
+			if (processPrimitiveData(primitiveData))
+			{
+				render(primitiveData);
+			}
+		}
 	}
-
-	if (nullptr != primitiveData._pIndexBuffer)
-	{
-		primitiveData._pIndexBuffer->setBufferToDevice(offset);
-	}
-
-	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterials[0]->getTopology());
-
-	//---------------------------------------------------------------------------------------------------------------------------------
-	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterials[0]->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	primitiveData._pVertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
-	primitiveData._pVertexShader->SetToDevice();
-
-	//---------------------------------------------------------------------------------------------------------------------------------
-	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterials[0]->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	primitiveData._pPixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
-	primitiveData._pPixelShader->SetToDevice();
-
-	//---------------------------------------------------------------------------------------------------------------------------------
-	// RasterizerState
-	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
-
-	//--------------------------------------------------------------------------------------------------------------------------------
-	// DepthStencilState
-	g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::DepthWriteMode::Enable), 1);
-
-	//--------------------------------------------------------------------------------------------------------------------------------
-	// OutputMerge
-	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
-
-	//--------------------------------------------------------------------------------------------------------------------------------
-	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
-	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
-	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
-
-	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffers[0]->getVertexCount(), 0);
 }
 
 void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)

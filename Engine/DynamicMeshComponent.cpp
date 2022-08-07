@@ -1,11 +1,12 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "DynamicMeshComponent.h"
 
 #include "DynamicMeshComponentUtility.h"
 
 #include "GraphicDevice.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 #include "Material.h"
-#include "ConstantBuffer.h"
 
 #include "Render.h"
 
@@ -17,6 +18,63 @@
 #include "FBXLoader.h"
 
 using namespace DirectX;
+
+void DynamicMesh::initializeMeshInformation(const char *filePathName)
+{
+	FBXLoader fbxLoader(filePathName, _animationClipList);
+
+	_verticesList = std::move(fbxLoader.getVerticesList());
+	_indicesList = std::move(fbxLoader.getIndicesList());
+	_textureList = std::move(fbxLoader.getTextures());
+	_geometryCount = fbxLoader.getGeometryCount();
+	_geometryLinkMaterialIndices = std::move(fbxLoader.getLinkList());
+	if (_geometryLinkMaterialIndices.size() == 0)
+	{
+		_geometryLinkMaterialIndices.emplace_back(0);
+	}
+
+	uint32 materialCount = fbxLoader.getMaterialCount();
+	uint32 fixedMaterialCount = (materialCount > 0) ? materialCount : 1;
+	_materialList.reserve(CastValue<size_t>(fixedMaterialCount));
+	for (uint32 i = 0; i < fixedMaterialCount; ++i)
+	{
+		std::shared_ptr<Material> pMaterial = std::make_shared<Material>();
+
+		bool applyedFixedMaterial = (materialCount == 0);
+		if (false == applyedFixedMaterial)
+		{
+			pMaterial->setTexture(_textureList[i]);
+		}
+		pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // íˆ´ì—ì„œ ì„¤ì •í•œ ì‰ì´ë”ë¥¼ ì½ì–´ì•¼ í•˜ëŠ”ë°, ì§€ê¸ˆì€ ì—†ìœ¼ë‹ˆê¹Œ ê·¸ëƒ¥ ì„ì‹œë¡œ ë•œë¹µ
+
+		_materialList.push_back(pMaterial);
+	}
+
+	_jointList = std::move(fbxLoader._jointList);
+	_jointCount = CastValue<uint32>(_jointList.size());
+
+	uint32 geometryCount = fbxLoader.getGeometryCount();
+	_pVertexBuffers.reserve(CastValue<size_t>(geometryCount));
+	for (uint32 i = 0; i < geometryCount; ++i)
+	{
+		_pVertexBuffers.emplace_back(std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_verticesList[i].size()), _verticesList[i].data()));
+	}
+}
+
+AnimationClip& DynamicMesh::getAnimationClip(const int index)
+{
+	return _animationClipList[index];
+}
+
+const uint32 DynamicMesh::getJointCount() const
+{
+	return _jointCount;
+}
+
+std::vector<FJoint>& DynamicMesh::getJoints()
+{
+	return _jointList;
+}
 
 DynamicMeshComponent::DynamicMeshComponent()
 	: PrimitiveComponent()
@@ -35,20 +93,58 @@ DynamicMeshComponent::~DynamicMeshComponent()
 {
 }
 
-const bool DynamicMeshComponent::getPrimitiveData(PrimitiveData &primitiveData)
+const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
 {
 	if (nullptr == _pDynamicMesh)
 	{
 		return false;
 	}
 
-	primitiveData._pVertexBuffers = _pDynamicMesh->getVertexBuffers();
-	primitiveData._pIndexBuffer = _pDynamicMesh->getIndexBuffer();
-	primitiveData._pMaterials = _pDynamicMesh->getMaterials();
-	primitiveData._pVertexShader = _pDynamicMesh->getMaterial(0)->getVertexShader();
-	primitiveData._pPixelShader = _pDynamicMesh->getMaterial(0)->getPixelShader();
-	primitiveData._geometryMaterialLinkIndex = _pDynamicMesh->getGeometryLinkMaterialIndex();
-	primitiveData._primitiveType = EPrimitiveType::Mesh;
+	uint32 geometryCount = _pDynamicMesh->getGeometryCount();
+	uint32 jointCount	 = _pDynamicMesh->getJointCount();
+
+	primitiveDataList.reserve(geometryCount);
+
+	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
+	{
+		PrimitiveData primitive = {};
+		primitive._pPrimitive = shared_from_this();
+		primitive._pVertexBuffer = _pDynamicMesh->getVertexBuffers()[geometryIndex];
+		primitive._pIndexBuffer = _pDynamicMesh->getIndexBuffer();
+		primitive._pMaterial = _pDynamicMesh->getMaterials()[_pDynamicMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
+		primitive._primitiveType = EPrimitiveType::Mesh;
+
+		for (int32 jointIndex = 0; jointIndex < CastValue<int32>(jointCount); ++jointIndex)
+		{
+			AnimationClip &currentAnimClip = _pDynamicMesh->getAnimationClip(_currentAinmClip);
+			if (currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty())
+			{
+				continue;
+			}
+
+			float realFrame = _currentPlayTime * 24.f;
+			uint32 frame = CastValue<uint32>(realFrame);
+
+			float currentFrameFactor = 1.f - (realFrame - CastValue<float>(frame));
+			float nextFrameFactor = 1.f - currentFrameFactor;
+
+			XMMATRIX frameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame]);
+			if (frame < currentAnimClip._frameCount)
+			{
+				frameMatrix = XMMatrixMultiply(frameMatrix, XMMatrixScaling(currentFrameFactor, currentFrameFactor, currentFrameFactor));
+
+				XMMATRIX nextFrameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame + 1]);
+				nextFrameMatrix = XMMatrixMultiply(nextFrameMatrix, XMMatrixScaling(nextFrameFactor, nextFrameFactor, nextFrameFactor));
+
+				frameMatrix += nextFrameMatrix;
+			}
+
+			XMMATRIX inverseOfGlobalBindPoseMatrix = XMLoadFloat4x4(&_pDynamicMesh->getJoints()[jointIndex]._inverseOfGlobalBindPoseMatrices[geometryIndex]);
+			XMStoreFloat4x4(&primitive._matrices[jointIndex], XMMatrixMultiply(inverseOfGlobalBindPoseMatrix, frameMatrix));
+		}
+
+		primitiveDataList.emplace_back(primitive);
+	}
 
 	return true;
 }
@@ -58,44 +154,13 @@ std::shared_ptr<DynamicMesh>& DynamicMeshComponent::getDynamicMesh()
 	return _pDynamicMesh;
 }
 
-void DynamicMeshComponent::playAnimation(const uint32 index)
+void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTime)
 {
-	//XMMATRIX parentJointMatrix;
-	//XMMATRIX currentjointMatrix;
+	_currentAinmClip = index;
+	_currentPlayTime += deltaTime;
 
-	//uint32 keyFrameListCount = sizeToUint32(_animationClipList[0]._keyFrameLists.size());
-	//for (int listIndex = 0; listIndex < keyFrameListCount; ++listIndex)
-	//{
-	//	int time = 0;
-	//	_animationClipList[index]._keyFrameLists[listIndex][time]._matrix // listIndex°¡ jointÀÇ ÀÎµ¦½º
-	//}
+	if (_currentPlayTime > CastValue<float>(_pDynamicMesh->getAnimationClip(index)._duration))
+	{
+		_currentPlayTime = 0.f;
+	}
 }
-
-//void DynamicMeshComponent::render()
-//{
-//	static int matrixIndex = 0;
-//	uint32 materialCount = sizeToUint32(_materialList.size());
-//	uint32 keyFrameCount = sizeToUint32(_animationClipList[0]._keyFrameLists.size());
-//	for (uint32 i = 0; i < materialCount; ++i)
-//	{
-//		// ¾Ö´Ï¸ŞÀÌ¼Ç Çà·Ä ¾÷µ¥ÀÌÆ®
-//		//if (true == _animationClipList[0]._keyFrameLists[0].empty())
-//		//{
-//		//	continue;
-//		//}
-//		// 
-//		//auto pConstantBuffer = _materialList[i]->getVertexConstantBuffer(Material::VertexConstantBufferSlot::JointMatrix);
-//		//if (nullptr != pConstantBuffer)
-//		//{
-//		//	ConstantBufferStruct::VertexStruct::JointMatrices jointMatrices;
-//		//	for (uint32 j = 0; j < keyFrameCount; ++j)
-//		//	{
-//		//		//jointMatrices.jointMatrixList[j] = _animationClipList[0]._keyFrameLists[j][0]._matrix;
-//		//		jointMatrices.jointMatrixList[j] = _animationClipList[0]._keyFrameLists[j][matrixIndex]._matrix;
-//		//	}
-//
-//		//	pConstantBuffer->update(&jointMatrices, sizeof(jointMatrices));
-//		//}
-//		_materialList[i]->render(shared_from_this());
-//	}
-//}

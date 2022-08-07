@@ -13,7 +13,7 @@ public:
 	virtual ~LightComponent(void);
 
 public:
-	virtual const bool getPrimitiveData(PrimitiveData &primitiveData) override;
+	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
 
 public:
 	const Vec3&	getColor(void) const;

@@ -16,7 +16,7 @@ public:
 	std::shared_ptr<StaticMesh> getSkyMesh();
 
 public:
-	virtual const bool getPrimitiveData(PrimitiveData &primitiveData);
+	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList);
 
 private:
 	void initialize();

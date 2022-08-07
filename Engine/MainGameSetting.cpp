@@ -4,7 +4,8 @@
 MainGameSetting::MainGameSetting()
 	: _resolutionWidth{ 1600 }
 	, _resolutionHeight{ 900 }
-	, _fov{ 75.f }
+	, _fov{ 45.f }
+	, _bLighting{ TRUE }
 {
 }
 
@@ -25,6 +26,11 @@ const int MainGameSetting::getResolutionWidth() const
 const int MainGameSetting::getResolutionHeight() const
 {
 	return _resolutionHeight;
+}
+
+const BOOL MainGameSetting::getLighting() const
+{
+	return _bLighting;
 }
 
 const float MainGameSetting::getFov() const

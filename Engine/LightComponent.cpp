@@ -27,11 +27,15 @@ LightComponent::~LightComponent(void)
 {
 }
 
-const bool LightComponent::getPrimitiveData(PrimitiveData &primitiveData)
+const bool LightComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
 {
-	primitiveData._pVertexBuffers = _pStaticMesh->getVertexBuffers();
-	primitiveData._pIndexBuffer = _pStaticMesh->getIndexBuffer();
-	primitiveData._primitiveType = EPrimitiveType::Light;
+	PrimitiveData primitiveData = {};
+	primitiveData._pPrimitive		= shared_from_this();
+	primitiveData._pVertexBuffer	= _pStaticMesh->getVertexBuffers()[0];
+	primitiveData._pIndexBuffer		= _pStaticMesh->getIndexBuffer();
+	primitiveData._primitiveType	= EPrimitiveType::Light;
+
+	primitiveDataList.emplace_back(primitiveData);
 
 	return true;
 }

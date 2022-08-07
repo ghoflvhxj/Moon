@@ -8,24 +8,24 @@ struct KeyFrame
 	KeyFrame()
 		: _matrix()
 #ifdef _DEBUG
-		, _scale{ VEC3ZERO }
-		, _rotation{ VEC3ZERO }
-		, _translation{ VEC3ZERO }
+		//, _scale{ VEC3ZERO }
+		//, _rotation{ VEC3ZERO }
+		//, _translation{ VEC3ZERO }
 #endif
 	{
 	}
 	DirectX::XMFLOAT4X4	_matrix;
 
 #ifdef _DEBUG
-	Vec3	_scale;
-	Vec3	_rotation;
-	Vec3	_translation;
+	//Vec3	_scale;
+	//Vec3	_rotation;
+	//Vec3	_translation;
 #endif
 };
 
 struct AnimationClip
 {
-	using KeyFrameList				= std::vector<std::vector<KeyFrame>>;
+	using KeyFrameList				= std::vector<std::vector<std::vector<DirectX::XMFLOAT4X4>>>;
 	AnimationClip()
 		: _startFrame{ 0 }
 		, _endFrame{ 0 }
@@ -49,17 +49,18 @@ struct VertexIndexWeightInfo
 	std::vector<double*>	_weightList;
 };
 
-struct Joint
+struct FJoint
 {
-	Joint()
+	FJoint()
 		: _name{ "" }
-		, _inverseOfGlobalBindPoseMatrix{ IDENTITYMATRIX }
+		, _parentIndex{ -1 }
 	{
 
 	}
 
 	std::string			_name;
-	DirectX::XMFLOAT4X4	_inverseOfGlobalBindPoseMatrix;
+	int32				_parentIndex;
+	std::vector<DirectX::XMFLOAT4X4>	_inverseOfGlobalBindPoseMatrices;
 };
 
 using JointIndexMap = std::unordered_map<std::string, int>;

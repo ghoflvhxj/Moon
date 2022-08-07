@@ -37,13 +37,14 @@ void PointLightComponent::Update(const Time deltaTime)
 	XMStoreFloat4x4(&getWorldMatrix(), matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
 }
 
-const bool PointLightComponent::getPrimitiveData(PrimitiveData &primitiveData)
+const bool PointLightComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
 {
-	LightComponent::getPrimitiveData(primitiveData);
+	LightComponent::getPrimitiveData(primitiveDataList);
 
-	primitiveData._pMaterials = getMesh()->getMaterials();
-	primitiveData._pVertexShader = getMesh()->getMaterial(0)->getVertexShader();
-	primitiveData._pPixelShader = getMesh()->getMaterial(0)->getPixelShader();
+	primitiveDataList[0]._pMaterial = getMesh()->getMaterials()[0];
+	primitiveDataList[0]._pVertexShader = getMesh()->getMaterial(0)->getVertexShader();
+	primitiveDataList[0]._pPixelShader = getMesh()->getMaterial(0)->getPixelShader();
+
 	return true;
 }
 

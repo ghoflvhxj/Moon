@@ -1,0 +1,4 @@
+geometry y축으로 미러
+transform x축으로 미러
+
+피봇 변경 후 resetxForm 해주기

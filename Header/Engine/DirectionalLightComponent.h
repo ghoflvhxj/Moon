@@ -19,7 +19,7 @@ public:
 
 public:
 	virtual void Update(const Time deltaTime) override;
-	virtual const bool getPrimitiveData(PrimitiveData &primitiveData) override;
+	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
 };
 
 #define __DIRECTIONAL_LIGHT_COMPONENT_H__

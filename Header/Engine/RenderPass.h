@@ -17,8 +17,9 @@ public:
 public:
 	virtual void begin();
 	/*virtual*/ void end();
-	virtual void doPass(RenderQueue &renderQueue) = 0;
-	virtual void render(PrimitiveData &primitiveData);
+	virtual void doPass(RenderQueue &renderQueue);
+	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) = 0;
+	virtual void render(PrimitiveData &primitiveData) = 0;
 
 public:
 	template<class... TList>

@@ -58,6 +58,7 @@ enum class EPrimitiveType
 	Count
 };
 
+class PrimitiveComponent;
 class IndexBuffer;
 class VertexBuffer;
 class Material;
@@ -65,13 +66,19 @@ class Shader;
 
 struct PrimitiveData
 {
-	std::vector<std::shared_ptr<VertexBuffer>>	_pVertexBuffers;
+	std::shared_ptr<PrimitiveComponent>			_pPrimitive;
+	std::shared_ptr<VertexBuffer>				_pVertexBuffer;
 	std::shared_ptr<IndexBuffer>				_pIndexBuffer;
-	std::vector<std::shared_ptr<Material>>		_pMaterials;
-	std::shared_ptr<Shader>						_pVertexShader;
-	std::shared_ptr<Shader>						_pPixelShader;
-	std::vector<uint32>							_geometryMaterialLinkIndex;
+	std::shared_ptr<Material>					_pMaterial;
 	EPrimitiveType _primitiveType;
+
+	// 쉐이더를 강제로 할당하고 싶을 때
+	std::shared_ptr<Shader>						_pVertexShader = nullptr;
+	std::shared_ptr<Shader>						_pPixelShader = nullptr;
+	
+	// 다이나믹 메쉬용
+	Mat4 _matrices[200];
+	uint32 _jointCount;
 };
 
 #define __RENDER_H__

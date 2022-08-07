@@ -14,7 +14,7 @@
 
 #include "imgui.h"
 
-#define UseLight 0
+#define UseLight 1
 
 using namespace DirectX;
 
@@ -31,10 +31,10 @@ void Player::initialize()
 {
 	_pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
 
-	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Plane.fbx");
+	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
 	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
-	_pMeshComponent->setScale(10.f, 10.f, 1.f);
+	_pMeshComponent->setScale(50.f, 1.f, 50.f);
 	_pMeshComponent->setTranslation(1.f, -1.f, 20.f);
 	//_pMeshComponent->setRotation(Vec3(0.f, DirectX::XMConvertToRadians(180.f), 0.f));
 
@@ -51,7 +51,13 @@ void Player::initialize()
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
 	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
+	_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
+	_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
+	for (int i = 0; i < _pDynamicMeshComponent->getDynamicMesh()->getMaterialCount(); ++i)
+	{
+		_pDynamicMeshComponent->getDynamicMesh()->getMaterial(i)->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
+	}
 
 	_pSkyComponent = std::make_shared<SkyComponent>();
 	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
@@ -124,6 +130,10 @@ void Player::tick(const Time deltaTime)
 	//	trans.z -= right.z * speed;
 	//}
 
+	if (keyPress(DIK_E))
+	{
+		_pDynamicMeshComponent->playAnimation(0, deltaTime);
+	}
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -141,9 +151,12 @@ void Player::tick(const Time deltaTime)
 		}
 	}
 
-	Vec3 rotation = _pMeshComponent->getRotation();
-	rotation.y += DirectX::XMConvertToRadians(10.f) * deltaTime;
-	_pMeshComponent->setRotation(rotation);
+	Vec3 rotation2 = _pLightComponent2->getRotation();
+	if (keyPress(DIK_UP))
+	{
+		rotation2.x += DirectX::XMConvertToRadians(10.f) * deltaTime;
+		_pLightComponent2->setRotation(rotation2);
+	}
 }
 
 //void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)

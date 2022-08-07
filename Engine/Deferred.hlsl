@@ -6,6 +6,8 @@ VertexOut main(VertexIn vIn)
 
 	matrix worldView = mul(worldMatrix, identityMatrix);
 	matrix worldViewProj = mul(worldView, orthographicProjectionMatrix);
+	//matrix worldView = mul(worldMatrix, viewMatrix);
+	//matrix worldViewProj = mul(worldView, projectionMatrix);
 	vOut.pos = mul(float4(vIn.pos.x, vIn.pos.y, vIn.pos.z, 1.f), worldViewProj);
 	//vOut.color	= vIn.color;
 	vOut.uv = vIn.uv;

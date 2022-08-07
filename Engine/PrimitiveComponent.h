@@ -21,7 +21,7 @@ public:
 	virtual void Update(const Time deltaTime) override;
 
 public:
-	virtual const bool getPrimitiveData(PrimitiveData &primitiveData);
+	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList);
 
 public:
 	void				setRenderMode(const RenderMode renderMode);

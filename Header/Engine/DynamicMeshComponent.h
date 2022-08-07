@@ -11,6 +11,17 @@ class ENGINE_DLL DynamicMesh : public StaticMesh
 {
 public:
 	explicit DynamicMesh() = default;
+
+public: //삭제예정
+	virtual void initializeMeshInformation(const char *filePathName) override;
+public:
+	AnimationClip& getAnimationClip(const int index);
+	const uint32 getJointCount() const;
+	std::vector<FJoint>& getJoints();
+private:
+	std::vector<AnimationClip> _animationClipList;
+	std::vector<FJoint> _jointList;
+	uint32 _jointCount;
 };
 
 class ENGINE_DLL DynamicMeshComponent : public PrimitiveComponent
@@ -21,10 +32,13 @@ public:
 	virtual ~DynamicMeshComponent();
 
 public:
-	virtual const bool getPrimitiveData(PrimitiveData &primitiveData) override;
+	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
 
 public:
-	void playAnimation(const uint32 index);
+	void playAnimation(const uint32 index, const Time deltaTime);
+private:
+	uint32 _currentAinmClip = 0;
+	float _currentPlayTime = 0.f;
 
 public:
 	virtual std::shared_ptr<DynamicMesh>& getDynamicMesh();

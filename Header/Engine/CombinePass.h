@@ -10,7 +10,7 @@ public:
 	virtual ~CombinePass() = default;
 
 public:
-	virtual void doPass(RenderQueue &renderQueue) override;
+	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) override;
 
 private:
 	void render(PrimitiveData &primitiveData);
@@ -23,7 +23,7 @@ public:
 	virtual ~GeometryPass() = default;
 
 public:
-	virtual void doPass(RenderQueue &renderQueue) override;
+	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) override;
 
 private:
 	void render(PrimitiveData &primitiveData);
@@ -36,7 +36,7 @@ public:
 	virtual ~LightPass() = default;
 
 public:
-	virtual void doPass(RenderQueue &renderQueue) override;
+	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) override;
 
 private:
 	void render(PrimitiveData &primitiveData);
@@ -49,7 +49,7 @@ public:
 	virtual ~SkyPass() = default;
 
 public:
-	virtual void doPass(RenderQueue & renderQueue) override;
+	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) override;
 
 private:
 	void render(PrimitiveData & primitiveData);

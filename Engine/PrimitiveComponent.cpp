@@ -27,7 +27,7 @@ void PrimitiveComponent::Update(const Time deltaTime)
 	g_pRenderer->addPrimitiveComponent(shared_from_this());
 }
 
-const bool PrimitiveComponent::getPrimitiveData(PrimitiveData &primitiveData)
+const bool PrimitiveComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
 {
 	return false;
 }

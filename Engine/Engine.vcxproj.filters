@@ -529,6 +529,9 @@
     <FxCompile Include="Light.hlsl">
       <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
     </FxCompile>
+    <FxCompile Include="TexAnimVertexShader.hlsl">
+      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="VSCommon.hlsli">

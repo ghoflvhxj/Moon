@@ -13,27 +13,31 @@ public:
 	StaticMesh() = default;
 	
 public: //삭제예정
-	void initializeMeshInformation(const char *filePathName);
+	virtual void initializeMeshInformation(const char *filePathName);
 public:
 	const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
-private:
+protected:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList >		_indicesList;
 	std::vector<TextureList>	_textureList;
 	std::vector<uint32>			_geometryLinkMaterialIndices;
 
 public:
-	MaterialList getMaterials() const;
+	MaterialList& getMaterials();
 	std::shared_ptr<Material> getMaterial(const uint32 index);
 	const uint32 getMaterialCount() const;
-private:
+protected:
 	MaterialList _materialList;
 
+public:
+	const uint32 getGeometryCount() const;
+protected:
+	uint32 _geometryCount = 0;
 
 public:
 	std::vector<std::shared_ptr<VertexBuffer>> getVertexBuffers();
 	std::shared_ptr<IndexBuffer> getIndexBuffer();
-private:
+protected:
 	std::vector<std::shared_ptr<VertexBuffer>> _pVertexBuffers;
 	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
 
@@ -47,7 +51,7 @@ public:
 	virtual ~StaticMeshComponent();
 
 public:
-	virtual const bool getPrimitiveData(PrimitiveData &primitiveData) override;
+	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
 
 public:
 	virtual std::shared_ptr<StaticMesh>& getStaticMesh();

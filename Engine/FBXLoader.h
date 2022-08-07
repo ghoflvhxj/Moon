@@ -7,7 +7,19 @@
 
 #include "DynamicMeshComponentUtility.h"
 
+#include <set>
+
 class TextureComponent;
+
+class Skeleton
+{
+
+};
+
+class Mesh
+{
+
+};
 
 class FBXLoader
 {
@@ -26,24 +38,25 @@ private:
 
 private:
 	void initializeSDK();
+public:
+	const uint32 getJointCount() const;
 private:
 	static fbxsdk::FbxManager		*_pFbxManager;
 	fbxsdk::FbxImporter				*_pImporter;
 	fbxsdk::FbxScene				*_pScene;
 
-	// 애니메이션 관련
+public:
+	// 애니메이션 관련 데이터
 	fbxsdk::FbxSkeleton				*_pSkeleton;
 	fbxsdk::FbxAnimStack			*_pAnimStack;
-
-	// 애니메이션 컨트롤러
-	std::vector<Joint>				_jointList;
+	std::vector<FJoint>				_jointList;
 	JointIndexMap					_jointIndexMap;
 	VertexWeightInfoListMap			_vertexWeightInfoListMap;
 
 private:
 	void loadNode();
 private:
-	void parseMeshNode(fbxsdk::FbxNode *pNode);
+	void parseMeshNode(fbxsdk::FbxNode *pNode, const uint32 meshIndex);
 	void loadPosition(Vertex &vertex, const int controlPointIndex);
 	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
 	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
@@ -51,7 +64,7 @@ private:
 	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
 	void loadAnimation();
 private:
-	void loadSkeletonNode(fbxsdk::FbxNode *pNode);
+	void loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName);
 private:
 	void loadTexture();
 private:
@@ -59,7 +72,7 @@ private:
 private:
 	fbxsdk::FbxMesh *_pMesh;
 	std::vector<fbxsdk::FbxMesh*> _meshList;
-
+	std::set<fbxsdk::FbxCluster*> clustermap;
 private:
 	void loadTexture(fbxsdk::FbxProperty *property, const TextureType textureType);
 	const char* getSurfacePropertyString(const TextureType textureType);
@@ -72,8 +85,10 @@ public:
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
+	std::vector<std::map<int, std::vector<int>>> _indexMap;
 	std::vector<TextureList>	_texturesList;
 	std::vector<uint32>			_linkList;
+	int meshCounter;
 
 public:
 	const uint32 getGeometryCount() const;

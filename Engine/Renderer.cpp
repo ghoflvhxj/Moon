@@ -27,6 +27,8 @@
 #include "LightComponent.h"
 #include "StaticMeshComponent.h"
 
+#include "TextureComponent.h"
+
 #include "Camera.h"
 
 Renderer::Renderer(void) noexcept
@@ -52,9 +54,11 @@ void Renderer::Release()
 
 void Renderer::initialize(void) noexcept
 {
+	std::shared_ptr<TextureComponent> _pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
+
 	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Plane.fbx");
 	_pMeshComponent->getStaticMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
-	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 15.f });
+	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	_pMeshComponent->setScale(Vec3{ CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f });
 	_pMeshComponent->SceneComponent::Update(0.f);
 
@@ -138,8 +142,6 @@ void Renderer::render(void)
 	updateConstantBuffer();
 
 	// 기본 패스
-	auto& LighPass = _renderPasses[(int)ERenderPass::Light];
-
 	uint32 combinePassIndex = CastValue<uint32>(ERenderPass::Combine);
 	for (uint32 i = 0; i < combinePassIndex; ++i)
 	{
@@ -185,14 +187,16 @@ void Renderer::updateConstantBuffer()
 			std::shared_ptr<Shader> shader = pair.second;
 			auto &VS_CBuffers = shader->getVariableInfos();
 
-			// PerConstant 레이어
+			// PerConstant 레이어 
 			if (bUpdateConstantLayer)
 			{
 				int resoultionWidth = g_pSetting->getResolutionWidth();
 				int resoultionHeight = g_pSetting->getResolutionHeight();
+				BOOL bLight = TRUE;
 
 				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 0, &resoultionWidth);
 				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 1, &resoultionHeight);
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 2, &bLight);
 				shader->UpdateConstantBuffer(ConstantBuffersLayer::Constant, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::Constant)]);
 			}
 

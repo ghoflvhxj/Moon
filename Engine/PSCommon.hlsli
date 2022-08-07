@@ -30,6 +30,7 @@ cbuffer PS_CBuffer_Constancy : register(b0)
 {
 	float resolutionWidth;
 	float resolutionHeight;
+	bool bLight;
 };
 
 Texture2D g_Diffuse		: register(t0);

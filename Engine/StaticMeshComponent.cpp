@@ -22,6 +22,7 @@ void StaticMesh::initializeMeshInformation(const char *filePathName)
 	_verticesList = std::move(fbxLoader.getVerticesList());
 	_indicesList = std::move(fbxLoader.getIndicesList());
 	_textureList = std::move(fbxLoader.getTextures());
+	_geometryCount = fbxLoader.getGeometryCount();
 	_geometryLinkMaterialIndices = std::move(fbxLoader.getLinkList());
 	if (_geometryLinkMaterialIndices.size() == 0)
 	{
@@ -73,7 +74,7 @@ const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
 	return _geometryLinkMaterialIndices;
 }
 
-MaterialList StaticMesh::getMaterials() const
+MaterialList& StaticMesh::getMaterials()
 {
 	return _materialList;
 }
@@ -88,6 +89,11 @@ const uint32 StaticMesh::getMaterialCount() const
 	return CastValue<uint32>(_materialList.size());
 }
 
+
+const uint32 StaticMesh::getGeometryCount() const
+{
+	return _geometryCount;
+}
 
 std::vector<std::shared_ptr<VertexBuffer>> StaticMesh::getVertexBuffers()
 {
@@ -116,20 +122,27 @@ StaticMeshComponent::~StaticMeshComponent()
 {
 }
 
-const bool StaticMeshComponent::getPrimitiveData(PrimitiveData &primitiveData)
+const bool StaticMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
 {
 	if (nullptr == _pStaticMesh)
 	{
 		return false;
 	}
 
-	primitiveData._pVertexBuffers = _pStaticMesh->getVertexBuffers();
-	primitiveData._pIndexBuffer = _pStaticMesh->getIndexBuffer();
-	primitiveData._pMaterials = _pStaticMesh->getMaterials();
-	primitiveData._pVertexShader = _pStaticMesh->getMaterial(0)->getVertexShader();
-	primitiveData._pPixelShader = _pStaticMesh->getMaterial(0)->getPixelShader();
-	primitiveData._geometryMaterialLinkIndex = _pStaticMesh->getGeometryLinkMaterialIndex();
-	primitiveData._primitiveType = EPrimitiveType::Mesh;
+	uint32 geometryCount = _pStaticMesh->getGeometryCount();
+	primitiveDataList.reserve(geometryCount);
+
+	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
+	{
+		PrimitiveData primitive = {};
+		primitive._pPrimitive = shared_from_this();
+		primitive._pVertexBuffer = _pStaticMesh->getVertexBuffers()[geometryIndex];
+		primitive._pIndexBuffer = _pStaticMesh->getIndexBuffer();
+		primitive._pMaterial = _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
+		primitive._primitiveType = EPrimitiveType::Mesh;
+		primitive._pPrimitive = shared_from_this();
+		primitiveDataList.emplace_back(primitive);
+	}
 
 	return true;
 }

@@ -3,6 +3,9 @@
 
 #include "TextureComponent.h"
 #include <Shlwapi.h>
+
+#include <stdlib.h>
+
 using namespace fbxsdk;
 
 FbxManager *FBXLoader::_pFbxManager = nullptr;
@@ -16,6 +19,7 @@ FBXLoader::FBXLoader(const char *filePathName)
 	, _pAnimStack	{ nullptr }
 	, _geometryCount{ 0 }
 	, _materialCount{ 0 }
+	, meshCounter{ 0 }
 {
 	initializeFbxSdk();
 	convertScene();
@@ -31,6 +35,7 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 	, _pAnimStack{ nullptr }
 	, _geometryCount{ 0 }
 	, _materialCount{ 0 }
+	, meshCounter{ 0 }
 {
 	initializeFbxSdk();
 	convertScene();
@@ -49,122 +54,147 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 		FbxTime startTime = pTakeInfo->mLocalTimeSpan.GetStart();
 		FbxTime endTime = pTakeInfo->mLocalTimeSpan.GetStop();
 
-		animationClipList[animStackIndex]._keyFrameLists.resize(_jointList.size());
-		animationClipList[animStackIndex]._animationName = animStackName.Buffer();
-		animationClipList[animStackIndex]._startFrame = ToUint32(startTime.GetFrameCount(FbxTime::eFrames24));
-		animationClipList[animStackIndex]._endFrame = ToUint32(endTime.GetFrameCount(FbxTime::eFrames24));
-		animationClipList[animStackIndex]._frameCount = ToUint32((endTime - startTime).GetFrameCount(FbxTime::eFrames24));
-		animationClipList[animStackIndex]._duration = (endTime - startTime).GetSecondDouble();
+		animationClipList[animStackIndex]._keyFrameLists.resize(_jointList.size()); // 조인트 마다 키프레임을 저장하기 위해
+		animationClipList[animStackIndex]._animationName	= animStackName.Buffer();
+		animationClipList[animStackIndex]._startFrame		= CastValue<uint32>(startTime.GetFrameCount(FbxTime::eFrames30));
+		animationClipList[animStackIndex]._endFrame			= CastValue<uint32>(endTime.GetFrameCount(FbxTime::eFrames30));
+		animationClipList[animStackIndex]._frameCount		= CastValue<uint32>((endTime - startTime).GetFrameCount(FbxTime::eFrames30));
+		animationClipList[animStackIndex]._duration			= (endTime - startTime).GetSecondDouble();
 
-		uint32 meshCount = CastValue<uint32>(_meshList.size());
-		for (uint32 meshIndex = 0; meshIndex < meshCount; ++meshIndex)
+		for (auto &t : animationClipList[animStackIndex]._keyFrameLists)
 		{
-			FbxSkin *pSkin = nullptr;
+			t.resize(_geometryCount);
+		}
+
+		for (uint32 meshIndex = 0; meshIndex < _geometryCount; ++meshIndex)
+		{
 			int deformerCount = _meshList[meshIndex]->GetDeformerCount();
-			for (int index = 0; index < deformerCount; ++index)
+			for (int deformerIndex = 0; deformerIndex < deformerCount; ++deformerIndex)
 			{
-				FbxDeformer *pDeformer = _pMesh->GetDeformer(index);
+				FbxDeformer *pDeformer = _meshList[meshIndex]->GetDeformer(deformerIndex, FbxDeformer::eSkin);
 				if (nullptr == pDeformer)
 				{
 					continue;
 				}
 
-				if (FbxDeformer::EDeformerType::eSkin != pDeformer->GetDeformerType())
+				FbxSkin *pSkin = reinterpret_cast<FbxSkin*>(pDeformer);
+				FbxNode *pMeshNode = _meshList[meshIndex]->GetNode(0);
+				FbxAMatrix geometryTransform = { pMeshNode->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
+													pMeshNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
+													pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot) };
+
+				int clusterCount = pSkin->GetClusterCount();
+				
+				for (int clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex)
 				{
-					continue;
-				}
+					FbxCluster *pCluster = pSkin->GetCluster(clusterIndex);
 
-				FbxSkin *pTempSkin = reinterpret_cast<FbxSkin*>(_pMesh->GetDeformer(index));
-				if (nullptr == pTempSkin)
-				{
-					continue;
-				}
+					// 조인트의 바인드포즈 인버스 매트릭스 얻기
+					FbxAMatrix transformMatrix;
+					FbxAMatrix transformLinkMatrix;
+					FbxAMatrix globalBindPoseInverseMatrix;
 
-				pSkin = pTempSkin;
-			}
+					pCluster->GetTransformMatrix(transformMatrix);
+					pCluster->GetTransformLinkMatrix(transformLinkMatrix);
+					globalBindPoseInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
+					// VertexAtTimeT = TransformationOfPoseAtTimeT * InverseOfGlobalBindPoseMatrix * VertexAtBindingTime 
+					// 에서 InverseOfGlobalBindPoseMatrix를 얻어냈음
 
-			if (nullptr == pSkin)
-			{
-				continue;
-			}
-
-			FbxNode *pMeshNode = _meshList[meshIndex]->GetNode(0);
-			FbxAMatrix geometryTransform = { pMeshNode->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
-												pMeshNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
-												pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot) };
-
-			int clusterCount = pSkin->GetClusterCount();
-			for (int clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex)
-			{
-				FbxCluster *pCluster = pSkin->GetCluster(clusterIndex);
-				FbxNode *pNode = pCluster->GetLink();
-
-				// 조인트의 바인드포즈 인버스 매트릭스 얻기
-				FbxAMatrix transformMatrix;
-				FbxAMatrix transformLinkMatrix;
-				FbxAMatrix globalBindPoseInverseMatrix;
-
-				pCluster->GetTransformMatrix(transformMatrix);
-				pCluster->GetTransformLinkMatrix(transformLinkMatrix);
-				globalBindPoseInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
-				// VertexAtTimeT = TransformationOfPoseAtTimeT * InverseOfGlobalBindPoseMatrix * VertexAtBindingTime 
-				// 에서 InverseOfGlobalBindPoseMatrix를 얻어냈음
-
-				const char* jointName = pNode->GetName();
-				if (_jointIndexMap.end() == _jointIndexMap.find(jointName))
-				{
-					DEV_ASSERT_MSG("찾을 수 없는 Bone입니다!")
-						continue;
-				}
-
-				int jointIndex = _jointIndexMap[jointName];
-				XMStoreFloat4x4(&_jointList[jointIndex]._inverseOfGlobalBindPoseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
-
-				// 본(조인트)에 영향을 받는 컨트롤 포인트를 얻음
-				int controlPointIndexCount = pCluster->GetControlPointIndicesCount();
-				int *controlPointIndexArray = pCluster->GetControlPointIndices();
-				for (int j = 0; j < controlPointIndexCount; ++j)
-				{
-					if (_vertexWeightInfoListMap.end() == _vertexWeightInfoListMap.find(controlPointIndexArray[j]))
+					double* weights = pCluster->GetControlPointWeights();
+					if (weights == nullptr)
 					{
-						_vertexWeightInfoListMap.emplace(controlPointIndexArray[j], VertexIndexWeightInfo());
+						continue;
 					}
 
-					_vertexWeightInfoListMap[controlPointIndexArray[j]]._jointIndexList.push_back(jointIndex);
-					_vertexWeightInfoListMap[controlPointIndexArray[j]]._weightList.push_back(pCluster->GetControlPointWeights());
-				}
+					const char* jointName = pCluster->GetLink()->GetName();
+					if (_jointIndexMap.end() == _jointIndexMap.find(jointName))
+					{
+						DEV_ASSERT_MSG("찾을 수 없는 Bone입니다!")
+						continue;
+					}
 
-				// 프레임에 존재하는 키 프레임을 저장해야 함
-				animationClipList[animStackIndex]._keyFrameLists[jointIndex].reserve(animationClipList[animStackIndex]._frameCount);
-				for (FbxLongLong i = startTime.GetFrameCount(FbxTime::eFrames24); i <= endTime.GetFrameCount(FbxTime::eFrames24); ++i)
-				{
-					FbxTime currentTime;
-					currentTime.SetFrame(i, FbxTime::eFrames24);
+					int jointIndex = _jointIndexMap[jointName];
+					XMStoreFloat4x4(&_jointList[jointIndex]._inverseOfGlobalBindPoseMatrices[meshIndex], ToXMMatrix(globalBindPoseInverseMatrix));
 
-					FbxAMatrix currentTransformOffset = pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform;	// 메시의 글로벌 트랜스폼 * 지오메트리 트랜스폼
+					int controlPointIndexCount = pCluster->GetControlPointIndicesCount();
+					for (int j = 0; j < controlPointIndexCount; ++j)
+					{
+						int controlPointIndex = pCluster->GetControlPointIndices()[j];
 
-					KeyFrame keyFrame = {};
-					XMStoreFloat4x4(&keyFrame._matrix, ToXMMatrix(currentTransformOffset.Inverse() * pCluster->GetLink()->EvaluateGlobalTransform(currentTime)));
+						// 컨트롤 포인트가 공유되는 버텍스들의 인덱스를 가져옴
+						std::vector<int> &vertexIndices = _indexMap[meshIndex][controlPointIndex];
+						for (int vertexIndex : vertexIndices)
+						{
+							if (_verticesList[meshIndex][vertexIndex].BlendIndex[0] == 0)
+							{
+								_verticesList[meshIndex][vertexIndex].BlendIndex[0] = jointIndex;
+								_verticesList[meshIndex][vertexIndex].BlendWeight.x = static_cast<float>(weights[j]);
+							}
+							else if (_verticesList[meshIndex][vertexIndex].BlendIndex[1] == 0)
+							{
+								_verticesList[meshIndex][vertexIndex].BlendIndex[1] = jointIndex;
+								_verticesList[meshIndex][vertexIndex].BlendWeight.y = static_cast<float>(weights[j]);
+							}
+							else if (_verticesList[meshIndex][vertexIndex].BlendIndex[2] == 0)
+							{
+								_verticesList[meshIndex][vertexIndex].BlendIndex[2] = jointIndex;
+								_verticesList[meshIndex][vertexIndex].BlendWeight.z = static_cast<float>(weights[j]);
+							}
+							else if (_verticesList[meshIndex][vertexIndex].BlendIndex[3] == 0)
+							{
+								_verticesList[meshIndex][vertexIndex].BlendIndex[3] = jointIndex;
+								_verticesList[meshIndex][vertexIndex].BlendWeight.w = static_cast<float>(weights[j]);
+							}
+							else
+							{
+								int a = 0;
+							}
+						}
+					}
 
-#ifdef _DEBUG
-					keyFrame._scale = Vec3{ ToFloat(pNode->LclScaling.Get().mData[0])
-												  , ToFloat(pNode->LclScaling.Get().mData[1])
-												  , ToFloat(pNode->LclScaling.Get().mData[2]) };
-					keyFrame._rotation = Vec3{ ToFloat(pNode->LclRotation.Get().mData[0])
-												  , ToFloat(pNode->LclRotation.Get().mData[1])
-												  , ToFloat(pNode->LclRotation.Get().mData[2]) };
-					keyFrame._translation = Vec3{ ToFloat(pNode->LclTranslation.Get().mData[0])
-												  , ToFloat(pNode->LclTranslation.Get().mData[1])
-												  , ToFloat(pNode->LclTranslation.Get().mData[2]) };
-#endif
-					animationClipList[animStackIndex]._keyFrameLists[jointIndex].push_back(keyFrame);
+					if (animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].size() != 0)
+					{
+						int a = 0;
+					}
+
+					// 프레임에 존재하는 키 프레임을 저장해야 함
+					animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].reserve(animationClipList[animStackIndex]._frameCount);	// 조인트마다 키프레임 공간 예약. 키 프레임이 최대 프레임 수만큼 가질 수 있음. 굳이? 싶지만 지금은 최적화 생각안하고 구현
+					for (FbxLongLong i = startTime.GetFrameCount(FbxTime::eFrames30); i < endTime.GetFrameCount(FbxTime::eFrames30); ++i)
+					{
+						FbxTime currentTime;
+						currentTime.SetFrame(i, FbxTime::eFrames30);
+
+						FbxAMatrix currentTransformOffset = pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform;	// 메시의 글로벌 트랜스폼 * 지오메트리 트랜스폼
+
+						DirectX::XMFLOAT4X4 matrix;
+						XMStoreFloat4x4(&matrix, ToXMMatrix(currentTransformOffset.Inverse() * pCluster->GetLink()->EvaluateGlobalTransform(currentTime)));
+
+						animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].emplace_back(matrix);
+					}
+
+					std::string log;
+					log += "MeshName: ";
+					log += pMeshNode->GetName();
+					log += ", MeshIndex: ";
+					log += std::to_string(meshIndex);
+					log += ", DeformerCount/Index: ";
+					log += std::to_string(deformerCount);
+					log += "/";
+					log += std::to_string(deformerIndex);
+					log += ", ClusterCount/Index: ";
+					log += std::to_string(clusterCount);
+					log += "/";
+					log += std::to_string(clusterIndex);
+					log += ", jointName/Index: ";
+					log += jointName;
+					log += "/";
+					log += std::to_string(jointIndex);
+					log += "\r\n";
+					OutputDebugStringA(log.c_str());
 				}
 			}
 		}
-
 	}
-
-	int test = 0;
 }
 
 FBXLoader::~FBXLoader()
@@ -216,9 +246,10 @@ void FBXLoader::convertScene()
 void FBXLoader::loadModel()
 {
 	_geometryCount = _pScene->GetGeometryCount();
-	_verticesList.reserve(_geometryCount);
-	_indicesList.reserve(_geometryCount);
+	_verticesList.resize(_geometryCount);
+	_indicesList.resize(_geometryCount);
 	_linkList.reserve(_geometryCount);
+	_indexMap.resize(_geometryCount);
 
 	_materialCount = static_cast<uint32>(_pScene->GetMaterialCount());
 	_texturesList.reserve(_materialCount);
@@ -233,6 +264,11 @@ void FBXLoader::initializeSDK()
 
 	FbxIOSettings *ios = FbxIOSettings::Create(_pFbxManager, IOSROOT);
 	_pFbxManager->SetIOSettings(ios);
+}
+
+const uint32 FBXLoader::getJointCount() const
+{
+	return CastValue<uint32>(_jointList.size());
 }
 
 const uint32 FBXLoader::getGeometryCount() const
@@ -286,10 +322,11 @@ void FBXLoader::loadNode()
 			switch (pNodeAttribute->GetAttributeType())
 			{
 			case FbxNodeAttribute::EType::eMesh:
-				parseMeshNode(pNode);
+				parseMeshNode(pNode, meshCounter);
+				++meshCounter;
 				break;
 			case FbxNodeAttribute::EType::eSkeleton:
-				loadSkeletonNode(pNode);
+				loadSkeletonNode(pNode, pNode->GetParent()->GetName());
 				break;
 			}
 		}
@@ -304,19 +341,16 @@ void FBXLoader::loadNode()
 	}
 }
 
-void FBXLoader::parseMeshNode(FbxNode *pNode)
+void FBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 {
 	_pMesh = pNode->GetMesh();
 	_meshList.push_back(_pMesh);
 
-	_verticesList.push_back(VertexList());
-	_indicesList.push_back(IndexList());
-
 	int polygonCount = _pMesh->GetPolygonCount();
 	int vertexCounter = 0;							// 맵핑 모드가 eByPolygonVertex일 경우 사용함
 	int vertexCount = polygonCount * 3;
-	_verticesList.back().reserve(polygonCount * 3);
-	_indicesList.back().reserve(polygonCount * 3);
+	_verticesList[meshIndex].resize(polygonCount * 3);	// 중첩된 버텍스를 허용하지 않기 때문에 인덱스의 수와 같아짐...
+	_indicesList[meshIndex].reserve(polygonCount * 3);
 
 	_vertexCount += vertexCount;
 
@@ -327,18 +361,53 @@ void FBXLoader::parseMeshNode(FbxNode *pNode)
 		for (int j = 0; j < 3; ++j)
 		{
 			int controlPointIndex = _pMesh->GetPolygonVertex(i, j);
+			int vertexIndex = (3 * i) + j;
 
-			Vertex vertex;
-			loadPosition(vertex, controlPointIndex);
-			loadUV(vertex, controlPointIndex, vertexCounter);
-			loadNormal(vertex, controlPointIndex, vertexCounter);
-			loadTangent(vertex, controlPointIndex, vertexCounter);
-			loadBinormal(vertex, controlPointIndex, vertexCounter);
-			_verticesList.back().push_back(vertex);
-			_indicesList.back().push_back((3 * i) + j);
+			loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
+			loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+			loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+			loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+			loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+			_indicesList[meshIndex].push_back((3 * i) + j); // 수정해야 함
+			
+			_indexMap[meshIndex][controlPointIndex].emplace_back(vertexIndex);
 
 			++vertexCounter;
 		}
+
+		//int controlPointIndex = _pMesh->GetPolygonVertex(i, 0);
+		//int vertexIndex = (3 * i) + 0;
+		//loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
+		//loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//_indicesList.back().push_back((3 * i) + 0);
+
+		//++vertexCounter;
+
+		//controlPointIndex = _pMesh->GetPolygonVertex(i, 2);
+		//vertexIndex = (3 * i) + 2;
+		//loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
+		//loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//_indicesList.back().push_back((3 * i) + 2);
+
+		//++vertexCounter;
+
+
+		//controlPointIndex = _pMesh->GetPolygonVertex(i, 1);
+		//vertexIndex = (3 * i) + 1;
+		//loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
+		//loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
+		//_indicesList.back().push_back((3 * i) + 1);
+
+		//++vertexCounter;
 	}
 }
 
@@ -650,12 +719,18 @@ void FBXLoader::loadAnimation()
 
 }
 
-void FBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode)
+void FBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName)
 {
 	_jointIndexMap.emplace(pNode->GetName(), static_cast<uint32>(_jointList.size()));
 
-	Joint joint;
-	joint._name			= pNode->GetName();
+	FJoint joint;
+	joint._name	= pNode->GetName();
+	if(_jointIndexMap.find(parentName) != _jointIndexMap.end())
+	{
+		joint._parentIndex	= _jointIndexMap[parentName];
+	}
+
+	joint._inverseOfGlobalBindPoseMatrices.resize(_geometryCount);
 
 	_jointList.push_back(joint);
 }

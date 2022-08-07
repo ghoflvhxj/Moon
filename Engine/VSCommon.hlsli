@@ -1,11 +1,13 @@
 struct VertexIn
 {
-	float3 pos		: POSITION0;
-	float4 color	: COLOR0;
-	float2 uv		: TEXCOORD0;
-	float3 normal	: NORMAL0;
-	float3 tangent	: NORMAL1;
-	float3 binormal : NORMAL2;
+	float3 pos				: POSITION0;
+	float4 color			: COLOR0;
+	float2 uv				: TEXCOORD0;
+	float3 normal			: NORMAL0;
+	float3 tangent			: NORMAL1;
+	float3 binormal			: NORMAL2;
+	uint4 blendIndex		: BLENDINDICES0;
+	float4 blendWeight		: BLENDWEIGHT0;
 };
 
 struct VertexOut
@@ -44,10 +46,5 @@ cbuffer VS_CBuffer_PerTick : register(b1)
 cbuffer VS_CBuffer_PerObject : register(b2)
 {
 	row_major matrix worldMatrix;
+	row_major matrix keyFrameMatrices[199];
 };
-
-//cbuffer PS_CBuffer
-//{
-//	bool bUseNormalTexture;
-//	bool bUseSpecularTexture;
-//};

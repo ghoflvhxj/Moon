@@ -15,8 +15,12 @@ PixelOut main(PixelIn pIn)
 	float4 light	= g_LightDiffuse.Sample(g_Sampler, lightUV);
 	float4 specular = g_LightSpecular.Sample(g_Sampler, pIn.uv);
 	
-	//pOut.color = diffuse;
-	pOut.color = diffuse * (light + specular);
+	pOut.color = diffuse;
+	if (bLight)
+	{
+		pOut.color = diffuse * (light + specular);
+	}
+	//pOut.color = diffuse * (light + specular);
 	//pOut.color = light;
 
 	return pOut;
