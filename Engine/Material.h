@@ -53,9 +53,17 @@ private:
 
 public:
 	void setTopology(const D3D_PRIMITIVE_TOPOLOGY eTopology);
+	void setFillMode(const Graphic::FillMode fillMode);
+	void setCullMode(const Graphic::CullMode cullMode);
+public:
 	const D3D_PRIMITIVE_TOPOLOGY getTopology() const;
+	const Graphic::FillMode getFillMode() const;
+	const Graphic::CullMode getCullMode() const;
 private:
 	D3D_PRIMITIVE_TOPOLOGY _eTopology;
+	Graphic::FillMode _eFillMode;
+	Graphic::CullMode _eCullMode;
+
 
 public:
 	std::vector<VariableInfo>& getConstantBufferVariableInfos(const ShaderType shaderType, const ConstantBuffersLayer layer);

@@ -125,15 +125,12 @@ void GeometryPass::render(PrimitiveData &primitiveData)
 	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
 	primitiveData._pMaterial->getPixelShader()->SetToDevice();
 
-	//auto &variableInfosPS2 = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	//primitiveData._pPixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS2);
-	//primitiveData._pPixelShader->SetToDevice();
-
 	primitiveData._pMaterial->SetTexturesToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
-	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
+	//g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
+	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(primitiveData._pMaterial->getFillMode(), primitiveData._pMaterial->getCullMode()));
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// DepthStencilState

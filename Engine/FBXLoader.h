@@ -91,6 +91,13 @@ private:
 	int meshCounter;
 
 public:
+	void getBoundingBoxInfo(Vec3 &min, Vec3 &max) { min = _min, max = _max; }
+private:
+	// 바운딩 박스용
+	Vec3 _min;
+	Vec3 _max;
+
+public:
 	const uint32 getGeometryCount() const;
 	const uint32 getMaterialCount() const;
 private:

@@ -7,12 +7,38 @@
 class VertexBuffer;
 class IndexBuffer;
 
+class ENGINE_DLL BoundingBox
+{
+public:
+	BoundingBox(const Vec3 &min, const Vec3 &max);
+
+	Vec3 _min;
+	Vec3 _max;
+
+protected:
+	std::vector<Vertex>		_vertices;
+	std::vector<Index>		_indices;
+
+public:
+	std::shared_ptr<VertexBuffer> getVertexBuffer();
+	std::shared_ptr<IndexBuffer> getIndexBuffer();
+protected:
+	std::shared_ptr<VertexBuffer> _pVertexBuffer;
+	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
+
+public:
+	std::shared_ptr<Material> getMaterial();
+protected:
+	std::shared_ptr<Material> _pMaterial;
+};
+
+
 class ENGINE_DLL StaticMesh
 {
 public:
 	StaticMesh() = default;
 	
-public: //삭제예정
+public:
 	virtual void initializeMeshInformation(const char *filePathName);
 public:
 	const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
@@ -33,6 +59,11 @@ public:
 	const uint32 getGeometryCount() const;
 protected:
 	uint32 _geometryCount = 0;
+
+public:
+	std::shared_ptr<BoundingBox> getBoudingBox();
+private:
+	std::shared_ptr<BoundingBox> _pBoundingBox;
 
 public:
 	std::vector<std::shared_ptr<VertexBuffer>> getVertexBuffers();
@@ -58,6 +89,12 @@ public:
 
 private:
 	std::shared_ptr<StaticMesh> _pStaticMesh = nullptr;
+
+public:
+	void setDrawingBoundingBox(const bool bDraw);
+	const bool IsDrawingBoundingBox() const;
+public:
+	bool _bDrawBoundingBox = false;
 };
 
 #define __STATIC_MESH_COMPONENT_H__

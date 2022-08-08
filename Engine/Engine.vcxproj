@@ -161,7 +161,6 @@ call CopyRelease.bat</Command>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="AnimationController.h" />
-    <ClInclude Include="BoxComponent.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CollisionShapeComponent.h" />
@@ -227,7 +226,6 @@ call CopyRelease.bat</Command>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="AnimationController.cpp" />
-    <ClCompile Include="BoxComponent.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CollisionShapeComponent.cpp" />

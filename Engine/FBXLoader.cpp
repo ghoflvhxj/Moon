@@ -440,6 +440,14 @@ void FBXLoader::loadPosition(Vertex &vertex, const int controlPointIndex)
 	vertex.Pos.x = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[0]);
 	vertex.Pos.y = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[1]);
 	vertex.Pos.z = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[2]);
+
+	if (_min.x < vertex.Pos.x) _min.x = vertex.Pos.x;
+	if (_min.y < vertex.Pos.y) _min.y = vertex.Pos.y;
+	if (_min.z < vertex.Pos.z) _min.z = vertex.Pos.z;
+
+	if (_max.x > vertex.Pos.x) _max.x = vertex.Pos.x;
+	if (_max.y > vertex.Pos.y) _max.y = vertex.Pos.y;
+	if (_max.z > vertex.Pos.z) _max.z = vertex.Pos.z;
 }
 
 void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter)

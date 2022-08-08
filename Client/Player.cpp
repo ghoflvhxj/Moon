@@ -43,21 +43,23 @@ void Player::initialize()
 	//_pStaticMeshComponent->setScale(10.f, 1.f, 10.f);
 	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
 	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	_pStaticMeshComponent->setTranslation(0.f, -2.f, 0.f);
+	_pStaticMeshComponent->setTranslation(0.f, 2.f, 0.f);
+	_pStaticMeshComponent->setDrawingBoundingBox(true);
 	addComponent(TEXT("test"), _pStaticMeshComponent);
 
 	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Table/Table.fbx");
 	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	_pStaticMeshComponent2->setDrawingBoundingBox(true);
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
-	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
-	_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
-	_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
-	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
-	for (int i = 0; i < _pDynamicMeshComponent->getDynamicMesh()->getMaterialCount(); ++i)
-	{
-		_pDynamicMeshComponent->getDynamicMesh()->getMaterial(i)->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
-	}
+	//_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
+	//_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
+	//_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
+	//addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
+	//for (int i = 0; i < _pDynamicMeshComponent->getDynamicMesh()->getMaterialCount(); ++i)
+	//{
+	//	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(i)->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
+	//}
 
 	_pSkyComponent = std::make_shared<SkyComponent>();
 	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
@@ -130,10 +132,10 @@ void Player::tick(const Time deltaTime)
 	//	trans.z -= right.z * speed;
 	//}
 
-	if (keyPress(DIK_E))
-	{
-		_pDynamicMeshComponent->playAnimation(0, deltaTime);
-	}
+	//if (keyPress(DIK_E))
+	//{
+	//	_pDynamicMeshComponent->playAnimation(0, deltaTime);
+	//}
 
 	std::random_device rd;
 	std::mt19937 gen(rd());

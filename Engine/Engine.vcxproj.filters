@@ -99,12 +99,6 @@
     <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\StaticMeshComopnent">
       <UniqueIdentifier>{d7f0624b-a4ec-4e30-9518-01ca87728ab8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\CollisionShapeComponent">
-      <UniqueIdentifier>{914d0aa0-ea37-480e-87e8-d27c2238583b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\GeometryComponent">
-      <UniqueIdentifier>{dff910df-d813-4464-a195-030b2aed140b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent">
       <UniqueIdentifier>{f1e831b6-d990-4448-8368-6004027cfccb}</UniqueIdentifier>
     </Filter>
@@ -143,6 +137,9 @@
     </Filter>
     <Filter Include="Module\Graphics\Shader\Common">
       <UniqueIdentifier>{0ac45d8b-e774-4628-a4fd-fd96b33a5287}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\ShapeComponent">
+      <UniqueIdentifier>{914d0aa0-ea37-480e-87e8-d27c2238583b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -302,9 +299,6 @@
     <ClInclude Include="DirectionalLightComponent.h">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent\DirectionalLightComponent</Filter>
     </ClInclude>
-    <ClInclude Include="BoxComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\GeometryComponent</Filter>
-    </ClInclude>
     <ClInclude Include="DynamicMeshComponent.h">
       <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
     </ClInclude>
@@ -457,9 +451,6 @@
     <ClCompile Include="CollisionShapeComponent.cpp" />
     <ClCompile Include="DirectionalLightComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent\DirectionalLightComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="BoxComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\GeometryComponent</Filter>
     </ClCompile>
     <ClCompile Include="DynamicMeshComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>

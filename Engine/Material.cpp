@@ -31,8 +31,8 @@ Material::Material()
 
 	, _variableInfosPerShaderType(CastValue<size_t>(ShaderType::Count), std::vector<std::vector<VariableInfo>>())
 	, _eTopology{ D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST }
-	//, _eFillMode{ FillMode::Solid }
-	//, _eCullMode{ CullMode::Backface }
+	, _eFillMode{ FillMode::Solid }
+	, _eCullMode{ CullMode::Backface }
 	//, _eDepthWriteMode{ DepthWriteMode::Enable }
 	//, _eBlend{ Blend::Object }
 {
@@ -119,9 +119,29 @@ void Material::setTopology(const D3D_PRIMITIVE_TOPOLOGY eTopology)
 	_eTopology = eTopology;
 }
 
+void Material::setFillMode(const Graphic::FillMode fillMode)
+{
+	_eFillMode = fillMode;
+}
+
+void Material::setCullMode(const Graphic::CullMode cullMode)
+{
+	_eCullMode = cullMode;
+}
+
 const D3D_PRIMITIVE_TOPOLOGY Material::getTopology() const
 {
 	return _eTopology;
+}
+
+const Graphic::FillMode Material::getFillMode() const
+{
+	return _eFillMode;
+}
+
+const Graphic::CullMode Material::getCullMode() const
+{
+	return _eCullMode;
 }
 
 std::vector<VariableInfo>& Material::getConstantBufferVariableInfos(const ShaderType shaderType, const uint32 index)
