@@ -4,12 +4,101 @@
 #include "GraphicDevice.h"
 #include "VertexBuffer.h"
 #include "ConstantBuffer.h"
+#include "Material.h"
 
 #include "Renderer.h"
 
 #include "MainGame.h"
 #include "MainGameSetting.h"
 #include "Camera.h"
+
+using namespace DirectX;
+
+BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
+	: _min(min)
+	, _max(max)
+{
+	// 정면
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
+
+	// 왼쪽면
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
+	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
+	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
+
+	// 아랫면
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
+
+	// 오른쪽면
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
+
+	// 윗면
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
+	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
+	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
+
+	// 뒷면
+	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
+	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
+	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
+
+	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
+
+	_pMaterial = std::make_shared<Material>();
+	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
+	_pMaterial->setFillMode(Graphic::FillMode::WireFrame);
+}
+
+std::shared_ptr<VertexBuffer> BoundingBox::getVertexBuffer()
+{
+	return _pVertexBuffer;
+}
+
+std::shared_ptr<Material> BoundingBox::getMaterial()
+{
+	return _pMaterial;
+}
+
+
+const bool BoundingBox::Cull(const std::vector<XMVECTOR> palnes, const Vec3 &position)
+{
+	for (auto &palne : palnes)
+	{
+		Vec3 dot = VEC3ZERO;
+		XMStoreFloat3(&dot, XMPlaneDot(palne, XMVectorSet(position.x, position.y, position.z, 1.f)));
+		if (dot.x < 0.f)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 
 PrimitiveComponent::PrimitiveComponent()
 	:_eRenderMdoe{ RenderMode::Perspective }
@@ -32,6 +121,11 @@ const bool PrimitiveComponent::getPrimitiveData(std::vector<PrimitiveData> &prim
 	return false;
 }
 
+const bool PrimitiveComponent::getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox)
+{
+	return false;
+}
+
 void PrimitiveComponent::setRenderMode(const RenderMode renderMode)
 {
 	_eRenderMdoe = renderMode;
@@ -41,4 +135,3 @@ const PrimitiveComponent::RenderMode PrimitiveComponent::getRenderMdoe() const
 {
 	return _eRenderMdoe;
 }
-

@@ -1,6 +1,9 @@
 #pragma once
 #ifndef __GRAPHIC_DEVICE_H__
 
+// DirectXTK
+#include <SpriteFont.h>
+
 #include "EngineException.h"
 #include "Vertex.h"
 
@@ -39,7 +42,7 @@ public:
 
 	//-------------------------------------------------------------------------
 private:
-	const bool initialize();
+	const bool initializeGrahpicDevice();
 
 public:
 	const bool BuildInputLayout();
@@ -51,33 +54,28 @@ public:
 
 	//-------------------------------------------------------------------------
 	// State
-private:
-	const bool buildSamplerState();
 public:
 	ID3D11SamplerState* getSamplerState();
-private:
-	std::vector<ID3D11SamplerState*> _samplerList;
-
-private:
-	const bool buildRasterizerState();
-public:
 	ID3D11RasterizerState *getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode);
-private:
-	std::vector<ID3D11RasterizerState*> _rasterizerList;
-
-private:
-	const bool buildDepthStencilState();
-public:
 	ID3D11DepthStencilState *getDepthStencilState(const Graphic::DepthWriteMode eDetphWrite);
-private:
-	std::vector<ID3D11DepthStencilState *> _depthStencilStateList;
-
-private:
-	const bool buildBlendState();
-public:
 	ID3D11BlendState *getBlendState(const Graphic::Blend eBlend);
 private:
-	std::vector<ID3D11BlendState*> _blendStateList;
+	const bool buildSamplerState();
+	const bool buildRasterizerState();
+	const bool buildDepthStencilState();
+	const bool buildBlendState();
+
+private:
+	std::vector<ID3D11SamplerState*>		_samplerList;
+	std::vector<ID3D11RasterizerState*>		_rasterizerList;
+	std::vector<ID3D11DepthStencilState *>	_depthStencilStateList;
+	std::vector<ID3D11BlendState*>			_blendStateList;
+
+private:
+	const bool initializeDirectXTK();
+public:
+	std::unique_ptr<DirectX::SpriteBatch> _spriteBatch;
+	std::unique_ptr<DirectX::SpriteFont> _spriteFont;
 
 	//-------------------------------------------------------------------------
 	// 인터페이스 래핑

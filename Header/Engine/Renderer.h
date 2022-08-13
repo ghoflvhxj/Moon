@@ -29,7 +29,7 @@ private:
 
 	// 렌더 오브젝트
 public:
-	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> pComponent);
+	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> &pComponent);
 private:
 	std::vector<std::shared_ptr<PrimitiveComponent>> _primitiveComponents;
 
@@ -47,10 +47,19 @@ private:
 	std::vector<std::shared_ptr<RenderPass>> _renderPasses;
 
 public:
-	void render(void);
+	void render();
+	void renderScene();
+	void renderText();
 private:
+	void FrustumCulling();
+	// PerConstant, PerTick 콘스탄트 버퍼를 업데이트함.
 	void updateConstantBuffer();
 	inline void copyBufferData(std::vector<std::vector<VariableInfo>> &infos, ConstantBuffersLayer layer, uint32 index, const void *pData);
+	
+public:
+	uint32 totalPrimitiveCount = 0;
+	uint32 showPrimitiveCount = 0;
+	uint32 culledPrimitiveCount = 0;
 
 public:
 	void toggleRenderTarget();

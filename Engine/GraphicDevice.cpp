@@ -14,6 +14,8 @@
 
 #pragma comment(lib, "dxgi.lib")
 
+using namespace DirectX;
+
 GraphicDevice::GraphicDevice()
 	: m_pDevice{ nullptr }
 	, m_pImmediateContext{ nullptr }
@@ -22,13 +24,22 @@ GraphicDevice::GraphicDevice()
 	, m_pRenderTargetView{ nullptr }
 	, m_pDepthStencilView{ nullptr }
 	, m_pDepthStencilBuffer{ nullptr }
+	, _spriteBatch{ nullptr }
+	, _spriteFont{ nullptr }
 
 	, m_pInputLayout{ nullptr }
 	//, m_pPixelShader{ nullptr }
 	//, m_pVertexShader{ nullptr }
-	, _viewport{ 0, }
+	, _viewport{ }
 {
-	initialize();
+	initializeGrahpicDevice();
+
+	buildSamplerState();
+	buildRasterizerState();
+	buildDepthStencilState();
+	buildBlendState();
+
+	initializeDirectXTK();
 }
 
 GraphicDevice::~GraphicDevice()
@@ -52,7 +63,7 @@ GraphicDevice::~GraphicDevice()
 	OutputDebugString(TEXT("--------------------------------------------------"));
 }
 
-const bool GraphicDevice::initialize()
+const bool GraphicDevice::initializeGrahpicDevice()
 {
 	// 장치, 스왑체인 생성
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
@@ -119,11 +130,6 @@ const bool GraphicDevice::initialize()
 
 	m_pImmediateContext->RSSetViewports(1, &_viewport);
 
-	buildSamplerState();
-	buildRasterizerState();
-	buildDepthStencilState();
-	buildBlendState();
-
 	return true;
 }
 
@@ -188,7 +194,7 @@ void GraphicDevice::Release()
 
 void GraphicDevice::Begin()
 {
-	getContext()->ClearRenderTargetView(m_pRenderTargetView, reinterpret_cast<const float *>(&Colors::Blue));
+	getContext()->ClearRenderTargetView(m_pRenderTargetView, reinterpret_cast<const float *>(&EngineColors::Blue));
 	getContext()->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 }
 
@@ -349,6 +355,14 @@ const bool GraphicDevice::buildSamplerState()
 ID3D11SamplerState* GraphicDevice::getSamplerState()
 {
 	return nullptr;
+}
+
+const bool GraphicDevice::initializeDirectXTK()
+{
+	_spriteBatch = std::make_unique<SpriteBatch>(m_pImmediateContext);
+	_spriteFont = std::make_unique<SpriteFont>(m_pDevice, TEXT("TestFont.spritefont"));
+
+	return true;
 }
 
 void GraphicDevice::SetVertexShader(std::shared_ptr<VertexShader> &vertexShader)

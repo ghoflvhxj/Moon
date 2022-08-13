@@ -100,7 +100,7 @@ const uint32 StaticMesh::getGeometryCount() const
 	return _geometryCount;
 }
 
-std::shared_ptr<BoundingBox> StaticMesh::getBoudingBox()
+std::shared_ptr<BoundingBox> StaticMesh::getBoundingBox()
 {
 	return _pBoundingBox;
 }
@@ -154,20 +154,32 @@ const bool StaticMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pri
 		primitiveDataList.emplace_back(primitive);
 	}
 
-	if (_bDrawBoundingBox)
+	std::shared_ptr<BoundingBox> &boundingBox = _pStaticMesh->getBoundingBox();
+	if (_bDrawBoundingBox && boundingBox)
 	{
 		// BoudingBox
 		PrimitiveData primitive = {};
 		primitive._pPrimitive = shared_from_this();
-		primitive._pVertexBuffer = _pStaticMesh->getBoudingBox()->getVertexBuffer();
+		primitive._pVertexBuffer = boundingBox->getVertexBuffer();
 		primitive._pIndexBuffer = nullptr;
-		primitive._pMaterial = _pStaticMesh->getBoudingBox()->getMaterial();;
+		primitive._pMaterial = boundingBox->getMaterial();
 		primitive._primitiveType = EPrimitiveType::Mesh;
 		primitive._pPrimitive = shared_from_this();
 		primitiveDataList.emplace_back(primitive);
 	}
 
 	return true;
+}
+
+const bool StaticMeshComponent::getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox)
+{
+	if (nullptr == _pStaticMesh)
+	{
+		return false;
+	}
+
+	boundingBox = _pStaticMesh->getBoundingBox();
+	return boundingBox != nullptr;
 }
 
 std::shared_ptr<StaticMesh>& StaticMeshComponent::getStaticMesh()
@@ -183,73 +195,4 @@ void StaticMeshComponent::setDrawingBoundingBox(const bool bDraw)
 const bool StaticMeshComponent::IsDrawingBoundingBox() const
 {
 	return _bDrawBoundingBox;
-}
-
-BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
-	: _min(min)
-	, _max(max)
-{
-	// 정면
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
-
-	// 왼쪽면
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
-
-	// 아랫면
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
-
-	// 오른쪽면
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
-
-	// 윗면
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
-
-	// 뒷면
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
-
-	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
-
-	_pMaterial = std::make_shared<Material>();
-	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
-	_pMaterial->setFillMode(Graphic::FillMode::WireFrame);
-}
-
-std::shared_ptr<VertexBuffer> BoundingBox::getVertexBuffer()
-{
-	return _pVertexBuffer;
-}
-
-std::shared_ptr<Material> BoundingBox::getMaterial()
-{
-	return _pMaterial;
 }

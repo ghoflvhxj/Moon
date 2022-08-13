@@ -54,7 +54,7 @@ void RenderPass::begin()
 
 			if (true == _bClearTargets)
 			{
-				g_pGraphicDevice->getContext()->ClearRenderTargetView(_renderTargetList[i]->AsRenderTargetView(), reinterpret_cast<const float *>(&Colors::Black));
+				g_pGraphicDevice->getContext()->ClearRenderTargetView(_renderTargetList[i]->AsRenderTargetView(), reinterpret_cast<const float *>(&EngineColors::Black));
 				g_pGraphicDevice->getContext()->ClearDepthStencilView(_renderTargetList[i]->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 			}
 			rowRenderTargetViewArray[i] = _renderTargetList[i]->AsRenderTargetView();

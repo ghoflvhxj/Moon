@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "Renderer.h"
 
+// DirectXTK
+#include <SpriteFont.h>
+
 // Graphic
 #include "GraphicDevice.h"
 #include "VertexBuffer.h"
@@ -30,6 +33,8 @@
 #include "TextureComponent.h"
 
 #include "Camera.h"
+
+using namespace DirectX;
 
 Renderer::Renderer(void) noexcept
 	: _drawRenderTarget{ true }
@@ -111,7 +116,7 @@ void Renderer::initialize(void) noexcept
 	}
 }
 
-void Renderer::addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> pComponent)
+void Renderer::addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> &pComponent)
 {
 	_primitiveComponents.push_back(pComponent);
 }
@@ -132,12 +137,18 @@ void Renderer::addRenderTargetForDebug(const std::wstring name)
 #endif
 }
 
-void Renderer::render(void)
+void Renderer::render()
+{
+	renderScene();
+	renderText();
+}
+
+void Renderer::renderScene()
 {
 	g_pGraphicDevice->Begin();
 
-	std::vector<std::shared_ptr<PrimitiveComponent>> primitiveComponents(std::move(_primitiveComponents));
-	//FrustumCulling(primitiveComponents);
+	totalPrimitiveCount = CastValue<uint32>(_primitiveComponents.size());
+	FrustumCulling();
 
 	updateConstantBuffer();
 
@@ -146,7 +157,7 @@ void Renderer::render(void)
 	for (uint32 i = 0; i < combinePassIndex; ++i)
 	{
 		_renderPasses[i]->begin();
-		_renderPasses[i]->doPass(primitiveComponents);
+		_renderPasses[i]->doPass(_primitiveComponents);
 		_renderPasses[i]->end();
 	}
 
@@ -171,7 +182,102 @@ void Renderer::render(void)
 	//}
 #endif
 
+	g_pMainGame->render();
+	_primitiveComponents.clear();
+
 	g_pGraphicDevice->End();
+}
+
+void Renderer::renderText()
+{
+
+}
+
+void Renderer::FrustumCulling()
+{
+	const Mat4 &viewMatrix = g_pMainGame->getMainCameraViewMatrix();
+	Mat4 projectionMatrix = g_pMainGame->getMainCameraProjectioinMatrix();
+
+	float zMinimum = -projectionMatrix._43 / projectionMatrix._33;
+	float r = 1000.f / (1000.f - zMinimum);
+	projectionMatrix._33 = r;
+	projectionMatrix._43 = -r * zMinimum;
+	XMMATRIX proj = XMLoadFloat4x4(&projectionMatrix);
+	XMMATRIX viewProj = XMMatrixMultiply(XMLoadFloat4x4(&viewMatrix), proj);
+
+	XMFLOAT4X4 matrix;
+	XMStoreFloat4x4(&matrix, viewProj);
+
+	std::vector<XMVECTOR> m_planes(6);
+	float x = (float)(matrix._14 + matrix._13);
+	float y = (float)(matrix._24 + matrix._23);
+	float z = (float)(matrix._34 + matrix._33);
+	float w = (float)(matrix._44 + matrix._43);
+	m_planes[0] = XMVectorSet(x, y, z, w);
+	m_planes[0] = XMPlaneNormalize(m_planes[0]);
+
+	// 절두체의 먼 평면을 계산합니다.
+	x = (float)(matrix._14 - matrix._13);
+	y = (float)(matrix._24 - matrix._23);
+	z = (float)(matrix._34 - matrix._33);
+	w = (float)(matrix._44 - matrix._43);
+	m_planes[1] = XMVectorSet(x, y, z, w);
+	m_planes[1] = XMPlaneNormalize(m_planes[1]);
+
+	// 절두체의 왼쪽 평면을 계산합니다.
+	x = (float)(matrix._14 + matrix._11);
+	y = (float)(matrix._24 + matrix._21);
+	z = (float)(matrix._34 + matrix._31);
+	w = (float)(matrix._44 + matrix._41);
+	m_planes[2] = XMVectorSet(x, y, z, w);
+	m_planes[2] = XMPlaneNormalize(m_planes[2]);
+
+	// 절두체의 오른쪽 평면을 계산합니다.
+	x = (float)(matrix._14 - matrix._11);
+	y = (float)(matrix._24 - matrix._21);
+	z = (float)(matrix._34 - matrix._31);
+	w = (float)(matrix._44 - matrix._41);
+	m_planes[3] = XMVectorSet(x, y, z, w);
+	m_planes[3] = XMPlaneNormalize(m_planes[3]);
+
+	// 절두체의 윗 평면을 계산합니다.
+	x = (float)(matrix._14 - matrix._12);
+	y = (float)(matrix._24 - matrix._22);
+	z = (float)(matrix._34 - matrix._32);
+	w = (float)(matrix._44 - matrix._42);
+	m_planes[4] = XMVectorSet(x, y, z, w);
+	m_planes[4] = XMPlaneNormalize(m_planes[4]);
+
+	// 절두체의 아래 평면을 계산합니다.
+	x = (float)(matrix._14 + matrix._12);
+	y = (float)(matrix._24 + matrix._22);
+	z = (float)(matrix._34 + matrix._32);
+	w = (float)(matrix._44 + matrix._42);
+	m_planes[5] = XMVectorSet(x, y, z, w);
+	m_planes[5] = XMPlaneNormalize(m_planes[5]);
+
+	std::vector<std::shared_ptr<PrimitiveComponent>> culledPrimitiveComponents;
+	culledPrimitiveComponents.reserve(_primitiveComponents.size());
+
+	for (auto &primitive : _primitiveComponents)
+	{
+		std::shared_ptr<BoundingBox> boundingBox = nullptr;
+		if (false == primitive->getBoundingBox(boundingBox))
+		{
+			culledPrimitiveComponents.emplace_back(primitive);
+			continue;
+		}
+
+		if (boundingBox->Cull(m_planes, primitive->getWorldTranslation()))
+		{
+			culledPrimitiveComponents.emplace_back(primitive);
+		}
+	}
+
+	_primitiveComponents = std::move(culledPrimitiveComponents);
+
+	showPrimitiveCount = CastValue<uint32>(_primitiveComponents.size());
+	culledPrimitiveCount = totalPrimitiveCount - showPrimitiveCount;
 }
 
 void Renderer::updateConstantBuffer()

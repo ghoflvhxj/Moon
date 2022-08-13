@@ -2,6 +2,8 @@
 
 copy		.\Engine\*.h				.\Header\Engine\
 
+copy		.\Engine\DirectXTK\*.h			.\Header\Engine\
+
 copy		.\Engine\x64\Debug\*.dll			.\Client\x64\Debug\Bin\
 copy		.\Engine\x64\Debug\*.lib			.\Libraries\Debug\
 xcopy 		.\Engine\x64\Debug\Shader\*.*		.\Client\Resources\Shader\	/e /h /k /y

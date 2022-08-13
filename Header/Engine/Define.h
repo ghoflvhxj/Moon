@@ -30,7 +30,7 @@ constexpr Mat4 IDENTITYMATRIX = {	1.f, 0.f, 0.f, 0.f,
 
 constexpr uint32 TEXTURE_COUNT = static_cast<uint32>(TextureType::End);
 
-namespace Colors
+namespace EngineColors
 {
 	XMGLOBALCONST DirectX::XMVECTORF32 White		= { 1.0f, 1.0f, 1.0f, 1.0f };
 	XMGLOBALCONST DirectX::XMVECTORF32 Black		= { 0.0f, 0.0f, 0.0f, 1.0f };

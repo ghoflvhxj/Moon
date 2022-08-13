@@ -40,7 +40,7 @@ void TerrainComponent::initializeMeshInfromation()
 {
 	_textureList.resize(5, nullptr);
 
-	Vec4 color = static_cast<Vec4>(Colors::White);
+	Vec4 color = static_cast<Vec4>(EngineColors::White);
 
 	uint32 vertexNumX = _tileNumX + 1;
 	uint32 vertexNumY = _tileNumY + 1;
@@ -131,7 +131,7 @@ const bool TerrainComponent::Test(const Vec3 &pos, float *pY)
 	};
 	XMVECTOR plane = XMPlaneFromPoints(points[0], points[1], points[2]);
 	Vec4 p;
-	DirectX::XMStoreFloat4(&p, plane);
+	XMStoreFloat4(&p, plane);
 
 	*pY = ((pos.x * p.x) + (pos.z * p.z) + p.w) / -p.y;
 

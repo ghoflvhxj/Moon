@@ -7,32 +7,6 @@
 class VertexBuffer;
 class IndexBuffer;
 
-class ENGINE_DLL BoundingBox
-{
-public:
-	BoundingBox(const Vec3 &min, const Vec3 &max);
-
-	Vec3 _min;
-	Vec3 _max;
-
-protected:
-	std::vector<Vertex>		_vertices;
-	std::vector<Index>		_indices;
-
-public:
-	std::shared_ptr<VertexBuffer> getVertexBuffer();
-	std::shared_ptr<IndexBuffer> getIndexBuffer();
-protected:
-	std::shared_ptr<VertexBuffer> _pVertexBuffer;
-	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
-
-public:
-	std::shared_ptr<Material> getMaterial();
-protected:
-	std::shared_ptr<Material> _pMaterial;
-};
-
-
 class ENGINE_DLL StaticMesh
 {
 public:
@@ -61,7 +35,7 @@ protected:
 	uint32 _geometryCount = 0;
 
 public:
-	std::shared_ptr<BoundingBox> getBoudingBox();
+	std::shared_ptr<BoundingBox> getBoundingBox();
 private:
 	std::shared_ptr<BoundingBox> _pBoundingBox;
 
@@ -83,6 +57,7 @@ public:
 
 public:
 	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
+	virtual const bool getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox) override;
 
 public:
 	virtual std::shared_ptr<StaticMesh>& getStaticMesh();

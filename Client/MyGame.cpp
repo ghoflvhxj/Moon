@@ -5,6 +5,8 @@
 
 #include "GraphicDevice.h"
 
+#include "Renderer.h"
+
 #include "TextureComponent.h"
 #include "MeshComponent.h"
 #include "TerrainComponent.h"
@@ -94,12 +96,14 @@ void MyGame::render()
 	//Vec3 rot = p2->getScale();
 	//Vec3 scale = p2->getScale();
 
-	//ImGui_ImplDX11_NewFrame();
-	//ImGui_ImplWin32_NewFrame();
-	//ImGui::NewFrame();
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
 
-	//ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
+	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+	ImGui::Text("Toatal primitive:%d", getRenderer()->totalPrimitiveCount);
+	ImGui::Text("show primitive:%d", getRenderer()->showPrimitiveCount);
+	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
 	////ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
 	////ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	//ImGui::SliderFloat("posX", &pos.x, -10.f, 10.f);
@@ -127,10 +131,10 @@ void MyGame::render()
 	//bool show = true;
 	//ImGui::Checkbox("Dynamicmesh Show", &show);
 
-	//ImGui::End();
+	ImGui::End();
 
-	//ImGui::Render();
-	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 void MyGame::controlCamera(const Time deltaTime)
