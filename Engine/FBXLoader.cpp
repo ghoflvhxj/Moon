@@ -68,6 +68,7 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 			frameMatricesPerGeometry.resize(_geometryCount);
 		}
 
+		std::set<int>jointPositionSet;
 		for (uint32 meshIndex = 0; meshIndex < _geometryCount; ++meshIndex)
 		{
 			FbxMesh *pMesh = _meshList[meshIndex];
@@ -114,13 +115,18 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 					//}
 					int jointIndex = _jointIndexMap[jointName];
 
+					// 조인트 그리기 용
+					FbxAMatrix temp = geometryTransform.Inverse() * transformMatrix.Inverse() * transformLinkMatrix;
+					_jointList[jointIndex]._position = { static_cast<float>(temp[3][0]), static_cast<float>(temp[3][1]), static_cast<float>(temp[3][2]) };
+					jointPositionSet.insert(jointIndex);
+
 					double* weights = pCluster->GetControlPointWeights();
 					if (weights == nullptr)
 					{
 						continue;
 					}
 
-					XMStoreFloat4x4(&_jointList[jointIndex]._inverseOfGlobalBindPoseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
+					XMStoreFloat4x4(&_jointList[jointIndex]._globalBindPoseInverseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
 
 					//{
 					//	PerformanceTimer timer(TEXT("WeigtIndex"));
@@ -176,6 +182,7 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 						}
 					//}
 
+#ifdef _DEBUG
 						std::string log;
 						log += "MeshName: ";
 						log += pMeshNode->GetName();
@@ -195,6 +202,19 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 						log += std::to_string(jointIndex);
 						log += "\r\n";
 						OutputDebugStringA(log.c_str());
+#endif
+				}
+			}
+
+			for (uint32 i = 0; i < jointCount; ++i)
+			{
+				if (jointPositionSet.find(i) == jointPositionSet.end())
+				{
+					int32 parentIndex = _jointList[i]._parentIndex;
+					if (parentIndex != -1)
+					{
+						_jointList[i]._position = _jointList[_jointList[i]._parentIndex]._position;
+					}
 				}
 			}
 		}
@@ -745,8 +765,8 @@ void FBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName)
 	}
 	;
 
-	auto& trans = pNode->LclTranslation.Get();
-	joint._translation = { (float)trans[0], (float)trans[1], (float)trans[2] };
+	auto& trans = pNode->GeometricTranslation.Get();
+	joint._position = { (float)trans[0], (float)trans[1], (float)trans[2] };
 
 	_jointList.push_back(joint);
 }

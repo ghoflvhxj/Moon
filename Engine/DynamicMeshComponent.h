@@ -42,7 +42,7 @@ public:
 public:
 	void playAnimation(const uint32 index, const Time deltaTime);
 private:
-	uint32 _currentAinmClip = 0;
+	uint32 _currentAinmClipIndex = 0;
 	float _currentPlayTime = 0.f;
 	Mat4 _matrices[200];
 

@@ -46,22 +46,22 @@ Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 {
 	for (uint32 i = 0; i < 199; ++i)
 	{
-		auto &trans = dynamicMesh->getJoints()[i]._translation;
-		_vertices.push_back({ Vec3{ trans.x + 5.f, trans.y, trans.z } });
+		auto &trans = dynamicMesh->getJoints()[i]._position;
+		_vertices.push_back({ Vec3{ trans.x, trans.y, trans.z } });
 		_vertices.back().BlendIndex[0] = i;
 		_vertices.back().BlendWeight.x = 1.f;
 
 		int32 parentIndex = dynamicMesh->getJoints()[i]._parentIndex;
 		if (parentIndex != -1)
 		{
-			auto &parentTrans = dynamicMesh->getJoints()[parentIndex]._translation;
-			_vertices.push_back({ Vec3{ parentTrans.x + 5.f, parentTrans.y, parentTrans.z } });
+			auto &parentTrans = dynamicMesh->getJoints()[parentIndex]._position;
+			_vertices.push_back({ Vec3{ parentTrans.x, parentTrans.y, parentTrans.z } });
 			_vertices.back().BlendIndex[0] = parentIndex;
 			_vertices.back().BlendWeight.x = 1.f;
 		}
 		else
 		{
-			_vertices.push_back({ Vec3{ trans.x + 5.f, trans.y, trans.z } });
+			_vertices.push_back({ Vec3{ trans.x, trans.y, trans.z } });
 		}
 	}
 
@@ -155,11 +155,13 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 		return false;
 	}
 
+	AnimationClip &currentAnimClip = _pDynamicMesh->getAnimationClip(_currentAinmClipIndex);
 	uint32 geometryCount = _pDynamicMesh->getGeometryCount();
 	uint32 jointCount	 = _pDynamicMesh->getJointCount();
 
 	primitiveDataList.reserve(geometryCount);
 
+	std::set<uint32> matricesSet;
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
 		PrimitiveData primitive = {};
@@ -171,18 +173,30 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 
 		for (int32 jointIndex = 0; jointIndex < CastValue<int32>(jointCount); ++jointIndex)
 		{
-			AnimationClip &currentAnimClip = _pDynamicMesh->getAnimationClip(_currentAinmClip);
-			if (currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty())
+			bool bHasKeyFrames = !currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty();
+			if (bHasKeyFrames == false)
 			{
-				// 다른 geomtry에서 매트릭스 갱신됨
-				continue;
-			}
+				// 다른 메시에서 업데이트 된 경우
+				bool bUpdatedFromOtherMesh = matricesSet.find(jointIndex) != matricesSet.end();
+				if (bUpdatedFromOtherMesh)
+				{
+					continue;
+				}
 
-			// 키프레임 불러오기
-			bool bExistKeyFrame = !currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty();
-			if (bExistKeyFrame == true)
+				// 본이 영향을 주는 버텍스가 없는 경우에는, 부모 본을 그대로 사용
+				int32 parentIndex = _pDynamicMesh->getJoints()[jointIndex]._parentIndex;
+				if (parentIndex == -1)
+				{
+					_matrices[jointIndex] = IDENTITYMATRIX;
+				}
+				else
+				{
+					_matrices[jointIndex] = _matrices[parentIndex];
+				}
+			}
+			else
 			{
-				float realFrame = _currentPlayTime * 24.f;
+				float realFrame = _currentPlayTime * 30.f; // 하드코딩 삭제하기
 				uint32 frame = CastValue<uint32>(realFrame);
 
 				XMMATRIX frameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame]);
@@ -201,8 +215,10 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 					frameMatrix += nextFrameMatrix;
 				}
 
-				XMMATRIX inverseOfGlobalBindPoseMatrix = XMLoadFloat4x4(&_pDynamicMesh->getJoints()[jointIndex]._inverseOfGlobalBindPoseMatrix);
-				XMStoreFloat4x4(&_matrices[jointIndex], XMMatrixMultiply(inverseOfGlobalBindPoseMatrix, frameMatrix));
+				XMMATRIX globalBindPoseInverseMatrix = XMLoadFloat4x4(&_pDynamicMesh->getJoints()[jointIndex]._globalBindPoseInverseMatrix);
+				XMStoreFloat4x4(&_matrices[jointIndex], XMMatrixMultiply(globalBindPoseInverseMatrix, frameMatrix));
+
+				matricesSet.insert(jointIndex);
 			}
 		}
 
@@ -220,6 +236,13 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 		primitive._pMaterial = _pDynamicMesh->_pSkeleton->getMaterial();
 		primitive._primitiveType = EPrimitiveType::Mesh;
 
+		for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
+		{
+			for (int32 jointIndex = 0; jointIndex < CastValue<int32>(jointCount); ++jointIndex)
+			{
+
+			}
+		}
 		primitive._matrices = _matrices;
 
 		primitiveDataList.emplace_back(primitive);
@@ -235,7 +258,7 @@ std::shared_ptr<DynamicMesh>& DynamicMeshComponent::getDynamicMesh()
 
 void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTime)
 {
-	_currentAinmClip = index;
+	_currentAinmClipIndex = index;
 	_currentPlayTime += deltaTime;
 
 	if (_currentPlayTime > CastValue<float>(_pDynamicMesh->getAnimationClip(index)._duration))

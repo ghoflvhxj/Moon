@@ -56,14 +56,15 @@ struct FJoint
 	FJoint()
 		: _name{ "" }
 		, _parentIndex{ -1 }
+		, _position{ 0.f, 0.f, 0.f }
 	{
 
 	}
 
 	std::string			_name;
 	int32				_parentIndex;
-	Mat4	_inverseOfGlobalBindPoseMatrix;
-	Vec3	_translation;
+	Mat4	_globalBindPoseInverseMatrix;
+	Vec3	_position;
 };
 
 using JointIndexMap = std::unordered_map<std::string, int>;
