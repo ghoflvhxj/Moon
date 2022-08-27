@@ -25,7 +25,9 @@ struct KeyFrame
 
 struct AnimationClip
 {
-	using KeyFrameList				= std::vector<std::vector<std::vector<DirectX::XMFLOAT4X4>>>;
+	using MatricesPerFrame			= std::vector<Mat4>;
+	using FrameMatricesPerGeometry	= std::vector<MatricesPerFrame>;
+	using KeyFrameList				= std::vector<FrameMatricesPerGeometry>;
 	AnimationClip()
 		: _startFrame{ 0 }
 		, _endFrame{ 0 }
@@ -60,7 +62,8 @@ struct FJoint
 
 	std::string			_name;
 	int32				_parentIndex;
-	std::vector<DirectX::XMFLOAT4X4>	_inverseOfGlobalBindPoseMatrices;
+	Mat4	_inverseOfGlobalBindPoseMatrix;
+	Vec3	_translation;
 };
 
 using JointIndexMap = std::unordered_map<std::string, int>;

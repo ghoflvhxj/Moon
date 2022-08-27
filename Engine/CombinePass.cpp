@@ -82,7 +82,10 @@ const bool GeometryPass::processPrimitiveData(PrimitiveData &primitiveData)
 
 	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
 	memcpy(VS_CBuffer_PerObject[0]._pValue, &primitiveData._pPrimitive->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
-	memcpy(VS_CBuffer_PerObject[1]._pValue, &primitiveData._matrices, VS_CBuffer_PerObject[1]._size);
+	if (primitiveData._matrices != nullptr)
+	{
+		memcpy(VS_CBuffer_PerObject[1]._pValue, primitiveData._matrices, VS_CBuffer_PerObject[1]._size);
+	}
 
 
 	auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);

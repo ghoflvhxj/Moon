@@ -77,7 +77,7 @@ struct PrimitiveData
 	std::shared_ptr<Shader>						_pPixelShader = nullptr;
 	
 	// 다이나믹 메쉬용
-	Mat4 _matrices[200];
+	Mat4 *_matrices = nullptr;
 	uint32 _jointCount;
 };
 

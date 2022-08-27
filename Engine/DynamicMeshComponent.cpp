@@ -19,6 +19,59 @@
 
 using namespace DirectX;
 
+class Skeleton
+{
+public:
+	Skeleton(DynamicMesh* dynamicMesh);
+public:
+	std::vector<Vertex> _vertices;
+	std::vector<Index>	_indices;
+
+public:
+	std::shared_ptr<VertexBuffer> getVertexBuffer() { return _pVertexBuffer; }
+	std::shared_ptr<IndexBuffer> getIndexBuffer() { return nullptr; }
+protected:
+	std::shared_ptr<VertexBuffer> _pVertexBuffer;
+	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
+
+public:
+	std::shared_ptr<Material> getMaterial() { return _pMaterial; }
+protected:
+	std::shared_ptr<Material> _pMaterial;
+};
+
+
+
+Skeleton::Skeleton(DynamicMesh* dynamicMesh)
+{
+	for (uint32 i = 0; i < 199; ++i)
+	{
+		auto &trans = dynamicMesh->getJoints()[i]._translation;
+		_vertices.push_back({ Vec3{ trans.x + 5.f, trans.y, trans.z } });
+		_vertices.back().BlendIndex[0] = i;
+		_vertices.back().BlendWeight.x = 1.f;
+
+		int32 parentIndex = dynamicMesh->getJoints()[i]._parentIndex;
+		if (parentIndex != -1)
+		{
+			auto &parentTrans = dynamicMesh->getJoints()[parentIndex]._translation;
+			_vertices.push_back({ Vec3{ parentTrans.x + 5.f, parentTrans.y, parentTrans.z } });
+			_vertices.back().BlendIndex[0] = parentIndex;
+			_vertices.back().BlendWeight.x = 1.f;
+		}
+		else
+		{
+			_vertices.push_back({ Vec3{ trans.x + 5.f, trans.y, trans.z } });
+		}
+	}
+
+	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
+	_pMaterial = std::make_shared<Material>();
+	_pMaterial->setShader(TEXT("Bone.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
+	//_pMaterial->setFillMode(Graphic::FillMode::WireFrame);
+	_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+}
+
 void DynamicMesh::initializeMeshInformation(const char *filePathName)
 {
 	FBXLoader fbxLoader(filePathName, _animationClipList);
@@ -45,7 +98,7 @@ void DynamicMesh::initializeMeshInformation(const char *filePathName)
 		{
 			pMaterial->setTexture(_textureList[i]);
 		}
-		pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
+		pMaterial->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 
 		_materialList.push_back(pMaterial);
 	}
@@ -59,6 +112,8 @@ void DynamicMesh::initializeMeshInformation(const char *filePathName)
 	{
 		_pVertexBuffers.emplace_back(std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_verticesList[i].size()), _verticesList[i].data()));
 	}
+
+	_pSkeleton = std::make_shared<Skeleton>(this);
 }
 
 AnimationClip& DynamicMesh::getAnimationClip(const int index)
@@ -119,29 +174,53 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 			AnimationClip &currentAnimClip = _pDynamicMesh->getAnimationClip(_currentAinmClip);
 			if (currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty())
 			{
+				// 다른 geomtry에서 매트릭스 갱신됨
 				continue;
 			}
 
-			float realFrame = _currentPlayTime * 24.f;
-			uint32 frame = CastValue<uint32>(realFrame);
-
-			float currentFrameFactor = 1.f - (realFrame - CastValue<float>(frame));
-			float nextFrameFactor = 1.f - currentFrameFactor;
-
-			XMMATRIX frameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame]);
-			if (frame < currentAnimClip._frameCount)
+			// 키프레임 불러오기
+			bool bExistKeyFrame = !currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty();
+			if (bExistKeyFrame == true)
 			{
-				frameMatrix = XMMatrixMultiply(frameMatrix, XMMatrixScaling(currentFrameFactor, currentFrameFactor, currentFrameFactor));
+				float realFrame = _currentPlayTime * 24.f;
+				uint32 frame = CastValue<uint32>(realFrame);
 
-				XMMATRIX nextFrameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame + 1]);
-				nextFrameMatrix = XMMatrixMultiply(nextFrameMatrix, XMMatrixScaling(nextFrameFactor, nextFrameFactor, nextFrameFactor));
+				XMMATRIX frameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame]);
 
-				frameMatrix += nextFrameMatrix;
+				// 다음 프레임과 블렌딩
+				if (frame < currentAnimClip._frameCount)
+				{
+					float currentFrameFactor = 1.f - (realFrame - CastValue<float>(frame));
+					float nextFrameFactor = 1.f - currentFrameFactor;
+
+					frameMatrix = XMMatrixMultiply(frameMatrix, XMMatrixScaling(currentFrameFactor, currentFrameFactor, currentFrameFactor));
+
+					XMMATRIX nextFrameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame + 1]);
+					nextFrameMatrix = XMMatrixMultiply(nextFrameMatrix, XMMatrixScaling(nextFrameFactor, nextFrameFactor, nextFrameFactor));
+
+					frameMatrix += nextFrameMatrix;
+				}
+
+				XMMATRIX inverseOfGlobalBindPoseMatrix = XMLoadFloat4x4(&_pDynamicMesh->getJoints()[jointIndex]._inverseOfGlobalBindPoseMatrix);
+				XMStoreFloat4x4(&_matrices[jointIndex], XMMatrixMultiply(inverseOfGlobalBindPoseMatrix, frameMatrix));
 			}
-
-			XMMATRIX inverseOfGlobalBindPoseMatrix = XMLoadFloat4x4(&_pDynamicMesh->getJoints()[jointIndex]._inverseOfGlobalBindPoseMatrices[geometryIndex]);
-			XMStoreFloat4x4(&primitive._matrices[jointIndex], XMMatrixMultiply(inverseOfGlobalBindPoseMatrix, frameMatrix));
 		}
+
+		primitive._matrices = _matrices;
+
+		primitiveDataList.emplace_back(primitive);
+	}
+
+	if (_pDynamicMesh->_pSkeleton)
+	{
+		PrimitiveData primitive = {};
+		primitive._pPrimitive = shared_from_this();
+		primitive._pVertexBuffer = _pDynamicMesh->_pSkeleton->getVertexBuffer();
+		primitive._pIndexBuffer = _pDynamicMesh->_pSkeleton->getIndexBuffer();
+		primitive._pMaterial = _pDynamicMesh->_pSkeleton->getMaterial();
+		primitive._primitiveType = EPrimitiveType::Mesh;
+
+		primitive._matrices = _matrices;
 
 		primitiveDataList.emplace_back(primitive);
 	}

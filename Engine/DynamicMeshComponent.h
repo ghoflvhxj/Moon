@@ -7,10 +7,12 @@
 
 #include "Vertex.h"
 
+class Skeleton;
+
 class ENGINE_DLL DynamicMesh : public StaticMesh
 {
 public:
-	explicit DynamicMesh() = default;
+	DynamicMesh() = default;
 
 public: //삭제예정
 	virtual void initializeMeshInformation(const char *filePathName) override;
@@ -22,6 +24,9 @@ private:
 	std::vector<AnimationClip> _animationClipList;
 	std::vector<FJoint> _jointList;
 	uint32 _jointCount;
+
+public:
+	std::shared_ptr<Skeleton> _pSkeleton = nullptr;
 };
 
 class ENGINE_DLL DynamicMeshComponent : public PrimitiveComponent
@@ -39,6 +44,7 @@ public:
 private:
 	uint32 _currentAinmClip = 0;
 	float _currentPlayTime = 0.f;
+	Mat4 _matrices[200];
 
 public:
 	virtual std::shared_ptr<DynamicMesh>& getDynamicMesh();

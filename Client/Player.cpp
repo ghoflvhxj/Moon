@@ -14,8 +14,8 @@
 
 #include "imgui.h"
 
-#define UseLight 1
-
+#define UseLight 0
+#define UseDynamicMesh 1
 using namespace DirectX;
 
 Player::Player()
@@ -52,14 +52,16 @@ void Player::initialize()
 	_pStaticMeshComponent2->setDrawingBoundingBox(true);
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
-	//_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
-	//_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
-	//_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
-	//addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
-	//for (int i = 0; i < _pDynamicMeshComponent->getDynamicMesh()->getMaterialCount(); ++i)
-	//{
-	//	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(i)->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
-	//}
+#if UseDynamicMesh == 1
+	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
+	_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
+	_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
+	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
+	for (int i = 0; i < _pDynamicMeshComponent->getDynamicMesh()->getMaterialCount(); ++i)
+	{
+		_pDynamicMeshComponent->getDynamicMesh()->getMaterial(i)->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
+	}
+#endif
 
 	std::shared_ptr<TextureComponent> _pTextureComponent2 = std::make_shared<TextureComponent>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
 	_pSkyComponent = std::make_shared<SkyComponent>();
@@ -133,10 +135,12 @@ void Player::tick(const Time deltaTime)
 	//	trans.z -= right.z * speed;
 	//}
 
-	//if (keyPress(DIK_E))
-	//{
-	//	_pDynamicMeshComponent->playAnimation(0, deltaTime);
-	//}
+#if UseDynamicMesh == 1
+	if (keyPress(DIK_E))
+	{
+		_pDynamicMeshComponent->playAnimation(0, deltaTime);
+	}
+#endif
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
