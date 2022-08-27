@@ -18,7 +18,10 @@ public:
 	Vec3 _max;
 
 public:
-	virtual const bool Cull(const std::vector<DirectX::XMVECTOR> palnes, const Vec3 &position);
+	const bool cull(const std::vector<DirectX::XMVECTOR> palnes, const Vec3 &position);
+	const bool cullSphere(const std::vector<DirectX::XMVECTOR> palnes, const Vec3 &position, const float length);
+	const float getLength(const Vec3 &scale = { 1.f, 1.f, 1.f }) const;
+
 protected:
 	std::vector<Vertex>		_vertices;
 	std::vector<Index>		_indices;

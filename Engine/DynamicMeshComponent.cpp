@@ -202,7 +202,7 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 				XMMATRIX frameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame]);
 
 				// 다음 프레임과 블렌딩
-				if (frame < currentAnimClip._frameCount)
+				if (frame < currentAnimClip._frameCount - 1)
 				{
 					float currentFrameFactor = 1.f - (realFrame - CastValue<float>(frame));
 					float nextFrameFactor = 1.f - currentFrameFactor;

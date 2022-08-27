@@ -84,12 +84,12 @@ std::shared_ptr<Material> BoundingBox::getMaterial()
 }
 
 
-const bool BoundingBox::Cull(const std::vector<XMVECTOR> palnes, const Vec3 &position)
+const bool BoundingBox::cull(const std::vector<XMVECTOR> palnes, const Vec3 &position)
 {
 	for (auto &palne : palnes)
 	{
 		Vec3 dot = VEC3ZERO;
-		XMStoreFloat3(&dot, XMPlaneDot(palne, XMVectorSet(position.x, position.y, position.z, 1.f)));
+		XMStoreFloat3(&dot, XMPlaneDotCoord(palne, XMVectorSet(position.x, position.y, position.z, 1.f)));
 		if (dot.x < 0.f)
 		{
 			return false;
@@ -99,6 +99,28 @@ const bool BoundingBox::Cull(const std::vector<XMVECTOR> palnes, const Vec3 &pos
 	return true;
 }
 
+const bool BoundingBox::cullSphere(const std::vector<XMVECTOR> palnes, const Vec3 &position, const float radius)
+{
+	for (auto &palne : palnes)
+	{
+		Vec3 dot = VEC3ZERO;
+		XMStoreFloat3(&dot, XMPlaneDotCoord(palne, XMVectorSet(position.x, position.y, position.z, 1.f)));
+		if (dot.x < -radius)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+const float BoundingBox::getLength(const Vec3 &scale /*= { 1.f, 1.f, 1.f }*/) const
+{
+	XMFLOAT3 length;
+	XMStoreFloat3(&length, XMVector3Length(XMLoadFloat3(&scale) * XMVectorSet(_max.x - _min.x, _max.x - _min.x, _max.x - _min.x, 0.f)));
+
+	return length.x;
+}
 
 PrimitiveComponent::PrimitiveComponent()
 	:_eRenderMdoe{ RenderMode::Perspective }

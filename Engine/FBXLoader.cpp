@@ -60,7 +60,7 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 		animationClipList[animStackIndex]._animationName	= animStackName.Buffer();
 		animationClipList[animStackIndex]._startFrame		= CastValue<uint32>(startTime.GetFrameCount(FbxTime::eFrames30));
 		animationClipList[animStackIndex]._endFrame			= CastValue<uint32>(endTime.GetFrameCount(FbxTime::eFrames30));
-		animationClipList[animStackIndex]._frameCount		= CastValue<uint32>((endTime - startTime).GetFrameCount(FbxTime::eFrames30));
+		animationClipList[animStackIndex]._frameCount		= CastValue<uint32>((endTime - startTime).GetFrameCount(FbxTime::eFrames30)) + 1;
 		animationClipList[animStackIndex]._duration			= (endTime - startTime).GetSecondDouble();
 
 		for (auto &frameMatricesPerGeometry : animationClipList[animStackIndex]._keyFrameLists)
@@ -171,7 +171,7 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 							animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].reserve(animationClipList[animStackIndex]._frameCount);	// 조인트마다 키프레임 공간 예약. 키 프레임이 최대 프레임 수만큼 가질 수 있음. 굳이? 싶지만 지금은 최적화 생각안하고 구현
 						}
 
-						for (uint32 frame = animationClipList[animStackIndex]._startFrame; frame < animationClipList[animStackIndex]._endFrame; ++frame)
+						for (uint32 frame = animationClipList[animStackIndex]._startFrame; frame <= animationClipList[animStackIndex]._endFrame; ++frame)
 						{
 							currentTime.SetFrame(static_cast<FbxLongLong>(frame), FbxTime::eFrames30);
 

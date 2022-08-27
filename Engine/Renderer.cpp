@@ -268,7 +268,7 @@ void Renderer::FrustumCulling()
 			continue;
 		}
 
-		if (boundingBox->Cull(m_planes, primitive->getWorldTranslation()))
+		if (boundingBox->cullSphere(m_planes, primitive->getWorldTranslation(), boundingBox->getLength(primitive->getScale())/2.f))
 		{
 			culledPrimitiveComponents.emplace_back(primitive);
 		}
