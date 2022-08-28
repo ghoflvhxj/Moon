@@ -174,8 +174,9 @@ const bool LightPass::processPrimitiveData(PrimitiveData &primitiveData)
 	Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
 	memcpy(PS_CBuffer_PerObject[1]._pValue, &look, PS_CBuffer_PerObject[1]._size);
 	memcpy(PS_CBuffer_PerObject[2]._pValue, &color, PS_CBuffer_PerObject[2]._size);
-	memcpy(PS_CBuffer_PerObject[3]._pValue, &g_pMainGame->getMainCamera()->getInvesrViewMatrix(), PS_CBuffer_PerObject[3]._size);
-	memcpy(PS_CBuffer_PerObject[4]._pValue, &g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix(), PS_CBuffer_PerObject[4]._size);
+	memcpy(PS_CBuffer_PerObject[3]._pValue, &g_pMainGame->getMainCamera()->getViewMatrix(), PS_CBuffer_PerObject[3]._size);
+	memcpy(PS_CBuffer_PerObject[4]._pValue, &g_pMainGame->getMainCamera()->getInvesrViewMatrix(), PS_CBuffer_PerObject[4]._size);
+	memcpy(PS_CBuffer_PerObject[5]._pValue, &g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix(), PS_CBuffer_PerObject[5]._size);
 
 	return true;
 }

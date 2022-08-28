@@ -24,8 +24,11 @@ void PointLightComponent::Update(const Time deltaTime)
 {
 	PrimitiveComponent::Update(deltaTime);
 
+	Vec3 trans = { 0.f, 0.f, 1.f };
+
+	// 회전을 제거한 월드행렬 만들기
 	XMVECTOR scaleVector = XMLoadFloat3(&getScale());
-	XMVECTOR translationVector = XMLoadFloat3(&getTranslation());
+	XMVECTOR translationVector = XMLoadFloat3(&trans);
 	XMMATRIX IdentityMatrix = XMLoadFloat4x4(&IDENTITYMATRIX);
 	
 	XMMATRIX matrices[(int)Transform::End] = {

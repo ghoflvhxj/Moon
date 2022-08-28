@@ -80,11 +80,10 @@ void MyGame::Tick(const Time deltaTime)
 
 void MyGame::render()
 {
-	//std::shared_ptr<PointLightComponent> p	= std::static_pointer_cast<PointLightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
+	std::shared_ptr<PointLightComponent> p	= std::static_pointer_cast<PointLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
 	//std::shared_ptr<SceneComponent>	p2		= _pPlayer->getComponent(TEXT("test2"));
 	////Vec3 color = p->getColor();
 	////float range = p->getRange();
-	////Vec3 pos = p->getTranslation();
 	////Vec3 rot = p->getRotation();
 	////float intensitiy = p->getIntensity();
 
@@ -106,9 +105,13 @@ void MyGame::render()
 	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
 	////ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
 	////ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	//ImGui::SliderFloat("posX", &pos.x, -10.f, 10.f);
-	//ImGui::SliderFloat("posY", &pos.y, -10.f, 10.f);
-	//ImGui::SliderFloat("posZ", &pos.z, -10.f, 10.f);
+
+	Vec3 pos = p->getTranslation();
+	ImGui::SliderFloat("posX", &pos.x, -10.f, 10.f);
+	ImGui::SliderFloat("posY", &pos.y, -10.f, 10.f);
+	ImGui::SliderFloat("posZ", &pos.z, -10.f, 10.f);
+	p->setTranslation(pos);
+
 	//ImGui::SliderFloat("scaleX", &scale.x, 0.f, 1.f);
 	//ImGui::SliderFloat("scaleY", &scale.y, 0.f, 1.f);
 	//ImGui::SliderFloat("scaleZ", &scale.z, 0.f, 1.f);

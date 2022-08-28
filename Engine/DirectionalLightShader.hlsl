@@ -5,7 +5,8 @@ cbuffer CBuffer : register(b2)
 	float4 g_lightPosition;		// w = Range
 	float4 g_lightDirection;
 	float4 g_lightColor;		// w = Power
-
+	
+	row_major matrix g_CameraViewMatrix;
 	row_major float4x4 g_inverseCameraViewMatrix;
 	row_major float4x4 g_inverseProjectiveMatrix;
 };

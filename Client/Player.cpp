@@ -14,7 +14,8 @@
 
 #include "imgui.h"
 
-#define UseLight 0
+#define UseLight 1
+#define UseDirectionalLight 1
 #define UseDynamicMesh 1
 using namespace DirectX;
 
@@ -71,10 +72,11 @@ void Player::initialize()
 	_pLightComponent = std::make_shared<PointLightComponent>();
 	addComponent(TEXT("PointLight"), _pLightComponent);
 
+#if UseDirectionalLight == 1
 	_pLightComponent2 = std::make_shared<DirectionalLightComponent>();
 	addComponent(TEXT("DirectionalLight"), _pLightComponent2);
 	_pLightComponent2->setRotation(Vec3{ XMConvertToRadians(45.f), 0.f, 0.f });
-
+#endif
 	//_pCollisionShapeComponent = std::make_shared<CollisionShapeComponent>();
 	//addComponent(TEXT("CollisionShape"), _pCollisionShapeComponent);
 
@@ -135,12 +137,21 @@ void Player::tick(const Time deltaTime)
 	//	trans.z -= right.z * speed;
 	//}
 
+
+
 #if UseDynamicMesh == 1
 	if (keyPress(DIK_E))
 	{
 		_pDynamicMeshComponent->playAnimation(0, deltaTime);
 	}
 #endif
+
+
+#if UseLight == 1
+	if (keyPress(DIK_P))
+	{
+		_pLightComponentList[0]->setTranslation(0.1f, 2.f, 4.f);
+	}
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -157,13 +168,16 @@ void Player::tick(const Time deltaTime)
 			_pLightComponentList[i]->setTranslation(trans);
 		}
 	}
+#endif
 
+#if UseDirectionalLight == 1
 	Vec3 rotation2 = _pLightComponent2->getRotation();
 	if (keyPress(DIK_UP))
 	{
 		rotation2.x += DirectX::XMConvertToRadians(10.f) * deltaTime;
 		_pLightComponent2->setRotation(rotation2);
 	}
+#endif
 }
 
 //void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)

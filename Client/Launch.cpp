@@ -47,7 +47,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		RECT rt = { 0, 0, 1600, 900 };
 		AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, FALSE);
 
-		pWindow = pWindowManager->CreateWindow(title, rt.right, rt.bottom, title);
+		pWindow = pWindowManager->CreateWindow(title, rt.right - rt.left, rt.bottom - rt.top, title);
 		g_hWnd = pWindow->getHandle();
 
 		EngineInit(hInstance, pWindow);

@@ -6,6 +6,7 @@ cbuffer PixelShaderConstantBuffer : register (b2)
 	float4 g_lightDirection;
 	float4 g_lightColor;		// w = Power
 
+	row_major matrix g_CameraViewMatrix;
 	row_major matrix g_inverseCameraViewMatrix;
 	row_major matrix g_inverseProjectiveMatrix;
 };
@@ -44,19 +45,19 @@ PixelOut_LightPass main(PixelIn pIn)
 	float attenuation = saturate((range - distance) / (a0 + (a1 * range) + (a2 * pow(range, 2))));
 
 	////-------------------------------------------------------------------------------------------------
+	// Diffuse
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
 	float diffuseFactor = saturate(dot(normalInWorld, direction));
 	pOut.lightDiffuse = float4(color * diffuseFactor * attenuation * intensity, 1.f);
-	//pOut.diffuse = float4(range - distance > 0.f ? 1.f - distance / range : 0.f, 0.f, 0.f, 1.f);
-	//pOut.diffuse = float4(normal.xyz, 1.f);
 
 	//-------------------------------------------------------------------------------------------------
-	deltaPosition	= pixelWorldPosition.xyz - g_lightPosition.xyz;
-	direction		= reflect(normalize(deltaPosition), normal.xyz);
-	float3 toEye	= float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - pixelWorldPosition.xyz;
+	// Specular
+	//deltaPosition	= pixelWorldPosition.xyz - g_lightPosition.xyz;
+	//direction		= reflect(normalize(deltaPosition), normal.xyz);
+	//float3 toEye	= float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - pixelWorldPosition.xyz;
 
-	float3 specularFactor = saturate(dot(direction, normalize(toEye)));
-	pOut.lightSpecular = float4(specular.xyz * attenuation * specularFactor, 1.f);
+	//float3 specularFactor = saturate(dot(direction, normalize(toEye)));
+	//pOut.lightSpecular = float4(specular.xyz * attenuation * specularFactor, 1.f);
 
 	return pOut;
 }
