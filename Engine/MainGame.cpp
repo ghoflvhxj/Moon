@@ -46,7 +46,6 @@ const bool MainGame::Loop()
 	{
 		_pMainCamera->update(_deltaTime);
 	}
-	//ConstantBufferManager::GetInstance()->updatePerFrame();
 
 	Tick(_deltaTime);
 	Update(_deltaTime);

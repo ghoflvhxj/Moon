@@ -25,7 +25,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
 			normalize(pIn.tangent),
 			normalize(pIn.binormal),
 			normalize(pIn.normal)
-			);
+		);
 
 		float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
 		normal.x = (normal.x * 2.f) - 1.f;

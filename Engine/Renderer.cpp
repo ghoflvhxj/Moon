@@ -55,6 +55,7 @@ void Renderer::Release()
 {
 	_renderTargets.clear();
 	_renderPasses.clear();
+	_pMeshComponent.reset();
 }
 
 void Renderer::initialize(void) noexcept

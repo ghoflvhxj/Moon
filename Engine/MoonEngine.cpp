@@ -47,8 +47,15 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 	return true;
 }
 
+const bool EngineLoop()
+{
+	return g_pMainGame->Loop();
+}
+
 const bool EngineRelease()
 {
+	g_pMainGame.reset();
+
 	g_pShaderManager->Release();
 	g_pRenderer->Release();
 	g_pGraphicDevice->Release();
@@ -61,9 +68,14 @@ std::shared_ptr<GraphicDevice> getGraphicDevice()
 	return g_pGraphicDevice;
 }
 
-ENGINE_DLL std::shared_ptr<Renderer> getRenderer()
+std::shared_ptr<Renderer> getRenderer()
 {
 	return g_pRenderer;
+}
+
+std::shared_ptr<MainGame> getMainGame()
+{
+	return g_pMainGame;
 }
 
 const bool setGame(std::shared_ptr<MainGame> pGame)

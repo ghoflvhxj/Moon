@@ -159,6 +159,9 @@ const bool GraphicDevice::Refresh()
 
 void GraphicDevice::Release()
 {
+	_spriteFont.reset();
+	_spriteBatch.reset();
+
 	SafeReleaseArray(_samplerList);
 	SafeReleaseArray(_rasterizerList);
 	SafeReleaseArray(_depthStencilStateList);
@@ -359,8 +362,8 @@ ID3D11SamplerState* GraphicDevice::getSamplerState()
 
 const bool GraphicDevice::initializeDirectXTK()
 {
-	_spriteBatch = std::make_unique<SpriteBatch>(m_pImmediateContext);
-	_spriteFont = std::make_unique<SpriteFont>(m_pDevice, TEXT("TestFont.spritefont"));
+	//_spriteBatch = std::make_unique<SpriteBatch>(m_pImmediateContext);
+	//_spriteFont = std::make_unique<SpriteFont>(m_pDevice, TEXT("TestFont.spritefont"));
 
 	return true;
 }

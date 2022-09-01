@@ -27,7 +27,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	#endif
 
 	std::shared_ptr<Window> pWindow = nullptr;
-	std::shared_ptr<MainGame> pGame = nullptr;
 	try
 	{
 		auto pWindowManager = std::make_shared<WindowManager>(hInstance);
@@ -51,9 +50,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		g_hWnd = pWindow->getHandle();
 
 		EngineInit(hInstance, pWindow);
-
-		pGame = std::make_shared<MyGame>();
-		setGame(pGame);
+		setGame(std::make_shared<MyGame>());
 	}
 	catch (const EngineException &e)
 	{
@@ -71,13 +68,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		}
 		else
 		{
-			if (!pGame->Loop())
+			if (!EngineLoop())
 			{
 				continue;
 			}
 
 			std::wostringstream out;
-			out << pGame->getFrame();
+			out << getMainGame()->getFrame();
 			SetWindowText(pWindow->getHandle(), out.str().c_str());
 		}
 	}

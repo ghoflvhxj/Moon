@@ -81,19 +81,6 @@ void MyGame::Tick(const Time deltaTime)
 void MyGame::render()
 {
 	std::shared_ptr<PointLightComponent> p	= std::static_pointer_cast<PointLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
-	//std::shared_ptr<SceneComponent>	p2		= _pPlayer->getComponent(TEXT("test2"));
-	////Vec3 color = p->getColor();
-	////float range = p->getRange();
-	////Vec3 rot = p->getRotation();
-	////float intensitiy = p->getIntensity();
-
-	//Vec3 color = VEC3ZERO;
-	//float range = 0.f;
-	//float intensity = 0.f;
-
-	//Vec3 pos = p2->getScale();
-	//Vec3 rot = p2->getScale();
-	//Vec3 scale = p2->getScale();
 
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -103,36 +90,12 @@ void MyGame::render()
 	ImGui::Text("Toatal primitive:%d", getRenderer()->totalPrimitiveCount);
 	ImGui::Text("show primitive:%d", getRenderer()->showPrimitiveCount);
 	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
-	////ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-	////ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 	Vec3 pos = p->getTranslation();
 	ImGui::SliderFloat("posX", &pos.x, -10.f, 10.f);
 	ImGui::SliderFloat("posY", &pos.y, -10.f, 10.f);
 	ImGui::SliderFloat("posZ", &pos.z, -10.f, 10.f);
 	p->setTranslation(pos);
-
-	//ImGui::SliderFloat("scaleX", &scale.x, 0.f, 1.f);
-	//ImGui::SliderFloat("scaleY", &scale.y, 0.f, 1.f);
-	//ImGui::SliderFloat("scaleZ", &scale.z, 0.f, 1.f);
-	//ImGui::SliderAngle("rotationX", &rot.x);
-	//ImGui::SliderAngle("rotationY", &rot.y);
-	//ImGui::SliderAngle("rotationZ", &rot.z);
-	//ImGui::ColorEdit3("clear color", (float *)&color);
-	//ImGui::SliderFloat("range", &range, 0.f, 100.f);
-	//ImGui::SliderFloat("intensity", &intensity, 0.f, 10.f);
-	////p->setTranslation(pos);
-	////p->setRotation(rot);
-	////p->setColor(color);
-	////p->setRange(range);
-	////p->setIntensity(intensitiy);
-
-	//p2->setTranslation(pos);
-	//p2->setScale(scale);
-	//p2->setRotation(rot);
-
-	//bool show = true;
-	//ImGui::Checkbox("Dynamicmesh Show", &show);
 
 	ImGui::End();
 

@@ -17,6 +17,7 @@
 #define UseLight 1
 #define UseDirectionalLight 1
 #define UseDynamicMesh 1
+#define UseSkySphere 1
 using namespace DirectX;
 
 Player::Player()
@@ -37,11 +38,7 @@ void Player::initialize()
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
 	_pMeshComponent->setScale(50.f, 1.f, 50.f);
 	_pMeshComponent->setTranslation(1.f, -1.f, 20.f);
-	//_pMeshComponent->setRotation(Vec3(0.f, DirectX::XMConvertToRadians(180.f), 0.f));
 
-	//_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
-	//_pStaticMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
-	//_pStaticMeshComponent->setScale(10.f, 1.f, 10.f);
 	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
 	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 	_pStaticMeshComponent->setTranslation(0.f, 2.f, 0.f);
@@ -52,6 +49,9 @@ void Player::initialize()
 	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 	_pStaticMeshComponent2->setDrawingBoundingBox(true);
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
+
+	_pLightComponent = std::make_shared<PointLightComponent>();
+	addComponent(TEXT("PointLight"), _pLightComponent);
 
 #if UseDynamicMesh == 1
 	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
@@ -64,13 +64,12 @@ void Player::initialize()
 	}
 #endif
 
+#if UseDynamicMesh == 1
 	std::shared_ptr<TextureComponent> _pTextureComponent2 = std::make_shared<TextureComponent>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
 	_pSkyComponent = std::make_shared<SkyComponent>();
 	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent2);
 	addComponent(TEXT("Sky"), _pSkyComponent);
-
-	_pLightComponent = std::make_shared<PointLightComponent>();
-	addComponent(TEXT("PointLight"), _pLightComponent);
+#endif
 
 #if UseDirectionalLight == 1
 	_pLightComponent2 = std::make_shared<DirectionalLightComponent>();

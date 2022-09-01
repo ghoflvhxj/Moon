@@ -7,9 +7,11 @@ class GraphicDevice;
 class Renderer;
 
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow);
+ENGINE_DLL const bool EngineLoop();
 ENGINE_DLL const bool EngineRelease();
 ENGINE_DLL std::shared_ptr<GraphicDevice> getGraphicDevice();
 ENGINE_DLL std::shared_ptr<Renderer> getRenderer();
+ENGINE_DLL std::shared_ptr<MainGame> getMainGame();
 
 template <class T>
 const bool createMainGame(std::shared_ptr<T> &pGame)

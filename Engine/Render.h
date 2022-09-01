@@ -26,6 +26,9 @@ enum class ERenderTarget
 	LightDiffuse,
 	LightSpecular,
 
+	ShadowDepth,
+	Shadow,
+
 	Count
 };
 
