@@ -3,10 +3,8 @@
 
 #include "Render.h"
 
-class LightComponent;
+class SceneComponent;
 class StaticMeshComponent;
-
-class StaticMesh;
 
 class ENGINE_DLL Renderer 
 {
@@ -27,11 +25,18 @@ private:
 private:
 	std::shared_ptr<StaticMeshComponent> _pMeshComponent;
 
-	// 렌더 오브젝트
+	// 렌더할 Primitive 추가
 public:
 	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> &pComponent);
 private:
 	std::vector<std::shared_ptr<PrimitiveComponent>> _primitiveComponents;
+
+	// 컴포넌트를 전달하지 않은 이유는 자료형만 전달해 컴포넌트에 의존성을 줄이려는 의도...
+public:
+	void addDirectionalLightInfoForShadow(const Vec3 &translation, const Vec3 &rotation);
+private:
+	std::vector<Vec3> _directionalLightTranslations;
+	std::vector<Vec3> _directionalLightForwards;
 
 	// 렌더 타겟
 public:
@@ -65,10 +70,6 @@ public:
 	void toggleRenderTarget();
 private:
 	bool _drawRenderTarget;
-
-private:
-	void renderMesh();
-	void test(PrimitiveData &renderData);
 
 public:
 	const bool IsDirtyConstant() const;

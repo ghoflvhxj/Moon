@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #include "DirectionalLightComponent.h"
+#include "StaticMeshComponent.h"
 
 #include "Render.h"
+#include "Renderer.h"
 
 #include "Material.h"
 
-#include "StaticMeshComponent.h"
+#include "MainGameSetting.h"
 
 using namespace DirectX;
 
@@ -24,8 +26,13 @@ void DirectionalLightComponent::Update(const Time deltaTime)
 {
 	PrimitiveComponent::Update(deltaTime);
 
-	XMVECTOR scaleVector = XMLoadFloat3(&getScale());
-	XMVECTOR translationVector = XMLoadFloat3(&getTranslation());
+	_forward = getLook();
+
+	// 빛이 아닌 평면 메시를 그리기 위해서 사용되니 수정해주는 부분...!
+	XMFLOAT3 scale = { CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f };
+	XMFLOAT3 trans = { 0.f, 0.f, 1.f };
+	XMVECTOR scaleVector = XMLoadFloat3(&scale);
+	XMVECTOR translationVector = XMLoadFloat3(&trans);
 	XMMATRIX IdentityMatrix = XMLoadFloat4x4(&IDENTITYMATRIX);
 
 	XMMATRIX matrices[(int)Transform::End] = {
@@ -42,8 +49,8 @@ const bool DirectionalLightComponent::getPrimitiveData(std::vector<PrimitiveData
 	LightComponent::getPrimitiveData(primitiveDataList);
 
 	primitiveDataList[0]._pMaterial = getMesh()->getMaterials()[0];
-	primitiveDataList[0]._pVertexShader = getMesh()->getMaterial(0)->getVertexShader();
-	primitiveDataList[0]._pPixelShader = getMesh()->getMaterial(0)->getPixelShader();
+
+	g_pRenderer->addDirectionalLightInfoForShadow(getTranslation(), _forward);
 
 	return true;
 }

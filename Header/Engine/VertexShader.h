@@ -8,6 +8,7 @@ class VertexShader : public Shader
 {
 public:
 	explicit VertexShader(const std::wstring &filePathName);
+	explicit VertexShader();
 	virtual ~VertexShader();
 
 public:
@@ -17,8 +18,6 @@ public:
 	ID3D11VertexShader* getRaw();
 private:
 	ID3D11VertexShader *_pVertexShader;
-
-	std::wstring fileName;
 };
 
 #endif

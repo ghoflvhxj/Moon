@@ -15,6 +15,12 @@ PixelShader::PixelShader(const std::wstring &filePathName)
 	FAILED_CHECK_THROW(pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &_pPixelShader));
 }
 
+PixelShader::PixelShader()
+	: Shader(TEXT(""))
+	, _pPixelShader{ nullptr }
+{
+}
+
 PixelShader::~PixelShader()
 {
 	SafeRelease(_pPixelShader);

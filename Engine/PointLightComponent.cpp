@@ -45,8 +45,6 @@ const bool PointLightComponent::getPrimitiveData(std::vector<PrimitiveData> &pri
 	LightComponent::getPrimitiveData(primitiveDataList);
 
 	primitiveDataList[0]._pMaterial = getMesh()->getMaterials()[0];
-	primitiveDataList[0]._pVertexShader = getMesh()->getMaterial(0)->getVertexShader();
-	primitiveDataList[0]._pPixelShader = getMesh()->getMaterial(0)->getPixelShader();
 
 	return true;
 }

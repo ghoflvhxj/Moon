@@ -63,7 +63,6 @@ void Renderer::initialize(void) noexcept
 	std::shared_ptr<TextureComponent> _pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
 
 	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Plane.fbx");
-	_pMeshComponent->getStaticMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	_pMeshComponent->setScale(Vec3{ CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f });
 	_pMeshComponent->SceneComponent::Update(0.f);
@@ -80,6 +79,15 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::Depth, 
 			ERenderTarget::Normal, 
 			ERenderTarget::Specular);
+	}
+
+	_renderPasses.emplace_back(CreateRenderPass<ShadowDepthPass>());
+	{
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->initializeRenderTargets(_renderTargets,
+			ERenderTarget::ShadowDepth
+		);
+
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"));
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<LightPass>());
@@ -100,9 +108,6 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::Diffuse,
 			ERenderTarget::LightDiffuse);
 
-		//_renderPasses[enumToIndex(ERenderPass::SkyPass)]->initializeResourceViews(_renderTargets,
-		//	ERenderTarget::Diffuse);
-
 		_renderPasses[enumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
 	}
 
@@ -120,6 +125,12 @@ void Renderer::initialize(void) noexcept
 void Renderer::addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> &pComponent)
 {
 	_primitiveComponents.push_back(pComponent);
+}
+
+void Renderer::addDirectionalLightInfoForShadow(const Vec3 &translation, const Vec3 &rotation)
+{
+	_directionalLightTranslations.emplace_back(translation);
+	_directionalLightForwards.emplace_back(rotation);
 }
 
 void Renderer::addRenderTargetForDebug(const std::wstring name)
@@ -283,8 +294,6 @@ void Renderer::FrustumCulling()
 
 void Renderer::updateConstantBuffer()
 {
-	bool bUpdateConstantLayer = !g_pRenderer->IsDirtyConstant();
-
 	for (uint32 index = 0; index < CastValue<uint32>(ShaderType::Count); ++index)
 	{
 		auto& shaders = g_pShaderManager->getShaders(CastValue<ShaderType>(index));
@@ -295,7 +304,7 @@ void Renderer::updateConstantBuffer()
 			auto &VS_CBuffers = shader->getVariableInfos();
 
 			// PerConstant 레이어 
-			if (bUpdateConstantLayer)
+			if (g_pRenderer->IsDirtyConstant())
 			{
 				int resoultionWidth = g_pSetting->getResolutionWidth();
 				int resoultionHeight = g_pSetting->getResolutionHeight();
@@ -313,11 +322,29 @@ void Renderer::updateConstantBuffer()
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 2, &IDENTITYMATRIX);
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 3, &g_pMainGame->getMainCameraOrthographicProjectionMatrix());
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 4, &g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
+
+			// 이걸 넣으면 하늘이 안보인다...
+			uint32 directionalLightCount = CastValue<uint32>(_directionalLightTranslations.size());
+			if (directionalLightCount > 0)
+			{
+				std::vector<XMMATRIX> directionLightMatrices;
+				directionLightMatrices.reserve(directionalLightCount);
+				for (uint32 index = 0; index < directionalLightCount; ++index)
+				{
+					XMVECTOR to = XMLoadFloat3(&_directionalLightTranslations[index]) + XMLoadFloat3(&_directionalLightForwards[index]);
+					XMMATRIX viewMatrix = XMMatrixLookAtLH(XMLoadFloat3(&_directionalLightTranslations[index]), to, XMLoadFloat3(&VEC3UP));
+					directionLightMatrices.emplace_back(viewMatrix);
+				}
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 5, &directionLightMatrices[0]);
+			}
+
 			shader->UpdateConstantBuffer(ConstantBuffersLayer::PerTick, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::PerTick)]);
 		}
 	}
 	
 	_bDirtyConstant = false;
+	_directionalLightForwards.clear();
+	_directionalLightTranslations.clear();
 	// Costant레이어 CBuffer 업데이트
 }
 
@@ -334,87 +361,7 @@ void Renderer::toggleRenderTarget()
 	_drawRenderTarget = (true == _drawRenderTarget) ? false : true;
 }
 
-void Renderer::renderMesh()
-{
-
-
-	// 메시 렌더링 흐름
-	// 1. 매터리얼에 설정된 쉐이더를 사용하는 것
-	// 2. 렌더 패스에 설정된 쉐이더를 사용하는 것
-
-	// 메시 렌더링 
-	// 1. 스태틱 메시
-	// 2. 다이나믹 메시
-
-
-}
-
-void Renderer::test(PrimitiveData &renderData)
-{
-	////---------------------------------------------------------------------------------------------------------------------------------
-	//// Input Assembler
-	//UINT stride = sizeof(Vertex);
-	//UINT offset = 0;
-
-	//if (nullptr != renderData._pVertexBuffer)
-	//{
-	//	renderData._pVertexBuffer->setBufferToDevice(stride, offset);
-	//}
-
-	//if (nullptr != renderData._pIndexBuffer)
-	//{
-	//	renderData._pIndexBuffer->setBufferToDevice(offset);
-	//}
-
-	//g_pGraphicDevice->getContext()->IASetPrimitiveTopology(renderData._pMaterial->getTopology());
-
-	////---------------------------------------------------------------------------------------------------------------------------------
-	//// Vertex Shader
-	//auto &variableInfos = renderData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, CastValue<uint32>(ConstantBuffersLayer::PerObject));
-	//renderData._pVertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfos);
-	//renderData._pVertexShader->SetToDevice();
-
-	////---------------------------------------------------------------------------------------------------------------------------------
-	//// Pixel Shader
-	//auto &variableInfos = renderData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, CastValue<uint32>(ConstantBuffersLayer::PerObject));
-	//renderData._pVertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfos);
-	//renderData._pVertexShader->SetToDevice();
-
-	////---------------------------------------------------------------------------------------------------------------------------------
-	//// RasterizerState
-
-	////--------------------------------------------------------------------------------------------------------------------------------
-	//// DepthStencilState
-
-	////--------------------------------------------------------------------------------------------------------------------------------
-	//// OutputMerge
-
-	////--------------------------------------------------------------------------------------------------------------------------------
-	//g_pGraphicDevice->getContext()->DrawIndexed(renderData._pIndexBuffer->getIndexCount(), 0, 0);
-}
-
 const bool Renderer::IsDirtyConstant() const
 {
 	return _bDirtyConstant;
 }
-
-//g_pShaderManager->getVertexShader();
-//g_pGraphicDevice->getContext()->VSSetShader(_vertexShader, nullptr, 0);
-//{
-//	VertexShaderConstantBuffer data = {
-//		pComponent->getWorldMatrix(),
-//		g_pMainGame->getMainCameraViewMatrix(),
-//		g_pMainGame->getMainCameraProjectioinMatrix()
-//	};
-
-//	if (PrimitiveComponent::RenderMode::Orthogonal == pComponent->getRenderMdoe())
-//	{
-//		data._cameraViewMatrix = IDENTITYMATRIX;
-//		data._projectionMatrix = g_pMainGame->getMainCameraOrthographicProjectionMatrix();
-//	}
-
-//	auto pConstantBuffer = _pVertexConstantBuffer->getBuffer();
-//	_pVertexConstantBuffer->update(&data, sizeof(VertexShaderConstantBuffer));
-
-//	g_pGraphicDevice->getContext()->VSSetConstantBuffers(0u, 1u, &pConstantBuffer);
-//}

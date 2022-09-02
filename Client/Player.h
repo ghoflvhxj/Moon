@@ -11,7 +11,6 @@ class TextureComponent;
 class PointLightComponent;
 class DirectionalLightComponent;
 class SkyComponent;
-class CollisionShapeComponent;
 
 class Player : public Actor
 {
@@ -37,8 +36,6 @@ private:
 	std::shared_ptr<TextureComponent>		_pTextureComponent;
 	std::shared_ptr<PointLightComponent>	_pLightComponent;
 	std::shared_ptr<DirectionalLightComponent>	_pLightComponent2;
-	std::shared_ptr<CollisionShapeComponent>_pCollisionShapeComponent;
-	std::shared_ptr<CollisionShapeComponent>_pBoneShapeComponent;
 
 private:
 	std::vector<std::shared_ptr<PointLightComponent>>	_pLightComponentList;

@@ -75,6 +75,11 @@ const bool ShaderManager::addVertexShader(const wchar_t *fileName, std::shared_p
 
 const bool ShaderManager::getPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader)
 {
+	if (fileName == nullptr)
+	{
+		return false;
+	}
+
 	std::shared_ptr<Shader> pShader = nullptr;
 	if (true == getShader(ShaderType::Pixel, fileName, pShader))
 	{

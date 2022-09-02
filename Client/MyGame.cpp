@@ -80,7 +80,8 @@ void MyGame::Tick(const Time deltaTime)
 
 void MyGame::render()
 {
-	std::shared_ptr<PointLightComponent> p	= std::static_pointer_cast<PointLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
+	//std::shared_ptr<PointLightComponent> p	= std::static_pointer_cast<PointLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
+	std::shared_ptr<LightComponent> p = std::static_pointer_cast<LightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
 
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();

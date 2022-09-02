@@ -78,8 +78,8 @@ private:
 protected:
 	std::wstring	_vertexShaderFileName;
 	std::wstring	_pixelShaderFileName;
-	std::shared_ptr<VertexShader>	_vertexShader;
-	std::shared_ptr<PixelShader>   _pixelShader;
+	std::shared_ptr<Shader>	_vertexShader;
+	std::shared_ptr<Shader>	_pixelShader;
 	bool _bShaderSet;
 	bool _bRenderTargetSet;
 	uint32 _renderTargetCount;

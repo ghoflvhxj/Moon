@@ -41,6 +41,8 @@ cbuffer VS_CBuffer_PerTick : register(b1)
 	row_major matrix identityMatrix;
 	row_major matrix orthographicProjectionMatrix;
 	row_major matrix inverseOrthographicProjectionMatrix;
+	
+    row_major matrix viewMatrixForShadow;
 };
 
 cbuffer VS_CBuffer_PerObject : register(b2)

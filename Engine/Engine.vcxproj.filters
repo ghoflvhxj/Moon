@@ -293,9 +293,6 @@
     <ClInclude Include="Material.h">
       <Filter>Module\Material</Filter>
     </ClInclude>
-    <ClInclude Include="CollisionShapeComponent.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="DirectionalLightComponent.h">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent\DirectionalLightComponent</Filter>
     </ClInclude>
@@ -448,7 +445,6 @@
     <ClCompile Include="Material.cpp">
       <Filter>Module\Material</Filter>
     </ClCompile>
-    <ClCompile Include="CollisionShapeComponent.cpp" />
     <ClCompile Include="DirectionalLightComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent\LightComponent\DirectionalLightComponent</Filter>
     </ClCompile>
@@ -525,6 +521,12 @@
     </FxCompile>
     <FxCompile Include="Bone.hlsl">
       <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowDepth.hlsl">
+      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowDepthPixel.hlsl">
+      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

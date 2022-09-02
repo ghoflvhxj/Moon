@@ -8,12 +8,19 @@
 VertexShader::VertexShader(const std::wstring &filePathName)
 	: Shader(filePathName)
 	, _pVertexShader{ nullptr }
-	, fileName(filePathName)
 {
 	ID3D11Device *pDevice	= g_pGraphicDevice->getDevice();
 	ID3D10Blob *pBlob		= getBlob();
 
 	FAILED_CHECK_THROW(pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &_pVertexShader));
+}
+
+VertexShader::VertexShader()
+	: Shader(TEXT(""))
+	, _pVertexShader{ nullptr }
+{
+	ID3D11Device *pDevice = g_pGraphicDevice->getDevice();
+	ID3D10Blob *pBlob = getBlob();
 }
 
 VertexShader::~VertexShader()

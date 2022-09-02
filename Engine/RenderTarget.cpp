@@ -3,7 +3,6 @@
 
 #include "GraphicDevice.h"
 #include "Material.h"
-#include "SceneRenderer.h"
 
 #include "MeshComponent.h"
 #include "TextureComponent.h"

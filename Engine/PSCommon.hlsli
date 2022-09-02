@@ -20,6 +20,11 @@ struct PixelOut_CombinePass
 	float4	color	: SV_TARGET0;
 };
 
+struct PixelOut_ShadowDepth
+{
+    float shadowDepth		: SV_TARGET6;
+};
+
 struct PixelOut_LightPass
 {
 	float4 lightDiffuse		: SV_TARGET4;
@@ -41,6 +46,7 @@ Texture2D g_Specular	: register(t3);
 Texture2D g_LightDiffuse	: register(t4);
 Texture2D g_LightSpecular	: register(t5);
 
+Texture2D g_ShadowDepth		: register(t6);
 
 
 SamplerState g_Sampler;

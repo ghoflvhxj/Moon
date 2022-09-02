@@ -29,6 +29,19 @@ private:
 	void render(PrimitiveData &primitiveData);
 };
 
+class ShadowDepthPass : public RenderPass
+{
+public:
+	explicit ShadowDepthPass() = default;
+	virtual ~ShadowDepthPass() = default;
+
+public:
+	virtual const bool processPrimitiveData(PrimitiveData & primitiveData) override;
+
+private:
+	void render(PrimitiveData & primitiveData);
+};
+
 class LightPass : public RenderPass
 {
 public:

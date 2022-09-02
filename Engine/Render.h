@@ -27,7 +27,7 @@ enum class ERenderTarget
 	LightSpecular,
 
 	ShadowDepth,
-	Shadow,
+	//Shadow,
 
 	Count
 };
@@ -35,6 +35,7 @@ enum class ERenderTarget
 enum class ERenderPass
 {
 	Geometry,
+	ShadowDepth,
 	Light,
 	SkyPass,
 	Combine,
@@ -75,10 +76,6 @@ struct PrimitiveData
 	std::shared_ptr<Material>					_pMaterial;
 	EPrimitiveType _primitiveType;
 
-	// 쉐이더를 강제로 할당하고 싶을 때
-	std::shared_ptr<Shader>						_pVertexShader = nullptr;
-	std::shared_ptr<Shader>						_pPixelShader = nullptr;
-	
 	// 다이나믹 메쉬용
 	Mat4 *_matrices = nullptr;
 	uint32 _jointCount;

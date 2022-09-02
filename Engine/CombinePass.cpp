@@ -44,14 +44,14 @@ void CombinePass::render(PrimitiveData &primitiveData)
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
 	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
-	primitiveData._pMaterial->getVertexShader()->SetToDevice();
+	_vertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	_vertexShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
 	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
-	primitiveData._pMaterial->getPixelShader()->SetToDevice();
+	_pixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	_pixelShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
@@ -134,6 +134,68 @@ void GeometryPass::render(PrimitiveData &primitiveData)
 	// RasterizerState
 	//g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(primitiveData._pMaterial->getFillMode(), primitiveData._pMaterial->getCullMode()));
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	// DepthStencilState
+	g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::DepthWriteMode::Enable), 1);
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	// OutputMerge
+	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
+
+	//--------------------------------------------------------------------------------------------------------------------------------
+	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
+	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
+	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
+
+	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
+}
+
+const bool ShadowDepthPass::processPrimitiveData(PrimitiveData & primitiveData)
+{
+	// 렌더 큐 만들기
+	if (primitiveData._primitiveType != EPrimitiveType::Mesh)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void ShadowDepthPass::render(PrimitiveData & primitiveData)
+{
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Input Assembler
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	if (nullptr != primitiveData._pVertexBuffer)
+	{
+		primitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
+	}
+
+	//if (nullptr != primitiveData._pIndexBuffer)
+	//{
+	//	primitiveData._pIndexBuffer->setBufferToDevice(offset);
+	//}
+
+	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterial->getTopology());
+
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Vertex Shader
+	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
+	_vertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	_vertexShader->SetToDevice();
+
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Pixel Shader
+	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
+	_pixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	_pixelShader->SetToDevice();
+
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// RasterizerState
+	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// DepthStencilState
@@ -275,14 +337,14 @@ void SkyPass::render(PrimitiveData & primitiveData)
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
 	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	primitiveData._pVertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
-	primitiveData._pVertexShader->SetToDevice();
+	primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	primitiveData._pMaterial->getVertexShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
 	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	primitiveData._pPixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
-	primitiveData._pPixelShader->SetToDevice();
+	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	primitiveData._pMaterial->getPixelShader()->SetToDevice();
 
 	primitiveData._pMaterial->SetTexturesToDevice();
 

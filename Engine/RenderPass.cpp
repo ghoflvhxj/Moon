@@ -5,6 +5,8 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Material.h"
+#include "VertexShader.h"
+#include "PixelShader.h"
 
 // Render
 #include "RenderTarget.h"
@@ -22,8 +24,8 @@ RenderPass::RenderPass()
 	, _resourceViewList(RT_COUNT, nullptr)
 	, _pOldRenderTargetView{ nullptr }
 	, _pOldDepthStencilView{ nullptr }
-	, _vertexShader{ nullptr }
-	, _pixelShader{ nullptr }
+	, _vertexShader{ std::make_shared<VertexShader>() }
+	, _pixelShader{ std::make_shared<PixelShader>() }
 	, _bShaderSet{ false }
 	, _bRenderTargetSet{ false }
 	, _renderTargetCount{ RT_COUNT }
@@ -100,6 +102,7 @@ void RenderPass::doPass(RenderQueue &renderQueue)
 {
 	for (auto& primitive : renderQueue)
 	{
+		// 컴포넌트가 가지고 있는 PrimitiveData 목록을 가져옴
 		std::vector<PrimitiveData> primitiveDataList = {};
 		primitive->getPrimitiveData(primitiveDataList);
 
@@ -116,32 +119,23 @@ void RenderPass::doPass(RenderQueue &renderQueue)
 void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
 {
 	releaseShader();
-
-	if (0 == wcscmp(vertexShaderFileName, TEXT("")))
+	std::shared_ptr<VertexShader> vertexShader = nullptr;
+	if (g_pShaderManager->getVertexShader(vertexShaderFileName, vertexShader))
 	{
-		_vertexShader = nullptr;
+		_vertexShader = vertexShader;
+		_vertexShaderFileName = vertexShaderFileName;;
+	}
+	
+	std::shared_ptr<PixelShader> pixelShader = nullptr;
+	if (g_pShaderManager->getPixelShader(pixelShaderFileName, pixelShader))
+	{
+		_pixelShader = pixelShader;
+		_pixelShaderFileName = pixelShaderFileName;
 	}
 	else
 	{
-		if (false == g_pShaderManager->getVertexShader(vertexShaderFileName, _vertexShader))
-		{
-			return;
-		}
+		_pixelShader = std::make_shared<PixelShader>();
 	}
-	_vertexShaderFileName = vertexShaderFileName;
-
-	if (0 == wcscmp(pixelShaderFileName, TEXT("")))
-	{
-		_pixelShader = nullptr;
-	}
-	else
-	{
-		if (false == g_pShaderManager->getPixelShader(pixelShaderFileName, _pixelShader))
-		{
-			return;
-		}
-	}
-	_pixelShaderFileName = pixelShaderFileName;
 
 	_bShaderSet = true;
 }

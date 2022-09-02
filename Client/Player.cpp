@@ -14,9 +14,9 @@
 
 #include "imgui.h"
 
-#define UseLight 1
+#define UseLight 0
 #define UseDirectionalLight 1
-#define UseDynamicMesh 1
+#define UseDynamicMesh 0
 #define UseSkySphere 1
 using namespace DirectX;
 

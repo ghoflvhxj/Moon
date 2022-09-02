@@ -7,6 +7,7 @@ class PixelShader : public Shader
 {
 public:
 	explicit PixelShader(const std::wstring &filePathName);
+	explicit PixelShader();
 	virtual ~PixelShader();
 
 public:
