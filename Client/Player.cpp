@@ -64,7 +64,7 @@ void Player::initialize()
 	}
 #endif
 
-#if UseDynamicMesh == 1
+#if UseSkySphere == 1
 	std::shared_ptr<TextureComponent> _pTextureComponent2 = std::make_shared<TextureComponent>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
 	_pSkyComponent = std::make_shared<SkyComponent>();
 	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent2);

@@ -81,15 +81,6 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::Specular);
 	}
 
-	_renderPasses.emplace_back(CreateRenderPass<ShadowDepthPass>());
-	{
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->initializeRenderTargets(_renderTargets,
-			ERenderTarget::ShadowDepth
-		);
-
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"));
-	}
-
 	_renderPasses.emplace_back(CreateRenderPass<LightPass>());
 	{
 		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeRenderTargets(_renderTargets,
@@ -109,6 +100,15 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::LightDiffuse);
 
 		_renderPasses[enumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
+	}
+
+	_renderPasses.emplace_back(CreateRenderPass<ShadowDepthPass>());
+	{
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->initializeRenderTargets(_renderTargets,
+			ERenderTarget::ShadowDepth
+		);
+
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"));
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<CombinePass>());
@@ -331,12 +331,16 @@ void Renderer::updateConstantBuffer()
 				directionLightMatrices.reserve(directionalLightCount);
 				for (uint32 index = 0; index < directionalLightCount; ++index)
 				{
-					XMVECTOR to = XMLoadFloat3(&_directionalLightTranslations[index]) + XMLoadFloat3(&_directionalLightForwards[index]);
-					XMMATRIX viewMatrix = XMMatrixLookAtLH(XMLoadFloat3(&_directionalLightTranslations[index]), to, XMLoadFloat3(&VEC3UP));
+					XMMATRIX viewMatrix = XMMatrixLookAtLH(-1.f * XMLoadFloat3(&_directionalLightForwards[index]), XMLoadFloat3(&VEC3ZERO), XMLoadFloat3(&VEC3UP));
 					directionLightMatrices.emplace_back(viewMatrix);
 				}
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 5, &directionLightMatrices[0]);
+				XMFLOAT4X4 temp1;
+				XMStoreFloat4x4(&temp1, directionLightMatrices[0]); 
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 5, &temp1);
 			}
+			XMFLOAT4X4 temp2;
+			XMStoreFloat4x4(&temp2, XMMatrixOrthographicLH(g_pSetting->getResolutionWidth(), g_pSetting->getResolutionHeight(), 0.1f, 100.f));
+			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 6, &temp2);
 
 			shader->UpdateConstantBuffer(ConstantBuffersLayer::PerTick, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::PerTick)]);
 		}

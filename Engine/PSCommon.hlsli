@@ -1,3 +1,5 @@
+#include "Common.hlsli"
+
 struct PixelIn
 {
 	float4 pos		: SV_POSITION;
@@ -22,20 +24,13 @@ struct PixelOut_CombinePass
 
 struct PixelOut_ShadowDepth
 {
-    float shadowDepth		: SV_TARGET6;
+    float4 shadowDepth		: SV_TARGET6;
 };
 
 struct PixelOut_LightPass
 {
 	float4 lightDiffuse		: SV_TARGET4;
 	float4 lightSpecular	: SV_TARGET5;
-};
-
-cbuffer PS_CBuffer_Constancy : register(b0)
-{
-	float resolutionWidth;
-	float resolutionHeight;
-	bool bLight;
 };
 
 Texture2D g_Diffuse		: register(t0);

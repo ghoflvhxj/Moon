@@ -1,3 +1,5 @@
+#include "Common.hlsli"
+
 struct VertexIn
 {
 	float3 pos				: POSITION0;
@@ -24,25 +26,6 @@ struct VertexOut_Simple
 {
 	float4 color : COLOR;
 	float4 pos : POSITION0;
-};
-
-cbuffer VS_CBuffer_ABVD : register(b0)
-{
-	float resolutionWidth;
-	float resolutionHeight;
-};
-
-cbuffer VS_CBuffer_PerTick : register(b1)
-{
-	row_major matrix viewMatrix;
-	row_major matrix projectionMatrix;
-
-	// 직교 투영용
-	row_major matrix identityMatrix;
-	row_major matrix orthographicProjectionMatrix;
-	row_major matrix inverseOrthographicProjectionMatrix;
-	
-    row_major matrix viewMatrixForShadow;
 };
 
 cbuffer VS_CBuffer_PerObject : register(b2)

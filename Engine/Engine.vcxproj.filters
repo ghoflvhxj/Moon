@@ -536,5 +536,8 @@
     <None Include="PSCommon.hlsli">
       <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </None>
+    <None Include="Common.hlsli">
+      <Filter>Module\Graphics\Shader\Common</Filter>
+    </None>
   </ItemGroup>
 </Project>

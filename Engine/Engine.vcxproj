@@ -427,6 +427,7 @@ call CopyRelease.bat</Command>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Common.hlsli" />
     <None Include="PSCommon.hlsli" />
     <None Include="VSCommon.hlsli" />
   </ItemGroup>

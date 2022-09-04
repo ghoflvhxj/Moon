@@ -206,7 +206,7 @@ void ShadowDepthPass::render(PrimitiveData & primitiveData)
 	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
-	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
+	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer-CO>getIndexCount())
 	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
 	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
 
@@ -350,7 +350,7 @@ void SkyPass::render(PrimitiveData & primitiveData)
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
-	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::None));
+	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Frontface));
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// DepthStencilState
