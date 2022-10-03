@@ -10,7 +10,12 @@ Component::~Component()
 {
 }
 
-std::weak_ptr<MainGame> Component::getOwningGame()
+void Component::setOwningActor(std::shared_ptr<Actor> &actor)
 {
-    return _pOwningGame;
+	_pOwningActor = actor;
+}
+
+std::shared_ptr<Actor> Component::getOwningActor() const
+{
+	return _pOwningActor.lock();
 }

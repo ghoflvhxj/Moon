@@ -329,6 +329,9 @@
     <ClInclude Include="SkyComponent.h">
       <Filter>Module\Framework\Component\SceneComponent</Filter>
     </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Timer.cpp">
@@ -478,6 +481,7 @@
     <ClCompile Include="SkyComponent.cpp">
       <Filter>Module\Framework\Component\SceneComponent</Filter>
     </ClCompile>
+    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="TexVertexShader.hlsl">

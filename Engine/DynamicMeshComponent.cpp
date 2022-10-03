@@ -40,8 +40,6 @@ protected:
 	std::shared_ptr<Material> _pMaterial;
 };
 
-
-
 Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 {
 	for (uint32 i = 0; i < 199; ++i)
@@ -68,7 +66,6 @@ Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
 	_pMaterial = std::make_shared<Material>();
 	_pMaterial->setShader(TEXT("Bone.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
-	//_pMaterial->setFillMode(Graphic::FillMode::WireFrame);
 	_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 }
 

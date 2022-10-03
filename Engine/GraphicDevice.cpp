@@ -9,6 +9,8 @@
 #include "VertexShader.h"
 #include "PixelShader.h"
 
+#include "MainGameSetting.h"
+
 #include <dxgidebug.h>
 #include <dxgi1_3.h>
 
@@ -68,8 +70,8 @@ const bool GraphicDevice::initializeGrahpicDevice()
 	// ÀåÄ¡, ½º¿ÒÃ¼ÀÎ »ý¼º
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
 	swapDesc.BufferCount = 1;
-	swapDesc.BufferDesc.Width = 1600;
-	swapDesc.BufferDesc.Height = 900;
+	swapDesc.BufferDesc.Width = g_pSetting->getResolutionWidth();
+	swapDesc.BufferDesc.Height = g_pSetting->getResolutionHeight();
 	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
@@ -102,8 +104,8 @@ const bool GraphicDevice::initializeGrahpicDevice()
 
 	// ±íÀÌ ½ºÅÙ½Ç ºä »ý¼º
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
-	depthStencilDesc.Width = 1600;
-	depthStencilDesc.Height = 900;
+	depthStencilDesc.Width = g_pSetting->getResolutionWidth();
+	depthStencilDesc.Height = g_pSetting->getResolutionHeight();
 	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
@@ -123,8 +125,8 @@ const bool GraphicDevice::initializeGrahpicDevice()
 	// ºäÆ÷Æ®
 	_viewport.TopLeftX = 0;
 	_viewport.TopLeftY = 0;
-	_viewport.Width = 1600;
-	_viewport.Height = 900;
+	_viewport.Width = g_pSetting->getResolutionWidth();
+	_viewport.Height = g_pSetting->getResolutionHeight();
 	_viewport.MaxDepth = 1.f;
 	_viewport.MinDepth = 0.f;
 

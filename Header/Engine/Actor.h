@@ -6,7 +6,7 @@ class SceneComponent;
 class PrimitiveComponent;
 class MainGame;
 
-class ENGINE_DLL Actor
+class ENGINE_DLL Actor : public std::enable_shared_from_this<Actor>
 {
 public:
 	explicit Actor();

@@ -2,8 +2,8 @@
 #include "MainGameSetting.h"
 
 MainGameSetting::MainGameSetting()
-	: _resolutionWidth{ 1600 }
-	, _resolutionHeight{ 900 }
+	: _resolutionWidth{ 1920 }
+	, _resolutionHeight{ 1080 }
 	, _fov{ 45.f }
 	, _bLighting{ TRUE }
 {

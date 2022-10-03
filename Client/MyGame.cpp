@@ -80,7 +80,7 @@ void MyGame::Tick(const Time deltaTime)
 
 void MyGame::render()
 {
-	//std::shared_ptr<PointLightComponent> p	= std::static_pointer_cast<PointLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
+	//std::shared_ptr<LightComponent> p = std::static_pointer_cast<LightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
 	std::shared_ptr<LightComponent> p = std::static_pointer_cast<LightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
 
 	ImGui_ImplDX11_NewFrame();
@@ -92,11 +92,20 @@ void MyGame::render()
 	ImGui::Text("show primitive:%d", getRenderer()->showPrimitiveCount);
 	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
 
-	Vec3 pos = p->getTranslation();
-	ImGui::SliderFloat("posX", &pos.x, -10.f, 10.f);
-	ImGui::SliderFloat("posY", &pos.y, -10.f, 10.f);
-	ImGui::SliderFloat("posZ", &pos.z, -10.f, 10.f);
-	p->setTranslation(pos);
+	//Vec3 pos = p->getTranslation();
+	//ImGui::SliderFloat("posX", &pos.x, -10.f, 10.f);
+	//ImGui::SliderFloat("posY", &pos.y, -10.f, 10.f);
+	//ImGui::SliderFloat("posZ", &pos.z, -10.f, 10.f);
+	//p->setTranslation(pos);
+
+	Vec3 rot = p->getRotation();
+	ImGui::SliderAngle("rotX", &rot.x);
+	ImGui::SliderAngle("rotY", &rot.y);
+	ImGui::SliderAngle("rotZ", &rot.z);
+	//rot.x = XMConvertToDegrees(rot.x);
+	//rot.y = XMConvertToDegrees(rot.y);
+	//rot.z = XMConvertToDegrees(rot.z);
+	p->setRotation(rot);
 
 	ImGui::End();
 

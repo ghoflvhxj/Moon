@@ -11,6 +11,7 @@
 #include <functional>
 #include <exception>
 #include <random>
+#include <algorithm>
 class __declspec(dllexport) std::exception;
 
 #include <vector>

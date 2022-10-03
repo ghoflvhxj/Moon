@@ -50,7 +50,7 @@ const bool DirectionalLightComponent::getPrimitiveData(std::vector<PrimitiveData
 
 	primitiveDataList[0]._pMaterial = getMesh()->getMaterials()[0];
 
-	g_pRenderer->addDirectionalLightInfoForShadow(getTranslation(), _forward);
+	g_pRenderer->addDirectionalLightInfoForShadow(_forward);
 
 	return true;
 }

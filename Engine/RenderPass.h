@@ -88,6 +88,11 @@ public:
 	void SetClearTargets(const bool bClear);
 private:
 	bool _bClearTargets;
+
+public:
+	void SetUseOwningDepthStencilBuffer(const bool bUse);
+private:
+	bool _bUseOwningDepthStencilBuffer;
 };
 
 #endif

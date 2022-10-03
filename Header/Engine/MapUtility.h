@@ -29,6 +29,18 @@ namespace MapUtility
 		return true;
 	}
 
+	template <class Map, class Key, class Value>
+	const bool FindInsert(Map &refMap, Key &refKey, Value &refValue, std::function<void()> func)
+	{
+		if (true == Find(refMap, refKey))
+			return false;
+
+		refMap.emplace(refKey, refValue);
+		func();
+
+		return true;
+	}
+
 	template<class Map, class Key = Map::key_type, class Value = Map::mapped_type>
 	const bool FindGet(Map &refMap, Key &refKey, Value &outRefValue)
 	{

@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __MAINGAME_SETTING_H__
 
-class MainGameSetting
+class ENGINE_DLL MainGameSetting
 {
 public:
 	explicit MainGameSetting();

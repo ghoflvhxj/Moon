@@ -14,7 +14,7 @@
 HINSTANCE g_hInstance;
 HWND g_hWnd;
 
-std::shared_ptr<MainGameSetting> g_pSetting			= nullptr;
+std::shared_ptr<MainGameSetting> g_pSetting			= std::make_shared<MainGameSetting>();
 std::shared_ptr<Window> g_pMainWindow				= nullptr;
 std::shared_ptr<DirectInput> g_pDirectInput			= nullptr;
 std::shared_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
@@ -25,8 +25,6 @@ std::shared_ptr<MainGame> g_pMainGame				= nullptr;
 
 const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow)
 {
-	g_pSetting = std::make_shared<MainGameSetting>();
-
 	g_hInstance = hInstance;
 	g_hWnd = pWindow->getHandle();
 
@@ -76,6 +74,11 @@ std::shared_ptr<Renderer> getRenderer()
 std::shared_ptr<MainGame> getMainGame()
 {
 	return g_pMainGame;
+}
+
+std::shared_ptr<MainGameSetting> getSetting()
+{
+	return g_pSetting;
 }
 
 const bool setGame(std::shared_ptr<MainGame> pGame)

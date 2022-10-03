@@ -158,14 +158,14 @@ const bool StaticMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pri
 	if (_bDrawBoundingBox && boundingBox)
 	{
 		// BoudingBox
-		PrimitiveData primitive = {};
-		primitive._pPrimitive = shared_from_this();
-		primitive._pVertexBuffer = boundingBox->getVertexBuffer();
-		primitive._pIndexBuffer = nullptr;
-		primitive._pMaterial = boundingBox->getMaterial();
-		primitive._primitiveType = EPrimitiveType::Mesh;
-		primitive._pPrimitive = shared_from_this();
-		primitiveDataList.emplace_back(primitive);
+		//PrimitiveData primitive = {};
+		//primitive._pPrimitive = shared_from_this();
+		//primitive._pVertexBuffer = boundingBox->getVertexBuffer();
+		//primitive._pIndexBuffer = nullptr;
+		//primitive._pMaterial = boundingBox->getMaterial();
+		//primitive._primitiveType = EPrimitiveType::Mesh;
+		//primitive._pPrimitive = shared_from_this();
+		//primitiveDataList.emplace_back(primitive);
 	}
 
 	return true;

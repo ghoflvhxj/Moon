@@ -30,13 +30,13 @@ public:
 	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> &pComponent);
 private:
 	std::vector<std::shared_ptr<PrimitiveComponent>> _primitiveComponents;
+	std::vector<std::shared_ptr<PrimitiveComponent>> _primitiveComponentsForShadow;
 
 	// 컴포넌트를 전달하지 않은 이유는 자료형만 전달해 컴포넌트에 의존성을 줄이려는 의도...
 public:
-	void addDirectionalLightInfoForShadow(const Vec3 &translation, const Vec3 &rotation);
+	void addDirectionalLightInfoForShadow(const Vec3 &direction);
 private:
-	std::vector<Vec3> _directionalLightTranslations;
-	std::vector<Vec3> _directionalLightForwards;
+	std::vector<Vec3> _directionalLightDirection;
 
 	// 렌더 타겟
 public:
@@ -75,6 +75,8 @@ public:
 	const bool IsDirtyConstant() const;
 private:
 	bool _bDirtyConstant;
+
+	void Test(Mat4 &viewMatrix, Mat4 &orthographicMatrix);
 };
 
 #define __RENDERER_H__

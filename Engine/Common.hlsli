@@ -16,5 +16,5 @@ cbuffer VS_CBuffer_PerTick : register(b1)
     row_major matrix inverseOrthographicProjectionMatrix;
 	
     row_major matrix viewMatrixForShadow;
-    row_major matrix orthographicForShadow;
+    row_major matrix orthographicForShadow[3];
 };

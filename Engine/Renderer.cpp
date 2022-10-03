@@ -72,6 +72,16 @@ void Renderer::initialize(void) noexcept
 		_renderTargets.emplace_back(std::make_shared<RenderTarget>());
 	}
 
+	_renderPasses.emplace_back(CreateRenderPass<ShadowDepthPass>());
+	{
+		_renderPasses.back()->SetUseOwningDepthStencilBuffer(true);
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->initializeRenderTargets(_renderTargets,
+			ERenderTarget::ShadowDepth
+		);
+
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"));
+	}
+
 	_renderPasses.emplace_back(CreateRenderPass<GeometryPass>());
 	{
 		_renderPasses[enumToIndex(ERenderPass::Geometry)]->initializeRenderTargets(_renderTargets,
@@ -79,6 +89,9 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::Depth, 
 			ERenderTarget::Normal, 
 			ERenderTarget::Specular);
+
+		_renderPasses[enumToIndex(ERenderPass::Geometry)]->initializeResourceViews(_renderTargets,
+			ERenderTarget::ShadowDepth);
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<LightPass>());
@@ -102,15 +115,6 @@ void Renderer::initialize(void) noexcept
 		_renderPasses[enumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
 	}
 
-	_renderPasses.emplace_back(CreateRenderPass<ShadowDepthPass>());
-	{
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->initializeRenderTargets(_renderTargets,
-			ERenderTarget::ShadowDepth
-		);
-
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"));
-	}
-
 	_renderPasses.emplace_back(CreateRenderPass<CombinePass>());
 	{
 		_renderPasses[enumToIndex(ERenderPass::Combine)]->initializeResourceViews(_renderTargets,
@@ -127,10 +131,9 @@ void Renderer::addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> &pCompo
 	_primitiveComponents.push_back(pComponent);
 }
 
-void Renderer::addDirectionalLightInfoForShadow(const Vec3 &translation, const Vec3 &rotation)
+void Renderer::addDirectionalLightInfoForShadow(const Vec3 &direction)
 {
-	_directionalLightTranslations.emplace_back(translation);
-	_directionalLightForwards.emplace_back(rotation);
+	_directionalLightDirection.emplace_back(direction);
 }
 
 void Renderer::addRenderTargetForDebug(const std::wstring name)
@@ -163,7 +166,7 @@ void Renderer::renderScene()
 	FrustumCulling();
 
 	updateConstantBuffer();
-
+	
 	// 기본 패스
 	uint32 combinePassIndex = CastValue<uint32>(ERenderPass::Combine);
 	for (uint32 i = 0; i < combinePassIndex; ++i)
@@ -323,32 +326,21 @@ void Renderer::updateConstantBuffer()
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 3, &g_pMainGame->getMainCameraOrthographicProjectionMatrix());
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 4, &g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
 
-			// 이걸 넣으면 하늘이 안보인다...
-			uint32 directionalLightCount = CastValue<uint32>(_directionalLightTranslations.size());
+			uint32 directionalLightCount = CastValue<uint32>(_directionalLightDirection.size());
 			if (directionalLightCount > 0)
 			{
-				std::vector<XMMATRIX> directionLightMatrices;
-				directionLightMatrices.reserve(directionalLightCount);
-				for (uint32 index = 0; index < directionalLightCount; ++index)
-				{
-					XMMATRIX viewMatrix = XMMatrixLookAtLH(-1.f * XMLoadFloat3(&_directionalLightForwards[index]), XMLoadFloat3(&VEC3ZERO), XMLoadFloat3(&VEC3UP));
-					directionLightMatrices.emplace_back(viewMatrix);
-				}
-				XMFLOAT4X4 temp1;
-				XMStoreFloat4x4(&temp1, directionLightMatrices[0]); 
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 5, &temp1);
+				Mat4 view, proj;
+				Test(view, proj);
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 5, &view);
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 6, &proj);
 			}
-			XMFLOAT4X4 temp2;
-			XMStoreFloat4x4(&temp2, XMMatrixOrthographicLH(g_pSetting->getResolutionWidth(), g_pSetting->getResolutionHeight(), 0.1f, 100.f));
-			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 6, &temp2);
 
 			shader->UpdateConstantBuffer(ConstantBuffersLayer::PerTick, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::PerTick)]);
 		}
 	}
 	
 	_bDirtyConstant = false;
-	_directionalLightForwards.clear();
-	_directionalLightTranslations.clear();
+	_directionalLightDirection.clear();
 	// Costant레이어 CBuffer 업데이트
 }
 
@@ -368,4 +360,78 @@ void Renderer::toggleRenderTarget()
 const bool Renderer::IsDirtyConstant() const
 {
 	return _bDirtyConstant;
+}
+
+void Renderer::Test(Mat4 &viewMatrix, Mat4 &orthographicMatrix)
+{
+	enum class EFrustumCascade
+	{
+		Near,
+		Middle,
+		Far,
+		Count
+	};
+	
+	std::vector<float> frustumCascadeZ(3, 0);
+	frustumCascadeZ[CastValue<int>(EFrustumCascade::Near)]	= 0.1f;
+	frustumCascadeZ[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
+	frustumCascadeZ[CastValue<int>(EFrustumCascade::Far)]	= 1000.f;
+
+	float tanHalfFov = tan(g_pSetting->getFov() / 2.f);
+	float tanHalfAspectRatio = tan(g_pSetting->getAspectRatio() / 2.f);
+
+	//for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Count) - 1; ++cascadeIndex)
+	for (int cascadeIndex = 0; cascadeIndex < 1; ++cascadeIndex)
+
+	{
+		float depth = frustumCascadeZ[cascadeIndex];
+		float width = tanHalfFov * depth;
+		float hegiht = tanHalfAspectRatio * depth;
+
+		float nextDepth = frustumCascadeZ[cascadeIndex + 1];
+		float nextWidth = tanHalfFov * nextDepth;
+		float nextHegiht = tanHalfAspectRatio * nextDepth;
+
+		std::vector<Vec4> frustumCascadeVertices = {
+			{ -width, hegiht, depth, 1.f },
+			{ width, hegiht, depth, 1.f },
+			{ -width,-hegiht, depth, 1.f },
+			{ width,-hegiht, depth, 1.f },
+			{ -nextWidth, nextHegiht, nextDepth, 1.f },
+			{ nextWidth, nextHegiht, nextDepth, 1.f },
+			{ -nextWidth,-nextHegiht, nextDepth, 1.f },
+			{ nextWidth,-nextHegiht, nextDepth, 1.f },
+		};
+
+		Mat4 cameraWorldMatrix = g_pMainGame->getMainCamera()->getInvesrViewMatrix();
+		XMVECTOR cascadeCenter = XMVectorSet(VEC4ZERO.x, VEC4ZERO.y, VEC4ZERO.z, VEC4ZERO.w);
+		for (auto& vertex : frustumCascadeVertices)
+		{
+			XMVECTOR worldVertex = XMVector3TransformCoord(XMVectorSet(vertex.x, vertex.y, vertex.z, vertex.w), XMLoadFloat4x4(&cameraWorldMatrix));
+			XMStoreFloat4(&vertex, worldVertex);
+
+			cascadeCenter += worldVertex;
+		}
+
+		cascadeCenter /= 8.f;
+		float maxDistance = 0.f;
+		for (auto& vertex : frustumCascadeVertices)
+		{
+			Vec4 distance;
+			XMStoreFloat4(&distance, XMVector4Length(XMLoadFloat4(&vertex) - cascadeCenter));
+
+			maxDistance = std::max<float>(distance.x, maxDistance);
+		}
+
+		float radius = std::ceil(maxDistance * 16.0f) / 16.0f;
+
+		XMVECTOR lightDirection = XMVector3Normalize(XMLoadFloat3(&_directionalLightDirection[0]));
+		XMVECTOR directionalLightPos = cascadeCenter - (lightDirection * radius);
+
+		XMMATRIX LookAtMatrix = XMMatrixLookAtLH(directionalLightPos, cascadeCenter, XMLoadFloat3(&VEC3UP));
+		XMMATRIX OrthograhpicMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, 0.f, 2.f * radius);
+
+		XMStoreFloat4x4(&viewMatrix, LookAtMatrix);
+		XMStoreFloat4x4(&orthographicMatrix, OrthograhpicMatrix);
+	}
 }

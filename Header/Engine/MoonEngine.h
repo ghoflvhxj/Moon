@@ -12,6 +12,7 @@ ENGINE_DLL const bool EngineRelease();
 ENGINE_DLL std::shared_ptr<GraphicDevice> getGraphicDevice();
 ENGINE_DLL std::shared_ptr<Renderer> getRenderer();
 ENGINE_DLL std::shared_ptr<MainGame> getMainGame();
+ENGINE_DLL std::shared_ptr<MainGameSetting> getSetting();
 
 template <class T>
 const bool createMainGame(std::shared_ptr<T> &pGame)

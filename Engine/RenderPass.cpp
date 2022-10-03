@@ -30,6 +30,7 @@ RenderPass::RenderPass()
 	, _bRenderTargetSet{ false }
 	, _renderTargetCount{ RT_COUNT }
 	, _bClearTargets{ true }
+	, _bUseOwningDepthStencilBuffer{ false }
 {
 }
 
@@ -62,7 +63,14 @@ void RenderPass::begin()
 			rowRenderTargetViewArray[i] = _renderTargetList[i]->AsRenderTargetView();
 		}
 
-		g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(_renderTargetCount), &rowRenderTargetViewArray[0], _pOldDepthStencilView);
+		if (_bUseOwningDepthStencilBuffer)
+		{
+			g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(_renderTargetCount), &rowRenderTargetViewArray[0], _renderTargetList[6]->getDepthStencilView());
+		}
+		else
+		{
+			g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(_renderTargetCount), &rowRenderTargetViewArray[0], _pOldDepthStencilView);
+		}
 	}
 
 	// Ω¶¿Ã¥ı ∏Æº“Ω∫ ∫‰ º≥¡§
@@ -157,5 +165,10 @@ void RenderPass::releaseShader()
 void RenderPass::SetClearTargets(const bool bClear)
 {
 	_bClearTargets = bClear;
+}
+
+void RenderPass::SetUseOwningDepthStencilBuffer(const bool bUse)
+{
+	_bUseOwningDepthStencilBuffer = bUse;
 }
 

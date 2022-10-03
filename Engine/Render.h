@@ -34,10 +34,10 @@ enum class ERenderTarget
 
 enum class ERenderPass
 {
+	ShadowDepth,
 	Geometry,
 	Light,
 	SkyPass,
-	ShadowDepth,
 	Combine,
 	Count
 };

@@ -14,12 +14,13 @@ struct VertexIn
 
 struct VertexOut
 {
-	float4 pos		: SV_POSITION;
-	//float4 color	: COLOR0;
-	float2 uv		: TEXCOORD0;
-	float3 normal	: NORMAL0;
-	float3 tangent	: NORMAL1;
-	float3 binormal : NORMAL2;
+	float4 pos			: SV_POSITION;
+    float4 shadowPos	: POSITION0;
+	float2 uv			: TEXCOORD0;
+	float2 shadowUV		: TEXCOORD1;
+	float3 normal		: NORMAL0;
+	float3 tangent		: NORMAL1;
+	float3 binormal		: NORMAL2;
 };
 
 struct VertexOut_Simple
@@ -32,4 +33,5 @@ cbuffer VS_CBuffer_PerObject : register(b2)
 {
 	row_major matrix worldMatrix;
 	row_major matrix keyFrameMatrices[199];
+	bool animated;
 };
