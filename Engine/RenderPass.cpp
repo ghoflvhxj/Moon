@@ -7,6 +7,7 @@
 #include "Material.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
+#include "GeometryShader.h"
 
 // Render
 #include "RenderTarget.h"
@@ -26,6 +27,7 @@ RenderPass::RenderPass()
 	, _pOldDepthStencilView{ nullptr }
 	, _vertexShader{ std::make_shared<VertexShader>() }
 	, _pixelShader{ std::make_shared<PixelShader>() }
+	, _geometryShader{ std::make_shared<GeometryShader>() }
 	, _bShaderSet{ false }
 	, _bRenderTargetSet{ false }
 	, _renderTargetCount{ RT_COUNT }
@@ -65,6 +67,7 @@ void RenderPass::begin()
 
 		if (_bUseOwningDepthStencilBuffer)
 		{
+			// 6 하드 코딩했으니 수정 필요
 			g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(_renderTargetCount), &rowRenderTargetViewArray[0], _renderTargetList[6]->getDepthStencilView());
 		}
 		else
@@ -146,6 +149,18 @@ void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *p
 	}
 
 	_bShaderSet = true;
+}
+
+void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName)
+{
+	setShader(vertexShaderFileName, pixelShaderFileName);
+
+	std::shared_ptr<GeometryShader> geometryShader = nullptr;
+	if (g_pShaderManager->getGeometryShader(geomtryShaderFileName, geometryShader))
+	{
+		_geometryShader = geometryShader;
+		_geometryShaderFileName = geomtryShaderFileName;;
+	}
 }
 
 const bool RenderPass::isShaderSet() const

@@ -54,6 +54,10 @@ void CombinePass::render(PrimitiveData &primitiveData)
 	_pixelShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
+	// Geometry Shader
+	g_pGraphicDevice->getContext()->GSSetShader(nullptr, nullptr, 0);
+
+	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
 	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 
@@ -130,6 +134,10 @@ void GeometryPass::render(PrimitiveData &primitiveData)
 	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
 	primitiveData._pMaterial->getPixelShader()->SetToDevice();
 
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Geometry Shader
+	g_pGraphicDevice->getContext()->GSSetShader(nullptr, nullptr, 0);
+
 	primitiveData._pMaterial->SetTexturesToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
@@ -194,6 +202,12 @@ void ShadowDepthPass::render(PrimitiveData & primitiveData)
 	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
 	_pixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
 	_pixelShader->SetToDevice();
+
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Geometry Shader
+	auto &variableInfosGS = _geometryShader->getVariableInfos()[CastValue<int>(ShaderType::Geometry)];
+	_geometryShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosGS);
+	_geometryShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
@@ -279,6 +293,10 @@ void LightPass::render(PrimitiveData &primitiveData)
 	//primitiveData._pMaterial->SetTexturesToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
+	// Geometry Shader
+	g_pGraphicDevice->getContext()->GSSetShader(nullptr, nullptr, 0);
+
+	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
 	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 
@@ -349,6 +367,10 @@ void SkyPass::render(PrimitiveData & primitiveData)
 	primitiveData._pMaterial->getPixelShader()->SetToDevice();
 
 	primitiveData._pMaterial->SetTexturesToDevice();
+
+	//---------------------------------------------------------------------------------------------------------------------------------
+	// Geometry Shader
+	g_pGraphicDevice->getContext()->GSSetShader(nullptr, nullptr, 0);
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState

@@ -16,6 +16,7 @@ enum class ShaderType : uint8
 {
 	Vertex, 
 	Pixel, 
+	Geometry,
 	Count
 };
 

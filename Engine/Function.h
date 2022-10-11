@@ -25,6 +25,12 @@ inline void getPixelShaderDirectory(WCHAR buffer[])
 	PathCombine(buffer, buffer, SHADER_PIXEL_DIRECTORY);
 }
 
+inline void getGeometryShaderDirectory(WCHAR buffer[])
+{
+	getShaderDirectory(buffer);
+	PathCombine(buffer, buffer, SHADER_GEOMETRY_DIRECTORY);
+}
+
 template <class T1, class T2>
 inline T1 CastValue(T2 value)
 {

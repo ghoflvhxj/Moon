@@ -36,7 +36,7 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 	
 	g_pShaderManager = std::make_shared<ShaderManager>();
 	ShaderLoader shaderLoader;
-	shaderLoader.loadShader(g_pShaderManager);
+	shaderLoader.loadShaderFiles(g_pShaderManager);
 
 	g_pGraphicDevice->BuildInputLayout();
 

@@ -7,12 +7,13 @@ class RenderTarget
 {
 public:
 	explicit RenderTarget();
+	explicit RenderTarget(int textureArrayCount, int depthStencilCount);
 	virtual ~RenderTarget();
 	
 public:
 	std::shared_ptr<TextureComponent> AsTexture();
 private:
-	void initializeTexture();
+	void initializeTexture(int textureArrayCount, int depthStencilCount);
 	std::shared_ptr<TextureComponent> _pRenderTargetTexture;
 	std::shared_ptr<TextureComponent> _pDepthStencilTexture;
 

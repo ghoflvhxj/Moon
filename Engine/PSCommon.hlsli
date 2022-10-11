@@ -3,9 +3,8 @@
 struct PixelIn
 {
 	float4 pos			: SV_POSITION;
-    float4 shadowPos	: POSITION0;
+    float3 worldPos		: POSITION0;
 	float2 uv			: TEXCOORD0;
-    float2 shadowUV		: TEXCOORD1;
 	float3 normal		: NORMAL0;
 	float3 tangent		: NORMAL1;
 	float3 binormal		: NORMAL2;
@@ -43,9 +42,10 @@ Texture2D g_Specular	: register(t3);
 Texture2D g_LightDiffuse	: register(t4);
 Texture2D g_LightSpecular	: register(t5);
 
-Texture2D g_ShadowDepth		: register(t6);
+Texture2DArray g_ShadowDepth	: register(t6);
 
 SamplerState g_Sampler;
+SamplerComparisonState g_SamplerCoparison;
 
 SamplerComparisonState cmpSampler
 {

@@ -76,7 +76,9 @@ public:
 private:
 	bool _bDirtyConstant;
 
-	void Test(Mat4 &viewMatrix, Mat4 &orthographicMatrix);
+	void Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition);
+private:
+	std::vector<float> _cascadeDistance;
 };
 
 #define __RENDERER_H__

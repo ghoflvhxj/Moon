@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
+#include "GeometryShader.h"
 
 #include "FileFinder.h"
 
@@ -16,18 +17,19 @@ ShaderLoader::~ShaderLoader()
 {
 }
 
-const bool ShaderLoader::loadShader(std::shared_ptr<ShaderManager> shaderManager)
+const bool ShaderLoader::loadShaderFiles(std::shared_ptr<ShaderManager> shaderManager)
 {
 	// 멀티 쓰레드로 변경하기
 	loadVertexShaderFromFiles(shaderManager);
 	loadPixelShaderFromFiles(shaderManager);
+	loadGeometryShaderFromFiles(shaderManager);
 
 	return true;
 }
 
 const bool ShaderLoader::loadVertexShaderFromFiles(std::shared_ptr<ShaderManager> shaderManager)
 {
-	OutputDebugString(TEXT("VertexShader 불러오는 중..."));
+	OutputDebugString(TEXT("VertexShader 불러오는 중...\r\n"));
 
 	WCHAR path[MAX_PATH] = {};
 	getVertexShaderDirectory(path);
@@ -49,7 +51,7 @@ const bool ShaderLoader::loadVertexShaderFromFiles(std::shared_ptr<ShaderManager
 
 const bool ShaderLoader::loadPixelShaderFromFiles(std::shared_ptr<ShaderManager> shaderManager)
 {
-	OutputDebugString(TEXT("PixelShader 불러오는 중..."));
+	OutputDebugString(TEXT("PixelShader 불러오는 중...\r\n"));
 
 	WCHAR path[MAX_PATH];
 	getPixelShaderDirectory(path);
@@ -64,6 +66,28 @@ const bool ShaderLoader::loadPixelShaderFromFiles(std::shared_ptr<ShaderManager>
 		lstrcpy(fileName, PathFindFileName(filePathName.c_str()));
 
 		shaderManager->addPixelShader(fileName, pShader);
+	}
+
+	return true;
+}
+
+const bool ShaderLoader::loadGeometryShaderFromFiles(std::shared_ptr<ShaderManager> shaderManager)
+{
+	OutputDebugString(TEXT("GeometryShader 불러오는 중...\r\n"));
+
+	WCHAR path[MAX_PATH] = {};
+	getGeometryShaderDirectory(path);
+	FileFinder fileFinder(path);
+
+	auto &fileList = fileFinder.getFileList();
+	for (auto &filePathName : fileList)
+	{
+		std::shared_ptr<GeometryShader> pShader = std::make_shared<GeometryShader>(filePathName);
+
+		WCHAR fileName[MAX_PATH] = {};
+		lstrcpy(fileName, PathFindFileName(filePathName.c_str()));
+
+		shaderManager->addGeometryShader(fileName, pShader);
 	}
 
 	return true;

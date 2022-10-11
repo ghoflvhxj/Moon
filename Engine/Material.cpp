@@ -94,6 +94,11 @@ void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pix
 
 	for (size_t shaderTypeIndex = 0; shaderTypeIndex < shaderTypeCount; ++shaderTypeIndex)
 	{
+		if (shaders[shaderTypeIndex] == nullptr)
+		{
+			continue;
+		}
+
 		_variableInfosPerShaderType[shaderTypeIndex] = shaders[shaderTypeIndex]->getVariableInfos(); // 각 쉐이더의 콘스탄트 버퍼 변수 정보를 등록
 	}
 }

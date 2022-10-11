@@ -4,6 +4,7 @@
 #include "Shader.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
+#include "GeometryShader.h"
 
 #include "ShaderLoader.h"
 
@@ -94,6 +95,24 @@ const bool ShaderManager::addPixelShader(const wchar_t *fileName, std::shared_pt
 {
 	std::shared_ptr<Shader> pShader = pixelShader;
 	return addShader(ShaderType::Pixel, fileName, pShader);
+}
+
+const bool ShaderManager::getGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader)
+{
+	std::shared_ptr<Shader> pShader = nullptr;
+	if (true == getShader(ShaderType::Geometry, fileName, pShader))
+	{
+		geometryShader = std::static_pointer_cast<GeometryShader>(pShader);
+		return true;
+	}
+
+	return false;
+}
+
+const bool ShaderManager::addGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader)
+{
+	std::shared_ptr<Shader> pShader = geometryShader;
+	return addShader(ShaderType::Geometry, fileName, pShader);
 }
 
 ShaderManager::ShaderMap& ShaderManager::getShaders(const ShaderType shaderType)

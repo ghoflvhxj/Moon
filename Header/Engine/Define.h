@@ -7,10 +7,11 @@ constexpr wchar_t ROOT_COMPONENT[]		= TEXT("RootComponent");
 constexpr wchar_t EMPTY_TEXT_W[]		= TEXT("");
 constexpr char EMPTY_TEXT_A[]			= "";
 
-constexpr DIRECTORY RESOURCE_DIRECTORY	= TEXT("Resources");
-constexpr DIRECTORY SHADER_DIRECTORY	= TEXT("Shader");
-constexpr DIRECTORY SHADER_PIXEL_DIRECTORY	= TEXT("Pixel");
-constexpr DIRECTORY SHADER_VERTEX_DIRECTORY	= TEXT("Vertex");
+constexpr DIRECTORY RESOURCE_DIRECTORY			= TEXT("Resources");
+constexpr DIRECTORY SHADER_DIRECTORY			= TEXT("Shader");
+constexpr DIRECTORY SHADER_VERTEX_DIRECTORY		= TEXT("Vertex");
+constexpr DIRECTORY SHADER_PIXEL_DIRECTORY		= TEXT("Pixel");
+constexpr DIRECTORY SHADER_GEOMETRY_DIRECTORY	= TEXT("Geometry");
 
 constexpr float FLOAT3_ZERO[] = { 0.f, 0.f, 0.f };
 constexpr float FLOAT3_ONE[] = { 1.f, 1.f, 1.f };

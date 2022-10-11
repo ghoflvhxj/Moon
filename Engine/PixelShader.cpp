@@ -19,6 +19,8 @@ PixelShader::PixelShader()
 	: Shader(TEXT(""))
 	, _pPixelShader{ nullptr }
 {
+	ID3D11Device *pDevice = g_pGraphicDevice->getDevice();
+	ID3D10Blob *pBlob = getBlob();
 }
 
 PixelShader::~PixelShader()
@@ -30,17 +32,14 @@ void PixelShader::SetToDevice()
 {
 	g_pGraphicDevice->getContext()->PSSetShader(_pPixelShader, nullptr, 0);
 
-	uint32 count = CastValue<uint32>(_constantBuffers.size());
-
 	std::vector<ID3D11Buffer*> rawBuffers;
-	rawBuffers.reserve(count);
-
+	rawBuffers.reserve(_constantBuffers.size());
 	for (auto &constantBuffer : _constantBuffers)
 	{
 		rawBuffers.emplace_back(constantBuffer ? constantBuffer->getRaw() : nullptr);
 	}
 
-	g_pGraphicDevice->getContext()->PSSetConstantBuffers(0u, CastValue<UINT>(rawBuffers.size()), count > 0 ? &rawBuffers[0] : nullptr);
+	g_pGraphicDevice->getContext()->PSSetConstantBuffers(0u, CastValue<UINT>(rawBuffers.size()), _constantBuffers.size() > 0 ? &rawBuffers[0] : nullptr);
 }
 
 ID3D11PixelShader* PixelShader::getRaw()

@@ -125,8 +125,8 @@ const bool GraphicDevice::initializeGrahpicDevice()
 	// ºäÆ÷Æ®
 	_viewport.TopLeftX = 0;
 	_viewport.TopLeftY = 0;
-	_viewport.Width = g_pSetting->getResolutionWidth();
-	_viewport.Height = g_pSetting->getResolutionHeight();
+	_viewport.Width = static_cast<FLOAT>(g_pSetting->getResolutionWidth());
+	_viewport.Height = static_cast<FLOAT>(g_pSetting->getResolutionHeight());
 	_viewport.MaxDepth = 1.f;
 	_viewport.MinDepth = 0.f;
 
@@ -350,9 +350,25 @@ const bool GraphicDevice::buildSamplerState()
 
 	ID3D11SamplerState *pSamplerState = nullptr;
 	FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState), false);
-	m_pImmediateContext->PSSetSamplers(0, 1, &pSamplerState);
-
 	_samplerList.emplace_back(pSamplerState);
+
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_ANISOTROPIC;
+	samplerDesc.BorderColor[0] = 1.f;
+	samplerDesc.BorderColor[1] = 1.f;
+	samplerDesc.BorderColor[2] = 1.f;
+	samplerDesc.BorderColor[3] = 1.f;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_EQUAL;
+	samplerDesc.MaxAnisotropy = 1u;
+	samplerDesc.MaxLOD = FLT_MAX;
+	samplerDesc.MinLOD = -FLT_MAX;
+	samplerDesc.MipLODBias = 0.f;
+	FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState), false);
+	_samplerList.emplace_back(pSamplerState);
+
+	m_pImmediateContext->PSSetSamplers(0, CastValue<UINT>(_samplerList.size()), &_samplerList[0]);
 
 	return true;
 }

@@ -3,6 +3,7 @@
 #define __PIXEL_SHADER_H__
 
 #include "Shader.h"
+
 class PixelShader : public Shader
 {
 public:
@@ -18,6 +19,5 @@ public:
 private:
 	ID3D11PixelShader *_pPixelShader;
 };
-
 
 #endif

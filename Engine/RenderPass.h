@@ -72,14 +72,17 @@ private:
 	
 public:
 	void setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
+	void setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName);
 	const bool isShaderSet() const;
 private:
 	void releaseShader();
 protected:
 	std::wstring	_vertexShaderFileName;
 	std::wstring	_pixelShaderFileName;
+	std::wstring	_geometryShaderFileName;
 	std::shared_ptr<Shader>	_vertexShader;
 	std::shared_ptr<Shader>	_pixelShader;
+	std::shared_ptr<Shader> _geometryShader;
 	bool _bShaderSet;
 	bool _bRenderTargetSet;
 	uint32 _renderTargetCount;

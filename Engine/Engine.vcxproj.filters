@@ -141,6 +141,12 @@
     <Filter Include="Module\Framework\Component\SceneComponent\PrimitiveCompoent\ShapeComponent">
       <UniqueIdentifier>{914d0aa0-ea37-480e-87e8-d27c2238583b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Module\Graphics\Shader\Geometry">
+      <UniqueIdentifier>{ef84680b-ad08-40ee-a625-daf5e5100d01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Module\Graphics\Shader\Geometry\hlsl">
+      <UniqueIdentifier>{6247a28a-faab-4293-82ea-4e32dd8e09f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Timer.h">
@@ -332,6 +338,9 @@
     <ClInclude Include="World.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="GeometryShader.h">
+      <Filter>Module\Graphics\Shader\Geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Timer.cpp">
@@ -482,6 +491,9 @@
       <Filter>Module\Framework\Component\SceneComponent</Filter>
     </ClCompile>
     <ClCompile Include="World.cpp" />
+    <ClCompile Include="GeometryShader.cpp">
+      <Filter>Module\Graphics\Shader\Geometry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="TexVertexShader.hlsl">
@@ -532,6 +544,9 @@
     <FxCompile Include="ShadowDepthPixel.hlsl">
       <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
+    <FxCompile Include="ShadowDepthGS.hlsl">
+      <Filter>Module\Graphics\Shader\Geometry\hlsl</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="VSCommon.hlsli">
@@ -542,6 +557,9 @@
     </None>
     <None Include="Common.hlsli">
       <Filter>Module\Graphics\Shader\Common</Filter>
+    </None>
+    <None Include="GSCommon.hlsli">
+      <Filter>Module\Graphics\Shader\Geometry\hlsl</Filter>
     </None>
   </ItemGroup>
 </Project>

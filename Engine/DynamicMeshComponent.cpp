@@ -226,23 +226,23 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 
 	if (_pDynamicMesh->_pSkeleton)
 	{
-		PrimitiveData primitive = {};
-		primitive._pPrimitive = shared_from_this();
-		primitive._pVertexBuffer = _pDynamicMesh->_pSkeleton->getVertexBuffer();
-		primitive._pIndexBuffer = _pDynamicMesh->_pSkeleton->getIndexBuffer();
-		primitive._pMaterial = _pDynamicMesh->_pSkeleton->getMaterial();
-		primitive._primitiveType = EPrimitiveType::Mesh;
+		//PrimitiveData primitive = {};
+		//primitive._pPrimitive = shared_from_this();
+		//primitive._pVertexBuffer = _pDynamicMesh->_pSkeleton->getVertexBuffer();
+		//primitive._pIndexBuffer = _pDynamicMesh->_pSkeleton->getIndexBuffer();
+		//primitive._pMaterial = _pDynamicMesh->_pSkeleton->getMaterial();
+		//primitive._primitiveType = EPrimitiveType::Mesh;
 
-		for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
-		{
-			for (int32 jointIndex = 0; jointIndex < CastValue<int32>(jointCount); ++jointIndex)
-			{
+		//for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
+		//{
+		//	for (int32 jointIndex = 0; jointIndex < CastValue<int32>(jointCount); ++jointIndex)
+		//	{
 
-			}
-		}
-		primitive._matrices = _matrices;
+		//	}
+		//}
+		//primitive._matrices = _matrices;
 
-		primitiveDataList.emplace_back(primitive);
+		//primitiveDataList.emplace_back(primitive);
 	}
 
 	return true;

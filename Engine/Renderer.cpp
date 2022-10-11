@@ -34,15 +34,29 @@
 
 #include "Camera.h"
 
+#include <tuple>
+
 using namespace DirectX;
+
+enum class EFrustumCascade
+{
+	Near,
+	Middle,
+	Far,
+	Count
+};
 
 Renderer::Renderer(void) noexcept
 	: _drawRenderTarget{ true }
 	, _bDirtyConstant{ true }
+	, _cascadeDistance(4, 0.f)
 {
+	_cascadeDistance[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
+	_cascadeDistance[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
+	_cascadeDistance[CastValue<int>(EFrustumCascade::Far)] = 1000.f;
+
 	_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
 	_renderPasses.reserve(CastValue<size_t>(ERenderPass::Count));
-
 	initialize();
 }
 
@@ -69,7 +83,15 @@ void Renderer::initialize(void) noexcept
 
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
 	{
-		_renderTargets.emplace_back(std::make_shared<RenderTarget>());
+		switch (CastValue<ERenderTarget>(i))
+		{
+		case ERenderTarget::ShadowDepth:
+			_renderTargets.emplace_back(std::make_shared<RenderTarget>(CastValue<int>(_cascadeDistance.size() - 1), 1));
+			break;
+		default:
+			_renderTargets.emplace_back(std::make_shared<RenderTarget>());
+			break;
+		}
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<ShadowDepthPass>());
@@ -79,7 +101,7 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::ShadowDepth
 		);
 
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"));
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<GeometryPass>());
@@ -297,6 +319,7 @@ void Renderer::FrustumCulling()
 
 void Renderer::updateConstantBuffer()
 {
+	// 모든 쉐이더 타입에 대해 common constant buffer를 업데이트함
 	for (uint32 index = 0; index < CastValue<uint32>(ShaderType::Count); ++index)
 	{
 		auto& shaders = g_pShaderManager->getShaders(CastValue<ShaderType>(index));
@@ -325,15 +348,16 @@ void Renderer::updateConstantBuffer()
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 2, &IDENTITYMATRIX);
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 3, &g_pMainGame->getMainCameraOrthographicProjectionMatrix());
 			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 4, &g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
-
-			uint32 directionalLightCount = CastValue<uint32>(_directionalLightDirection.size());
-			if (directionalLightCount > 0)
+			if (bool bDirectionalLightExist = CastValue<uint32>(_directionalLightDirection.size()) > 0)
 			{
-				Mat4 view, proj;
-				Test(view, proj);
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 5, &view);
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 6, &proj);
+				std::vector<Vec4> lightPosition(3);
+				std::vector<Mat4> lightViewProj(3);
+				Test(lightViewProj, lightPosition);
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 5, &lightPosition[0]);
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 6, &lightViewProj[0]);
 			}
+
+			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 7, &_cascadeDistance[0]);
 
 			shader->UpdateConstantBuffer(ConstantBuffersLayer::PerTick, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::PerTick)]);
 		}
@@ -362,33 +386,19 @@ const bool Renderer::IsDirtyConstant() const
 	return _bDirtyConstant;
 }
 
-void Renderer::Test(Mat4 &viewMatrix, Mat4 &orthographicMatrix)
+void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition)
 {
-	enum class EFrustumCascade
-	{
-		Near,
-		Middle,
-		Far,
-		Count
-	};
-	
-	std::vector<float> frustumCascadeZ(3, 0);
-	frustumCascadeZ[CastValue<int>(EFrustumCascade::Near)]	= 0.1f;
-	frustumCascadeZ[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
-	frustumCascadeZ[CastValue<int>(EFrustumCascade::Far)]	= 1000.f;
-
 	float tanHalfFov = tan(g_pSetting->getFov() / 2.f);
 	float tanHalfAspectRatio = tan(g_pSetting->getAspectRatio() / 2.f);
 
-	//for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Count) - 1; ++cascadeIndex)
-	for (int cascadeIndex = 0; cascadeIndex < 1; ++cascadeIndex)
-
+	for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Count) - 1; ++cascadeIndex)
+	//for (int cascadeIndex = 0; cascadeIndex < 1; ++cascadeIndex)
 	{
-		float depth = frustumCascadeZ[cascadeIndex];
+		float depth = _cascadeDistance[cascadeIndex];
 		float width = tanHalfFov * depth;
 		float hegiht = tanHalfAspectRatio * depth;
 
-		float nextDepth = frustumCascadeZ[cascadeIndex + 1];
+		float nextDepth = _cascadeDistance[cascadeIndex + 1];
 		float nextWidth = tanHalfFov * nextDepth;
 		float nextHegiht = tanHalfAspectRatio * nextDepth;
 
@@ -425,13 +435,13 @@ void Renderer::Test(Mat4 &viewMatrix, Mat4 &orthographicMatrix)
 
 		float radius = std::ceil(maxDistance * 16.0f) / 16.0f;
 
-		XMVECTOR lightDirection = XMVector3Normalize(XMLoadFloat3(&_directionalLightDirection[0]));
+		XMVECTOR lightDirection = XMVector3Normalize(XMVectorSet(_directionalLightDirection[0].x, _directionalLightDirection[0].y, _directionalLightDirection[0].z, 0.f));
 		XMVECTOR directionalLightPos = cascadeCenter - (lightDirection * radius);
 
 		XMMATRIX LookAtMatrix = XMMatrixLookAtLH(directionalLightPos, cascadeCenter, XMLoadFloat3(&VEC3UP));
 		XMMATRIX OrthograhpicMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, 0.f, 2.f * radius);
-
-		XMStoreFloat4x4(&viewMatrix, LookAtMatrix);
-		XMStoreFloat4x4(&orthographicMatrix, OrthograhpicMatrix);
+		
+		XMStoreFloat4(&lightPosition[cascadeIndex], directionalLightPos);
+		XMStoreFloat4x4(&lightViewProj[cascadeIndex], XMMatrixMultiply(LookAtMatrix, OrthograhpicMatrix));
 	}
 }

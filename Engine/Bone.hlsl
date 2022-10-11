@@ -9,19 +9,12 @@ VertexOut main(VertexIn vIn)
 
 	matrix boneTransform = keyFrameMatrices[vIn.blendIndex[0]];
 	float4 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);
-	vOut.pos = mul(float4(animatedPos.x, animatedPos.y, animatedPos.z, 1.f), worldViewProj);
-	vOut.uv = vIn.uv;
-
-    matrix lightView = mul(worldMatrix, viewMatrixForShadow);
-    matrix lightViewProj = mul(lightView, orthographicForShadow[0]);
-    vOut.shadowPos = mul(float4(animatedPos.x, animatedPos.y, animatedPos.z, 1.f), lightViewProj);
-    vOut.shadowPos.x = (vOut.shadowPos.x + 1.f) / 2.f;
-    vOut.shadowPos.y = (vOut.shadowPos.y - 1.f) / -2.f;
-    vOut.shadowUV = float2(vOut.shadowPos.x, vOut.shadowPos.y);
-
-	vOut.normal = mul(float4(vIn.normal, 0.f), worldView).xyz;
-	vOut.tangent = mul(float4(vIn.tangent, 0.f), worldView).xyz;
-	vOut.binormal = mul(float4(vIn.binormal, 0.f), worldView).xyz;
+	vOut.pos		= mul(float4(animatedPos.x, animatedPos.y, animatedPos.z, 1.f), worldViewProj);
+    vOut.worldPos	= mul(float4(animatedPos.x, animatedPos.y, animatedPos.z, 1.f), worldMatrix).xyz;
+	vOut.uv			= vIn.uv;
+	vOut.normal		= mul(float4(vIn.normal, 0.f), worldView).xyz;
+	vOut.tangent	= mul(float4(vIn.tangent, 0.f), worldView).xyz;
+	vOut.binormal	= mul(float4(vIn.binormal, 0.f), worldView).xyz;
 
 	return vOut;
 }

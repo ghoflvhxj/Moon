@@ -6,6 +6,7 @@
 class Shader;
 class VertexShader;
 class PixelShader;
+class GeometryShader;
 
 class ShaderManager
 {
@@ -19,16 +20,19 @@ public:
 
 public:
 	void							Release();
-private:	// implementation
+
+public:		
+	const bool						getVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader);
+	const bool						addVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader);
+	const bool						getPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader);
+	const bool						addPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader);
+	const bool						getGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader);
+	const bool						addGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader);
+private:
 	const bool						addShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<Shader> &pShader);
 	ShaderMap&						getShaderMap(const ShaderType type);
 	const bool 						getShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<Shader> &pShader);
-public:		// interface
-	const bool						getVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader);
-	const bool						addVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader);
-public:		// interface
-	const bool						getPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader);
-	const bool						addPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader);
+
 public:
 	ShaderManager::ShaderMap&		getShaders(const ShaderType shaderType);
 private:

@@ -6,13 +6,41 @@ cbuffer PS_CBuffer_Texture : register(b2)
 	bool bUseSpecularTexture;
 };
 
+float CalculateShadowFactor(int cascadeIndex, float4 lightspacepos)
+{
+    float3 projCoords = lightspacepos.xyz / lightspacepos.w;
+    projCoords.x = projCoords.x * 0.5 + 0.5f;
+    projCoords.y = -projCoords.y * 0.5 + 0.5f;
+    if (projCoords.z > 1.f)
+        return 0.f;
+	
+    float bias = 0.005f;
+    float3 samplePos = float3(projCoords.x, projCoords.y, cascadeIndex);
+    float shadow = 0.f;
+	
+    //for (int x = -1; x <= 1; ++x)
+    //{
+    //    for (int y = -1; y <= 1; ++y)
+    //    {
+    //        //shadow += g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, samplePos, projCoords.z - bias, int2(x, y));
+    //    }
+    //}
+    //shadow /= 9.0f;
+    
+    float4 temp = g_ShadowDepth.Sample(g_Sampler, samplePos) + bias;
+    
+    return temp.x;
+}
+
 PixelOut_GeometryPass main(PixelIn pIn)
 {
 	PixelOut_GeometryPass pOut;
 
-	// 픽셀 쉐이더에서 SV_POSITION의 값은
-	// 0 < x < width, 0 < y < height, 0 < z < 1.f
-	// 0 < w < z나누기 전의 z
+	// 픽셀 쉐이더에서 SV_POSITION은 z 나누기 전의 위치 벡터이다
+	// x' = x / tan(@/2)*r, z 나누기 후에는 -1<=x'<=1 의 범위를 가짐
+	// y' = 1 / tan(@/2), z 나누기 후에는 -1<=y'<=1 의 범위를 가짐
+	// z' = z * far/(far-near) - (near*far/(far-near)) = ((z-near)*far) / (far-near) -> 0<=z'<=far, z 나누기 후에는 0<=z'<=1 의 범위를 가짐
+	// w' = 투영 행렬 곱하기 전의 z좌표
 	pOut.color		= g_Diffuse.Sample(g_Sampler, pIn.uv);
 	pOut.depth		= float4(pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.w);
 	pOut.normal		= float4(pIn.normal, 1.f);
@@ -42,16 +70,36 @@ PixelOut_GeometryPass main(PixelIn pIn)
 		pOut.specular = float4(specular, 1.f);
 	}
 	
-    float bias = 0.005f;
-    if (0.f <= pIn.shadowUV.x && pIn.shadowUV.x <= 1.f && 0.f <= pIn.shadowUV.y && pIn.shadowUV.y <= 1.f)
+
+    float cascadeDistanceInCameraViewProj[3];
+    for (int i = 0; i < 2; ++i)
     {
-        if (pIn.shadowPos.z / pIn.shadowPos.w - bias > g_ShadowDepth.Sample(g_Sampler, pIn.shadowUV).x)
+        cascadeDistanceInCameraViewProj[i] = mul(float4(0.f, 0.f, cascadeDistance[i+1], 1.f), projectionMatrix).z;
+    }
+    
+    float4 pixelPosInLightSpace;
+    int cascadeIndex = 0;
+    for (int j = 0; j < 2; ++j)
+    {
+        if (pIn.pos.w <= cascadeDistanceInCameraViewProj[j])
         {
-            pOut.color = float4(0.f, 0.f, 0.f, 1.f);
+            cascadeIndex = j;
+            pixelPosInLightSpace = mul(float4(pIn.worldPos, 1.0f), lightViewProjMatrix[j]);
+            break;
         }
     }
-
-	return pOut;
+    
+    float shadowFactor = CalculateShadowFactor(cascadeIndex, pixelPosInLightSpace);
+    if (shadowFactor > 0.f)
+    {
+        //pOut.color.xyz = float3(pixelPosInLightSpace.z / pixelPosInLightSpace.w, shadowFactor, 0.f);
+        if (pixelPosInLightSpace.z / pixelPosInLightSpace.w > shadowFactor)
+        {
+            pOut.color.xyz *= 0.1f;
+        }
+    }
+	
+    return pOut;
 }
 
 //float4 main(VertexOut vOut) : SV_TARGET
