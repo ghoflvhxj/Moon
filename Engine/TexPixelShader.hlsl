@@ -9,27 +9,30 @@ cbuffer PS_CBuffer_Texture : register(b2)
 float CalculateShadowFactor(int cascadeIndex, float4 lightspacepos)
 {
     float3 projCoords = lightspacepos.xyz / lightspacepos.w;
-    projCoords.x = projCoords.x * 0.5 + 0.5f;
-    projCoords.y = -projCoords.y * 0.5 + 0.5f;
+    projCoords.x = projCoords.x * 0.5f + 0.5f;
+    projCoords.y = -projCoords.y * 0.5f + 0.5f;
     if (projCoords.z > 1.f)
         return 0.f;
 	
     float bias = 0.005f;
     float3 samplePos = float3(projCoords.x, projCoords.y, cascadeIndex);
     float shadow = 0.f;
-	
-    //for (int x = -1; x <= 1; ++x)
-    //{
-    //    for (int y = -1; y <= 1; ++y)
-    //    {
-    //        //shadow += g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, samplePos, projCoords.z - bias, int2(x, y));
-    //    }
-    //}
-    //shadow /= 9.0f;
     
-    float4 temp = g_ShadowDepth.Sample(g_Sampler, samplePos) + bias;
+    [unroll]
+    for (int x = -1; x <= 1; ++x)
+    {
+        [unroll]
+        for (int y = -1; y <= 1; ++y)
+        {
+            float4 temp = g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, samplePos, projCoords.z - bias, int2(x, y));
+            shadow += temp.x;
+        }
+    }
+    shadow /= 9.f;
+    return shadow;
     
-    return temp.x;
+    //float4 temp = g_ShadowDepth.Sample(g_Sampler, samplePos);
+    //return temp.x;
 }
 
 PixelOut_GeometryPass main(PixelIn pIn)
@@ -43,7 +46,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
 	// w' = 투영 행렬 곱하기 전의 z좌표
 	pOut.color		= g_Diffuse.Sample(g_Sampler, pIn.uv);
 	pOut.depth		= float4(pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.w);
-	pOut.normal		= float4(pIn.normal, 1.f);
+	pOut.normal		= float4(pIn.normal, 1.f);  
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
 	
     float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
@@ -72,14 +75,14 @@ PixelOut_GeometryPass main(PixelIn pIn)
 	
 
     float cascadeDistanceInCameraViewProj[3];
-    for (int i = 0; i < 2; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         cascadeDistanceInCameraViewProj[i] = mul(float4(0.f, 0.f, cascadeDistance[i+1], 1.f), projectionMatrix).z;
     }
     
     float4 pixelPosInLightSpace;
     int cascadeIndex = 0;
-    for (int j = 0; j < 2; ++j)
+    for (int j = 0; j < 3; ++j)
     {
         if (pIn.pos.w <= cascadeDistanceInCameraViewProj[j])
         {
@@ -92,11 +95,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
     float shadowFactor = CalculateShadowFactor(cascadeIndex, pixelPosInLightSpace);
     if (shadowFactor > 0.f)
     {
-        //pOut.color.xyz = float3(pixelPosInLightSpace.z / pixelPosInLightSpace.w, shadowFactor, 0.f);
-        if (pixelPosInLightSpace.z / pixelPosInLightSpace.w > shadowFactor)
-        {
-            pOut.color.xyz *= 0.1f;
-        }
+        pOut.color.xyz *= 1.f - (shadowFactor/2.f);
     }
 	
     return pOut;

@@ -44,8 +44,8 @@ Texture2D g_LightSpecular	: register(t5);
 
 Texture2DArray g_ShadowDepth	: register(t6);
 
-SamplerState g_Sampler;
-SamplerComparisonState g_SamplerCoparison;
+SamplerState g_Sampler : register(s0);
+SamplerComparisonState g_SamplerCoparison : register(s1);
 
 SamplerComparisonState cmpSampler
 {

@@ -42,6 +42,7 @@ enum class EFrustumCascade
 {
 	Near,
 	Middle,
+	Middle2,
 	Far,
 	Count
 };
@@ -53,6 +54,7 @@ Renderer::Renderer(void) noexcept
 {
 	_cascadeDistance[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
 	_cascadeDistance[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
+	_cascadeDistance[CastValue<int>(EFrustumCascade::Middle2)] = 18.f;
 	_cascadeDistance[CastValue<int>(EFrustumCascade::Far)] = 1000.f;
 
 	_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
@@ -332,13 +334,11 @@ void Renderer::updateConstantBuffer()
 			// PerConstant ·¹ÀÌ¾î 
 			if (g_pRenderer->IsDirtyConstant())
 			{
-				int resoultionWidth = g_pSetting->getResolutionWidth();
-				int resoultionHeight = g_pSetting->getResolutionHeight();
+				Vec4 resolution = { CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 0.f, 0.f };
 				BOOL bLight = TRUE;
 
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 0, &resoultionWidth);
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 1, &resoultionHeight);
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 2, &bLight);
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 0, &resolution);
+				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 1, &bLight);
 				shader->UpdateConstantBuffer(ConstantBuffersLayer::Constant, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::Constant)]);
 			}
 
@@ -392,7 +392,6 @@ void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPo
 	float tanHalfAspectRatio = tan(g_pSetting->getAspectRatio() / 2.f);
 
 	for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Count) - 1; ++cascadeIndex)
-	//for (int cascadeIndex = 0; cascadeIndex < 1; ++cascadeIndex)
 	{
 		float depth = _cascadeDistance[cascadeIndex];
 		float width = tanHalfFov * depth;
@@ -417,7 +416,7 @@ void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPo
 		XMVECTOR cascadeCenter = XMVectorSet(VEC4ZERO.x, VEC4ZERO.y, VEC4ZERO.z, VEC4ZERO.w);
 		for (auto& vertex : frustumCascadeVertices)
 		{
-			XMVECTOR worldVertex = XMVector3TransformCoord(XMVectorSet(vertex.x, vertex.y, vertex.z, vertex.w), XMLoadFloat4x4(&cameraWorldMatrix));
+			XMVECTOR worldVertex = XMVector4Transform(XMVectorSet(vertex.x, vertex.y, vertex.z, vertex.w), XMLoadFloat4x4(&cameraWorldMatrix));
 			XMStoreFloat4(&vertex, worldVertex);
 
 			cascadeCenter += worldVertex;
@@ -427,8 +426,8 @@ void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPo
 		float maxDistance = 0.f;
 		for (auto& vertex : frustumCascadeVertices)
 		{
-			Vec4 distance;
-			XMStoreFloat4(&distance, XMVector4Length(XMLoadFloat4(&vertex) - cascadeCenter));
+			Vec3 distance;
+			XMStoreFloat3(&distance, XMVector3Length(XMLoadFloat4(&vertex) - cascadeCenter));
 
 			maxDistance = std::max<float>(distance.x, maxDistance);
 		}

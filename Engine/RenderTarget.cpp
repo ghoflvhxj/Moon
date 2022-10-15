@@ -51,7 +51,7 @@ void RenderTarget::initializeTexture(int textureArrayCount, int depthStencilCoun
 	renderTagetDesc.ArraySize = textureArrayCount;
 	renderTagetDesc.MipLevels = 1;
 	renderTagetDesc.Usage = D3D11_USAGE_DEFAULT;
-	renderTagetDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	renderTagetDesc.Format = textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_TYPELESS;
 	renderTagetDesc.CPUAccessFlags = 0;
 	renderTagetDesc.MiscFlags = 0;
 
@@ -59,7 +59,7 @@ void RenderTarget::initializeTexture(int textureArrayCount, int depthStencilCoun
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&renderTagetDesc, nullptr, &_pRenderTargetTexture->getRawTexturePointer()));
 
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
-	renderTargetViewDesc.Format = renderTagetDesc.Format;
+	renderTargetViewDesc.Format = textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
 	if (textureArrayCount <= 1)
 	{
 		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
@@ -76,7 +76,7 @@ void RenderTarget::initializeTexture(int textureArrayCount, int depthStencilCoun
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(_pRenderTargetTexture->getRawTexturePointer(), &renderTargetViewDesc, &_pRenderTargetView));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC svd = { };
-	svd.Format = renderTagetDesc.Format;
+	svd.Format = textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
 	if (textureArrayCount <= 1)
 	{
 		svd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;

@@ -22,7 +22,7 @@ VertexOut main(VertexIn vIn)
 	
 	float4 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);
 	vOut.pos		= mul(float4(animatedPos.x, animatedPos.y, animatedPos.z, 1.f), worldViewProj);
-    vOut.worldPos	= mul(float4(vIn.pos.x, vIn.pos.y, vIn.pos.z, 1.f), worldMatrix);
+    vOut.worldPos	= mul(float4(animatedPos.x, animatedPos.y, animatedPos.z, 1.f), worldMatrix);
 	vOut.uv			= vIn.uv;
 	vOut.normal		= mul(float4(vIn.normal, 0.f), worldView).xyz;
 	vOut.tangent	= mul(float4(vIn.tangent, 0.f), worldView).xyz;

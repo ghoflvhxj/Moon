@@ -16,8 +16,8 @@ PixelOut main(PixelIn pIn)
 	pOut.color = diffuse;
 	if (bLight)
 	{
-		pOut.color = diffuse * (light + specular);
-	}
+        pOut.color = diffuse * (light + specular);
+    }
 
 	return pOut;
 }

@@ -24,7 +24,7 @@ struct GSOutput
 [maxvertexcount(9)] 
 void main(triangle GSInput input[3], inout TriangleStream<GSOutput> output)
 {
-    for (uint cascadeIndex = 0; cascadeIndex < 2; ++cascadeIndex)
+    for (uint cascadeIndex = 0; cascadeIndex < 3; ++cascadeIndex)
     {
         GSOutput element;
         element.renderTargetIndex = cascadeIndex;

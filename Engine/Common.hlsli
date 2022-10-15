@@ -1,7 +1,6 @@
 cbuffer CBuffer_ABVD : register(b0)
 {
-    float resolutionWidth;
-    float resolutionHeight;
+    float4 resolution;
     bool bLight;
 };
 
@@ -16,6 +15,6 @@ cbuffer CBuffer_PerTick : register(b1)
     row_major matrix inverseOrthographicProjectionMatrix;
     
     float4 lightPos[3];
-    row_major matrix lightViewProjMatrix[2];
+    row_major matrix lightViewProjMatrix[3];
     float4 cascadeDistance;
 };
