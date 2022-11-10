@@ -12,27 +12,31 @@ float CalculateShadowFactor(int cascadeIndex, float4 lightspacepos)
     projCoords.x = projCoords.x * 0.5f + 0.5f;
     projCoords.y = -projCoords.y * 0.5f + 0.5f;
     if (projCoords.z > 1.f)
+    {
         return 0.f;
+    }
 	
     float bias = 0.005f;
     float3 samplePos = float3(projCoords.x, projCoords.y, cascadeIndex);
     float shadow = 0.f;
     
+    int sampeleCount = 3;
+    int temp = sampeleCount / 2;
     [unroll]
-    for (int x = -1; x <= 1; ++x)
+    for (int x = -temp; x <= temp; ++x)
     {
         [unroll]
-        for (int y = -1; y <= 1; ++y)
+        for (int y = -temp; y <= temp; ++y)
         {
             float4 temp = g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, samplePos, projCoords.z - bias, int2(x, y));
             shadow += temp.x;
         }
     }
-    shadow /= 9.f;
+    shadow /= float(sampeleCount * sampeleCount);
     return shadow;
     
     //float4 temp = g_ShadowDepth.Sample(g_Sampler, samplePos);
-    //return temp.x;
+    //return temp.x < projCoords.z - bias ? 1.f : 0.f;
 }
 
 PixelOut_GeometryPass main(PixelIn pIn)
@@ -48,7 +52,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
 	pOut.depth		= float4(pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.w);
 	pOut.normal		= float4(pIn.normal, 1.f);  
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
-	
+    
     float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
 	
 	if (true == bUseNormalTexture)
@@ -80,7 +84,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
         cascadeDistanceInCameraViewProj[i] = mul(float4(0.f, 0.f, cascadeDistance[i+1], 1.f), projectionMatrix).z;
     }
     
-    float4 pixelPosInLightSpace;
+    float4 pixelPosInLightSpace = { 0.f, 0.f, 2.f, 1.f };
     int cascadeIndex = 0;
     for (int j = 0; j < 3; ++j)
     {

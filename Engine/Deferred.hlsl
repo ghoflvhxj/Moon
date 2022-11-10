@@ -2,7 +2,7 @@
 
 VertexOut main(VertexIn vIn)
 {
-	VertexOut vOut;
+    VertexOut vOut = (VertexOut)0;
 
 	matrix worldView = mul(worldMatrix, identityMatrix);
 	matrix worldViewProj = mul(worldView, orthographicProjectionMatrix);

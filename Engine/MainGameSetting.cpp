@@ -4,7 +4,7 @@
 MainGameSetting::MainGameSetting()
 	: _resolutionWidth{ 1920 }
 	, _resolutionHeight{ 1080 }
-	, _fov{ 45.f }
+	, _fov{ 70.f }
 	, _bLighting{ TRUE }
 {
 }

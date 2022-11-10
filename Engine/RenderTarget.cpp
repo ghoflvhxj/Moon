@@ -16,16 +16,21 @@ RenderTarget::RenderTarget()
 	, _pDepthStencilTexture{ nullptr }
 	, _pDepthStencilView{ nullptr }
 {
-	initializeTexture(1, 1);
+	RenderTagetInfo info = {};
+	info.textureArrayCount = 1;
+	info.width = CastValue<UINT>(g_pSetting->getResolutionWidth());
+	info.height = CastValue<UINT>(g_pSetting->getResolutionHeight());
+
+	initializeTexture(info);
 }
 
-RenderTarget::RenderTarget(int textureArrayCount, int depthStencilCount)
+RenderTarget::RenderTarget(RenderTagetInfo &info)
 	: _pRenderTargetTexture{ nullptr }
 	, _pRenderTargetView{ nullptr }
 	, _pDepthStencilTexture{ nullptr }
 	, _pDepthStencilView{ nullptr }
 {
-	initializeTexture(textureArrayCount, depthStencilCount);
+	initializeTexture(info);
 }
 
 RenderTarget::~RenderTarget()
@@ -39,19 +44,19 @@ std::shared_ptr<TextureComponent> RenderTarget::AsTexture()
 	return _pRenderTargetTexture;
 }
 
-void RenderTarget::initializeTexture(int textureArrayCount, int depthStencilCount)
+void RenderTarget::initializeTexture(RenderTagetInfo &renderTargetInfo)
 {
-	// RenderTargetView, ShaderResouceView
+	// RenderTargetView
 	D3D11_TEXTURE2D_DESC renderTagetDesc = {};
-	renderTagetDesc.Width = static_cast<UINT>(g_pSetting->getResolutionWidth());
-	renderTagetDesc.Height = static_cast<UINT>(g_pSetting->getResolutionHeight());
+	renderTagetDesc.Width = renderTargetInfo.width;
+	renderTagetDesc.Height = renderTargetInfo.height;
 	renderTagetDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	renderTagetDesc.SampleDesc.Count = 1;
 	renderTagetDesc.SampleDesc.Quality = 0;
-	renderTagetDesc.ArraySize = textureArrayCount;
+	renderTagetDesc.ArraySize = renderTargetInfo.textureArrayCount;
 	renderTagetDesc.MipLevels = 1;
 	renderTagetDesc.Usage = D3D11_USAGE_DEFAULT;
-	renderTagetDesc.Format = textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_TYPELESS;
+	renderTagetDesc.Format = renderTargetInfo.textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_TYPELESS;
 	renderTagetDesc.CPUAccessFlags = 0;
 	renderTagetDesc.MiscFlags = 0;
 
@@ -59,8 +64,8 @@ void RenderTarget::initializeTexture(int textureArrayCount, int depthStencilCoun
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&renderTagetDesc, nullptr, &_pRenderTargetTexture->getRawTexturePointer()));
 
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
-	renderTargetViewDesc.Format = textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
-	if (textureArrayCount <= 1)
+	renderTargetViewDesc.Format = renderTargetInfo.textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
+	if (renderTargetInfo.textureArrayCount <= 1)
 	{
 		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		renderTargetViewDesc.Texture2D.MipSlice = 0;
@@ -70,14 +75,15 @@ void RenderTarget::initializeTexture(int textureArrayCount, int depthStencilCoun
 		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 		renderTargetViewDesc.Texture2DArray.MipSlice = 0;
 		renderTargetViewDesc.Texture2DArray.FirstArraySlice = 0;
-		renderTargetViewDesc.Texture2DArray.ArraySize = textureArrayCount;
+		renderTargetViewDesc.Texture2DArray.ArraySize = renderTargetInfo.textureArrayCount;
 	}
 	
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(_pRenderTargetTexture->getRawTexturePointer(), &renderTargetViewDesc, &_pRenderTargetView));
 
+	// ShaderResouceView
 	D3D11_SHADER_RESOURCE_VIEW_DESC svd = { };
-	svd.Format = textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
-	if (textureArrayCount <= 1)
+	svd.Format = renderTargetInfo.textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
+	if (renderTargetInfo.textureArrayCount <= 1)
 	{
 		svd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		svd.Texture2D.MipLevels = -1;
@@ -88,7 +94,7 @@ void RenderTarget::initializeTexture(int textureArrayCount, int depthStencilCoun
 		svd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 		svd.Texture2DArray.MipLevels = -1;
 		svd.Texture2DArray.MostDetailedMip = 0;
-		svd.Texture2DArray.ArraySize = textureArrayCount;
+		svd.Texture2DArray.ArraySize = renderTargetInfo.textureArrayCount;
 		svd.Texture2DArray.FirstArraySlice = 0;
 	}
 
@@ -96,14 +102,14 @@ void RenderTarget::initializeTexture(int textureArrayCount, int depthStencilCoun
 
 	// DepthStencilView
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
-	depthStencilDesc.Width = static_cast<UINT>(g_pSetting->getResolutionWidth());
-	depthStencilDesc.Height = static_cast<UINT>(g_pSetting->getResolutionHeight());
+	depthStencilDesc.Width = renderTargetInfo.width;
+	depthStencilDesc.Height = renderTargetInfo.height;
 	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
 	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
 	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.ArraySize = textureArrayCount;
+	depthStencilDesc.ArraySize = renderTargetInfo.textureArrayCount;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.CPUAccessFlags = 0;
 	depthStencilDesc.MiscFlags = 0;

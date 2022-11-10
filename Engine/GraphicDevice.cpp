@@ -343,7 +343,7 @@ const bool GraphicDevice::buildSamplerState()
 	samplerDesc.BorderColor[2] = 1.f;
 	samplerDesc.BorderColor[3] = 1.f;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	samplerDesc.MaxAnisotropy = 1u;
+	samplerDesc.MaxAnisotropy = 16u;
 	samplerDesc.MaxLOD = FLT_MAX;
 	samplerDesc.MinLOD = -FLT_MAX;
 	samplerDesc.MipLODBias = 0.f;
@@ -358,7 +358,7 @@ const bool GraphicDevice::buildSamplerState()
 	samplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 	samplerDesc.BorderColor[0] = 1.f;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_GREATER;
-	samplerDesc.MaxAnisotropy = 1u;
+	samplerDesc.MaxAnisotropy = 16u;
 	samplerDesc.MaxLOD = FLT_MAX;
 	samplerDesc.MinLOD = -FLT_MAX;
 	samplerDesc.MipLODBias = 0.f;

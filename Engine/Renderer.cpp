@@ -83,12 +83,17 @@ void Renderer::initialize(void) noexcept
 	_pMeshComponent->setScale(Vec3{ CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f });
 	_pMeshComponent->SceneComponent::Update(0.f);
 
+	RenderTagetInfo shadowMapInfo = {};
+	shadowMapInfo.width = 1920;
+	shadowMapInfo.height = 1080;
+	shadowMapInfo.textureArrayCount = CastValue<int>(_cascadeDistance.size());
+
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
 	{
 		switch (CastValue<ERenderTarget>(i))
 		{
 		case ERenderTarget::ShadowDepth:
-			_renderTargets.emplace_back(std::make_shared<RenderTarget>(CastValue<int>(_cascadeDistance.size() - 1), 1));
+			_renderTargets.emplace_back(std::make_shared<RenderTarget>(shadowMapInfo));
 			break;
 		default:
 			_renderTargets.emplace_back(std::make_shared<RenderTarget>());
@@ -388,51 +393,52 @@ const bool Renderer::IsDirtyConstant() const
 
 void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition)
 {
-	float tanHalfFov = tan(g_pSetting->getFov() / 2.f);
-	float tanHalfAspectRatio = tan(g_pSetting->getAspectRatio() / 2.f);
+	float tanHalfVFov = tan(XMConvertToRadians(g_pSetting->getFov() / 2.f));
+	float tanHalfHFov = tanHalfVFov * g_pSetting->getAspectRatio();
 
-	for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Count) - 1; ++cascadeIndex)
+	for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Far); ++cascadeIndex)
 	{
 		float depth = _cascadeDistance[cascadeIndex];
-		float width = tanHalfFov * depth;
-		float hegiht = tanHalfAspectRatio * depth;
-
 		float nextDepth = _cascadeDistance[cascadeIndex + 1];
-		float nextWidth = tanHalfFov * nextDepth;
-		float nextHegiht = tanHalfAspectRatio * nextDepth;
+		float xn = _cascadeDistance[cascadeIndex] * tanHalfHFov;
+		float xf = _cascadeDistance[cascadeIndex + 1] * tanHalfHFov;
+		float yn = _cascadeDistance[cascadeIndex] * tanHalfVFov;
+		float yf = _cascadeDistance[cascadeIndex + 1] * tanHalfVFov;
 
-		std::vector<Vec4> frustumCascadeVertices = {
-			{ -width, hegiht, depth, 1.f },
-			{ width, hegiht, depth, 1.f },
-			{ -width,-hegiht, depth, 1.f },
-			{ width,-hegiht, depth, 1.f },
-			{ -nextWidth, nextHegiht, nextDepth, 1.f },
-			{ nextWidth, nextHegiht, nextDepth, 1.f },
-			{ -nextWidth,-nextHegiht, nextDepth, 1.f },
-			{ nextWidth,-nextHegiht, nextDepth, 1.f },
+		std::vector<Vec3> frustumCascadeVertices = {
+			//near Face
+			{xn,yn,depth},
+			{-xn,yn,depth},
+			{xn,-yn,depth},
+			{-xn,-yn,depth},
+			//far Face
+			{xf,yf,nextDepth},
+			{-xf,yf,nextDepth},
+			{xf,-yf,nextDepth},
+			{-xf,-yf,nextDepth}
 		};
 
-		Mat4 cameraWorldMatrix = g_pMainGame->getMainCamera()->getInvesrViewMatrix();
+		XMMATRIX cameraWorldMatrix = XMLoadFloat4x4(&g_pMainGame->getMainCamera()->getInvesrViewMatrix());
 		XMVECTOR cascadeCenter = XMVectorSet(VEC4ZERO.x, VEC4ZERO.y, VEC4ZERO.z, VEC4ZERO.w);
 		for (auto& vertex : frustumCascadeVertices)
 		{
-			XMVECTOR worldVertex = XMVector4Transform(XMVectorSet(vertex.x, vertex.y, vertex.z, vertex.w), XMLoadFloat4x4(&cameraWorldMatrix));
-			XMStoreFloat4(&vertex, worldVertex);
+			XMVECTOR worldVertex = XMVector3Transform(XMVectorSet(vertex.x, vertex.y, vertex.z, 1.f), cameraWorldMatrix);
+			XMStoreFloat3(&vertex, worldVertex);
 
 			cascadeCenter += worldVertex;
 		}
+		cascadeCenter /= CastValue<float>(frustumCascadeVertices.size());
 
-		cascadeCenter /= 8.f;
 		float maxDistance = 0.f;
 		for (auto& vertex : frustumCascadeVertices)
 		{
 			Vec3 distance;
-			XMStoreFloat3(&distance, XMVector3Length(XMLoadFloat4(&vertex) - cascadeCenter));
+			XMStoreFloat3(&distance, XMVector3Length(XMLoadFloat3(&vertex) - cascadeCenter));
 
 			maxDistance = std::max<float>(distance.x, maxDistance);
 		}
 
-		float radius = std::ceil(maxDistance * 16.0f) / 16.0f;
+		float radius = std::ceil(maxDistance * 16.f) / 16.f;
 
 		XMVECTOR lightDirection = XMVector3Normalize(XMVectorSet(_directionalLightDirection[0].x, _directionalLightDirection[0].y, _directionalLightDirection[0].z, 0.f));
 		XMVECTOR directionalLightPos = cascadeCenter - (lightDirection * radius);
@@ -442,5 +448,7 @@ void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPo
 		
 		XMStoreFloat4(&lightPosition[cascadeIndex], directionalLightPos);
 		XMStoreFloat4x4(&lightViewProj[cascadeIndex], XMMatrixMultiply(LookAtMatrix, OrthograhpicMatrix));
+		lightViewProj[cascadeIndex]._41 = round(lightViewProj[cascadeIndex]._41 * 10.f) / 10.f;
+		lightViewProj[cascadeIndex]._42 = round(lightViewProj[cascadeIndex]._42 * 10.f) / 10.f;
 	}
 }

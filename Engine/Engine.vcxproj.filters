@@ -341,6 +341,9 @@
     <ClInclude Include="GeometryShader.h">
       <Filter>Module\Graphics\Shader\Geometry</Filter>
     </ClInclude>
+    <ClInclude Include="Fxaa3_11.hlsli">
+      <Filter>Module\Graphics\Shader\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Timer.cpp">
@@ -512,9 +515,6 @@
       <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="DirectionalLightShader.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="LinePixelShader.hlsl">
       <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
     </FxCompile>
     <FxCompile Include="PixelShader.hlsl">

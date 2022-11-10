@@ -3,17 +3,24 @@
 
 class TextureComponent;
 
+struct RenderTagetInfo
+{
+	int textureArrayCount;
+	UINT width;
+	UINT height;
+};
+
 class RenderTarget
 {
 public:
 	explicit RenderTarget();
-	explicit RenderTarget(int textureArrayCount, int depthStencilCount);
+	explicit RenderTarget(RenderTagetInfo &info);
 	virtual ~RenderTarget();
 	
 public:
 	std::shared_ptr<TextureComponent> AsTexture();
 private:
-	void initializeTexture(int textureArrayCount, int depthStencilCount);
+	void initializeTexture(RenderTagetInfo &renderTargetInfo);
 	std::shared_ptr<TextureComponent> _pRenderTargetTexture;
 	std::shared_ptr<TextureComponent> _pDepthStencilTexture;
 
