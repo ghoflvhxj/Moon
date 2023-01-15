@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "CombinePass.h"
 
+// Renderer
+#include "Renderer.h"
+
 // Graphic
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -67,7 +70,7 @@ void CombinePass::render(PrimitiveData &primitiveData)
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// OutputMerge
-	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
+	g_pGraphicDevice->getContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
@@ -79,8 +82,17 @@ void CombinePass::render(PrimitiveData &primitiveData)
 
 const bool GeometryPass::processPrimitiveData(PrimitiveData &primitiveData)
 {
-	if (primitiveData._primitiveType != EPrimitiveType::Mesh)
+	switch (primitiveData._primitiveType)
 	{
+	case EPrimitiveType::Mesh:
+		break;
+	case EPrimitiveType::Collision:
+		if (g_pRenderer->IsDrawCollision() == false)
+		{
+			return false;
+		}
+		break;
+	default:
 		return false;
 	}
 
@@ -95,10 +107,13 @@ const bool GeometryPass::processPrimitiveData(PrimitiveData &primitiveData)
 	memcpy(VS_CBuffer_PerObject[2]._pValue, &animated, VS_CBuffer_PerObject[2]._size);
 
 	auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	BOOL bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Normal) ? TRUE : FALSE;
-	memcpy(PS_CBuffer_PerObject[0]._pValue, &bUseTexture, PS_CBuffer_PerObject[0]._size);
-	bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Specular) ? TRUE : FALSE;
-	memcpy(PS_CBuffer_PerObject[1]._pValue, &bUseTexture, PS_CBuffer_PerObject[1]._size);
+	if (PS_CBuffer_PerObject.empty() == false)
+	{
+		BOOL bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Normal) ? TRUE : FALSE;
+		memcpy(PS_CBuffer_PerObject[0]._pValue, &bUseTexture, PS_CBuffer_PerObject[0]._size);
+		bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Specular) ? TRUE : FALSE;
+		memcpy(PS_CBuffer_PerObject[1]._pValue, &bUseTexture, PS_CBuffer_PerObject[1]._size);
+	}
 
 	return true;
 }
@@ -142,7 +157,6 @@ void GeometryPass::render(PrimitiveData &primitiveData)
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
-	//g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(primitiveData._pMaterial->getFillMode(), primitiveData._pMaterial->getCullMode()));
 
 	//--------------------------------------------------------------------------------------------------------------------------------

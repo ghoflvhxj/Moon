@@ -79,6 +79,9 @@ private:
 	void Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition);
 private:
 	std::vector<float> _cascadeDistance;
+
+public:
+	RENDERER_OPTION(DrawCollision)
 };
 
 #define __RENDERER_H__

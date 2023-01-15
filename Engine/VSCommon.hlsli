@@ -25,7 +25,7 @@ struct VertexOut
 struct VertexOut_Simple
 {
 	float4 color : COLOR;
-	float4 pos : POSITION0;
+	float4 pos : SV_POSITION;
 };
 
 cbuffer VS_CBuffer_PerObject : register(b2)

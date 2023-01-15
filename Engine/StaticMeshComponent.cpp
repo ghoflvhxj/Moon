@@ -23,7 +23,7 @@ void StaticMesh::initializeMeshInformation(const char *filePathName)
 	_indicesList = std::move(fbxLoader.getIndicesList());
 	_textureList = std::move(fbxLoader.getTextures());
 	_geometryCount = fbxLoader.getGeometryCount();
-	_geometryLinkMaterialIndices = std::move(fbxLoader.getLinkList());
+	_geometryLinkMaterialIndices = fbxLoader.getLinkList();
 	if (_geometryLinkMaterialIndices.size() == 0)
 	{
 		_geometryLinkMaterialIndices.emplace_back(0);
@@ -154,18 +154,18 @@ const bool StaticMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pri
 		primitiveDataList.emplace_back(primitive);
 	}
 
+	// BoudingBox
 	std::shared_ptr<BoundingBox> &boundingBox = _pStaticMesh->getBoundingBox();
-	if (_bDrawBoundingBox && boundingBox)
+	if (boundingBox && _bDrawBoundingBox)
 	{
-		// BoudingBox
-		//PrimitiveData primitive = {};
-		//primitive._pPrimitive = shared_from_this();
-		//primitive._pVertexBuffer = boundingBox->getVertexBuffer();
-		//primitive._pIndexBuffer = nullptr;
-		//primitive._pMaterial = boundingBox->getMaterial();
-		//primitive._primitiveType = EPrimitiveType::Mesh;
-		//primitive._pPrimitive = shared_from_this();
-		//primitiveDataList.emplace_back(primitive);
+		PrimitiveData primitive = {};
+		primitive._pPrimitive = shared_from_this();
+		primitive._pVertexBuffer = boundingBox->getVertexBuffer();
+		primitive._pIndexBuffer = nullptr;
+		primitive._pMaterial = boundingBox->getMaterial();
+		primitive._primitiveType = EPrimitiveType::Collision;
+		primitive._pPrimitive = shared_from_this();
+		primitiveDataList.emplace_back(primitive);
 	}
 
 	return true;

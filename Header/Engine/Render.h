@@ -4,6 +4,10 @@
 #include "GraphicDevice.h"
 #include "ShaderManager.h"
 
+#define RENDERER_OPTION(name)	bool b##name = false;\
+								void Set##name(bool New##name) { b##name = New##name; }\
+								bool Is##name() { return b##name; }
+
 // 프레임워크
 class PrimitiveComponent;
 class TextureComponent;
@@ -59,6 +63,8 @@ enum class EPrimitiveType
 	// Light
 	Light,
 	
+	Collision,
+
 	Count
 };
 
