@@ -244,7 +244,7 @@ ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode
 
 const bool GraphicDevice::buildDepthStencilState()
 {
-	_rasterizerList.reserve(CastValue<uint32>(Graphic::DepthWriteMode::Count));
+	_depthStencilStateList.reserve(CastValue<uint32>(Graphic::DepthWriteMode::Count));
 	ID3D11DepthStencilState *pDepthStencilState = nullptr;
 
 	//-------------------------------------------------------------------------------------
