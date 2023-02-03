@@ -11,6 +11,8 @@
 #include "MeshComponent.h"
 #include "TerrainComponent.h"
 #include "PointLightComponent.h"
+#include "SphereComponent.h"
+#include "StaticMeshComponent.h"
 #include "Camera.h"
 #include "Player.h"
 
@@ -42,6 +44,16 @@ const bool MyGame::initialize()
 
 	_pPlayer = std::make_shared<Player>();
 	addActor(_pPlayer);
+
+	MyActor = std::make_shared<Actor>();
+	//a = std::make_shared<SphereComponent>();
+	//MyActor->addComponent(TEXT("Root"), a);
+	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx", true, false);
+	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	_pStaticMeshComponent->setDrawingBoundingBox(true);
+	MyActor->addComponent(TEXT("test"), _pStaticMeshComponent);
+	//a->AddChildComponent(_pStaticMeshComponent);
+	addActor(MyActor);
 
 	//_pTerrainComponent = std::make_shared<TerrainComponent>(100, 100);
 	//_pTerrainComponent->setTexture(enumToIndex(TextureType::Diffuse), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_albedo.jpg")));
@@ -76,21 +88,17 @@ void MyGame::Tick(const Time deltaTime)
 
 	//_pTerrainComponent->Update(deltaTime);
 	//_pPlayer->rideTerrain(_pTerrainComponent);
+
+	if (MyActor && bButtonPressed)
+	{
+		_pStaticMeshComponent->Temp(Force);
+		//a->AddForce(Vec3(0.f, Force, 0.f));
+	}
 }
 
 void MyGame::render()
 {
 	//std::shared_ptr<LightComponent> p = std::static_pointer_cast<LightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
-	std::shared_ptr<LightComponent> p = std::static_pointer_cast<LightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
-
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-
-	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-	ImGui::Text("Toatal primitive:%d", getRenderer()->totalPrimitiveCount);
-	ImGui::Text("show primitive:%d", getRenderer()->showPrimitiveCount);
-	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
 
 	//Vec3 pos = p->getTranslation();
 	//ImGui::SliderFloat("posX", &pos.x, -10.f, 10.f);
@@ -98,14 +106,27 @@ void MyGame::render()
 	//ImGui::SliderFloat("posZ", &pos.z, -10.f, 10.f);
 	//p->setTranslation(pos);
 
+	std::shared_ptr<LightComponent> p = std::static_pointer_cast<LightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
+
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::Begin("Hello, world!");                  
+	ImGui::Text("Toatal primitive:%d", getRenderer()->totalPrimitiveCount);
+	ImGui::Text("show primitive:%d", getRenderer()->showPrimitiveCount);
+	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
+
 	Vec3 rot = p->getRotation();
 	ImGui::SliderAngle("rotX", &rot.x);
 	ImGui::SliderAngle("rotY", &rot.y);
 	ImGui::SliderAngle("rotZ", &rot.z);
-	//rot.x = XMConvertToDegrees(rot.x);
-	//rot.y = XMConvertToDegrees(rot.y);
-	//rot.z = XMConvertToDegrees(rot.z);
 	p->setRotation(rot);
+
+	ImGui::Checkbox("Debug Collision", &getRenderer()->bDrawCollision);
+
+	ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
+	bButtonPressed = ImGui::Button("AddForce");
 
 	ImGui::End();
 

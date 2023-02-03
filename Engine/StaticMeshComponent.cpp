@@ -15,10 +15,17 @@
 
 #include "FBXLoader.h"
 
-void StaticMesh::initializeMeshInformation(const char *filePathName)
+#include "MPhysX.h"
+#include <PxPhysicsAPI.h>
+
+#include <DirectXMath.h>
+using namespace DirectX;
+
+void StaticMesh::initializeMeshInformation(const char *filePathName, bool bUsePhysX, bool bRigidStatic)
 {
 	FBXLoader fbxLoader(filePathName);
 
+	VertexCount = fbxLoader.getVertexCount();
 	_verticesList = std::move(fbxLoader.getVerticesList());
 	_indicesList = std::move(fbxLoader.getIndicesList());
 	_textureList = std::move(fbxLoader.getTextures());
@@ -72,6 +79,52 @@ void StaticMesh::initializeMeshInformation(const char *filePathName)
 	Vec3 min, max;
 	fbxLoader.getBoundingBoxInfo(min, max);
 	_pBoundingBox = std::make_shared<BoundingBox>(min, max);
+
+
+	// ÇÇÁ÷½º ConvexMesh
+	if (bUsePhysX)
+	{
+		uint32 VertexCount = fbxLoader.getVertexCount();
+		std::vector<Vec3> PxVertices;
+		PxVertices.reserve(VertexCount);
+		CenterPos = { 0.f, 0.f, 0.f };
+		for (auto& vertices : _verticesList)
+		{
+			for (auto& vertex : vertices)
+			{
+				PxVertices.emplace_back(Vec3(vertex.Pos.x, vertex.Pos.y, vertex.Pos.z));
+				CenterPos.x += vertex.Pos.x;
+				CenterPos.y += vertex.Pos.y;
+				CenterPos.z += vertex.Pos.z;
+			}
+		}
+		CenterPos.x /= CastValue<float>(VertexCount);
+		CenterPos.y /= CastValue<float>(VertexCount);
+		CenterPos.z /= CastValue<float>(VertexCount);
+
+		PxMaterial *PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
+		g_pPhysics->CreateConvex(PxVertices, &PhysXConvexMesh);
+		PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(PhysXConvexMesh);
+		PhysXShape = (*g_pPhysics)->createShape(Geometry, *PhysxMaterial);
+
+		bStatic = bRigidStatic;
+		if (bStatic)
+		{
+			PhysxRigidActor = (*g_pPhysics)->createRigidStatic(PxTransform(PxVec3(0.f, 0.f, 0.f)));
+		}
+		else
+		{
+			PxRigidDynamic* PhysxRigidDynamic = (*g_pPhysics)->createRigidDynamic(PxTransform(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity)));
+			PhysxRigidDynamic->setMass(3.f);
+			PhysxRigidDynamic->setCMassLocalPose(PxTransform(PxVec3(0.f, 0.2f, 0.f), PxQuat(PxIdentity)));
+			//PhysxRigidDynamic->setMaxDepenetrationVelocity(0.002f);
+			PhysxRigidDynamic->setAngularDamping(0.8f);
+			PhysxRigidActor = PhysxRigidDynamic;
+		}
+
+		PhysxRigidActor->attachShape(*PhysXShape);
+		g_pPhysics->Scene->addActor(*PhysxRigidActor); 
+	}
 }
 
 const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
@@ -115,6 +168,40 @@ std::shared_ptr<IndexBuffer> StaticMesh::getIndexBuffer()
 	return _pIndexBuffer;
 }
 
+void StaticMeshComponent::Temp(float y)
+{
+	if (PxRigidBody* PhysXRigidBody = _pStaticMesh->GetPhysXRigidDynamic())
+	{
+		PhysXRigidBody->addForce(PxVec3(0.f, y, 0.f));
+		PhysXRigidBody->addTorque(PxVec3(y, 0.f, 0.f));
+	}
+}
+
+void StaticMeshComponent::SetGravity(bool bGravity)
+{
+	if (PxRigidDynamic* PhysxRigidDynamic = _pStaticMesh->GetPhysXRigidDynamic())
+	{
+		PhysxRigidDynamic->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, bGravity);
+		PhysxRigidDynamic->setAngularVelocity(PxVec3(0.f, 0.f, 0.f));
+		PhysxRigidDynamic->wakeUp();
+	}
+}
+
+physx::PxRigidActor* StaticMesh::GetPhysXActor()
+{
+	return PhysxRigidActor;
+}
+
+physx::PxRigidDynamic* StaticMesh::GetPhysXRigidDynamic()
+{
+	return (bStatic == true) ? nullptr : static_cast<PxRigidDynamic*>(PhysxRigidActor);
+}
+
+physx::PxRigidStatic* StaticMesh::GetPhysXRigidStatic()
+{
+	return (bStatic == true) ? static_cast<PxRigidStatic*>(PhysxRigidActor) : nullptr;
+}
+
 StaticMeshComponent::StaticMeshComponent()
 	: PrimitiveComponent()
 {
@@ -128,8 +215,54 @@ StaticMeshComponent::StaticMeshComponent(const char *filePathName)
 	_pStaticMesh->initializeMeshInformation(filePathName);
 }
 
+StaticMeshComponent::StaticMeshComponent(const char *filePathName, bool bUsePhysX, bool bRigidStatic)
+{
+	_pStaticMesh = std::make_shared<StaticMesh>();
+	_pStaticMesh->initializeMeshInformation(filePathName, bUsePhysX, bRigidStatic);
+}
+
 StaticMeshComponent::~StaticMeshComponent()
 {
+}
+
+void StaticMeshComponent::Update(const Time deltaTime)
+{
+	if (PxRigidActor* PhysXActor = _pStaticMesh->GetPhysXActor())
+	{
+		PxTransform PhysXTransform = PhysXActor->getGlobalPose();
+		setTranslation(PhysXTransform.p.x, PhysXTransform.p.y, PhysXTransform.p.z);
+
+		Vec3 Scale = getScale();
+		if (PxRigidDynamic* PhysXRigidDynamic = _pStaticMesh->GetPhysXRigidDynamic())
+		{
+			Vec3 CenterPos = _pStaticMesh->CenterPos;
+			CenterPos.x *= Scale.x;
+			CenterPos.y *= Scale.y;
+			CenterPos.z *= Scale.z;
+			PhysXRigidDynamic->setCMassLocalPose(PxTransform(CenterPos.x, CenterPos.y, CenterPos.z));
+		}
+
+
+		PxShape* PhysXShape = nullptr;
+		PhysXActor->getShapes(&PhysXShape, 1);
+		if (PhysXShape)
+		{
+			PhysXActor->detachShape(*PhysXShape);
+
+			PxGeometryHolder holder = PhysXShape->getGeometry();
+			holder.convexMesh().convexMesh->acquireReference();
+
+
+			
+			holder.convexMesh().scale.scale = PxVec3(Scale.x, Scale.y, Scale.z);
+			PhysXShape->setGeometry(holder.any());
+
+			PhysXActor->attachShape(*PhysXShape);
+			holder.convexMesh().convexMesh->release();
+		}
+	}
+
+	PrimitiveComponent::Update(deltaTime);
 }
 
 const bool StaticMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
@@ -180,6 +313,20 @@ const bool StaticMeshComponent::getBoundingBox(std::shared_ptr<BoundingBox> &bou
 
 	boundingBox = _pStaticMesh->getBoundingBox();
 	return boundingBox != nullptr;
+}
+
+XMMATRIX StaticMeshComponent::GetRotationMatrix()
+{
+	if (PxRigidActor* PhysXActor = _pStaticMesh->GetPhysXActor())
+	{
+		PxTransform PhysXTransform = PhysXActor->getGlobalPose();
+		XMFLOAT4 Quaternion = { PhysXTransform.q.x, PhysXTransform.q.y, PhysXTransform.q.z, PhysXTransform.q.w };
+		return XMMatrixRotationQuaternion(XMLoadFloat4(&Quaternion));
+	}
+	else
+	{
+		return SceneComponent::GetRotationMatrix();
+	}
 }
 
 std::shared_ptr<StaticMesh>& StaticMeshComponent::getStaticMesh()

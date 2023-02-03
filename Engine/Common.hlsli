@@ -2,8 +2,6 @@
 #define __FXAA_FILTER_FX__
 #define FXAA_PC 1
 #define FXAA_HLSL_5 1
-
-#include "Fxaa3_11.hlsli"
 #endif
 
 cbuffer CBuffer_ABVD : register(b0)

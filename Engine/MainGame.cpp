@@ -21,6 +21,8 @@
 #include "Camera.h"
 #include "MeshComponent.h"
 
+#include "MPhysX.h"
+
 MainGame::MainGame()
 	: _deltaTime{ 0.f }
 	, _pTimerManager{ nullptr }
@@ -42,7 +44,7 @@ const bool MainGame::Loop()
 
 	g_pDirectInput->update();
 
-	if (nullptr != _pMainCamera)
+	if (_pMainCamera)
 	{
 		_pMainCamera->update(_deltaTime);
 	}
@@ -50,9 +52,14 @@ const bool MainGame::Loop()
 	Tick(_deltaTime);
 	Update(_deltaTime);
 
-	if (nullptr != g_pRenderer)
+	if (g_pRenderer)
 	{
 		g_pRenderer->render();
+	}
+
+	if (g_pPhysics)
+	{
+		g_pPhysics->Update(_deltaTime);
 	}
 
 	_deltaTime = 0.f;

@@ -33,22 +33,23 @@ void Player::initialize()
 {
 	_pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
 
-	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx");
+	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx", true, true);
 	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
 	_pMeshComponent->setScale(50.f, 1.f, 50.f);
-	_pMeshComponent->setTranslation(1.f, -1.f, 20.f);
+	_pMeshComponent->setTranslation(1.f, -3.f, 20.f);
+	_pMeshComponent->SetGravity(true);
 
-	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
-	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	_pStaticMeshComponent->setTranslation(0.f, 2.f, 0.f);
-	_pStaticMeshComponent->setDrawingBoundingBox(true);
-	addComponent(TEXT("test"), _pStaticMeshComponent);
+	//_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
+	//_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	//_pStaticMeshComponent->setTranslation(0.f, 2.f, 0.f);
+	//_pStaticMeshComponent->setDrawingBoundingBox(true);
+	//addComponent(TEXT("test"), _pStaticMeshComponent);
 
-	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Table/Table.fbx");
-	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	_pStaticMeshComponent2->setDrawingBoundingBox(true);
-	addComponent(TEXT("test2"), _pStaticMeshComponent2);
+	//_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Table/Table.fbx");
+	//_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	//_pStaticMeshComponent2->setDrawingBoundingBox(true);
+	//addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
 	_pLightComponent = std::make_shared<PointLightComponent>();
 	addComponent(TEXT("PointLight"), _pLightComponent);
@@ -69,6 +70,7 @@ void Player::initialize()
 	_pSkyComponent = std::make_shared<SkyComponent>();
 	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent2);
 	addComponent(TEXT("Sky"), _pSkyComponent);
+	_pSkyComponent->setRotation(Vec3{ XMConvertToRadians(270.f), 0.f, 0.f });
 #endif
 
 #if UseDirectionalLight == 1

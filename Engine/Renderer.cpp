@@ -78,7 +78,7 @@ void Renderer::initialize(void) noexcept
 {
 	std::shared_ptr<TextureComponent> _pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
 
-	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Plane.fbx");
+	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Plane.fbx", false);
 	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	_pMeshComponent->setScale(Vec3{ CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f });
 	_pMeshComponent->SceneComponent::Update(0.f);

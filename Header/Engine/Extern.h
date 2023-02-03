@@ -30,6 +30,9 @@ extern std::shared_ptr<MainGame> g_pMainGame;
 class DirectInput;
 extern std::shared_ptr<DirectInput> g_pDirectInput;
 
+class PhysXX;
+extern std::shared_ptr<PhysXX> g_pPhysics;
+
 #endif
 
 #define __EXTERN_H__

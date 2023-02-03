@@ -7,6 +7,7 @@
 #include "GraphicDevice.h"
 #include "Renderer.h"
 #include "MainGame.h"
+#include "MPhysX.h"
 
 #include "ShaderManager.h"
 #include "ShaderLoader.h"
@@ -21,6 +22,7 @@ std::shared_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
 std::shared_ptr<ShaderManager> g_pShaderManager		= nullptr;
 std::shared_ptr<Renderer> g_pRenderer				= nullptr;
 std::shared_ptr<MainGame> g_pMainGame				= nullptr;
+std::shared_ptr<PhysXX> g_pPhysics					= nullptr;
 		
 
 const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow)
@@ -34,11 +36,13 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 	g_pGraphicDevice	= std::make_shared<GraphicDevice>();
 	
-	g_pShaderManager = std::make_shared<ShaderManager>();
+	g_pShaderManager	= std::make_shared<ShaderManager>();
 	ShaderLoader shaderLoader;
 	shaderLoader.loadShaderFiles(g_pShaderManager);
 
 	g_pGraphicDevice->BuildInputLayout();
+
+	g_pPhysics			= std::make_shared<PhysXX>();
 
 	g_pRenderer			= std::make_shared<Renderer>();
 

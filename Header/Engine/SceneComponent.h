@@ -16,6 +16,8 @@ public:
 
 public:
 	virtual void Update(const Time deltaTime);
+	virtual void Update(const Time deltaTime, const XMMATRIX& ParentWorldMatrix);
+	virtual void OnUpdated();
 
 public:
 	void setScale(const Vec3 &scale);
@@ -25,6 +27,7 @@ private:
 	Vec3 m_scale;
 
 public:
+	virtual XMMATRIX GetRotationMatrix();
 	void setRotation(const Vec3 &rotation);
 	const Vec3&	getRotation() const;
 private:
@@ -36,7 +39,7 @@ public:
 	const Vec3&	getTranslation() const;
 private:
 	Vec3 m_translation;
-
+	Vec3 RelativeTranslation;
 public:
 	const Vec3			getLook() const;
 	const Vec3			getUp() const;
@@ -52,6 +55,12 @@ public:
 	const bool	isUpdateable() const;
 private:
 	bool _bUpdateable;
+	bool bUpdated;
+
+public:
+	void AddChildComponent(std::shared_ptr<SceneComponent> Component);
+private:
+	std::vector<std::shared_ptr<SceneComponent>> ChildComponents;
 };
 
 #define __SCENE_COMPONENT_H__

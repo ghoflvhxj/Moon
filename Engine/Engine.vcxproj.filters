@@ -147,6 +147,9 @@
     <Filter Include="Module\Graphics\Shader\Geometry\hlsl">
       <UniqueIdentifier>{6247a28a-faab-4293-82ea-4e32dd8e09f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Module\PhysX">
+      <UniqueIdentifier>{d395f175-0e53-489b-a38e-44b43668c91a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Timer.h">
@@ -344,6 +347,12 @@
     <ClInclude Include="Fxaa3_11.hlsli">
       <Filter>Module\Graphics\Shader\Common</Filter>
     </ClInclude>
+    <ClInclude Include="MPhysX.h">
+      <Filter>Module\PhysX</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereComponent.h">
+      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\ShapeComponent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Timer.cpp">
@@ -496,6 +505,12 @@
     <ClCompile Include="World.cpp" />
     <ClCompile Include="GeometryShader.cpp">
       <Filter>Module\Graphics\Shader\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="MPhysX.cpp">
+      <Filter>Module\PhysX</Filter>
+    </ClCompile>
+    <ClCompile Include="SphereComponent.cpp">
+      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\ShapeComponent</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

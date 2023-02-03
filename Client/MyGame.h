@@ -5,8 +5,11 @@
 
 class MeshComponent;
 class TerrainComponent;
+class SphereComponent;
 class Camera;
+class Actor;
 class Player;
+class StaticMeshComponent;
 
 class MyGame : public MainGame
 {
@@ -27,13 +30,23 @@ private:
 	void controlCamera(const Time deltaTime);
 
 private:
-	std::shared_ptr<Player> _pPlayer;
+	std::shared_ptr<Actor> MyActor;
+	std::shared_ptr<SphereComponent> a;
+
 private:
-	std::shared_ptr<MeshComponent> _pMeshComponent;
+	std::shared_ptr<Player> _pPlayer;
+
+private:
 	std::shared_ptr<TerrainComponent> _pTerrainComponent;
 	//std::shared_ptr<Camera>	_pCamera;			Camera의 기본 생성자는 g_pMainGame의 Setting을 가져와 fov를 설정함, 근데 아직 g_pMainGame이 설정되기 전임!
 
 	float _cameraSpeedScale = 1.f;
+
+	float time = 0.f;
+	
+	bool bButtonPressed = false;
+	float Force = 0.f;
+	std::shared_ptr<StaticMeshComponent> _pStaticMeshComponent;
 };
 
 #define __MYGAME_H__

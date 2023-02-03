@@ -24,6 +24,8 @@ using Vec2 = DirectX::XMFLOAT2;
 
 using Mat4 = DirectX::XMFLOAT4X4;
 
+using XMMATRIX = DirectX::XMMATRIX;
+
 using DIRECTORY = const wchar_t *;
 
 #endif __TYPE_H__

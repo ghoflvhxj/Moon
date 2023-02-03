@@ -15,7 +15,7 @@ SkyComponent::SkyComponent()
 	, _baseColor{ 1.f, 1.f, 1.f }
 {
 	_pSkyMesh = std::make_shared<StaticMesh>();
-	_pSkyMesh->initializeMeshInformation("SkyDome/SkyDome.fbx");
+	_pSkyMesh->initializeMeshInformation("SkyDome/SkyDome.fbx", false);
 
 	_pSkyMesh->getMaterial(0)->setShader(TEXT("TexVertexShader.cso"), TEXT("SkyPixelShader.cso"));
 }

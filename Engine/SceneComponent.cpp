@@ -9,7 +9,10 @@ SceneComponent::SceneComponent()
 	, m_scale{ FLOAT3_ONE }
 	, m_rotation{ FLOAT3_ZERO }
 	, m_translation{ FLOAT3_ZERO }
+	, RelativeTranslation{ FLOAT3_ZERO }
 	, _worldMatrix()
+	, _bUpdateable{ false }
+	, bUpdated{ false }
 {
 	setUpdateable(true);
 }
@@ -28,12 +31,56 @@ void SceneComponent::Update(const Time deltaTime)
 
 	XMMATRIX matrices[(int)Transform::End] = {
 		XMMatrixScalingFromVector(vectors[(int)Transform::Scale]),
-		XMMatrixRotationRollPitchYawFromVector(vectors[(int)Transform::Rotation]),
+		GetRotationMatrix(),
 		XMMatrixTranslationFromVector(vectors[(int)Transform::Translation])
 	};
 	
 	//XMMatrixMultiply()
 	XMStoreFloat4x4(&_worldMatrix, matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
+
+	if (ChildComponents.size() > 0)
+	{
+		XMMATRIX ParentMatrix = XMLoadFloat4x4(&_worldMatrix);
+		for (auto ChildComponent : ChildComponents)
+		{
+			ChildComponent->Update(deltaTime, ParentMatrix);
+		}
+	}
+
+	bUpdated = true;
+}
+
+void SceneComponent::Update(const Time deltaTime, const XMMATRIX& ParentWorldMatrix)
+{
+	XMVECTOR vectors[(int)Transform::End] = {
+		XMLoadFloat3(&m_scale),
+		XMLoadFloat3(&m_rotation),
+		XMLoadFloat3(&RelativeTranslation)
+	};
+
+	XMMATRIX matrices[(int)Transform::End] = {
+		XMMatrixScalingFromVector(vectors[(int)Transform::Scale]),
+		GetRotationMatrix(),
+		XMMatrixTranslationFromVector(vectors[(int)Transform::Translation])
+	};
+
+	XMStoreFloat4x4(&_worldMatrix, ParentWorldMatrix * matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
+
+	if (ChildComponents.size() > 0)
+	{
+		XMMATRIX ParentMatrix = XMLoadFloat4x4(&_worldMatrix);
+		for (auto ChildComponent : ChildComponents)
+		{
+			ChildComponent->Update(deltaTime, ParentMatrix);
+		}
+	}
+
+	bUpdated = true;
+}
+
+void SceneComponent::OnUpdated()
+{
+	bUpdated = false;
 }
 
 void SceneComponent::setScale(const Vec3 &scale)
@@ -49,6 +96,11 @@ void SceneComponent::setScale(const float scaleX, const float scaleY, const floa
 const Vec3& SceneComponent::getScale() const
 {
 	return m_scale;
+}
+
+XMMATRIX SceneComponent::GetRotationMatrix()
+{
+	return XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_rotation));
 }
 
 void SceneComponent::setRotation(const Vec3 &rotation)
@@ -114,5 +166,10 @@ void SceneComponent::setUpdateable(const bool updateable)
 
 const bool SceneComponent::isUpdateable() const
 {
-	return _bUpdateable;
+	return _bUpdateable == true && bUpdated == false;
+}
+
+void SceneComponent::AddChildComponent(std::shared_ptr<SceneComponent> Component)
+{
+	ChildComponents.emplace_back(Component);
 }

@@ -26,6 +26,11 @@ void Actor::update(const Time deltaTime)
 
 		iter->second->Update(deltaTime);
 	}
+
+	for (auto iter = _components.begin(); iter != _components.end(); ++iter)
+	{
+		iter->second->OnUpdated();
+	}
 }
 
 void Actor::tick(const Time deltaTime)

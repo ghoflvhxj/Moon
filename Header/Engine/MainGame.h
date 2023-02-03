@@ -11,6 +11,8 @@ class MeshComponent;
 class Actor;
 class Camera;
 
+class PhysXX;
+
 class ENGINE_DLL MainGame : public std::enable_shared_from_this<MainGame>
 {
 public:
@@ -75,9 +77,6 @@ public:
 	const Mat4& getMainCameraOrthographicProjectionMatrix() const;
 private:
 	std::shared_ptr<Camera> _pMainCamera;
-
-private:
-	//std::shared_ptr<MeshComponent> _pMeshComponent;
 };
 
 #define __MAINGAME_H__

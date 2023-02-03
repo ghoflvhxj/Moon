@@ -105,12 +105,12 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>ENGINE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Engine\DirectXTK;$(SolutionDir)\Header\FBXSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Engine\DirectXTK;$(SolutionDir)\Header\FBXSDK;$(SolutionDir)\Header\NvidiaPhysX\Shared\include;$(SolutionDir)\Header\NvidiaPhysX\Basic\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dinput8.lib;uuid.lib;dxguid.lib;%(AdditionalDependencies);d3d11.lib;d3dCompiler.lib;DirectXTK.lib;libfbxsdk.lib</AdditionalDependencies>
+      <AdditionalDependencies>dinput8.lib;uuid.lib;dxguid.lib;%(AdditionalDependencies);d3d11.lib;d3dCompiler.lib;DirectXTK.lib;libfbxsdk.lib;PhysXFoundation_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysX_64.lib;PhysXPvdSDK_static_64.lib;PhysXCooking_64.lib</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\Debug\</AdditionalLibraryDirectories>
     </Link>
@@ -143,14 +143,14 @@ call CopyDebug.bat</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>ENGINE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Engine\DirectXTK;$(SolutionDir)\Header\FBXSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Engine\DirectXTK;$(SolutionDir)\Header\FBXSDK;$(SolutionDir)\Header\PhysX;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);d3d11.lib;DirectXTK.lib;libfbxsdk.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);d3d11.lib;DirectXTK.lib;libfbxsdk.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\Release\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -190,6 +190,7 @@ call CopyRelease.bat</Command>
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MoonEngine.h" />
+    <ClInclude Include="MPhysX.h" />
     <ClInclude Include="PixelShader.h" />
     <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="PrimitiveComponent.h" />
@@ -202,6 +203,7 @@ call CopyRelease.bat</Command>
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="SkyComponent.h" />
+    <ClInclude Include="SphereComponent.h" />
     <ClInclude Include="StaticMeshComponent.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TerrainComponent.h" />
@@ -252,6 +254,7 @@ call CopyRelease.bat</Command>
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="MoonEngine.cpp" />
+    <ClCompile Include="MPhysX.cpp" />
     <ClCompile Include="PixelShader.cpp" />
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="PrimitiveComponent.cpp" />
@@ -263,6 +266,7 @@ call CopyRelease.bat</Command>
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="SkyComponent.cpp" />
+    <ClCompile Include="SphereComponent.cpp" />
     <ClCompile Include="StaticMeshComponent.cpp" />
     <ClCompile Include="TerrainComponent.cpp" />
     <ClCompile Include="TextureSetter.cpp" />
