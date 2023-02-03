@@ -69,7 +69,7 @@ Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 	_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 }
 
-void DynamicMesh::initializeMeshInformation(const char *filePathName, bool bUsePhysX, bool bRigidStatic)
+void DynamicMesh::initializeMeshInformation(const char *filePathName)
 {
 	FBXLoader fbxLoader(filePathName, _animationClipList);
 

@@ -30,7 +30,7 @@ public:
 
 	void Update(float deltaTime);
 
-	bool CreateConvex(std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh);
+	bool CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh);
 };
 
 

@@ -15,7 +15,7 @@ public:
 	DynamicMesh() = default;
 
 public: //삭제예정
-	virtual void initializeMeshInformation(const char *filePathName, bool bUsePhysX = false, bool bRigidStatic = false) override;
+	virtual void initializeMeshInformation(const char *filePathName) override;
 public:
 	AnimationClip& getAnimationClip(const int index);
 	const uint32 getJointCount() const;

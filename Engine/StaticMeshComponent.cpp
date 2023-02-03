@@ -21,7 +21,8 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
-void StaticMesh::initializeMeshInformation(const char *filePathName, bool bUsePhysX, bool bRigidStatic)
+#pragma region StaticMesh
+void StaticMesh::initializeMeshInformation(const char *filePathName)
 {
 	FBXLoader fbxLoader(filePathName);
 
@@ -81,55 +82,33 @@ void StaticMesh::initializeMeshInformation(const char *filePathName, bool bUsePh
 	_pBoundingBox = std::make_shared<BoundingBox>(min, max);
 
 
-	// 피직스 ConvexMesh
-	if (bUsePhysX)
+	// 중심점과 모든 버텍스 위치
+	uint32 VertexCount = fbxLoader.getVertexCount();
+	AllVertexPosition.reserve(VertexCount);
+	CenterPos = { 0.f, 0.f, 0.f };
+	for (auto& vertices : _verticesList)
 	{
-		uint32 VertexCount = fbxLoader.getVertexCount();
-		std::vector<Vec3> PxVertices;
-		PxVertices.reserve(VertexCount);
-		CenterPos = { 0.f, 0.f, 0.f };
-		for (auto& vertices : _verticesList)
+		for (auto& vertex : vertices)
 		{
-			for (auto& vertex : vertices)
-			{
-				PxVertices.emplace_back(Vec3(vertex.Pos.x, vertex.Pos.y, vertex.Pos.z));
-				CenterPos.x += vertex.Pos.x;
-				CenterPos.y += vertex.Pos.y;
-				CenterPos.z += vertex.Pos.z;
-			}
+			AllVertexPosition.emplace_back(Vec3(vertex.Pos.x, vertex.Pos.y, vertex.Pos.z));
+			CenterPos.x += vertex.Pos.x;
+			CenterPos.y += vertex.Pos.y;
+			CenterPos.z += vertex.Pos.z;
 		}
-		CenterPos.x /= CastValue<float>(VertexCount);
-		CenterPos.y /= CastValue<float>(VertexCount);
-		CenterPos.z /= CastValue<float>(VertexCount);
-
-		PxMaterial *PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
-		g_pPhysics->CreateConvex(PxVertices, &PhysXConvexMesh);
-		PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(PhysXConvexMesh);
-		PhysXShape = (*g_pPhysics)->createShape(Geometry, *PhysxMaterial);
-
-		bStatic = bRigidStatic;
-		if (bStatic)
-		{
-			PhysxRigidActor = (*g_pPhysics)->createRigidStatic(PxTransform(PxVec3(0.f, 0.f, 0.f)));
-		}
-		else
-		{
-			PxRigidDynamic* PhysxRigidDynamic = (*g_pPhysics)->createRigidDynamic(PxTransform(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity)));
-			PhysxRigidDynamic->setMass(3.f);
-			PhysxRigidDynamic->setCMassLocalPose(PxTransform(PxVec3(0.f, 0.2f, 0.f), PxQuat(PxIdentity)));
-			//PhysxRigidDynamic->setMaxDepenetrationVelocity(0.002f);
-			PhysxRigidDynamic->setAngularDamping(0.8f);
-			PhysxRigidActor = PhysxRigidDynamic;
-		}
-
-		PhysxRigidActor->attachShape(*PhysXShape);
-		g_pPhysics->Scene->addActor(*PhysxRigidActor); 
 	}
+	CenterPos.x /= CastValue<float>(VertexCount);
+	CenterPos.y /= CastValue<float>(VertexCount);
+	CenterPos.z /= CastValue<float>(VertexCount);
 }
 
 const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
 {
 	return _geometryLinkMaterialIndices;
+}
+
+const std::vector<Vec3>& StaticMesh::GetAllVertexPosition() const
+{
+	return AllVertexPosition;
 }
 
 MaterialList& StaticMesh::getMaterials()
@@ -168,39 +147,12 @@ std::shared_ptr<IndexBuffer> StaticMesh::getIndexBuffer()
 	return _pIndexBuffer;
 }
 
-void StaticMeshComponent::Temp(float y)
+const Vec3& StaticMesh::GetCenterPos() const
 {
-	if (PxRigidBody* PhysXRigidBody = _pStaticMesh->GetPhysXRigidDynamic())
-	{
-		PhysXRigidBody->addForce(PxVec3(0.f, y, 0.f));
-		PhysXRigidBody->addTorque(PxVec3(y, 0.f, 0.f));
-	}
+	return CenterPos;
 }
 
-void StaticMeshComponent::SetGravity(bool bGravity)
-{
-	if (PxRigidDynamic* PhysxRigidDynamic = _pStaticMesh->GetPhysXRigidDynamic())
-	{
-		PhysxRigidDynamic->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, bGravity);
-		PhysxRigidDynamic->setAngularVelocity(PxVec3(0.f, 0.f, 0.f));
-		PhysxRigidDynamic->wakeUp();
-	}
-}
-
-physx::PxRigidActor* StaticMesh::GetPhysXActor()
-{
-	return PhysxRigidActor;
-}
-
-physx::PxRigidDynamic* StaticMesh::GetPhysXRigidDynamic()
-{
-	return (bStatic == true) ? nullptr : static_cast<PxRigidDynamic*>(PhysxRigidActor);
-}
-
-physx::PxRigidStatic* StaticMesh::GetPhysXRigidStatic()
-{
-	return (bStatic == true) ? static_cast<PxRigidStatic*>(PhysxRigidActor) : nullptr;
-}
+#pragma endregion
 
 StaticMeshComponent::StaticMeshComponent()
 	: PrimitiveComponent()
@@ -215,10 +167,32 @@ StaticMeshComponent::StaticMeshComponent(const char *filePathName)
 	_pStaticMesh->initializeMeshInformation(filePathName);
 }
 
-StaticMeshComponent::StaticMeshComponent(const char *filePathName, bool bUsePhysX, bool bRigidStatic)
+StaticMeshComponent::StaticMeshComponent(const char *filePathName, bool bUsePhysX, bool bUseRigidStatic)
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->initializeMeshInformation(filePathName, bUsePhysX, bRigidStatic);
+	_pStaticMesh->initializeMeshInformation(filePathName);
+
+	if (bUsePhysX)
+	{
+		PxMaterial *PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
+		g_pPhysics->CreateConvex(_pStaticMesh->GetAllVertexPosition(), &PhysXConvexMesh);
+		PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(PhysXConvexMesh);
+		PhysXShape = (*g_pPhysics)->createShape(Geometry, *PhysxMaterial);
+		PhysXRigidStatic = (*g_pPhysics)->createRigidStatic(PxTransform(PxVec3(0.f, 0.f, 0.f)));
+		PhysXRigidDynamic = (*g_pPhysics)->createRigidDynamic(PxTransform(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity)));
+
+		if (PhysXRigidDynamic)
+		{
+			PhysXRigidDynamic->setMass(Mass);
+			PhysXRigidDynamic->setAngularDamping(0.8f);
+		}
+
+		GetPhysXRigidActor()->attachShape(*PhysXShape);
+
+		SetStaticCollision(bStaticCollision, true);
+	}
+
+	bUseRigidStatic = bUseRigidStatic;
 }
 
 StaticMeshComponent::~StaticMeshComponent()
@@ -227,39 +201,10 @@ StaticMeshComponent::~StaticMeshComponent()
 
 void StaticMeshComponent::Update(const Time deltaTime)
 {
-	if (PxRigidActor* PhysXActor = _pStaticMesh->GetPhysXActor())
+	if (PxRigidActor* PhysXActor = GetPhysXRigidActor())
 	{
 		PxTransform PhysXTransform = PhysXActor->getGlobalPose();
-		setTranslation(PhysXTransform.p.x, PhysXTransform.p.y, PhysXTransform.p.z);
-
-		Vec3 Scale = getScale();
-		if (PxRigidDynamic* PhysXRigidDynamic = _pStaticMesh->GetPhysXRigidDynamic())
-		{
-			Vec3 CenterPos = _pStaticMesh->CenterPos;
-			CenterPos.x *= Scale.x;
-			CenterPos.y *= Scale.y;
-			CenterPos.z *= Scale.z;
-			PhysXRigidDynamic->setCMassLocalPose(PxTransform(CenterPos.x, CenterPos.y, CenterPos.z));
-		}
-
-
-		PxShape* PhysXShape = nullptr;
-		PhysXActor->getShapes(&PhysXShape, 1);
-		if (PhysXShape)
-		{
-			PhysXActor->detachShape(*PhysXShape);
-
-			PxGeometryHolder holder = PhysXShape->getGeometry();
-			holder.convexMesh().convexMesh->acquireReference();
-
-
-			
-			holder.convexMesh().scale.scale = PxVec3(Scale.x, Scale.y, Scale.z);
-			PhysXShape->setGeometry(holder.any());
-
-			PhysXActor->attachShape(*PhysXShape);
-			holder.convexMesh().convexMesh->release();
-		}
+		setTranslation(Vec3{ PhysXTransform.p.x, PhysXTransform.p.y, PhysXTransform.p.z });
 	}
 
 	PrimitiveComponent::Update(deltaTime);
@@ -315,9 +260,66 @@ const bool StaticMeshComponent::getBoundingBox(std::shared_ptr<BoundingBox> &bou
 	return boundingBox != nullptr;
 }
 
+void StaticMeshComponent::setTranslation(const Vec3 &translation)
+{
+	SceneComponent::setTranslation(translation);
+
+	if (PxRigidActor* RigidActor = GetPhysXRigidActor())
+	{
+		PxTransform PhysXTransform = RigidActor->getGlobalPose();
+		PhysXTransform.p.x = translation.x;
+		PhysXTransform.p.y = translation.y;
+		PhysXTransform.p.z = translation.z;
+
+		if (PxRigidStatic* PhysXRigidStatic = GetPhysXRigidStatic())
+		{
+			PhysXRigidDynamic->setGlobalPose(PhysXTransform);
+		}
+
+		if (PxRigidStatic* PhysXRigidDynamic = GetPhysXRigidStatic())
+		{
+			PhysXRigidDynamic->setGlobalPose(PhysXTransform);
+		}
+	}
+}
+
+void StaticMeshComponent::setScale(const Vec3 &scale)
+{
+	SceneComponent::setScale(scale);
+
+	if (_pStaticMesh)
+	{
+		if (PxRigidDynamic* PhysXRigidDynamic = GetPhysXRigidDynamic())
+		{
+			Vec3 CenterPos = _pStaticMesh->GetCenterPos();
+			CenterPos.x *= scale.x;
+			CenterPos.y *= scale.y;
+			CenterPos.z *= scale.z;
+			PhysXRigidDynamic->setCMassLocalPose(PxTransform(CenterPos.x, CenterPos.y, CenterPos.z));
+		}
+
+		PxRigidActor* PhysXRigidActor = GetPhysXRigidActor();
+
+		if (PxShape* PhysXShape = GetPhysXShape())
+		{
+			PhysXRigidActor->detachShape(*PhysXShape);
+
+			PxGeometryHolder holder = PhysXShape->getGeometry();
+			holder.convexMesh().convexMesh->acquireReference();
+
+			holder.convexMesh().scale.scale = PxVec3(scale.x, scale.y, scale.z);
+			PhysXShape->setGeometry(holder.any());
+
+			PhysXRigidActor->attachShape(*PhysXShape);
+
+			holder.convexMesh().convexMesh->release();
+		}
+	}
+}
+
 XMMATRIX StaticMeshComponent::GetRotationMatrix()
 {
-	if (PxRigidActor* PhysXActor = _pStaticMesh->GetPhysXActor())
+	if (PxRigidActor* PhysXActor = GetPhysXRigidActor())
 	{
 		PxTransform PhysXTransform = PhysXActor->getGlobalPose();
 		XMFLOAT4 Quaternion = { PhysXTransform.q.x, PhysXTransform.q.y, PhysXTransform.q.z, PhysXTransform.q.w };
@@ -342,4 +344,93 @@ void StaticMeshComponent::setDrawingBoundingBox(const bool bDraw)
 const bool StaticMeshComponent::IsDrawingBoundingBox() const
 {
 	return _bDrawBoundingBox;
+}
+
+
+void StaticMeshComponent::Temp(float y)
+{
+	if (PxRigidDynamic* PhysXRigidDynamic = GetPhysXRigidDynamic())
+	{
+		PhysXRigidDynamic->addForce(PxVec3(0.f, y, 0.f));
+		PhysXRigidDynamic->addTorque(PxVec3(y * 10.f, 0.f, 0.f));
+	}
+}
+
+void StaticMeshComponent::SetGravity(bool bGravity)
+{
+	if (PxRigidDynamic* PhysxRigidDynamic = GetPhysXRigidDynamic())
+	{
+		PhysxRigidDynamic->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, bGravity);
+		PhysxRigidDynamic->setAngularVelocity(PxVec3(0.f, 0.f, 0.f));
+		PhysxRigidDynamic->wakeUp();
+	}
+}
+
+void StaticMeshComponent::SetStaticCollision(bool bNewStaticCollision, bool bForce)
+{
+	if (g_pPhysics == nullptr)
+	{
+		return;
+	}
+
+	if (bNewStaticCollision == bStaticCollision && bForce == false)
+	{
+		return;
+	}
+
+	PxRigidStatic* PhysXRigidStatic = GetPhysXRigidStatic();
+	PxRigidDynamic* PhysXRigidDynamic = GetPhysXRigidDynamic();
+
+	if (PhysXRigidStatic && PhysXRigidDynamic)
+	{
+		GetPhysXRigidActor()->detachShape(*PhysXShape);
+
+		if (bNewStaticCollision == true)
+		{
+			g_pPhysics->Scene->removeActor(*PhysXRigidDynamic);
+			g_pPhysics->Scene->addActor(*PhysXRigidStatic);
+		}
+		else
+		{
+			g_pPhysics->Scene->removeActor(*PhysXRigidStatic);
+			g_pPhysics->Scene->addActor(*PhysXRigidDynamic);
+		}
+		//else
+		//{
+		//	g_pPhysics->Scene->removeActor(*PhysXRigidStatic);
+		//	g_pPhysics->Scene->removeActor(*PhysXRigidDynamic);
+		//}
+
+		bStaticCollision = bNewStaticCollision;
+
+		GetPhysXRigidActor()->attachShape(*PhysXShape);
+	}
+}
+
+void StaticMeshComponent::SetMass(float NewMass)
+{
+	if (PxRigidDynamic* PhysXRigidDynamic = GetPhysXRigidDynamic())
+	{
+		PhysXRigidDynamic->setMass(Mass);
+	}
+}
+
+physx::PxRigidActor* StaticMeshComponent::GetPhysXRigidActor()
+{
+	return (bStaticCollision == true) ? static_cast<PxRigidActor*>(PhysXRigidStatic) : static_cast<PxRigidActor*>(PhysXRigidDynamic);;
+}
+
+physx::PxRigidDynamic* StaticMeshComponent::GetPhysXRigidDynamic()
+{
+	return PhysXRigidDynamic;
+}
+
+physx::PxRigidStatic* StaticMeshComponent::GetPhysXRigidStatic()
+{
+	return PhysXRigidStatic;
+}
+
+physx::PxShape* StaticMeshComponent::GetPhysXShape()
+{
+	return PhysXShape;
 }

@@ -24,14 +24,16 @@ public:
 	StaticMesh() = default;
 	
 public:
-	virtual void initializeMeshInformation(const char *filePathName, bool bUsePhysX = true, bool bStaticBody = true);
+	virtual void initializeMeshInformation(const char *filePathName);
 public:
 	const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
+	const std::vector<Vec3>& GetAllVertexPosition() const;
 protected:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList >		_indicesList;
 	std::vector<TextureList>	_textureList;
 	std::vector<uint32>			_geometryLinkMaterialIndices;
+	std::vector<Vec3>			AllVertexPosition;
 
 public:
 	MaterialList& getMaterials();
@@ -61,33 +63,30 @@ protected:
 	std::vector<std::shared_ptr<VertexBuffer>> _pVertexBuffers;
 	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
 
-	// 피직스
 public:
-	physx::PxRigidActor* GetPhysXActor();
-	physx::PxRigidDynamic* GetPhysXRigidDynamic();
-	physx::PxRigidStatic* GetPhysXRigidStatic();
+	const Vec3& GetCenterPos() const;
 private:
-	physx::PxConvexMesh* PhysXConvexMesh = nullptr;
-	physx::PxRigidActor* PhysxRigidActor = nullptr;
-	physx::PxShape*				PhysXShape = nullptr;
-
-	bool bStatic = true;
-public:
 	Vec3 CenterPos;
 };
 
 class ENGINE_DLL StaticMeshComponent : public PrimitiveComponent
 {
 public:
+	using SceneComponent::setTranslation;
+	using SceneComponent::setScale;
+
+public:
 	explicit StaticMeshComponent();
 	explicit StaticMeshComponent(const char *filePathName);
-	explicit StaticMeshComponent(const char *filePathName, bool bUsePhysX, bool bRigidStatic = true);
+	explicit StaticMeshComponent(const char *filePathName, bool bUsePhysX, bool bUseRigidStatic = true);
 	virtual ~StaticMeshComponent();
 
 public:
 	virtual void Update(const Time deltaTime) override;
 	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
 	virtual const bool getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox) override;
+	virtual void setTranslation(const Vec3 &translation) override;
+	virtual void setScale(const Vec3 &scale) override;
 
 public:
 	virtual XMMATRIX GetRotationMatrix();
@@ -107,6 +106,25 @@ public:
 public:
 	void Temp(float y);
 	void SetGravity(bool bGravity);
+
+public:
+	void SetStaticCollision(bool bNewCollision, bool bForce = false);
+	void SetMass(float NewMass);
+private:
+	bool bStaticCollision = true;
+	float Mass = 1.f;
+
+	// 피직스
+public:
+	physx::PxRigidActor*	GetPhysXRigidActor();
+	physx::PxRigidDynamic*	GetPhysXRigidDynamic();
+	physx::PxRigidStatic*	GetPhysXRigidStatic();
+	physx::PxShape*			GetPhysXShape();
+private:
+	physx::PxConvexMesh*	PhysXConvexMesh = nullptr;
+	physx::PxRigidStatic*	PhysXRigidStatic = nullptr;
+	physx::PxRigidDynamic*	PhysXRigidDynamic = nullptr;
+	physx::PxShape*			PhysXShape = nullptr;
 };
 
 #define __STATIC_MESH_COMPONENT_H__

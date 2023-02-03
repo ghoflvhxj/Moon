@@ -46,10 +46,10 @@ void Player::initialize()
 	//_pStaticMeshComponent->setDrawingBoundingBox(true);
 	//addComponent(TEXT("test"), _pStaticMeshComponent);
 
-	//_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Table/Table.fbx");
-	//_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	//_pStaticMeshComponent2->setDrawingBoundingBox(true);
-	//addComponent(TEXT("test2"), _pStaticMeshComponent2);
+	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Table/Table.fbx", true, true);
+	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	_pStaticMeshComponent2->setDrawingBoundingBox(true);
+	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
 	_pLightComponent = std::make_shared<PointLightComponent>();
 	addComponent(TEXT("PointLight"), _pLightComponent);

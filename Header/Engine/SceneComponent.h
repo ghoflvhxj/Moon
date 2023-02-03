@@ -20,7 +20,7 @@ public:
 	virtual void OnUpdated();
 
 public:
-	void setScale(const Vec3 &scale);
+	virtual void setScale(const Vec3 &scale);
 	void setScale(const float scaleX, const float scaleY, const float scaleZ);
 	const Vec3& getScale() const;
 private:
@@ -34,7 +34,7 @@ private:
 	Vec3 m_rotation;
 
 public:
-	void setTranslation(const Vec3 &translation);
+	virtual void setTranslation(const Vec3 &translation);
 	void setTranslation(const float transX, const float transY, const float transZ);
 	const Vec3&	getTranslation() const;
 private:

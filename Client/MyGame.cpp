@@ -50,6 +50,7 @@ const bool MyGame::initialize()
 	//MyActor->addComponent(TEXT("Root"), a);
 	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx", true, false);
 	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	_pStaticMeshComponent->setTranslation(0.f, 5.f, 0.f);
 	_pStaticMeshComponent->setDrawingBoundingBox(true);
 	MyActor->addComponent(TEXT("test"), _pStaticMeshComponent);
 	//a->AddChildComponent(_pStaticMeshComponent);
@@ -91,7 +92,7 @@ void MyGame::Tick(const Time deltaTime)
 
 	if (MyActor && bButtonPressed)
 	{
-		_pStaticMeshComponent->Temp(Force);
+		//_pStaticMeshComponent->Temp(Force);
 		//a->AddForce(Vec3(0.f, Force, 0.f));
 	}
 }
@@ -116,17 +117,36 @@ void MyGame::render()
 	ImGui::Text("Toatal primitive:%d", getRenderer()->totalPrimitiveCount);
 	ImGui::Text("show primitive:%d", getRenderer()->showPrimitiveCount);
 	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
-
-	Vec3 rot = p->getRotation();
-	ImGui::SliderAngle("rotX", &rot.x);
-	ImGui::SliderAngle("rotY", &rot.y);
-	ImGui::SliderAngle("rotZ", &rot.z);
-	p->setRotation(rot);
-
 	ImGui::Checkbox("Debug Collision", &getRenderer()->bDrawCollision);
 
-	ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
-	bButtonPressed = ImGui::Button("AddForce");
+	if (ImGui::CollapsingHeader("DirectionalLight"))
+	{
+		Vec3 rot = p->getRotation();
+		ImGui::SliderAngle("rotX", &rot.x);
+		ImGui::SliderAngle("rotY", &rot.y);
+		ImGui::SliderAngle("rotZ", &rot.z);
+		p->setRotation(rot);
+	}
+
+	if (ImGui::CollapsingHeader("Actor"))
+	{
+		ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
+		if (ImGui::Button("AddForce"))
+		{
+			_pStaticMeshComponent->Temp(Force);
+		}
+
+		if (ImGui::Button("ResetPos"))
+		{
+			_pStaticMeshComponent->setTranslation(0.f, 5.f, 0.f);
+		}
+
+		ImGui::Checkbox("Collision", &bStaticCollision);
+		if (_pStaticMeshComponent)
+		{
+			_pStaticMeshComponent->SetStaticCollision(bStaticCollision);
+		}
+	}
 
 	ImGui::End();
 

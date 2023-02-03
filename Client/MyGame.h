@@ -45,6 +45,7 @@ private:
 	float time = 0.f;
 	
 	bool bButtonPressed = false;
+	bool bStaticCollision = true;
 	float Force = 0.f;
 	std::shared_ptr<StaticMeshComponent> _pStaticMeshComponent;
 };

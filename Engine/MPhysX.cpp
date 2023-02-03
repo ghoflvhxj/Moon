@@ -55,13 +55,13 @@ void PhysXX::Update(float deltaTime)
 	Scene->fetchResults(true);
 }
 
-bool PhysXX::CreateConvex(std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh)
+bool PhysXX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh)
 {
 	PxConvexMeshDesc ConvexDesc = {};
 	ConvexDesc.setToDefault();
 	ConvexDesc.points.count = CastValue<uint32>(Vertices.size());
 	ConvexDesc.points.stride = sizeof(PxVec3);
-	ConvexDesc.points.data = reinterpret_cast<PxVec3*>(&Vertices[0]);
+	ConvexDesc.points.data = reinterpret_cast<const PxVec3*>(&Vertices[0]);
 	ConvexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
 
 //#ifdef _DEBUG
