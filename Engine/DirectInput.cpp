@@ -47,16 +47,6 @@ void DirectInput::updateKeyboard()
 	memcpy(_prevKeyboardState, _keyboardState, sizeof(unsigned char) * 256);
 	HRESULT hr = _pKeyboard->GetDeviceState(sizeof(_keyboardState), static_cast<void *>(_keyboardState));
 
-	int a = 0;
-	for (auto key : _keyboardState)
-	{
-		if (key & 0x80)
-			++a;
-	}
-
-	if (a > 2)
-		int b = 0;
-
 	if (FAILED(hr))
 	{
 		if ((hr == DIERR_INPUTLOST) || (hr == DIERR_NOTACQUIRED))
