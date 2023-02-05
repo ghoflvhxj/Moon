@@ -13,6 +13,7 @@ DirectInput::DirectInput()
 	, _prevKeyboardState{ 0, }
 	, _mouseState{ 0, }
 	, _prevMouseState{ 0, }
+	, bFocused{ false }
 {
 	WINDOW_EXCEPTION(DirectInput8Create(g_hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void **)&_pDirectInput, nullptr))
 
@@ -35,6 +36,8 @@ DirectInput::~DirectInput()
 
 void DirectInput::update()
 {
+	bFocused = GetFocus() == NULL ? false : true;
+
 	updateKeyboard();
 	updateMouse();
 }
@@ -71,37 +74,37 @@ void DirectInput::updateMouse()
 
 const bool DirectInput::keyDown(unsigned char key)
 {
-	return (_keyboardState[key] & 0x80) && !_prevKeyboardState[key];
+	return bFocused && (_keyboardState[key] & 0x80) && !_prevKeyboardState[key];
 }
 
 const bool DirectInput::keyUp(unsigned char key)
 {
-	return !_keyboardState[key];
+	return bFocused &&  !_keyboardState[key];
 }
 
 const bool DirectInput::keyPress(unsigned char key)
 {
-	return (_keyboardState[key] & 0x80) && _prevKeyboardState[key];
+	return bFocused && (_keyboardState[key] & 0x80) && _prevKeyboardState[key];
 }
 
 const bool DirectInput::mouseDown(const MOUSEBUTTON eMouseButton)
 {
-	return (_mouseState.rgbButtons[static_cast<int>(eMouseButton)] & 0x80) && !_prevMouseState.rgbButtons[static_cast<int>(eMouseButton)];
+	return bFocused &&  (_mouseState.rgbButtons[static_cast<int>(eMouseButton)] & 0x80) && !_prevMouseState.rgbButtons[static_cast<int>(eMouseButton)];
 }
 
 const bool DirectInput::mouseUp(const MOUSEBUTTON eMouseButton)
 {
-	return !_mouseState.rgbButtons[static_cast<int>(eMouseButton)];
+	return bFocused &&  !_mouseState.rgbButtons[static_cast<int>(eMouseButton)];
 }
 
 const bool DirectInput::mousePress(const MOUSEBUTTON eMouseButton)
 {
-	return _mouseState.rgbButtons[static_cast<int>(eMouseButton)] && _prevMouseState.rgbButtons[static_cast<int>(eMouseButton)];
+	return bFocused &&  _mouseState.rgbButtons[static_cast<int>(eMouseButton)] && _prevMouseState.rgbButtons[static_cast<int>(eMouseButton)];
 }
 
 const LONG DirectInput::mouseMove(const MOUSEAXIS eMouseAxis)
 {
-	return *(((LONG *)&_mouseState) + static_cast<LONG>(eMouseAxis));
+	return bFocused == true ? *(((LONG *)&_mouseState) + static_cast<LONG>(eMouseAxis)) : 0.0;
 }
 
 const bool keyDown(unsigned char key)

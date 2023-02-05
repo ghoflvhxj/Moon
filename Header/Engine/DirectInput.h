@@ -34,6 +34,9 @@ private:
 
 	DIMOUSESTATE _mouseState;
 	DIMOUSESTATE _prevMouseState;
+
+private:
+	bool bFocused;
 };
 
 ENGINE_DLL const bool keyDown(unsigned char key);
