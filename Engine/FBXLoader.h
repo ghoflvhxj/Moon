@@ -90,17 +90,22 @@ class TextureComponent;
 class FBXLoader
 {
 public:
-	explicit FBXLoader(const char *filePathName);
-	explicit FBXLoader(const char *filePathName, std::vector<AnimationClip> &animationClipList);
+	explicit FBXLoader();
+	explicit FBXLoader(const wchar_t *filePathName);
+	explicit FBXLoader(const wchar_t*filePathName, std::vector<AnimationClip> &animationClipList);
 	~FBXLoader();
-private:
-	void initializeFbxSdk();
-	void convertScene();
-	void loadModel();
+
+
+public:
+	bool LoadMesh(const std::wstring& Path);
 
 private:
-	std::string _filePathName;
-	std::string _filePath;
+	void InitializeFbxSdk();
+	void convertScene();
+
+private:
+	std::wstring _filePathName;
+	std::wstring _filePath;
 
 private:
 	void initializeSDK();
@@ -108,13 +113,13 @@ public:
 	const uint32 getJointCount() const;
 private:
 	static fbxsdk::FbxManager		*_pFbxManager;
-	fbxsdk::FbxImporter				*_pImporter;
-	fbxsdk::FbxScene				*_pScene;
+	fbxsdk::FbxImporter				*_pImporter = nullptr;
+	fbxsdk::FbxScene				*_pScene = nullptr;
 
 public:
 	// 애니메이션 관련 데이터
-	fbxsdk::FbxSkeleton				*_pSkeleton;
-	fbxsdk::FbxAnimStack			*_pAnimStack;
+	fbxsdk::FbxSkeleton				*_pSkeleton = nullptr;
+	fbxsdk::FbxAnimStack			*_pAnimStack = nullptr;
 	std::vector<FJoint>				_jointList;
 	JointIndexMap					_jointIndexMap;
 	VertexWeightInfoListMap			_vertexWeightInfoListMap;
@@ -136,7 +141,7 @@ private:
 private:
 	void linkMaterial(fbxsdk::FbxNode *pNode);
 private:
-	fbxsdk::FbxMesh *_pMesh;
+	fbxsdk::FbxMesh *FBXMesh;
 	std::vector<fbxsdk::FbxMesh*> _meshList;
 	std::set<fbxsdk::FbxCluster*> clustermap;
 private:
@@ -157,23 +162,23 @@ private:
 	int meshCounter;
 
 public:
-	void getBoundingBoxInfo(Vec3 &min, Vec3 &max) { min = _min, max = _max; }
+	void getBoundingBoxInfo(Vec3 &min, Vec3 &max) { min = MinPosition, max = MaxPosition; }
 private:
 	// 바운딩 박스용
-	Vec3 _min;
-	Vec3 _max;
+	Vec3 MinPosition;
+	Vec3 MaxPosition;
 
 public:
-	const uint32 getGeometryCount() const;
+	const uint32 GetGeometryNum() const;
 	const uint32 getMaterialCount() const;
 private:
-	uint32 _geometryCount;
+	uint32 GeometryCount;
 	uint32 _materialCount;
 
 public:
-	const uint32 getVertexCount() const;
+	const uint32 GetTotalVertexNum() const;
 private:
-	uint32 _vertexCount;
+	uint32 TotalVertexNum;
 };
 
 inline DirectX::XMMATRIX ToXMMatrix(const FbxAMatrix& pSrc);

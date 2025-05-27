@@ -3,46 +3,61 @@
 
 #include "TextureComponent.h"
 #include <Shlwapi.h>
-
 #include <stdlib.h>
+#include <locale>
+#include <codecvt>
 
+#undef min
+#undef max
+
+using namespace std;
 using namespace fbxsdk;
 
 FbxManager *FBXLoader::_pFbxManager = nullptr;
 
-FBXLoader::FBXLoader(const char *filePathName)
+FBXLoader::FBXLoader()
+	: _filePathName{ TEXT("") }
+	, _filePath{ TEXT("") }
+	, _pImporter{ nullptr }
+	, _pScene{ nullptr }
+	, _pSkeleton{ nullptr }
+	, _pAnimStack{ nullptr }
+	, GeometryCount{ 0 }
+	, _materialCount{ 0 }
+	, meshCounter{ 0 }
+{
+
+}
+
+FBXLoader::FBXLoader(const wchar_t* filePathName)
 	: _filePathName	{ filePathName }
 	, _filePath		{ filePathName }
 	, _pImporter	{ nullptr }
 	, _pScene		{ nullptr }
 	, _pSkeleton	{ nullptr }
 	, _pAnimStack	{ nullptr }
-	, _geometryCount{ 0 }
+	, GeometryCount{ 0 }
 	, _materialCount{ 0 }
 	, meshCounter{ 0 }
 {
-	initializeFbxSdk();
-	convertScene();
-	loadModel();
+	LoadMesh(_filePathName);
 }
 
-FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &animationClipList)
+FBXLoader::FBXLoader(const wchar_t* filePathName, std::vector<AnimationClip> &animationClipList)
 	: _filePathName{ filePathName }
 	, _filePath{ filePathName }
 	, _pImporter{ nullptr }
 	, _pScene{ nullptr }
 	, _pSkeleton{ nullptr }
 	, _pAnimStack{ nullptr }
-	, _geometryCount{ 0 }
+	, GeometryCount{ 0 }
 	, _materialCount{ 0 }
 	, meshCounter{ 0 }
 {
-	initializeFbxSdk();
-	convertScene();
-	loadModel();
+	LoadMesh(_filePathName);
 
 	//---------------------------------------------------------------
-	// process joint and animation
+	// 애니메이션 관련 처리
 	int animStackCount = _pImporter->GetAnimStackCount();
 	animationClipList.resize(animStackCount);
 
@@ -65,11 +80,11 @@ FBXLoader::FBXLoader(const char *filePathName, std::vector<AnimationClip> &anima
 
 		for (auto &frameMatricesPerGeometry : animationClipList[animStackIndex]._keyFrameLists)
 		{
-			frameMatricesPerGeometry.resize(_geometryCount);
+			frameMatricesPerGeometry.resize(GeometryCount);
 		}
 
 		std::set<int>jointPositionSet;
-		for (uint32 meshIndex = 0; meshIndex < _geometryCount; ++meshIndex)
+		for (uint32 meshIndex = 0; meshIndex < GeometryCount; ++meshIndex)
 		{
 			FbxMesh *pMesh = _meshList[meshIndex];
 			FbxNode *pMeshNode = pMesh->GetNode(0);
@@ -230,10 +245,31 @@ FBXLoader::~FBXLoader()
 	//_pFbxManager->Destroy();
 }
 
-void FBXLoader::initializeFbxSdk()
+bool FBXLoader::LoadMesh(const wstring& Path)
 {
-	_filePath = _filePath.substr(0, _filePath.find_last_of('/') + 1);
+	_filePathName = Path;
+	_filePath = Path.substr(0, Path.find_last_of('/') + 1);
 
+	InitializeFbxSdk();
+	convertScene();
+
+	GeometryCount = _pScene->GetGeometryCount();
+	_verticesList.resize(GeometryCount);
+	_indicesList.resize(GeometryCount);
+	_linkList.reserve(GeometryCount);
+	_indexMap.resize(GeometryCount);
+
+	_materialCount = static_cast<uint32>(_pScene->GetMaterialCount());
+	_texturesList.reserve(_materialCount);
+
+	loadNode();
+	loadTexture();
+
+	return false;
+}
+
+void FBXLoader::InitializeFbxSdk()
+{
 	if (nullptr == _pFbxManager)
 		initializeSDK();
 
@@ -243,7 +279,9 @@ void FBXLoader::initializeFbxSdk()
 		DEV_ASSERT_MSG("FbxImporter가 nullptr 입니다!");
 	}
 
-	if (false == _pImporter->Initialize(_filePathName.c_str()))
+	char FilePathName[255] = { 0, };
+	ToChar(_filePathName, FilePathName, 255);
+	if (false == _pImporter->Initialize(FilePathName))
 	{
 		DEV_ASSERT_MSG("FbxImporter 초기화에 실패했습니다!");
 	}
@@ -269,21 +307,6 @@ void FBXLoader::convertScene()
 	geometryConverter.Triangulate(_pScene, true);
 }
 
-void FBXLoader::loadModel()
-{
-	_geometryCount = _pScene->GetGeometryCount();
-	_verticesList.resize(_geometryCount);
-	_indicesList.resize(_geometryCount);
-	_linkList.reserve(_geometryCount);
-	_indexMap.resize(_geometryCount);
-
-	_materialCount = static_cast<uint32>(_pScene->GetMaterialCount());
-	_texturesList.reserve(_materialCount);
-
-	loadNode();
-	loadTexture();
-}
-
 void FBXLoader::initializeSDK()
 {
 	_pFbxManager = FbxManager::Create();
@@ -297,9 +320,9 @@ const uint32 FBXLoader::getJointCount() const
 	return CastValue<uint32>(_jointList.size());
 }
 
-const uint32 FBXLoader::getGeometryCount() const
+const uint32 FBXLoader::GetGeometryNum() const
 {
-	return _geometryCount;
+	return GeometryCount;
 }
 
 const uint32 FBXLoader::getMaterialCount() const
@@ -307,9 +330,9 @@ const uint32 FBXLoader::getMaterialCount() const
 	return _materialCount;
 }
 
-const uint32 FBXLoader::getVertexCount() const
+const uint32 FBXLoader::GetTotalVertexNum() const
 {
-	return _vertexCount;
+	return TotalVertexNum;
 }
 
 std::vector<VertexList> &FBXLoader::getVerticesList()
@@ -348,8 +371,7 @@ void FBXLoader::loadNode()
 			switch (pNodeAttribute->GetAttributeType())
 			{
 			case FbxNodeAttribute::EType::eMesh:
-				parseMeshNode(pNode, meshCounter);
-				++meshCounter;
+				parseMeshNode(pNode, meshCounter++);
 				break;
 			case FbxNodeAttribute::EType::eSkeleton:
 				loadSkeletonNode(pNode, pNode->GetParent()->GetName());
@@ -369,16 +391,16 @@ void FBXLoader::loadNode()
 
 void FBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 {
-	_pMesh = pNode->GetMesh();
-	_meshList.push_back(_pMesh);
+	FBXMesh = pNode->GetMesh();
+	_meshList.push_back(FBXMesh);
 
-	int polygonCount = _pMesh->GetPolygonCount();
-	int vertexCounter = 0;							// 맵핑 모드가 eByPolygonVertex일 경우 사용함
+	int polygonCount = FBXMesh->GetPolygonCount();
+	int vertexCounter = 0;								// 맵핑 모드가 eByPolygonVertex일 경우 사용함
 	int vertexCount = polygonCount * 3;
 	_verticesList[meshIndex].resize(polygonCount * 3);	// 중첩된 버텍스를 허용하지 않기 때문에 인덱스의 수와 같아짐...
 	_indicesList[meshIndex].reserve(polygonCount * 3);
 
-	_vertexCount += vertexCount;
+	TotalVertexNum += vertexCount;
 
 	linkMaterial(pNode);
 
@@ -386,7 +408,7 @@ void FBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 	{
 		for (int j = 0; j < 3; ++j)
 		{
-			int controlPointIndex = _pMesh->GetPolygonVertex(i, j);
+			int controlPointIndex = FBXMesh->GetPolygonVertex(i, j);
 			int vertexIndex = (3 * i) + j;
 
 			loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
@@ -400,40 +422,6 @@ void FBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 
 			++vertexCounter;
 		}
-
-		//int controlPointIndex = _pMesh->GetPolygonVertex(i, 0);
-		//int vertexIndex = (3 * i) + 0;
-		//loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
-		//loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//_indicesList.back().push_back((3 * i) + 0);
-
-		//++vertexCounter;
-
-		//controlPointIndex = _pMesh->GetPolygonVertex(i, 2);
-		//vertexIndex = (3 * i) + 2;
-		//loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
-		//loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//_indicesList.back().push_back((3 * i) + 2);
-
-		//++vertexCounter;
-
-
-		//controlPointIndex = _pMesh->GetPolygonVertex(i, 1);
-		//vertexIndex = (3 * i) + 1;
-		//loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
-		//loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-		//_indicesList.back().push_back((3 * i) + 1);
-
-		//++vertexCounter;
 	}
 }
 
@@ -462,23 +450,23 @@ void FBXLoader::linkMaterial(FbxNode *pNode)
 
 void FBXLoader::loadPosition(Vertex &vertex, const int controlPointIndex)
 {
-	double a = _pMesh->GetControlPointAt(controlPointIndex).mData[0];
-	vertex.Pos.x = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[0]);
-	vertex.Pos.y = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[1]);
-	vertex.Pos.z = ToFloat(_pMesh->GetControlPointAt(controlPointIndex).mData[2]);
+	vertex.Pos.x = ToFloat(FBXMesh->GetControlPointAt(controlPointIndex).mData[0]);
+	vertex.Pos.y = ToFloat(FBXMesh->GetControlPointAt(controlPointIndex).mData[1]);
+	vertex.Pos.z = ToFloat(FBXMesh->GetControlPointAt(controlPointIndex).mData[2]);
 
-	if (_min.x < vertex.Pos.x) _min.x = vertex.Pos.x;
-	if (_min.y < vertex.Pos.y) _min.y = vertex.Pos.y;
-	if (_min.z < vertex.Pos.z) _min.z = vertex.Pos.z;
-
-	if (_max.x > vertex.Pos.x) _max.x = vertex.Pos.x;
-	if (_max.y > vertex.Pos.y) _max.y = vertex.Pos.y;
-	if (_max.z > vertex.Pos.z) _max.z = vertex.Pos.z;
+	// Min 위치 갱신
+	MinPosition.x = std::min(MinPosition.x, vertex.Pos.x);
+	MinPosition.y = std::min(MinPosition.y, vertex.Pos.y);
+	MinPosition.z = std::min(MinPosition.z, vertex.Pos.z);
+	// Max 위치 갱신
+	MaxPosition.x = std::max(MaxPosition.x, vertex.Pos.x);
+	MaxPosition.y = std::max(MaxPosition.y, vertex.Pos.y);
+	MaxPosition.z = std::max(MaxPosition.z, vertex.Pos.z);
 }
 
 void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
 {
-	FbxGeometryElementUV *uv = _pMesh->GetElementUV(0);
+	FbxGeometryElementUV *uv = FBXMesh->GetElementUV(0);
 	switch (uv->GetMappingMode())
 	{
 	case FbxLayerElement::EMappingMode::eByControlPoint:
@@ -543,7 +531,7 @@ void FBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int ve
 
 void FBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
 {
-	FbxGeometryElementNormal *element = _pMesh->GetElementNormal(0);
+	FbxGeometryElementNormal *element = FBXMesh->GetElementNormal(0);
 	switch (element->GetMappingMode())
 	{
 	case FbxLayerElement::EMappingMode::eByControlPoint:
@@ -612,7 +600,7 @@ void FBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const in
 
 void FBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
 {
-	FbxGeometryElementTangent *element = _pMesh->GetElementTangent(0);
+	FbxGeometryElementTangent *element = FBXMesh->GetElementTangent(0);
 	switch (element->GetMappingMode())
 	{
 	case FbxLayerElement::EMappingMode::eByControlPoint:
@@ -681,7 +669,7 @@ void FBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const i
 
 void FBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
 {
-	FbxGeometryElementBinormal *element = _pMesh->GetElementBinormal(0);
+	FbxGeometryElementBinormal *element = FBXMesh->GetElementBinormal(0);
 	switch (element->GetMappingMode())
 	{
 	case FbxLayerElement::EMappingMode::eByControlPoint:
@@ -818,11 +806,14 @@ void FBXLoader::loadTexture(FbxProperty *property, const TextureType textureType
 			FbxTexture *texture = property->GetSrcObject<FbxTexture>(j);
 			FbxFileTexture *fileTexture = FbxCast<FbxFileTexture>(texture);
 
-			char filePathName[MAX_PATH] = "";
-			strcpy_s(filePathName, _filePath.c_str());
-			strcat_s(filePathName, sizeof(char) * MAX_PATH, PathFindFileNameA(fileTexture->GetFileName()));
+			//string FilePathName;
+			//FilePathName.assign(_filePath.begin(), _filePath.end());
 
-			std::shared_ptr<TextureComponent> pTextureComponent = std::make_shared<TextureComponent>(filePathName);
+			char FilePathName[255] = { 0, };
+			ToChar(_filePath, FilePathName, 255);
+			strcat_s(FilePathName, 255, PathFindFileNameA(fileTexture->GetFileName()));
+
+			std::shared_ptr<TextureComponent> pTextureComponent = std::make_shared<TextureComponent>(FilePathName);
 			
 			TextureList &textureList = _texturesList.back();
 			textureList[enumToIndex(textureType)] = pTextureComponent;

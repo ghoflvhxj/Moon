@@ -5,9 +5,9 @@ struct PixelOut
 	float4	color	: SV_TARGET0;
 };
 
-PixelOut main(PixelIn pIn)
+PixelOut_CombinePass main(PixelIn pIn)
 {
-	PixelOut pOut;
+    PixelOut_CombinePass pOut;
 
 	float4 diffuse	= g_Diffuse.Sample(g_Sampler, pIn.uv);
 	float4 light	= g_LightDiffuse.Sample(g_Sampler, pIn.uv);

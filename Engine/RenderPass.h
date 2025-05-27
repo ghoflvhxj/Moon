@@ -15,11 +15,11 @@ public:
 	virtual ~RenderPass();
 
 public:
-	virtual void begin();
-	/*virtual*/ void end();
-	virtual void doPass(RenderQueue &renderQueue);
-	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) = 0;
-	virtual void render(PrimitiveData &primitiveData) = 0;
+	virtual void Begin();
+	/*virtual*/ void End();
+	virtual void DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList);
+	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) = 0;
+	virtual void render(const FPrimitiveData &primitiveData) = 0;
 
 public:
 	template<class... TList>

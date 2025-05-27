@@ -3,7 +3,7 @@
 
 #include "PrimitiveComponent.h"
 
-struct PrimitiveData;
+struct FPrimitiveData;
 class StaticMesh;
 class Material;
 class ENGINE_DLL SkyComponent : public PrimitiveComponent
@@ -16,7 +16,7 @@ public:
 	std::shared_ptr<StaticMesh> getSkyMesh();
 
 public:
-	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList);
+	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList);
 
 private:
 	void initialize();

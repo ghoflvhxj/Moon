@@ -3,7 +3,7 @@
 #include "GraphicDevice.h"
 #include "WindowException.h"
 
-VertexBuffer::VertexBuffer(const uint32 vertexSize, const uint32 vertexCount, void *buffer)
+VertexBuffer::VertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer)
 	: _pBuffer		{ nullptr }
 	, _vertexCount	{ vertexCount }
 {

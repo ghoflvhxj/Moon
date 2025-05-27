@@ -15,7 +15,7 @@ public:
 	DynamicMesh() = default;
 
 public: //삭제예정
-	virtual void initializeMeshInformation(const char *filePathName) override;
+	virtual void InitializeFromFBX(const std::wstring& Path) override;
 public:
 	AnimationClip& getAnimationClip(const int index);
 	const uint32 getJointCount() const;
@@ -37,7 +37,7 @@ public:
 	virtual ~DynamicMeshComponent();
 
 public:
-	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
+	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 
 public:
 	void playAnimation(const uint32 index, const Time deltaTime);
@@ -50,7 +50,7 @@ public:
 	virtual std::shared_ptr<DynamicMesh>& getDynamicMesh();
 
 private:
-	std::shared_ptr<DynamicMesh> _pDynamicMesh = nullptr;
+	std::shared_ptr<DynamicMesh> Mesh = nullptr;
 };
 
 #define __STATIC_MESH_COMPONENT_H__

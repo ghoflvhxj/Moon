@@ -4,7 +4,7 @@
 #include "SceneComponent.h"
 #include "Vertex.h"
 
-struct PrimitiveData;
+struct FPrimitiveData;
 
 class VertexBuffer;
 class IndexBuffer;
@@ -52,10 +52,16 @@ public:
 	virtual ~PrimitiveComponent();
 
 public:
+	const uint32 GetPrimitiveID() const { return PrimitiveID; }
+protected:
+	static uint32 PrimitiveCounter;
+	uint32 PrimitiveID;
+
+public:
 	virtual void Update(const Time deltaTime) override;
 
 public:
-	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList);
+	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList);
 	virtual const bool getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox);
 
 public:
@@ -63,6 +69,11 @@ public:
 	const RenderMode	getRenderMdoe() const;
 private:
 	RenderMode _eRenderMdoe;
+
+public:
+	void SetRendering(bool bNewRendering);
+protected:
+	bool bRendering;
 };
 
 #define __PRIMITIVE_COMPONENT_H__

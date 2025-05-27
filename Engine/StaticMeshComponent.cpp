@@ -22,15 +22,28 @@
 using namespace DirectX;
 
 #pragma region StaticMesh
-void StaticMesh::initializeMeshInformation(const char *filePathName)
+void StaticMesh::InitializeFromFBX(const std::wstring& Path)
 {
-	FBXLoader fbxLoader(filePathName);
+	FBXLoader fbxLoader;
+	fbxLoader.LoadMesh(Path);
 
-	VertexCount = fbxLoader.getVertexCount();
-	_verticesList = std::move(fbxLoader.getVerticesList());
-	_indicesList = std::move(fbxLoader.getIndicesList());
-	_textureList = std::move(fbxLoader.getTextures());
-	_geometryCount = fbxLoader.getGeometryCount();
+	uint32 GeometryNum						= fbxLoader.GetGeometryNum();
+	const std::vector<VertexList>& Vertices	= fbxLoader.getVerticesList();
+	const std::vector<IndexList>& Indices	= fbxLoader.getIndicesList();
+
+	// FBX를 이용해 Serialize할 데이터들을 저장
+	for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
+	{
+		auto MeshData = std::make_shared<FMeshData>();
+		MeshData->Vertices = Vertices[GeometryIndex];
+		MeshData->Indices = Indices[GeometryIndex];
+		MeshDataList.push_back(MeshData);
+	}
+	
+	//FBXLoader fbxLoader(Path);
+	VertexCount = fbxLoader.GetTotalVertexNum();
+	Tetures = std::move(fbxLoader.getTextures());
+	_geometryCount = fbxLoader.GetGeometryNum();
 	_geometryLinkMaterialIndices = fbxLoader.getLinkList();
 	if (_geometryLinkMaterialIndices.size() == 0)
 	{
@@ -47,7 +60,7 @@ void StaticMesh::initializeMeshInformation(const char *filePathName)
 		bool applyedFixedMaterial = (materialCount == 0);
 		if (false == applyedFixedMaterial)
 		{
-			pMaterial->setTexture(_textureList[i]);
+			pMaterial->setTexture(Tetures[i]);
 		}
 		pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 
@@ -69,24 +82,16 @@ void StaticMesh::initializeMeshInformation(const char *filePathName)
 	//uint32 indexCount = CastValue<uint32>(_indicesList[0].size());
 	//_pIndexBuffer = std::make_shared<IndexBuffer>(sizeof(Index), indexCount, &_indicesList[0]);
 
-	uint32 geometryCount = fbxLoader.getGeometryCount();
-	_pVertexBuffers.reserve(CastValue<size_t>(geometryCount));
-	for (uint32 i = 0; i < geometryCount; ++i)
-	{
-		_pVertexBuffers.emplace_back(std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_verticesList[i].size()), _verticesList[i].data()));
-	}
-
 	// 바운딩 박스
 	Vec3 min, max;
 	fbxLoader.getBoundingBoxInfo(min, max);
 	_pBoundingBox = std::make_shared<BoundingBox>(min, max);
 
-
 	// 중심점과 모든 버텍스 위치
-	uint32 VertexCount = fbxLoader.getVertexCount();
+	uint32 VertexCount = fbxLoader.GetTotalVertexNum();
 	AllVertexPosition.reserve(VertexCount);
 	CenterPos = { 0.f, 0.f, 0.f };
-	for (auto& vertices : _verticesList)
+	for (auto& vertices : Vertices)
 	{
 		for (auto& vertex : vertices)
 		{
@@ -164,13 +169,21 @@ StaticMeshComponent::StaticMeshComponent(const char *filePathName)
 	: PrimitiveComponent()
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->initializeMeshInformation(filePathName);
+
+	// 임시, 파라미터 wstring으로 변경 필요
+	std::string Temp(filePathName);
+	std::wstring Path(Temp.begin(), Temp.end());
+	_pStaticMesh->InitializeFromFBX(Path);
 }
 
 StaticMeshComponent::StaticMeshComponent(const char *filePathName, bool bUsePhysX, bool bUseRigidStatic)
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->initializeMeshInformation(filePathName);
+
+	// 임시, 파라미터 wstring으로 변경 필요
+	std::string Temp(filePathName);
+	std::wstring Path(Temp.begin(), Temp.end());
+	_pStaticMesh->InitializeFromFBX(Path);
 
 	if (bUsePhysX)
 	{
@@ -210,7 +223,7 @@ void StaticMeshComponent::Update(const Time deltaTime)
 	PrimitiveComponent::Update(deltaTime);
 }
 
-const bool StaticMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
+const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &PrimitiveDataList)
 {
 	if (nullptr == _pStaticMesh)
 	{
@@ -218,32 +231,32 @@ const bool StaticMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pri
 	}
 
 	uint32 geometryCount = _pStaticMesh->getGeometryCount();
-	primitiveDataList.reserve(geometryCount);
+	PrimitiveDataList.reserve(geometryCount);
 
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
-		PrimitiveData primitive = {};
-		primitive._pPrimitive = shared_from_this();
-		primitive._pVertexBuffer = _pStaticMesh->getVertexBuffers()[geometryIndex];
-		primitive._pIndexBuffer = _pStaticMesh->getIndexBuffer();
-		primitive._pMaterial = _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
-		primitive._primitiveType = EPrimitiveType::Mesh;
-		primitive._pPrimitive = shared_from_this();
-		primitiveDataList.emplace_back(primitive);
+		FPrimitiveData PrimitiveData;
+		PrimitiveData._pPrimitive = shared_from_this();
+		//primitive._pVertexBuffer = _pStaticMesh->getVertexBuffers()[geometryIndex];
+		//primitive._pIndexBuffer = _pStaticMesh->getIndexBuffer();
+		PrimitiveData._pMaterial = _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
+		PrimitiveData._primitiveType = EPrimitiveType::Mesh;
+		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
+		
+		PrimitiveDataList.emplace_back(PrimitiveData);
 	}
 
 	// BoudingBox
 	std::shared_ptr<BoundingBox> &boundingBox = _pStaticMesh->getBoundingBox();
 	if (boundingBox && _bDrawBoundingBox)
 	{
-		PrimitiveData primitive = {};
+		FPrimitiveData primitive = {};
 		primitive._pPrimitive = shared_from_this();
-		primitive._pVertexBuffer = boundingBox->getVertexBuffer();
-		primitive._pIndexBuffer = nullptr;
+		//primitive._pVertexBuffer = boundingBox->getVertexBuffer();
+		//primitive._pIndexBuffer = nullptr;
 		primitive._pMaterial = boundingBox->getMaterial();
 		primitive._primitiveType = EPrimitiveType::Collision;
-		primitive._pPrimitive = shared_from_this();
-		primitiveDataList.emplace_back(primitive);
+		PrimitiveDataList.emplace_back(primitive);
 	}
 
 	return true;

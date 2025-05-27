@@ -14,7 +14,7 @@
 
 #include "imgui.h"
 
-#define UseLight 0
+#define UseLight 1
 #define UseDirectionalLight 1
 #define UseDynamicMesh 1
 #define UseSkySphere 1

@@ -15,7 +15,7 @@ SkyComponent::SkyComponent()
 	, _baseColor{ 1.f, 1.f, 1.f }
 {
 	_pSkyMesh = std::make_shared<StaticMesh>();
-	_pSkyMesh->initializeMeshInformation("SkyDome/SkyDome.fbx");
+	_pSkyMesh->InitializeFromFBX(TEXT("SkyDome/SkyDome.fbx"));
 
 	_pSkyMesh->getMaterial(0)->setShader(TEXT("TexVertexShader.cso"), TEXT("SkyPixelShader.cso"));
 }
@@ -29,17 +29,17 @@ std::shared_ptr<StaticMesh> SkyComponent::getSkyMesh()
 	return _pSkyMesh;
 }
 
-const bool SkyComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
+const bool SkyComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
 	if (nullptr == _pSkyMesh)
 	{
 		return false;
 	}
 
-	PrimitiveData primitiveData = {};
+	FPrimitiveData primitiveData = {};
 	primitiveData._pPrimitive = shared_from_this();
-	primitiveData._pVertexBuffer = _pSkyMesh->getVertexBuffers()[0];
-	primitiveData._pIndexBuffer = _pSkyMesh->getIndexBuffer();
+	//primitiveData._pVertexBuffer = _pSkyMesh->getVertexBuffers()[0];
+	//primitiveData._pIndexBuffer = _pSkyMesh->getIndexBuffer();
 	primitiveData._pMaterial = _pSkyMesh->getMaterials()[0];
 	primitiveData._primitiveType = EPrimitiveType::Sky;
 	primitiveDataList.emplace_back(primitiveData);

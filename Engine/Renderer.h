@@ -5,6 +5,7 @@
 
 class SceneComponent;
 class StaticMeshComponent;
+class VertexBuffer;
 
 class ENGINE_DLL Renderer 
 {
@@ -27,10 +28,15 @@ private:
 
 	// 렌더할 Primitive 추가
 public:
-	void addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> &pComponent);
-private:
-	std::vector<std::shared_ptr<PrimitiveComponent>> _primitiveComponents;
-	std::vector<std::shared_ptr<PrimitiveComponent>> _primitiveComponentsForShadow;
+	void AddPrimitive(std::shared_ptr<PrimitiveComponent> &pComponent);
+	std::map<uint32, std::vector<FPrimitiveData>>& GetDeferredPrimitiveData() { return DeferredPrimitiveDataMap; }
+protected:
+	std::vector<std::weak_ptr<PrimitiveComponent>> CachedPrimitiveComponents;
+	std::vector<std::weak_ptr<PrimitiveComponent>> RenderablePrimitiveComponents;
+	std::map<uint32, std::vector<FPrimitiveData>> ForwardPrimitiveDataMap;
+	std::map<uint32, std::vector<FPrimitiveData>> DeferredPrimitiveDataMap;
+	std::map<uint32, std::vector<std::shared_ptr<VertexBuffer>>> VertexBufferMap;
+
 
 	// 컴포넌트를 전달하지 않은 이유는 자료형만 전달해 컴포넌트에 의존성을 줄이려는 의도...
 public:
@@ -62,7 +68,7 @@ private:
 	inline void copyBufferData(std::vector<std::vector<VariableInfo>> &infos, ConstantBuffersLayer layer, uint32 index, const void *pData);
 	
 public:
-	uint32 totalPrimitiveCount = 0;
+	uint32 TotalPrimitiveNum = 0;
 	uint32 showPrimitiveCount = 0;
 	uint32 culledPrimitiveCount = 0;
 

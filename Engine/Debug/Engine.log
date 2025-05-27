@@ -1,0 +1,3 @@
+﻿C:\Users\ghofl\Desktop\Git\Moon\Engine\VSCommon.hlsli(33,19-29): error X4507: maximum vs_4_0_level_9_3 constant register index (256) exceeded - Try reducing number of constants referenced
+  
+  compilation failed; no code produced

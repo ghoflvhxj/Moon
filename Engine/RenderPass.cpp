@@ -40,7 +40,7 @@ RenderPass::~RenderPass()
 {
 }
 
-void RenderPass::begin()
+void RenderPass::Begin()
 {
 	// 기존 정보 저장
 	g_pGraphicDevice->getContext()->OMGetRenderTargets(1, &_pOldRenderTargetView, &_pOldDepthStencilView);
@@ -89,7 +89,7 @@ void RenderPass::begin()
 	}
 }
 
-void RenderPass::end()
+void RenderPass::End()
 {
 	// 쉐이더 리소스 뷰 해제
 	uint32 resorceViewCount = CastValue<uint32>(_resourceViewList.size());
@@ -109,22 +109,22 @@ void RenderPass::end()
 	SafeRelease(_pOldDepthStencilView);
 }
 
-void RenderPass::doPass(RenderQueue &renderQueue)
+void RenderPass::DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 {
-	for (auto& primitive : renderQueue)
-	{
-		// 컴포넌트가 가지고 있는 PrimitiveData 목록을 가져옴
-		std::vector<PrimitiveData> primitiveDataList = {};
-		primitive->getPrimitiveData(primitiveDataList);
+	//for (auto& primitive : renderQueue)
+	//{
+	//	// 컴포넌트가 가지고 있는 PrimitiveData 목록을 가져옴
+	//	std::vector<FPrimitiveData> primitiveDataList;
+	//	primitive->GetPrimitiveData(primitiveDataList);
 
-		for (auto &primitiveData : primitiveDataList)
+	for (auto& PrimitiveData : PrimitiveDatList)
+	{
+		if (processPrimitiveData(PrimitiveData))
 		{
-			if (processPrimitiveData(primitiveData))
-			{
-				render(primitiveData);
-			}
+			render(PrimitiveData);
 		}
 	}
+	//}
 }
 
 void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)

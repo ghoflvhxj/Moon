@@ -155,9 +155,65 @@ void Renderer::initialize(void) noexcept
 	}
 }
 
-void Renderer::addPrimitiveComponent(std::shared_ptr<PrimitiveComponent> &pComponent)
+void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComponent)
 {
-	_primitiveComponents.push_back(pComponent);
+	if (InPrimitiveComponent == nullptr)
+	{
+		return;
+	}
+
+	std::vector<FPrimitiveData> PrimitiveDataList;
+	if (InPrimitiveComponent->GetPrimitiveData(PrimitiveDataList) == false)
+	{
+		return;
+	}
+
+	CachedPrimitiveComponents.push_back(InPrimitiveComponent);
+
+	bool bMakeBuffer = false;
+	for (int i=0; i<PrimitiveDataList.size(); ++i)
+	{
+		FPrimitiveData& PrimitiveData = PrimitiveDataList[i];
+		if (PrimitiveData.MeshData.expired())
+		{
+			continue;
+		}
+
+		uint32 PrimitiveKey = InPrimitiveComponent->GetPrimitiveID();
+
+		// 버텍스 버퍼 생성
+		if (bMakeBuffer == false && VertexBufferMap.find(PrimitiveKey) == VertexBufferMap.end())
+		{
+			bMakeBuffer = true;
+		}
+
+		if (bMakeBuffer)
+		{
+			auto& MeshData = PrimitiveData.MeshData.lock();
+			uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
+			uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
+			const void* Buffer = MeshData->Vertices.data();
+			VertexBufferMap[PrimitiveKey].push_back(std::make_shared<VertexBuffer>(VertexSize, VertexNum, Buffer));
+		}
+
+		PrimitiveData._pVertexBuffer = VertexBufferMap[PrimitiveKey][i];
+
+		// 인덱스 버퍼 생성
+		// --
+
+		// 매터리얼 타입에 따라 어느 렌더링에 들어갈지 결정
+		if (bMakeBuffer)
+		{
+			if (PrimitiveData._pMaterial->IsUseAlpha())
+			{
+				ForwardPrimitiveDataMap[PrimitiveKey].push_back(PrimitiveData);
+			}
+			else
+			{
+				DeferredPrimitiveDataMap[PrimitiveKey].push_back(PrimitiveData);
+			}
+		}
+	}
 }
 
 void Renderer::addDirectionalLightInfoForShadow(const Vec3 &direction)
@@ -191,26 +247,49 @@ void Renderer::renderScene()
 {
 	g_pGraphicDevice->Begin();
 
-	totalPrimitiveCount = CastValue<uint32>(_primitiveComponents.size());
+	TotalPrimitiveNum = CastValue<uint32>(CachedPrimitiveComponents.size());
 	FrustumCulling();
 
 	updateConstantBuffer();
 	
+	std::vector<FPrimitiveData> RenderablePrimitiveData;
+	for (auto& Component : RenderablePrimitiveComponents)
+	{
+		uint32 ID = Component.lock()->GetPrimitiveID();
+		if (DeferredPrimitiveDataMap.find(ID) != DeferredPrimitiveDataMap.end())
+		{
+			RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), DeferredPrimitiveDataMap[ID].begin(), DeferredPrimitiveDataMap[ID].end());
+		}
+	}
+
 	// 기본 패스
 	uint32 combinePassIndex = CastValue<uint32>(ERenderPass::Combine);
 	for (uint32 i = 0; i < combinePassIndex; ++i)
 	{
-		_renderPasses[i]->begin();
-		_renderPasses[i]->doPass(_primitiveComponents);
-		_renderPasses[i]->end();
+		_renderPasses[i]->Begin();
+		_renderPasses[i]->DoPass(RenderablePrimitiveData);
+		_renderPasses[i]->End();
 	}
 
 	// 혼합 패스
-	std::vector<std::shared_ptr<PrimitiveComponent>> temp;
+	std::vector<std::weak_ptr<PrimitiveComponent>> temp;
 	temp.emplace_back(_pMeshComponent);
-	_renderPasses[combinePassIndex]->begin();
-	_renderPasses[combinePassIndex]->doPass(temp);
-	_renderPasses[combinePassIndex]->end();
+
+	std::vector<FPrimitiveData> PrimitiveDataList;
+	_pMeshComponent->GetPrimitiveData(PrimitiveDataList);
+
+	if (PrimitiveDataList[0]._pVertexBuffer == nullptr)
+	{
+		auto& MeshData = PrimitiveDataList[0].MeshData.lock();
+		uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
+		uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
+		const void* Buffer = MeshData->Vertices.data();
+		PrimitiveDataList[0]._pVertexBuffer = std::make_shared<VertexBuffer>(VertexSize, VertexNum, Buffer);
+	}
+
+	_renderPasses[combinePassIndex]->Begin();
+	_renderPasses[combinePassIndex]->DoPass(PrimitiveDataList);
+	_renderPasses[combinePassIndex]->End();
 
 	// 포스트프로세스 패스
 
@@ -227,7 +306,7 @@ void Renderer::renderScene()
 #endif
 
 	g_pMainGame->render();
-	_primitiveComponents.clear();
+	CachedPrimitiveComponents.clear();
 
 	g_pGraphicDevice->End();
 }
@@ -300,28 +379,31 @@ void Renderer::FrustumCulling()
 	m_planes[5] = XMVectorSet(x, y, z, w);
 	m_planes[5] = XMPlaneNormalize(m_planes[5]);
 
-	std::vector<std::shared_ptr<PrimitiveComponent>> culledPrimitiveComponents;
-	culledPrimitiveComponents.reserve(_primitiveComponents.size());
+	std::vector<std::weak_ptr<PrimitiveComponent>> CulledPrimitiveComponents;
+	CulledPrimitiveComponents.reserve(CachedPrimitiveComponents.size());
 
-	for (auto &primitive : _primitiveComponents)
+	for (auto& WeakPrimitiveComponent : CachedPrimitiveComponents)
 	{
+		std::shared_ptr<PrimitiveComponent>& SharedPrimitiveComponent = WeakPrimitiveComponent.lock();
+
 		std::shared_ptr<BoundingBox> boundingBox = nullptr;
-		if (false == primitive->getBoundingBox(boundingBox))
+		if (SharedPrimitiveComponent->getBoundingBox(boundingBox) == false)
 		{
-			culledPrimitiveComponents.emplace_back(primitive);
+			CulledPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
 			continue;
 		}
 
-		if (boundingBox->cullSphere(m_planes, primitive->getWorldTranslation(), boundingBox->getLength(primitive->getScale())/2.f))
+		if (boundingBox->cullSphere(m_planes, SharedPrimitiveComponent->getWorldTranslation(), boundingBox->getLength(SharedPrimitiveComponent->getScale())/2.f))
 		{
-			culledPrimitiveComponents.emplace_back(primitive);
+			CulledPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
 		}
 	}
 
-	_primitiveComponents = std::move(culledPrimitiveComponents);
+	RenderablePrimitiveComponents.clear();
+	RenderablePrimitiveComponents = std::move(CulledPrimitiveComponents);
 
-	showPrimitiveCount = CastValue<uint32>(_primitiveComponents.size());
-	culledPrimitiveCount = totalPrimitiveCount - showPrimitiveCount;
+	showPrimitiveCount = CastValue<uint32>(CachedPrimitiveComponents.size());
+	culledPrimitiveCount = TotalPrimitiveNum - showPrimitiveCount;
 }
 
 void Renderer::updateConstantBuffer()

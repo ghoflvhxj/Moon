@@ -3,7 +3,7 @@
 
 #include "LightComponent.h"
 
-struct PrimitiveData;
+struct FPrimitiveData;
 
 class ENGINE_DLL PointLightComponent : public LightComponent
 {
@@ -14,7 +14,7 @@ public:
 
 public:
 	virtual void Update(const Time deltaTime) override;
-	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
+	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 
 public:
 	void		addRange(const float addRange);

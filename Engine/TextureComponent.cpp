@@ -73,6 +73,7 @@ const bool TextureComponent::loadTextureFile(const wchar_t *fileName)
 	if (nullptr != _rawTexture)
 		_rawTexture->Release();
 
+
 	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource **)&_rawTexture, &_pResourceView));
 	
 	return true;

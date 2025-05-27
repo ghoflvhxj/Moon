@@ -12,7 +12,7 @@ LightComponent::LightComponent(void)
 	, _shown		{ true }
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->initializeMeshInformation("Base/Plane.fbx");
+	_pStaticMesh->InitializeFromFBX(TEXT("Base/Plane.fbx"));
 
 	if (_pStaticMesh->getMaterialCount() == 0)
 	{
@@ -27,12 +27,11 @@ LightComponent::~LightComponent(void)
 {
 }
 
-const bool LightComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
+const bool LightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
-	PrimitiveData primitiveData = {};
+	FPrimitiveData primitiveData = {};
 	primitiveData._pPrimitive		= shared_from_this();
-	primitiveData._pVertexBuffer	= _pStaticMesh->getVertexBuffers()[0];
-	primitiveData._pIndexBuffer		= _pStaticMesh->getIndexBuffer();
+	primitiveData.MeshData = _pStaticMesh->GetMeshData(0);
 	primitiveData._primitiveType	= EPrimitiveType::Light;
 
 	primitiveDataList.emplace_back(primitiveData);

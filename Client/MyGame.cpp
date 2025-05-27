@@ -114,7 +114,7 @@ void MyGame::render()
 	ImGui::NewFrame();
 
 	ImGui::Begin("Hello, world!");                  
-	ImGui::Text("Toatal primitive:%d", getRenderer()->totalPrimitiveCount);
+	ImGui::Text("Toatal primitive:%d", getRenderer()->TotalPrimitiveNum);
 	ImGui::Text("show primitive:%d", getRenderer()->showPrimitiveCount);
 	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
 	ImGui::Checkbox("Debug Collision", &getRenderer()->bDrawCollision);
@@ -141,7 +141,7 @@ void MyGame::render()
 			_pStaticMeshComponent->setTranslation(0.f, 5.f, 0.f);
 		}
 
-		ImGui::Checkbox("Collision", &bStaticCollision);
+		ImGui::Checkbox("DisableCollision", &bStaticCollision);
 		if (_pStaticMeshComponent)
 		{
 			_pStaticMeshComponent->SetStaticCollision(bStaticCollision);

@@ -123,8 +123,11 @@ const float BoundingBox::getLength(const Vec3 &scale /*= { 1.f, 1.f, 1.f }*/) co
 	return length.x;
 }
 
+uint32 PrimitiveComponent::PrimitiveCounter = 0;
+
 PrimitiveComponent::PrimitiveComponent()
 	:_eRenderMdoe{ RenderMode::Perspective }
+	, PrimitiveID{ PrimitiveCounter++ }
 {
 }
 
@@ -136,10 +139,10 @@ void PrimitiveComponent::Update(const Time deltaTime)
 {
 	SceneComponent::Update(deltaTime);
 
-	g_pRenderer->addPrimitiveComponent(shared_from_this());
+	g_pRenderer->AddPrimitive(shared_from_this());
 }
 
-const bool PrimitiveComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
+const bool PrimitiveComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
 	return false;
 }
@@ -157,4 +160,14 @@ void PrimitiveComponent::setRenderMode(const RenderMode renderMode)
 const PrimitiveComponent::RenderMode PrimitiveComponent::getRenderMdoe() const
 {
 	return _eRenderMdoe;
+}
+
+void PrimitiveComponent::SetRendering(bool bNewRendering)
+{
+	if (bNewRendering == bRendering)
+	{
+		return;
+	}
+
+	bRendering = bNewRendering;
 }

@@ -42,7 +42,7 @@ float CalculateShadowFactor(int cascadeIndex, float4 lightspacepos)
 PixelOut_GeometryPass main(PixelIn pIn)
 {
 	PixelOut_GeometryPass pOut;
-
+    
 	// 픽셀 쉐이더에서 SV_POSITION은 z 나누기 전의 위치 벡터이다
 	// x' = x / tan(@/2)*r, z 나누기 후에는 -1<=x'<=1 의 범위를 가짐
 	// y' = 1 / tan(@/2), z 나누기 후에는 -1<=y'<=1 의 범위를 가짐
@@ -54,6 +54,9 @@ PixelOut_GeometryPass main(PixelIn pIn)
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
     
     float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
+    
+    
+    
 	
 	if (true == bUseNormalTexture)
 	{
@@ -101,7 +104,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
     {
         pOut.color.xyz *= 1.f - (shadowFactor/2.f);
     }
-	
+    
     return pOut;
 }
 

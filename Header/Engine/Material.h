@@ -59,10 +59,12 @@ public:
 	const D3D_PRIMITIVE_TOPOLOGY getTopology() const;
 	const Graphic::FillMode getFillMode() const;
 	const Graphic::CullMode getCullMode() const;
+	const bool IsUseAlpha() const { return bUseAlpha; }
 private:
 	D3D_PRIMITIVE_TOPOLOGY _eTopology;
 	Graphic::FillMode _eFillMode;
 	Graphic::CullMode _eCullMode;
+	bool bUseAlpha;
 
 
 public:

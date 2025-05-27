@@ -15,17 +15,17 @@ struct VertexIn
 struct VertexOut
 {
 	float4 pos			: SV_POSITION;
-    float3 worldPos		: POSITION0;
+    float3 worldPos     : TEXCOORD4;
 	float2 uv			: TEXCOORD0;
-	float3 normal		: NORMAL0;
-	float3 tangent		: NORMAL1;
-	float3 binormal		: NORMAL2;
+    float3 normal		: TEXCOORD1;
+    float3 tangent      : TEXCOORD2;
+	float3 binormal		: TEXCOORD3;
 };
 
 struct VertexOut_Simple
 {
-	float4 color : COLOR;
 	float4 pos : SV_POSITION;
+	float4 color : COLOR;
 };
 
 cbuffer VS_CBuffer_PerObject : register(b2)

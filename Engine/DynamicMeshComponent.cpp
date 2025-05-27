@@ -69,14 +69,25 @@ Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 	_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 }
 
-void DynamicMesh::initializeMeshInformation(const char *filePathName)
+void DynamicMesh::InitializeFromFBX(const std::wstring& Path)
 {
-	FBXLoader fbxLoader(filePathName, _animationClipList);
+	FBXLoader fbxLoader(Path.c_str(), _animationClipList);
 
-	_verticesList = std::move(fbxLoader.getVerticesList());
-	_indicesList = std::move(fbxLoader.getIndicesList());
-	_textureList = std::move(fbxLoader.getTextures());
-	_geometryCount = fbxLoader.getGeometryCount();
+	uint32 GeometryNum = fbxLoader.GetGeometryNum();
+	const std::vector<VertexList>& Vertices = fbxLoader.getVerticesList();
+	const std::vector<IndexList>& Indices = fbxLoader.getIndicesList();
+
+	// FBX를 이용해 Serialize할 데이터들을 저장
+	for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
+	{
+		auto MeshData = std::make_shared<FMeshData>();
+		MeshData->Vertices = Vertices[GeometryIndex];
+		MeshData->Indices = Indices[GeometryIndex];
+		MeshDataList.push_back(MeshData);
+	}
+
+	Tetures = std::move(fbxLoader.getTextures());
+	_geometryCount = fbxLoader.GetGeometryNum();
 	_geometryLinkMaterialIndices = std::move(fbxLoader.getLinkList());
 	if (_geometryLinkMaterialIndices.size() == 0)
 	{
@@ -93,7 +104,7 @@ void DynamicMesh::initializeMeshInformation(const char *filePathName)
 		bool applyedFixedMaterial = (materialCount == 0);
 		if (false == applyedFixedMaterial)
 		{
-			pMaterial->setTexture(_textureList[i]);
+			pMaterial->setTexture(Tetures[i]);
 		}
 		pMaterial->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 
@@ -103,11 +114,11 @@ void DynamicMesh::initializeMeshInformation(const char *filePathName)
 	_jointList = std::move(fbxLoader._jointList);
 	_jointCount = CastValue<uint32>(_jointList.size());
 
-	uint32 geometryCount = fbxLoader.getGeometryCount();
+	uint32 geometryCount = fbxLoader.GetGeometryNum();
 	_pVertexBuffers.reserve(CastValue<size_t>(geometryCount));
 	for (uint32 i = 0; i < geometryCount; ++i)
 	{
-		_pVertexBuffers.emplace_back(std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_verticesList[i].size()), _verticesList[i].data()));
+		//_pVertexBuffers.emplace_back(std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(Vertices[i].size()), Vertices[i].data()));
 	}
 
 	_pSkeleton = std::make_shared<Skeleton>(this);
@@ -137,36 +148,40 @@ DynamicMeshComponent::DynamicMeshComponent()
 DynamicMeshComponent::DynamicMeshComponent(const char *filePathName)
 	: PrimitiveComponent()
 {
-	_pDynamicMesh = std::make_shared<DynamicMesh>();
-	_pDynamicMesh->initializeMeshInformation(filePathName);
+	Mesh = std::make_shared<DynamicMesh>();
+
+	// 임시, 파라미터 wstring으로 변경 필요
+	std::string Temp(filePathName);
+	std::wstring Path(Temp.begin(), Temp.end());
+
+	Mesh->InitializeFromFBX(Path);
 }
 
 DynamicMeshComponent::~DynamicMeshComponent()
 {
 }
 
-const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList)
+const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
-	if (nullptr == _pDynamicMesh)
+	if (nullptr == Mesh)
 	{
 		return false;
 	}
 
-	AnimationClip &currentAnimClip = _pDynamicMesh->getAnimationClip(_currentAinmClipIndex);
-	uint32 geometryCount = _pDynamicMesh->getGeometryCount();
-	uint32 jointCount	 = _pDynamicMesh->getJointCount();
+	AnimationClip &currentAnimClip = Mesh->getAnimationClip(_currentAinmClipIndex);
+	uint32 geometryCount = Mesh->getGeometryCount();
+	uint32 jointCount	 = Mesh->getJointCount();
 
 	primitiveDataList.reserve(geometryCount);
 
 	std::set<uint32> matricesSet;
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
-		PrimitiveData primitive = {};
+		FPrimitiveData primitive = {};
 		primitive._pPrimitive = shared_from_this();
-		primitive._pVertexBuffer = _pDynamicMesh->getVertexBuffers()[geometryIndex];
-		primitive._pIndexBuffer = _pDynamicMesh->getIndexBuffer();
-		primitive._pMaterial = _pDynamicMesh->getMaterials()[_pDynamicMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
+		primitive._pMaterial = Mesh->getMaterials()[Mesh->getGeometryLinkMaterialIndex()[geometryIndex]];
 		primitive._primitiveType = EPrimitiveType::Mesh;
+		primitive.MeshData = Mesh->GetMeshData(geometryIndex);
 
 		for (int32 jointIndex = 0; jointIndex < CastValue<int32>(jointCount); ++jointIndex)
 		{
@@ -181,7 +196,7 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 				}
 
 				// 본이 영향을 주는 버텍스가 없는 경우에는, 부모 본을 그대로 사용
-				int32 parentIndex = _pDynamicMesh->getJoints()[jointIndex]._parentIndex;
+				int32 parentIndex = Mesh->getJoints()[jointIndex]._parentIndex;
 				if (parentIndex == -1)
 				{
 					_matrices[jointIndex] = IDENTITYMATRIX;
@@ -212,7 +227,7 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 					frameMatrix += nextFrameMatrix;
 				}
 
-				XMMATRIX globalBindPoseInverseMatrix = XMLoadFloat4x4(&_pDynamicMesh->getJoints()[jointIndex]._globalBindPoseInverseMatrix);
+				XMMATRIX globalBindPoseInverseMatrix = XMLoadFloat4x4(&Mesh->getJoints()[jointIndex]._globalBindPoseInverseMatrix);
 				XMStoreFloat4x4(&_matrices[jointIndex], XMMatrixMultiply(globalBindPoseInverseMatrix, frameMatrix));
 
 				matricesSet.insert(jointIndex);
@@ -224,7 +239,7 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 		primitiveDataList.emplace_back(primitive);
 	}
 
-	if (_pDynamicMesh->_pSkeleton)
+	if (Mesh->_pSkeleton)
 	{
 		//PrimitiveData primitive = {};
 		//primitive._pPrimitive = shared_from_this();
@@ -250,7 +265,7 @@ const bool DynamicMeshComponent::getPrimitiveData(std::vector<PrimitiveData> &pr
 
 std::shared_ptr<DynamicMesh>& DynamicMeshComponent::getDynamicMesh()
 {
-	return _pDynamicMesh;
+	return Mesh;
 }
 
 void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTime)
@@ -258,7 +273,7 @@ void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTim
 	_currentAinmClipIndex = index;
 	_currentPlayTime += deltaTime;
 
-	if (_currentPlayTime > CastValue<float>(_pDynamicMesh->getAnimationClip(index)._duration))
+	if (_currentPlayTime > CastValue<float>(Mesh->getAnimationClip(index)._duration))
 	{
 		_currentPlayTime = 0.f;
 	}

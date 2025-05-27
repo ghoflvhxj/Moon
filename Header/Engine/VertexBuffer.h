@@ -4,7 +4,7 @@
 class VertexBuffer final
 {
 public:
-	explicit VertexBuffer(const uint32 vertexSize, const uint32 vertexCount, void *buffer);
+	explicit VertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer);
 	~VertexBuffer();
 
 public:

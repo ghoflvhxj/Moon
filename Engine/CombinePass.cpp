@@ -17,15 +17,17 @@
 
 using namespace DirectX;
 
-const bool CombinePass::processPrimitiveData(PrimitiveData &primitiveData)
+const bool CombinePass::processPrimitiveData(const FPrimitiveData &primitiveData)
 {
+	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
+
 	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	memcpy(VS_CBuffer_PerObject[0]._pValue, &primitiveData._pPrimitive->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
+	memcpy(VS_CBuffer_PerObject[0]._pValue, &PrimitiveComponent->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
 
 	return true;
 }
 
-void CombinePass::render(PrimitiveData &primitiveData)
+void CombinePass::render(const FPrimitiveData &primitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
@@ -80,7 +82,7 @@ void CombinePass::render(PrimitiveData &primitiveData)
 	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool GeometryPass::processPrimitiveData(PrimitiveData &primitiveData)
+const bool GeometryPass::processPrimitiveData(const FPrimitiveData &primitiveData)
 {
 	switch (primitiveData._primitiveType)
 	{
@@ -96,8 +98,10 @@ const bool GeometryPass::processPrimitiveData(PrimitiveData &primitiveData)
 		return false;
 	}
 
+	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
+
 	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	memcpy(VS_CBuffer_PerObject[0]._pValue, &primitiveData._pPrimitive->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
+	memcpy(VS_CBuffer_PerObject[0]._pValue, &PrimitiveComponent->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
 
 	BOOL animated = primitiveData._matrices != nullptr;
 	if (animated)
@@ -118,7 +122,7 @@ const bool GeometryPass::processPrimitiveData(PrimitiveData &primitiveData)
 	return true;
 }
 
-void GeometryPass::render(PrimitiveData &primitiveData)
+void GeometryPass::render(const FPrimitiveData &primitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
@@ -175,7 +179,7 @@ void GeometryPass::render(PrimitiveData &primitiveData)
 	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool ShadowDepthPass::processPrimitiveData(PrimitiveData & primitiveData)
+const bool ShadowDepthPass::processPrimitiveData(const FPrimitiveData & primitiveData)
 {
 	// ·»´õ Å¥ ¸¸µé±â
 	if (primitiveData._primitiveType != EPrimitiveType::Mesh)
@@ -186,7 +190,7 @@ const bool ShadowDepthPass::processPrimitiveData(PrimitiveData & primitiveData)
 	return true;
 }
 
-void ShadowDepthPass::render(PrimitiveData & primitiveData)
+void ShadowDepthPass::render(const FPrimitiveData & primitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
@@ -243,7 +247,7 @@ void ShadowDepthPass::render(PrimitiveData & primitiveData)
 	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool LightPass::processPrimitiveData(PrimitiveData &primitiveData)
+const bool LightPass::processPrimitiveData(const FPrimitiveData &primitiveData)
 {
 	// ·»´õ Å¥ ¸¸µé±â
 	if (primitiveData._primitiveType != EPrimitiveType::Light)
@@ -251,15 +255,17 @@ const bool LightPass::processPrimitiveData(PrimitiveData &primitiveData)
 		return false;
 	}
 
-	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	memcpy(VS_CBuffer_PerObject[0]._pValue, &primitiveData._pPrimitive->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
+	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
 
-	Vec3 trans = primitiveData._pPrimitive->getTranslation();
+	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
+	memcpy(VS_CBuffer_PerObject[0]._pValue, &PrimitiveComponent->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
+
+	Vec3 trans = PrimitiveComponent->getTranslation();
 	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
 	Vec4 color = { 1.f, 1.f, 1.f, 1.f };
 	auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
 	memcpy(PS_CBuffer_PerObject[0]._pValue, &transAndRange, PS_CBuffer_PerObject[0]._size);
-	XMVECTOR rotationVector = XMLoadFloat3(&primitiveData._pPrimitive->getRotation());
+	XMVECTOR rotationVector = XMLoadFloat3(&PrimitiveComponent->getRotation());
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(rotationVector);
 	Mat4 rotMatrix = IDENTITYMATRIX;
 	XMStoreFloat4x4(&rotMatrix, rotationMatrix);
@@ -273,7 +279,7 @@ const bool LightPass::processPrimitiveData(PrimitiveData &primitiveData)
 	return true;
 }
 
-void LightPass::render(PrimitiveData &primitiveData)
+void LightPass::render(const FPrimitiveData &primitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
@@ -330,15 +336,17 @@ void LightPass::render(PrimitiveData &primitiveData)
 	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool SkyPass::processPrimitiveData(PrimitiveData &primitiveData)
+const bool SkyPass::processPrimitiveData(const FPrimitiveData &primitiveData)
 {
 	if (primitiveData._primitiveType != EPrimitiveType::Sky)
 	{
 		return false;
 	}
 
+	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
+
 	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	memcpy(VS_CBuffer_PerObject[0]._pValue, &primitiveData._pPrimitive->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
+	memcpy(VS_CBuffer_PerObject[0]._pValue, &PrimitiveComponent->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
 
 	//auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
 	//BOOL bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Normal) ? TRUE : FALSE;
@@ -349,7 +357,7 @@ const bool SkyPass::processPrimitiveData(PrimitiveData &primitiveData)
 	return true;
 }
 
-void SkyPass::render(PrimitiveData & primitiveData)
+void SkyPass::render(const FPrimitiveData & primitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler

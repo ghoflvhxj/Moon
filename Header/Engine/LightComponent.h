@@ -3,7 +3,7 @@
 
 #include "PrimitiveComponent.h"
 
-struct PrimitiveData;
+struct FPrimitiveData;
 class StaticMesh;
 
 class ENGINE_DLL LightComponent : public PrimitiveComponent
@@ -13,7 +13,7 @@ public:
 	virtual ~LightComponent(void);
 
 public:
-	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
+	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 
 public:
 	const Vec3&	getColor(void) const;

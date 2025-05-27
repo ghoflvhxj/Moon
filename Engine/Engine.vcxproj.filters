@@ -152,429 +152,282 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Timer.h">
-      <Filter>Module\System\Timer</Filter>
-    </ClInclude>
-    <ClInclude Include="TimerManager.h">
-      <Filter>Module\System\Timer</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
+    <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="AnimationController.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="CombinePass.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ConstantBuffer.cpp" />
+    <ClCompile Include="DirectInput.cpp" />
+    <ClCompile Include="DirectionalLightComponent.cpp" />
+    <ClCompile Include="DynamicMeshComponent.cpp" />
+    <ClCompile Include="DynamicMeshComponentUtility.cpp" />
+    <ClCompile Include="EngineException.cpp" />
+    <ClCompile Include="FBXLoader.cpp" />
+    <ClCompile Include="FileFinder.cpp" />
+    <ClCompile Include="FrameManager.cpp" />
+    <ClCompile Include="GeometryShader.cpp" />
+    <ClCompile Include="GraphicDevice.cpp" />
+    <ClCompile Include="IndexBuffer.cpp" />
+    <ClCompile Include="InputLayout.cpp" />
+    <ClCompile Include="Launch.cpp" />
+    <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="MainGame.cpp" />
+    <ClCompile Include="MainGameSetting.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MeshComponent.cpp" />
+    <ClCompile Include="MoonEngine.cpp" />
+    <ClCompile Include="MPhysX.cpp" />
+    <ClCompile Include="PixelShader.cpp" />
+    <ClCompile Include="PointLightComponent.cpp" />
+    <ClCompile Include="PrimitiveComponent.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="RenderTarget.cpp" />
+    <ClCompile Include="SceneComponent.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderLoader.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
+    <ClCompile Include="SkyComponent.cpp" />
+    <ClCompile Include="SphereComponent.cpp" />
+    <ClCompile Include="StaticMeshComponent.cpp" />
+    <ClCompile Include="TerrainComponent.cpp" />
+    <ClCompile Include="TextureComponent.cpp" />
+    <ClCompile Include="TextureSetter.cpp" />
+    <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TimerManager.cpp" />
+    <ClCompile Include="VertexBuffer.cpp" />
+    <ClCompile Include="VertexShader.cpp" />
+    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="WindowException.cpp" />
+    <ClCompile Include="WindowManager.cpp" />
+    <ClCompile Include="World.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Actor.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="FrameManager.h">
-      <Filter>Module\System\Frame</Filter>
+    <ClInclude Include="AnimationController.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="WindowManager.h">
-      <Filter>Module\System\Window</Filter>
+    <ClInclude Include="Camera.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
-      <Filter>Module\System\Window</Filter>
+    <ClInclude Include="CameraComponent.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="MapUtility.h">
-      <Filter>Module\Utility</Filter>
+    <ClInclude Include="CombinePass.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Component.h">
-      <Filter>Module\Framework\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager.h">
-      <Filter>Module\Core\template</Filter>
-    </ClInclude>
-    <ClInclude Include="Singleton.h">
-      <Filter>Module\Core\template</Filter>
-    </ClInclude>
-    <ClInclude Include="MainGame.h">
-      <Filter>Module\Framework\MainGame</Filter>
-    </ClInclude>
-    <ClInclude Include="Macro.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Include.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Extern.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Enum.h">
+    <ClInclude Include="ConstantBuffer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Define.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Type.h">
+    <ClInclude Include="DirectInput.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicDevice.h">
-      <Filter>Module\Graphics</Filter>
+    <ClInclude Include="DirectionalLightComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicMeshComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicMeshComponentUtility.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineException.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Enum.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Extern.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Factory.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FBXLoader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FileFinder.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameManager.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Function.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h">
-      <Filter>Module\Graphics</Filter>
+    <ClInclude Include="GeometryShader.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="EngineException.h">
-      <Filter>Module\Core</Filter>
+    <ClInclude Include="GraphicDevice.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="MoonEngine.h">
-      <Filter>Module\MoonEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="PrimitiveComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowException.h">
-      <Filter>Module\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="MainGameSetting.h">
-      <Filter>Module\Framework\MainGame</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\TerrainComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\CameraComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Module\Framework\Actor\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="Actor.h">
-      <Filter>Module\Framework\Actor</Filter>
-    </ClInclude>
-    <ClInclude Include="Thread.h">
-      <Filter>Module\System\Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadPool.h">
-      <Filter>Module\System\ThreadPool</Filter>
-    </ClInclude>
-    <ClInclude Include="Factory.h">
-      <Filter>Module\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectInput.h">
-      <Filter>Module\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureComponent.h">
-      <Filter>Module\Framework\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderManager.h">
-      <Filter>Module\Graphics\Shader</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderLoader.h">
-      <Filter>Module\Graphics\Shader</Filter>
-    </ClInclude>
-    <ClInclude Include="InputLayout.h">
-      <Filter>Module\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="FileFinder.h">
-      <Filter>Module\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="StaticMeshComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\StaticMeshComopnent</Filter>
-    </ClInclude>
-    <ClInclude Include="FBXLoader.h">
-      <Filter>Module\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderTarget.h">
-      <Filter>Module\Render\RenderTarget</Filter>
-    </ClInclude>
-    <ClInclude Include="LightComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\LightComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="PointLightComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\LightComponent\PointLightComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureSetter.h">
-      <Filter>Module\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="ConstantBuffer.h">
-      <Filter>Module\Graphics\Buffer</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexBuffer.h">
-      <Filter>Module\Graphics\Buffer</Filter>
+    <ClInclude Include="Include.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="IndexBuffer.h">
-      <Filter>Module\Graphics\Buffer</Filter>
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InputLayout.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Macro.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainGame.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MainGameSetting.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MapUtility.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
-      <Filter>Module\Material</Filter>
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DirectionalLightComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\LightComponent\DirectionalLightComponent</Filter>
+    <ClInclude Include="MeshComponent.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DynamicMeshComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
+    <ClInclude Include="MoonEngine.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DynamicMeshComponentUtility.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="AnimationController.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPass.h">
-      <Filter>Module\Render\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="CombinePass.h">
-      <Filter>Module\Render\RenderPass\Combine</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Module\Render\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Render.h">
-      <Filter>Module\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Module\Graphics\Shader</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexShader.h">
-      <Filter>Module\Graphics\Shader\Vertex</Filter>
+    <ClInclude Include="MPhysX.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="PixelShader.h">
-      <Filter>Module\Graphics\Shader\Pixel</Filter>
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PointLightComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Render.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTarget.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderLoader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Singleton.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="SkyComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent</Filter>
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticMeshComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureSetter.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TimerManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Type.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexShader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowException.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManager.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="World.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryShader.h">
-      <Filter>Module\Graphics\Shader\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="Fxaa3_11.hlsli">
-      <Filter>Module\Graphics\Shader\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="MPhysX.h">
-      <Filter>Module\PhysX</Filter>
-    </ClInclude>
-    <ClInclude Include="SphereComponent.h">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\ShapeComponent</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Module\System\Timer</Filter>
-    </ClCompile>
-    <ClCompile Include="TimerManager.cpp">
-      <Filter>Module\System\Timer</Filter>
-    </ClCompile>
-    <ClCompile Include="FrameManager.cpp">
-      <Filter>Module\System\Frame</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowManager.cpp">
-      <Filter>Module\System\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Module\System\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Module\Framework\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="Launch.cpp">
-      <Filter>Module\Launch</Filter>
-    </ClCompile>
-    <ClCompile Include="MainGame.cpp">
-      <Filter>Module\Framework\MainGame</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicDevice.cpp">
-      <Filter>Module\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineException.cpp">
-      <Filter>Module\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="MoonEngine.cpp">
-      <Filter>Module\MoonEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="PrimitiveComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowException.cpp">
-      <Filter>Module\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\TerrainComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="MainGameSetting.cpp">
-      <Filter>Module\Framework\MainGame</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\CameraComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Module\Framework\Actor\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="Actor.cpp">
-      <Filter>Module\Framework\Actor</Filter>
-    </ClCompile>
-    <ClCompile Include="Thread.cpp">
-      <Filter>Module\System\Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="ThreadPool.cpp">
-      <Filter>Module\System\ThreadPool</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectInput.cpp">
-      <Filter>Module\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureComponent.cpp">
-      <Filter>Module\Framework\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderManager.cpp">
-      <Filter>Module\Graphics\Shader</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderLoader.cpp">
-      <Filter>Module\Graphics\Shader</Filter>
-    </ClCompile>
-    <ClCompile Include="InputLayout.cpp">
-      <Filter>Module\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="FileFinder.cpp">
-      <Filter>Module\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="StaticMeshComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\StaticMeshComopnent</Filter>
-    </ClCompile>
-    <ClCompile Include="FBXLoader.cpp">
-      <Filter>Module\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTarget.cpp">
-      <Filter>Module\Render\RenderTarget</Filter>
-    </ClCompile>
-    <ClCompile Include="LightComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\LightComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="PointLightComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\LightComponent\PointLightComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureSetter.cpp">
-      <Filter>Module\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ConstantBuffer.cpp">
-      <Filter>Module\Graphics\Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexBuffer.cpp">
-      <Filter>Module\Graphics\Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="IndexBuffer.cpp">
-      <Filter>Module\Graphics\Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>Module\Material</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectionalLightComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\LightComponent\DirectionalLightComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="DynamicMeshComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="DynamicMeshComponentUtility.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimationController.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\MeshComponent\DynamicMeshComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPass.cpp">
-      <Filter>Module\Render\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="CombinePass.cpp">
-      <Filter>Module\Render\RenderPass\Combine</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Module\Render\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Module\Graphics\Shader</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexShader.cpp">
-      <Filter>Module\Graphics\Shader\Vertex</Filter>
-    </ClCompile>
-    <ClCompile Include="PixelShader.cpp">
-      <Filter>Module\Graphics\Shader\Pixel</Filter>
-    </ClCompile>
-    <ClCompile Include="SkyComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent</Filter>
-    </ClCompile>
-    <ClCompile Include="World.cpp" />
-    <ClCompile Include="GeometryShader.cpp">
-      <Filter>Module\Graphics\Shader\Geometry</Filter>
-    </ClCompile>
-    <ClCompile Include="MPhysX.cpp">
-      <Filter>Module\PhysX</Filter>
-    </ClCompile>
-    <ClCompile Include="SphereComponent.cpp">
-      <Filter>Module\Framework\Component\SceneComponent\PrimitiveCompoent\ShapeComponent</Filter>
-    </ClCompile>
+    <FxCompile Include="Bone.hlsl" />
+    <FxCompile Include="Deferred.hlsl" />
+    <FxCompile Include="DeferredShader.hlsl" />
+    <FxCompile Include="Light.hlsl" />
+    <FxCompile Include="PixelShader.hlsl" />
+    <FxCompile Include="PointLightShader.hlsl" />
+    <FxCompile Include="ShadowDepth.hlsl" />
+    <FxCompile Include="ShadowDepthGS.hlsl" />
+    <FxCompile Include="ShadowDepthPixel.hlsl" />
+    <FxCompile Include="SkyPixelShader.hlsl" />
+    <FxCompile Include="TexAnimVertexShader.hlsl" />
+    <FxCompile Include="TexPixelShader.hlsl" />
+    <FxCompile Include="TexVertexShader.hlsl" />
+    <FxCompile Include="VertexShader.hlsl" />
+    <FxCompile Include="DirectionalLightShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="TexVertexShader.hlsl">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="DepthPre.hlsl">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="TexPixelShader.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="DeferredShader.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="DirectionalLightShader.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="PixelShader.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="PointLightShader.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="SkyPixelShader.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="Deferred.hlsl">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="Light.hlsl">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="TexAnimVertexShader.hlsl">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="Bone.hlsl">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="ShadowDepth.hlsl">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="ShadowDepthPixel.hlsl">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="ShadowDepthGS.hlsl">
-      <Filter>Module\Graphics\Shader\Geometry\hlsl</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="VSCommon.hlsli">
-      <Filter>Module\Graphics\Shader\Vertex\hlsl</Filter>
-    </None>
-    <None Include="PSCommon.hlsli">
-      <Filter>Module\Graphics\Shader\Pixel\hlsl</Filter>
-    </None>
-    <None Include="Common.hlsli">
-      <Filter>Module\Graphics\Shader\Common</Filter>
-    </None>
-    <None Include="GSCommon.hlsli">
-      <Filter>Module\Graphics\Shader\Geometry\hlsl</Filter>
-    </None>
+    <None Include="Common.hlsli" />
+    <None Include="GSCommon.hlsli" />
+    <None Include="TestFont.spritefont" />
+    <None Include="VSCommon.hlsli" />
+    <None Include="PSCommon.hlsli" />
   </ItemGroup>
 </Project>

@@ -10,10 +10,10 @@ public:
 	virtual ~CombinePass() = default;
 
 public:
-	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) override;
+	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
 
 private:
-	void render(PrimitiveData &primitiveData);
+	void render(const FPrimitiveData &primitiveData);
 };
 
 class GeometryPass : public RenderPass
@@ -23,10 +23,10 @@ public:
 	virtual ~GeometryPass() = default;
 
 public:
-	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) override;
+	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
 
 private:
-	void render(PrimitiveData &primitiveData);
+	void render(const FPrimitiveData &primitiveData);
 };
 
 class ShadowDepthPass : public RenderPass
@@ -36,10 +36,10 @@ public:
 	virtual ~ShadowDepthPass() = default;
 
 public:
-	virtual const bool processPrimitiveData(PrimitiveData & primitiveData) override;
+	virtual const bool processPrimitiveData(const FPrimitiveData & primitiveData) override;
 
 private:
-	void render(PrimitiveData & primitiveData);
+	void render(const FPrimitiveData & primitiveData);
 };
 
 class LightPass : public RenderPass
@@ -49,10 +49,10 @@ public:
 	virtual ~LightPass() = default;
 
 public:
-	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) override;
+	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
 
 private:
-	void render(PrimitiveData &primitiveData);
+	void render(const FPrimitiveData &primitiveData);
 };
 
 class SkyPass : public RenderPass
@@ -62,10 +62,10 @@ public:
 	virtual ~SkyPass() = default;
 
 public:
-	virtual const bool processPrimitiveData(PrimitiveData &primitiveData) override;
+	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
 
 private:
-	void render(PrimitiveData & primitiveData);
+	void render(const FPrimitiveData & primitiveData);
 };
 
 #define __COMBINE_PASS_H__

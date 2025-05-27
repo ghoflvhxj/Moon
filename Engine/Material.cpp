@@ -35,6 +35,7 @@ Material::Material()
 	, _eCullMode{ CullMode::Backface }
 	//, _eDepthWriteMode{ DepthWriteMode::Enable }
 	//, _eBlend{ Blend::Object }
+	, bUseAlpha{ false }
 {
 }
 

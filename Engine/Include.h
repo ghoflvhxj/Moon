@@ -22,7 +22,7 @@ class __declspec(dllexport) std::exception;
 // Window Platform
 #ifdef _WIN64
 	#include <sdkddkver.h>
-	#include <afx.h>
+	#include <afx.h> //mfc제거하기
 	#include <Windows.h>
 	#include <Shlwapi.h>	// 문자열 처리용
 

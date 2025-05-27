@@ -16,7 +16,6 @@ class TextureComponent;
 class RenderTarget;
 class RenderPass;
 
-using RenderQueue	= std::vector<std::shared_ptr<PrimitiveComponent>>;
 using RenderTargets = std::vector<std::shared_ptr<RenderTarget>>;
 
 enum class ERenderTarget
@@ -68,19 +67,25 @@ enum class EPrimitiveType
 	Count
 };
 
+struct FMeshData;
 class PrimitiveComponent;
 class IndexBuffer;
 class VertexBuffer;
 class Material;
 class Shader;
 
-struct PrimitiveData
+struct FPrimitiveData
 {
-	std::shared_ptr<PrimitiveComponent>			_pPrimitive;
-	std::shared_ptr<VertexBuffer>				_pVertexBuffer;
-	std::shared_ptr<IndexBuffer>				_pIndexBuffer;
+	std::weak_ptr<PrimitiveComponent>			_pPrimitive;
 	std::shared_ptr<Material>					_pMaterial;
 	EPrimitiveType _primitiveType;
+
+	// 메시가 채우는 데이터
+	std::weak_ptr<FMeshData>					MeshData;
+
+	// 렌더러가 채워줘야 하는 데이터
+	std::shared_ptr<VertexBuffer>				_pVertexBuffer;
+	std::shared_ptr<IndexBuffer>				_pIndexBuffer;
 
 	// 다이나믹 메쉬용
 	Mat4 *_matrices = nullptr;

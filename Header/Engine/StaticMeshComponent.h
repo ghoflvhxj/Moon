@@ -18,22 +18,30 @@ namespace physx
 	class PxShape;
 };
 
+struct FMeshData
+{
+	VertexList		Vertices;
+	IndexList 		Indices;
+};
+
 class ENGINE_DLL StaticMesh
 {
 public:
 	StaticMesh() = default;
 	
 public:
-	virtual void initializeMeshInformation(const char *filePathName);
+	virtual void InitializeFromFBX(const std::wstring& Path);
 public:
 	const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
 	const std::vector<Vec3>& GetAllVertexPosition() const;
-protected:
-	std::vector<VertexList>		_verticesList;
-	std::vector<IndexList >		_indicesList;
-	std::vector<TextureList>	_textureList;
+	std::vector<TextureList>	Tetures;
 	std::vector<uint32>			_geometryLinkMaterialIndices;
 	std::vector<Vec3>			AllVertexPosition;
+
+public:
+	std::weak_ptr<FMeshData> GetMeshData(const uint32 Index) const { return MeshDataList[Index]; }
+protected:
+	std::vector<std::shared_ptr<FMeshData>> MeshDataList;
 
 public:
 	MaterialList& getMaterials();
@@ -83,7 +91,7 @@ public:
 
 public:
 	virtual void Update(const Time deltaTime) override;
-	virtual const bool getPrimitiveData(std::vector<PrimitiveData> &primitiveDataList) override;
+	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 	virtual const bool getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox) override;
 	virtual void setTranslation(const Vec3 &translation) override;
 	virtual void setScale(const Vec3 &scale) override;

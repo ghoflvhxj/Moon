@@ -90,5 +90,12 @@ inline void SafeReleaseArray(std::vector<T> &arr)
 	arr.clear();
 }
 
+inline void ToChar(const std::wstring& wstr, char Buffer[], int BufferSize)
+{
+	memset(Buffer, 0, sizeof(BufferSize));
+	int Length = static_cast<int>(wstr.length()) + 1;
+	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), Length, Buffer, Length * 2, nullptr, nullptr);
+}
+
 #define __FUNCTION_H__
 #endif
