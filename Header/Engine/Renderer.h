@@ -6,6 +6,7 @@
 class SceneComponent;
 class StaticMeshComponent;
 class VertexBuffer;
+class RenderTarget;
 
 class ENGINE_DLL Renderer 
 {
@@ -47,6 +48,7 @@ private:
 	// ·»´õ Å¸°Ù
 public:
 	void addRenderTargetForDebug(const std::wstring name);
+	std::shared_ptr<RenderTarget>& GetRenderTarget(ERenderTarget RenderTarget) { return _renderTargets[static_cast<int32>(RenderTarget)]; }
 private:
 	RenderTargets _renderTargets;
 #ifdef _DEBUG

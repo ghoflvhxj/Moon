@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "SceneComponent.h"
 #include "GraphicDevice.h"
 

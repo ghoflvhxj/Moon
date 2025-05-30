@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "Renderer.h"
 
 // DirectXTK
@@ -153,6 +153,8 @@ void Renderer::initialize(void) noexcept
 
 		_renderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	}
+
+	// 
 }
 
 void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComponent)

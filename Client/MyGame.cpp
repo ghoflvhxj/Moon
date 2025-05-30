@@ -1,5 +1,6 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "MyGame.h"
+#include "DirectInput.h"
 
 #include "MoonEngine.h"
 
@@ -165,47 +166,47 @@ void MyGame::controlCamera(const Time deltaTime)
 	Vec3 right = pComponent->getRight();
 	float speed = _cameraSpeedScale * 1.f * deltaTime;
 
-	if (keyPress(DIK_LSHIFT))
+	if (InputManager::keyPress(DIK_LSHIFT))
 	{
 		speed *= 5.f;
 	}
 
-	if (keyPress(DIK_W))
+	if (InputManager::keyPress(DIK_W))
 	{
 		trans.x += look.x * speed;
 		trans.y += look.y * speed;
 		trans.z += look.z * speed;
 	}
-	else if (keyPress(DIK_S))
+	else if (InputManager::keyPress(DIK_S))
 	{
 		trans.x -= look.x * speed;
 		trans.y -= look.y * speed;
 		trans.z -= look.z * speed;
 	}
-	else if (keyPress(DIK_D))
+	else if (InputManager::keyPress(DIK_D))
 	{
 		trans.x += right.x * speed;
 		trans.y += right.y * speed;
 			trans.z += right.z * speed;
 	}
-	else if (keyPress(DIK_A))
+	else if (InputManager::keyPress(DIK_A))
 	{
 		trans.x -= right.x * speed;
 		trans.y -= right.y * speed;
 		trans.z -= right.z * speed;
 	}
 
-	_cameraSpeedScale += static_cast<float>(mouseMove(MOUSEAXIS::Z)) / 10.f;
+	_cameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
 	_cameraSpeedScale = _cameraSpeedScale >= 1.f ? _cameraSpeedScale : 1.f;
 
 	pComponent->setTranslation(trans);
 
-	if (mousePress(MOUSEBUTTON::RB))
+	if (InputManager::mousePress(MOUSEBUTTON::RB))
 	{
 		Vec3 rot = pComponent->getRotation();
 
-		float mouseX = static_cast<float>(mouseMove(MOUSEAXIS::X));
-		float mouseY = static_cast<float>(mouseMove(MOUSEAXIS::Y));
+		float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
+		float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
 
 		rot.x = rot.x + (((rot.x + mouseY) - rot.x) * 0.005f);
 		rot.y = rot.y + (((rot.y + mouseX) - rot.y) * 0.005f);

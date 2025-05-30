@@ -72,10 +72,7 @@ inline void SafeRelease(T &p)
 	if (nullptr != p)
 	{
 		ULONG refCount = p->Release();
-		if (0 == refCount)
-		{
-			p = nullptr;
-		}
+		p = nullptr;
 	}
 }
 

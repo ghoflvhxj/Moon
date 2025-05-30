@@ -1,4 +1,6 @@
-#include "stdafx.h"
+#include "Include.h"
+#include "DirectInput.h"
+
 #include "Player.h"
 
 #include "Material.h"
@@ -141,7 +143,7 @@ void Player::tick(const Time deltaTime)
 
 
 #if UseDynamicMesh == 1
-	if (keyPress(DIK_E))
+	if (InputManager::keyPress(DIK_E))
 	{
 		_pDynamicMeshComponent->playAnimation(0, deltaTime);
 	}
@@ -149,7 +151,7 @@ void Player::tick(const Time deltaTime)
 
 
 #if UseLight == 1
-	if (keyPress(DIK_P))
+	if (InputManager::keyPress(DIK_P))
 	{
 		_pLightComponentList[0]->setTranslation(0.1f, 2.f, 4.f);
 	}
@@ -173,7 +175,7 @@ void Player::tick(const Time deltaTime)
 
 #if UseDirectionalLight == 1
 	Vec3 rotation2 = _pLightComponent2->getRotation();
-	if (keyPress(DIK_UP))
+	if (InputManager::keyPress(DIK_UP))
 	{
 		rotation2.x += DirectX::XMConvertToRadians(10.f) * deltaTime;
 		_pLightComponent2->setRotation(rotation2);

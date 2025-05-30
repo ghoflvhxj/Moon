@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "RenderPass.h"
 
 // Graphic
@@ -21,17 +21,13 @@
 #include "TextureComponent.h"
 
 RenderPass::RenderPass()
-	: _renderTargetList(RT_COUNT, nullptr)
-	, _resourceViewList(RT_COUNT, nullptr)
-	, _pOldRenderTargetView{ nullptr }
+	: _pOldRenderTargetView{ nullptr }
 	, _pOldDepthStencilView{ nullptr }
 	, _vertexShader{ std::make_shared<VertexShader>() }
 	, _pixelShader{ std::make_shared<PixelShader>() }
 	, _geometryShader{ std::make_shared<GeometryShader>() }
 	, _bShaderSet{ false }
-	, _bRenderTargetSet{ false }
-	, _renderTargetCount{ RT_COUNT }
-	, _bClearTargets{ true }
+	, bClearTargets{ true }
 	, _bUseOwningDepthStencilBuffer{ false }
 {
 }
@@ -45,65 +41,64 @@ void RenderPass::Begin()
 	// 기존 정보 저장
 	g_pGraphicDevice->getContext()->OMGetRenderTargets(1, &_pOldRenderTargetView, &_pOldDepthStencilView);
 
-	// 렌더 타겟 설정
-	if (true == _bRenderTargetSet)
+	if (bRenderTarget)
 	{
-		std::vector<ID3D11RenderTargetView*> rowRenderTargetViewArray(_renderTargetCount, nullptr);
+		uint32 RenderTargetNum = CastValue<int32>(CachedRenderTargets.size());
+		std::vector<ID3D11RenderTargetView*> RowRenderTargets(RenderTargetNum, nullptr);
+		//std::vector<ID3D11RenderTargetView*> RowRenderTargets;
 
-		for (uint32 i = 0; i < _renderTargetCount; ++i)
+		for (const FResourceViewBindData ResourceViewBindData : _renderTargetList)
 		{
-			if (_renderTargetList[i] == nullptr)
+			RowRenderTargets[ResourceViewBindData.Index] = ResourceViewBindData.ReourceView->AsRenderTargetView();
+
+			if (true == bClearTargets)
 			{
-				continue;
+				g_pGraphicDevice->getContext()->ClearRenderTargetView(ResourceViewBindData.ReourceView->AsRenderTargetView(), reinterpret_cast<const float*>(&EngineColors::Black));
+				g_pGraphicDevice->getContext()->ClearDepthStencilView(ResourceViewBindData.ReourceView->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 			}
-
-			if (true == _bClearTargets)
-			{
-				g_pGraphicDevice->getContext()->ClearRenderTargetView(_renderTargetList[i]->AsRenderTargetView(), reinterpret_cast<const float *>(&EngineColors::Black));
-				g_pGraphicDevice->getContext()->ClearDepthStencilView(_renderTargetList[i]->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
-			}
-			rowRenderTargetViewArray[i] = _renderTargetList[i]->AsRenderTargetView();
 		}
 
-		if (_bUseOwningDepthStencilBuffer)
-		{
-			// 6 하드 코딩했으니 수정 필요
-			g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(_renderTargetCount), &rowRenderTargetViewArray[0], _renderTargetList[6]->getDepthStencilView());
-		}
-		else
-		{
-			g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(_renderTargetCount), &rowRenderTargetViewArray[0], _pOldDepthStencilView);
-		}
+		g_pGraphicDevice->getContext()->OMSetRenderTargets(RenderTargetNum, RowRenderTargets.data(), _bUseOwningDepthStencilBuffer ? CachedRenderTargets[static_cast<int>(ERenderTarget::ShadowDepth)]->getDepthStencilView() : _pOldDepthStencilView);
 	}
 
-	// 쉐이더 리소스 뷰 설정
-	uint32 resourceViewCount = CastValue<uint32>(_resourceViewList.size());
-	for (uint32 i = 0; i < resourceViewCount; ++i)
+	uint32 ResorceViewNum = CastValue<uint32>(CachedResourceViews.size());
+	for (uint32 i = 0; i < ResorceViewNum; ++i)
 	{
-		if (_resourceViewList[i] == nullptr)
+		if (CachedResourceViews[i] == nullptr)
 		{
 			continue;
 		}
 
-		g_pGraphicDevice->getContext()->PSSetShaderResources(i, 1, &_resourceViewList[i]->AsTexture()->getRawResourceViewPointer());
+		g_pGraphicDevice->getContext()->PSSetShaderResources(i, 1, &CachedResourceViews[i]->AsTexture()->getRawResourceViewPointer());
 	}
 }
 
 void RenderPass::End()
 {
-	// 쉐이더 리소스 뷰 해제
-	uint32 resorceViewCount = CastValue<uint32>(_resourceViewList.size());
-	for (uint32 i = 0; i < resorceViewCount; ++i)
-	{
-		ID3D11ShaderResourceView *pNullShaderResouceView = nullptr;
-		g_pGraphicDevice->getContext()->PSSetShaderResources(i, 1, &pNullShaderResouceView);
-	}
+	uint32 ResorceViewNum = CastValue<uint32>(CachedResourceViews.size());
+	std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
+	g_pGraphicDevice->getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
 
-	// 렌더 타겟 해제와 기존 정보 복구
-	uint32 renderTargetCount = (_renderTargetCount == 0) ? 1 : _renderTargetCount;
+	uint32 renderTargetCount = CachedRenderTargets.size() == 0 ? 1 : CachedRenderTargets.size();
 	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(renderTargetCount, nullptr);
 	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
 	g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(renderTargetCount), &restoreRenderTargetViewArray[0], _pOldDepthStencilView);
+
+	//// 쉐이더 리소스 뷰 해제
+	//for (const FResourceViewBindData& ResourceViewBindData : _resourceViewList)
+	//{
+	//	ID3D11ShaderResourceView *pNullShaderResouceView = nullptr;
+	//	g_pGraphicDevice->getContext()->PSSetShaderResources(ResourceViewBindData.Index, 1, &pNullShaderResouceView);
+	//}
+
+	//// 렌더 타겟 해제와 기존 정보 복구
+	//uint32 renderTargetCount = _renderTargetList.size();
+	//if (renderTargetCount> 0)
+	//{
+	//	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(renderTargetCount, nullptr);
+	//	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
+	//	g_pGraphicDevice->getContext()->OMSetRenderTargets(renderTargetCount, restoreRenderTargetViewArray.data(), _pOldDepthStencilView);
+	//}
 
 	SafeRelease(_pOldRenderTargetView);
 	SafeRelease(_pOldDepthStencilView);
@@ -179,7 +174,7 @@ void RenderPass::releaseShader()
 
 void RenderPass::SetClearTargets(const bool bClear)
 {
-	_bClearTargets = bClear;
+	bClearTargets = bClear;
 }
 
 void RenderPass::SetUseOwningDepthStencilBuffer(const bool bUse)

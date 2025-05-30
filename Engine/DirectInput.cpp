@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "DirectInput.h"
 
 #include "WindowException.h"
@@ -97,37 +97,37 @@ const LONG DirectInput::mouseMove(const MOUSEAXIS eMouseAxis)
 	return bFocused == true ? *(((LONG *)&_mouseState) + static_cast<LONG>(eMouseAxis)) : 0.0;
 }
 
-const bool keyDown(unsigned char key)
+const bool InputManager::keyDown(unsigned char key)
 {
 	return g_pDirectInput->keyDown(key);
 }
 
-const bool keyUp(unsigned char key)
+const bool InputManager::keyUp(unsigned char key)
 {
 	return g_pDirectInput->keyUp(key);
 }
 
-const bool keyPress(unsigned char key)
+const bool InputManager::keyPress(unsigned char key)
 {
 	return g_pDirectInput->keyPress(key);
 }
 
-const bool mouseDown(const MOUSEBUTTON button)
+const bool InputManager::mouseDown(const MOUSEBUTTON button)
 {
 	return g_pDirectInput->mouseDown(button);
 }
 
-const bool mouseUp(const MOUSEBUTTON button)
+const bool InputManager::mouseUp(const MOUSEBUTTON button)
 {
 	return g_pDirectInput->mouseUp(button);
 }
 
-const bool mousePress(const MOUSEBUTTON button)
+const bool InputManager::mousePress(const MOUSEBUTTON button)
 {
 	return g_pDirectInput->mousePress(button);
 }
 
-ENGINE_DLL const LONG mouseMove(const MOUSEAXIS axis)
+ENGINE_DLL const LONG InputManager::mouseMove(const MOUSEAXIS axis)
 {
 	return g_pDirectInput->mouseMove(axis);
 }

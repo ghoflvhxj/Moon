@@ -5,6 +5,15 @@
 #include "Render.h"
 #include "PrimitiveComponent.h"
 
+struct FResourceViewBindData
+{
+	FResourceViewBindData() 
+		: Index(-1)
+	{}
+	int32 Index;
+	std::shared_ptr<RenderTarget> ReourceView;
+};
+
 class ENGINE_DLL RenderPass abstract
 {
 public:
@@ -21,50 +30,46 @@ public:
 	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) = 0;
 	virtual void render(const FPrimitiveData &primitiveData) = 0;
 
+	// ·»´õ Å¸°Ù
 public:
 	template<class... TList>
-	void initializeRenderTargets(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList, TList... args)
+	void initializeRenderTargets(RenderTargets& renderTargetList, TList... args)
 	{
-		bindFunction = [&](std::vector<std::shared_ptr<RenderTarget>> &bindList, int index)->void {
-			bindList[index] = renderTargetList[index];
-		};
-
-		makeBindList(renderTargetList, _renderTargetList, args...);
-
-		_bRenderTargetSet = true;
-		_renderTargetCount = CastValue<uint32>(_renderTargetList.size());
+		bRenderTarget = true;
+		CachedRenderTargets = renderTargetList;
+		BindResourceView(renderTargetList, _renderTargetList, args...);
 	}
-private:
-	std::vector<std::shared_ptr<RenderTarget>> _renderTargetList;
-
-public:
 	template<class... TList>
-	void initializeResourceViews(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList, TList... args)
+	void initializeResourceViews(RenderTargets& renderTargetList, TList... args)
 	{
-		bindFunction = [&](std::vector<std::shared_ptr<RenderTarget>> &bindList, int index)->void {
-			bindList[index] = renderTargetList[index];
-		};
-
-		makeBindList(renderTargetList, _resourceViewList, args...);
+		CachedResourceViews = renderTargetList;
+		BindResourceView(renderTargetList, _resourceViewList, args...);
 	}
-private:
-	std::vector<std::shared_ptr<RenderTarget>> _resourceViewList;
+protected:
+	std::vector<FResourceViewBindData> _renderTargetList;
+	std::vector<FResourceViewBindData> _resourceViewList;
+	bool bRenderTarget = false;
+	RenderTargets CachedRenderTargets;
+	RenderTargets CachedResourceViews;
 
+	// À¯Æ¿
 private:
 	template<class T, class... TList>
-	void makeBindList(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList, std::vector<std::shared_ptr<RenderTarget>> &bindList, T arg)
+	void BindResourceView(RenderTargets& Source, std::vector<FResourceViewBindData>& Target, T arg)
 	{
-		bindFunction(bindList, (int)arg);
-	}
+		int32 Index = CastValue<int32>(arg);
+		FResourceViewBindData ResourceViewBindData;
+		ResourceViewBindData.Index			= Index;
+		ResourceViewBindData.ReourceView	= Source[Index];
 
+		Target.push_back(ResourceViewBindData);
+	}
 	template<class T, class... TList>
-	void makeBindList(std::vector<std::shared_ptr<RenderTarget>> &renderTargetList, std::vector<std::shared_ptr<RenderTarget>> &bindList, T arg, TList... args)
+	void BindResourceView(RenderTargets& Source, std::vector<FResourceViewBindData>& Target, T arg, TList... args)
 	{
-		bindFunction(bindList, (int)arg);
-		makeBindList(renderTargetList, bindList, args...);
+		BindResourceView(Source, Target, arg);
+		BindResourceView(Source, Target, args...);
 	}
-
-	std::function<void(std::vector<std::shared_ptr<RenderTarget>>&, int)> bindFunction;
 
 private:
 	ID3D11RenderTargetView *_pOldRenderTargetView;
@@ -84,13 +89,11 @@ protected:
 	std::shared_ptr<Shader>	_pixelShader;
 	std::shared_ptr<Shader> _geometryShader;
 	bool _bShaderSet;
-	bool _bRenderTargetSet;
-	uint32 _renderTargetCount;
 
 public:
 	void SetClearTargets(const bool bClear);
 private:
-	bool _bClearTargets;
+	bool bClearTargets;
 
 public:
 	void SetUseOwningDepthStencilBuffer(const bool bUse);

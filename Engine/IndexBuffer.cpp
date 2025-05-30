@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "IndexBuffer.h"
 #include "GraphicDevice.h"
 #include "WindowException.h"

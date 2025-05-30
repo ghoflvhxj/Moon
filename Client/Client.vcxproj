@@ -153,7 +153,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\Header\Engine;$(SolutionDir)\Header\FBXSDK;$(SolutionDir)\Header\NvidiaPhysX\Basic\include;$(SolutionDir)\Header\NvidiaPhysX\Shared\include;$(ProjectDir)Misc</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>

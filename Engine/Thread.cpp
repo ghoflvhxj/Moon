@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "Thread.h"
 
 #include <process.h>

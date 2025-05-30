@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "WindowException.h"
 
 WindowException::WindowException(const int line, const char *file, const HRESULT hr)

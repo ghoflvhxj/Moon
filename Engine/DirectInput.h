@@ -39,13 +39,18 @@ private:
 	bool bFocused;
 };
 
-ENGINE_DLL const bool keyDown(unsigned char key);
-ENGINE_DLL const bool keyUp(unsigned char key);
-ENGINE_DLL const bool keyPress(unsigned char key);
-ENGINE_DLL const bool mouseDown(const MOUSEBUTTON button);
-ENGINE_DLL const bool mouseUp(const MOUSEBUTTON button);
-ENGINE_DLL const bool mousePress(const MOUSEBUTTON button);
-ENGINE_DLL const LONG mouseMove(const MOUSEAXIS axis);
+class ENGINE_DLL InputManager
+{
+
+public:
+	static const bool keyDown(unsigned char key);
+	static const bool keyUp(unsigned char key);
+	static const bool keyPress(unsigned char key);
+	static const bool mouseDown(const MOUSEBUTTON button);
+	static const bool mouseUp(const MOUSEBUTTON button);
+	static const bool mousePress(const MOUSEBUTTON button);
+	static const LONG mouseMove(const MOUSEAXIS axis);
+};
 
 #define __DIRECT_INPUT_H__
 #endif

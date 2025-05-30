@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "SkyComponent.h"
 
 #include "ShaderManager.h"

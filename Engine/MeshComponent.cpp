@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "MeshComponent.h"
 
 #include "GraphicDevice.h"

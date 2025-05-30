@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Include.h"
 #include "PointLightComponent.h"
 
 #include "Render.h"
