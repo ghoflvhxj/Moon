@@ -6,7 +6,7 @@
 #include "ConstantBuffer.h"
 
 PixelShader::PixelShader(const std::wstring &filePathName)
-	: Shader(filePathName)
+	: MShader(filePathName)
 	, _pPixelShader{ nullptr }
 {
 	ID3D11Device *pDevice	= g_pGraphicDevice->getDevice();
@@ -16,7 +16,7 @@ PixelShader::PixelShader(const std::wstring &filePathName)
 }
 
 PixelShader::PixelShader()
-	: Shader(TEXT(""))
+	: MShader(TEXT(""))
 	, _pPixelShader{ nullptr }
 {
 	ID3D11Device *pDevice = g_pGraphicDevice->getDevice();
@@ -33,13 +33,13 @@ void PixelShader::SetToDevice()
 	g_pGraphicDevice->getContext()->PSSetShader(_pPixelShader, nullptr, 0);
 
 	std::vector<ID3D11Buffer*> rawBuffers;
-	rawBuffers.reserve(_constantBuffers.size());
-	for (auto &constantBuffer : _constantBuffers)
+	rawBuffers.reserve(ConstantBuffers.size());
+	for (auto &constantBuffer : ConstantBuffers)
 	{
 		rawBuffers.emplace_back(constantBuffer ? constantBuffer->getRaw() : nullptr);
 	}
 
-	g_pGraphicDevice->getContext()->PSSetConstantBuffers(0u, CastValue<UINT>(rawBuffers.size()), _constantBuffers.size() > 0 ? &rawBuffers[0] : nullptr);
+	g_pGraphicDevice->getContext()->PSSetConstantBuffers(0u, CastValue<UINT>(rawBuffers.size()), ConstantBuffers.size() > 0 ? &rawBuffers[0] : nullptr);
 }
 
 ID3D11PixelShader* PixelShader::getRaw()

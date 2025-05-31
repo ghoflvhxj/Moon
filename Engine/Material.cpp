@@ -29,7 +29,7 @@ Material::Material()
 	, _pixelShader{ nullptr }
 	, _textureList(enumToIndex(TextureType::End), nullptr)
 
-	, _variableInfosPerShaderType(CastValue<size_t>(ShaderType::Count), std::vector<std::vector<VariableInfo>>())
+	, _variableInfosPerShaderType(CastValue<size_t>(ShaderType::Count), std::vector<std::vector<FShaderVariable>>())
 	, _eTopology{ D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST }
 	, _eFillMode{ FillMode::Solid }
 	, _eCullMode{ CullMode::Backface }
@@ -61,12 +61,12 @@ void Material::setOwner(std::shared_ptr<PrimitiveComponent> pOwner)
 	_pOwner = pOwner;
 }
 
-std::shared_ptr<Shader> Material::getVertexShader()
+std::shared_ptr<MShader> Material::getVertexShader()
 {
 	return _vertexShader;
 }
 
-std::shared_ptr<Shader> Material::getPixelShader()
+std::shared_ptr<MShader> Material::getPixelShader()
 {
 	return _pixelShader;
 }
@@ -75,13 +75,13 @@ void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pix
 {
 	releaseShader();
 
-	if (false == g_pShaderManager->getVertexShader(vertexShaderFileName, _vertexShader))
+	if (false == ShaderManager->getVertexShader(vertexShaderFileName, _vertexShader))
 	{
 		return;
 	}
 	_vertexShaderFileName = vertexShaderFileName;
 
-	if (false == g_pShaderManager->getPixelShader(pixelShaderFileName, _pixelShader))
+	if (false == ShaderManager->getPixelShader(pixelShaderFileName, _pixelShader))
 	{
 		return;
 	}
@@ -89,7 +89,7 @@ void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pix
 
 	//-------------------------------------------------------------------------------------------------------
 	size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
-	std::vector<std::shared_ptr<Shader>> shaders(shaderTypeCount, nullptr);
+	std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
 	shaders[CastValue<uint32>(ShaderType::Vertex)]	= _vertexShader;
 	shaders[CastValue<uint32>(ShaderType::Pixel)]	= _pixelShader;
 
@@ -100,7 +100,7 @@ void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pix
 			continue;
 		}
 
-		_variableInfosPerShaderType[shaderTypeIndex] = shaders[shaderTypeIndex]->getVariableInfos(); // 각 쉐이더의 콘스탄트 버퍼 변수 정보를 등록
+		_variableInfosPerShaderType[shaderTypeIndex] = shaders[shaderTypeIndex]->GetVariableInfos(); // 각 쉐이더의 콘스탄트 버퍼 변수 정보를 등록
 	}
 }
 
@@ -150,14 +150,26 @@ const Graphic::CullMode Material::getCullMode() const
 	return _eCullMode;
 }
 
-std::vector<VariableInfo>& Material::getConstantBufferVariableInfos(const ShaderType shaderType, const uint32 index)
+std::vector<FShaderVariable>& Material::getConstantBufferVariableInfos(const ShaderType shaderType, const uint32 index)
 {
 	return _variableInfosPerShaderType[CastValue<uint32>(shaderType)][index];
 }
 
-std::vector<VariableInfo>& Material::getConstantBufferVariableInfos(const ShaderType shaderType, const ConstantBuffersLayer layer)
+std::vector<FShaderVariable>& Material::getConstantBufferVariableInfos(const ShaderType shaderType, const EConstantBufferLayer layer)
 {
-	return _variableInfosPerShaderType[CastValue<uint32>(shaderType)][CastValue<uint32>(layer)];
+	size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
+	std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
+	shaders[CastValue<uint32>(ShaderType::Vertex)] = _vertexShader;
+	shaders[CastValue<uint32>(ShaderType::Pixel)] = _pixelShader;
+
+	uint32 shaderTypeIndex = static_cast<uint32>(shaderType);
+	if (shaders[shaderTypeIndex] == nullptr)
+	{
+		static std::vector<FShaderVariable> Dummy;
+		return Dummy;
+	}
+
+	return shaders[shaderTypeIndex]->GetVariableInfos()[CastValue<uint32>(layer)];
 }
 
 const bool Material::useTextureType(const TextureType type)

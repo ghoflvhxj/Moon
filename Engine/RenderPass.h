@@ -85,9 +85,9 @@ protected:
 	std::wstring	_vertexShaderFileName;
 	std::wstring	_pixelShaderFileName;
 	std::wstring	_geometryShaderFileName;
-	std::shared_ptr<Shader>	_vertexShader;
-	std::shared_ptr<Shader>	_pixelShader;
-	std::shared_ptr<Shader> _geometryShader;
+	std::shared_ptr<MShader>	_vertexShader;
+	std::shared_ptr<MShader>	_pixelShader;
+	std::shared_ptr<MShader> _geometryShader;
 	bool _bShaderSet;
 
 public:

@@ -3,20 +3,20 @@
 
 #include "Shader.h"
 
-class Shader;
+class MShader;
 class VertexShader;
 class PixelShader;
 class GeometryShader;
 
-class ShaderManager
+class MShaderManager
 {
-	using ShaderMap				= std::unordered_map<std::wstring, std::shared_ptr<Shader>>;
+	using ShaderMap				= std::unordered_map<std::wstring, std::shared_ptr<MShader>>;
 	using ShaderReflectionMap	= std::unordered_map<std::wstring, ID3D11ShaderReflection*>;
 	using BlobMap				= std::unordered_map<std::wstring, ID3D10Blob*>;
 
 public:
-	explicit ShaderManager();
-	~ShaderManager();
+	explicit MShaderManager();
+	~MShaderManager();
 
 public:
 	void							Release();
@@ -29,12 +29,12 @@ public:
 	const bool						getGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader);
 	const bool						addGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader);
 private:
-	const bool						addShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<Shader> &pShader);
+	const bool						addShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<MShader> &pShader);
 	ShaderMap&						getShaderMap(const ShaderType type);
-	const bool 						getShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<Shader> &pShader);
+	const bool 						getShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<MShader> &pShader);
 
 public:
-	ShaderManager::ShaderMap&		getShaders(const ShaderType shaderType);
+	MShaderManager::ShaderMap&		GetShaders(const ShaderType shaderType);
 private:
 	std::vector<ShaderMap> _shadersPerShaderType;
 

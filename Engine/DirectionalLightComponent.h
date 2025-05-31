@@ -7,7 +7,7 @@
 
 class VertexBuffer;
 class IndexBuffer;
-class ConstantBuffer;
+class MConstantBuffer;
 
 class TextureComponent;
 

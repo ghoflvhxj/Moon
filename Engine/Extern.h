@@ -18,8 +18,8 @@ extern std::shared_ptr<Window> g_pMainWindow;
 class GraphicDevice;
 extern std::shared_ptr<GraphicDevice> g_pGraphicDevice;
 
-class ShaderManager;
-extern std::shared_ptr<ShaderManager> g_pShaderManager;
+class MShaderManager;
+extern std::shared_ptr<MShaderManager> ShaderManager;
 
 class Renderer;
 extern std::shared_ptr<Renderer> g_pRenderer;

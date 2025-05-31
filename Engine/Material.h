@@ -6,9 +6,9 @@
 
 class VertexBuffer;
 class IndexBuffer;
-class ConstantBuffer;
+class MConstantBuffer;
 
-class Shader;
+class MShader;
 class VertexShader;
 class PixelShader;
 
@@ -16,7 +16,7 @@ class TextureComponent;
 class PrimitiveComponent;
 class DynamicMeshComponent;
 
-struct VariableInfo;
+struct FShaderVariable;
 
 class ENGINE_DLL Material
 {
@@ -34,8 +34,8 @@ private:
 	std::shared_ptr<PrimitiveComponent> _pOwner;
 
 public:
-	std::shared_ptr<Shader> getVertexShader();
-	std::shared_ptr<Shader> getPixelShader();
+	std::shared_ptr<MShader> getVertexShader();
+	std::shared_ptr<MShader> getPixelShader();
 	void setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
 private:
 	void releaseShader();
@@ -68,10 +68,10 @@ private:
 
 
 public:
-	std::vector<VariableInfo>& getConstantBufferVariableInfos(const ShaderType shaderType, const ConstantBuffersLayer layer);
-	std::vector<VariableInfo>& getConstantBufferVariableInfos(const ShaderType shaderType, const uint32 index);
+	std::vector<FShaderVariable>& getConstantBufferVariableInfos(const ShaderType shaderType, const EConstantBufferLayer layer);
+	std::vector<FShaderVariable>& getConstantBufferVariableInfos(const ShaderType shaderType, const uint32 index);
 private:
-	std::vector<std::vector<std::vector<VariableInfo>>> _variableInfosPerShaderType;	// 각 쉐이더 당 콘스탄트 버퍼의 변수 정보 저장
+	std::vector<std::vector<std::vector<FShaderVariable>>> _variableInfosPerShaderType;	// 각 쉐이더 당 콘스탄트 버퍼의 변수 정보 저장
 	
 
 public:

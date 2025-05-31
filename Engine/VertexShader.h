@@ -4,7 +4,7 @@
 
 #include "Shader.h"
 
-class VertexShader : public Shader
+class VertexShader : public MShader
 {
 public:
 	explicit VertexShader(const std::wstring &filePathName);

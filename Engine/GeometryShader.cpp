@@ -6,7 +6,7 @@
 #include "ConstantBuffer.h"
 
 GeometryShader::GeometryShader(const std::wstring &filePathName)
-	: Shader(filePathName)
+	: MShader(filePathName)
 	, _pGeometryShader{ nullptr }
 {
 	ID3D11Device *pDevice	= g_pGraphicDevice->getDevice();
@@ -16,7 +16,7 @@ GeometryShader::GeometryShader(const std::wstring &filePathName)
 }
 
 GeometryShader::GeometryShader()
-	: Shader(TEXT(""))
+	: MShader(TEXT(""))
 	, _pGeometryShader{ nullptr }
 {
 	ID3D11Device *pDevice = g_pGraphicDevice->getDevice();
@@ -33,8 +33,8 @@ void GeometryShader::SetToDevice()
 	g_pGraphicDevice->getContext()->GSSetShader(_pGeometryShader, nullptr, 0);
 
 	std::vector<ID3D11Buffer*> rawBuffers;
-	rawBuffers.reserve(_constantBuffers.size());
-	for (auto &constantBuffer : _constantBuffers)
+	rawBuffers.reserve(ConstantBuffers.size());
+	for (auto &constantBuffer : ConstantBuffers)
 	{
 		rawBuffers.emplace_back(constantBuffer ? constantBuffer->getRaw() : nullptr);
 	}

@@ -10,17 +10,17 @@
 
 #include "MapUtility.h"
 
-ShaderManager::ShaderManager()
+MShaderManager::MShaderManager()
 	: _shadersPerShaderType(enumToIndex(ShaderType::Count), ShaderMap())
 {
 }
 
-ShaderManager::~ShaderManager()
+MShaderManager::~MShaderManager()
 {
 	Release();
 }
 
-void ShaderManager::Release()
+void MShaderManager::Release()
 {
 	for (auto &shaderList : _shadersPerShaderType)
 	{
@@ -30,7 +30,7 @@ void ShaderManager::Release()
 	//_blobMapList.clear();
 }
 
-const bool ShaderManager::addShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<Shader> &pShader)
+const bool MShaderManager::addShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<MShader> &pShader)
 {
 	if (false == MapUtility::FindInsert(getShaderMap(type), fileName, pShader))
 	{
@@ -40,12 +40,12 @@ const bool ShaderManager::addShader(const ShaderType type, const wchar_t *fileNa
 	return true;
 }
 
-ShaderManager::ShaderMap &ShaderManager::getShaderMap(const ShaderType type)
+MShaderManager::ShaderMap &MShaderManager::getShaderMap(const ShaderType type)
 {
 	return _shadersPerShaderType[enumToIndex(type)];
 }
 
-const bool ShaderManager::getShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<Shader> &shader)
+const bool MShaderManager::getShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<MShader> &shader)
 {
 	if (false == MapUtility::FindGet(getShaderMap(type), std::wstring(fileName), shader))
 	{
@@ -56,9 +56,9 @@ const bool ShaderManager::getShader(const ShaderType type, const wchar_t *fileNa
 	return true;
 }
 
-const bool ShaderManager::getVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader)
+const bool MShaderManager::getVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader)
 {
-	std::shared_ptr<Shader> pShader = nullptr;
+	std::shared_ptr<MShader> pShader = nullptr;
 	if (true == getShader(ShaderType::Vertex, fileName, pShader))
 	{
 		vertexShader = std::static_pointer_cast<VertexShader>(pShader);
@@ -68,20 +68,20 @@ const bool ShaderManager::getVertexShader(const wchar_t *fileName, std::shared_p
 	return false;
 }
 
-const bool ShaderManager::addVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader)
+const bool MShaderManager::addVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader)
 {
-	std::shared_ptr<Shader> pShader = vertexShader;
+	std::shared_ptr<MShader> pShader = vertexShader;
 	return addShader(ShaderType::Vertex, fileName, pShader);
 }
 
-const bool ShaderManager::getPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader)
+const bool MShaderManager::getPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader)
 {
 	if (fileName == nullptr)
 	{
 		return false;
 	}
 
-	std::shared_ptr<Shader> pShader = nullptr;
+	std::shared_ptr<MShader> pShader = nullptr;
 	if (true == getShader(ShaderType::Pixel, fileName, pShader))
 	{
 		pixelShader = std::static_pointer_cast<PixelShader>(pShader);
@@ -91,15 +91,15 @@ const bool ShaderManager::getPixelShader(const wchar_t *fileName, std::shared_pt
 	return false;
 }
 
-const bool ShaderManager::addPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader)
+const bool MShaderManager::addPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader)
 {
-	std::shared_ptr<Shader> pShader = pixelShader;
+	std::shared_ptr<MShader> pShader = pixelShader;
 	return addShader(ShaderType::Pixel, fileName, pShader);
 }
 
-const bool ShaderManager::getGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader)
+const bool MShaderManager::getGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader)
 {
-	std::shared_ptr<Shader> pShader = nullptr;
+	std::shared_ptr<MShader> pShader = nullptr;
 	if (true == getShader(ShaderType::Geometry, fileName, pShader))
 	{
 		geometryShader = std::static_pointer_cast<GeometryShader>(pShader);
@@ -109,18 +109,18 @@ const bool ShaderManager::getGeometryShader(const wchar_t *fileName, std::shared
 	return false;
 }
 
-const bool ShaderManager::addGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader)
+const bool MShaderManager::addGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader)
 {
-	std::shared_ptr<Shader> pShader = geometryShader;
+	std::shared_ptr<MShader> pShader = geometryShader;
 	return addShader(ShaderType::Geometry, fileName, pShader);
 }
 
-ShaderManager::ShaderMap& ShaderManager::getShaders(const ShaderType shaderType)
+MShaderManager::ShaderMap& MShaderManager::GetShaders(const ShaderType shaderType)
 {
 	return _shadersPerShaderType[CastValue<uint32>(shaderType)];
 }
 
-ID3D10Blob *ShaderManager::getVertexShaderBlob(const wchar_t *shaderName)
+ID3D10Blob *MShaderManager::getVertexShaderBlob(const wchar_t *shaderName)
 {
 	std::shared_ptr<VertexShader> pShader = nullptr;
 	if (true == getVertexShader(shaderName, pShader))

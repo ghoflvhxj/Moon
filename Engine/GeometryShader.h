@@ -4,7 +4,7 @@
 
 #include "Shader.h"
 
-class GeometryShader : public Shader
+class GeometryShader : public MShader
 {
 public:
 	explicit GeometryShader(const std::wstring &filePathName);

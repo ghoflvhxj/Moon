@@ -4,7 +4,7 @@
 
 #include "Shader.h"
 
-class PixelShader : public Shader
+class PixelShader : public MShader
 {
 public:
 	explicit PixelShader(const std::wstring &filePathName);

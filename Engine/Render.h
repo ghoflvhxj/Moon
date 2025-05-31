@@ -72,7 +72,7 @@ class PrimitiveComponent;
 class IndexBuffer;
 class VertexBuffer;
 class Material;
-class Shader;
+class MShader;
 
 struct FPrimitiveData
 {

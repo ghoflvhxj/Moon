@@ -6,7 +6,7 @@
 #include "ConstantBuffer.h"
 
 VertexShader::VertexShader(const std::wstring &filePathName)
-	: Shader(filePathName)
+	: MShader(filePathName)
 	, _pVertexShader{ nullptr }
 {
 	ID3D11Device *pDevice	= g_pGraphicDevice->getDevice();
@@ -16,7 +16,7 @@ VertexShader::VertexShader(const std::wstring &filePathName)
 }
 
 VertexShader::VertexShader()
-	: Shader(TEXT(""))
+	: MShader(TEXT(""))
 	, _pVertexShader{ nullptr }
 {
 	ID3D11Device *pDevice = g_pGraphicDevice->getDevice();
@@ -33,8 +33,8 @@ void VertexShader::SetToDevice()
 	g_pGraphicDevice->getContext()->VSSetShader(_pVertexShader, nullptr, 0);
 
 	std::vector<ID3D11Buffer*> rawBuffers;
-	rawBuffers.reserve(_constantBuffers.size());
-	for (auto &constantBuffer : _constantBuffers)
+	rawBuffers.reserve(ConstantBuffers.size());
+	for (auto &constantBuffer : ConstantBuffers)
 	{
 		rawBuffers.emplace_back(constantBuffer ? constantBuffer->getRaw() : nullptr);
 	}

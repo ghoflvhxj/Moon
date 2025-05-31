@@ -19,7 +19,7 @@ std::shared_ptr<MainGameSetting> g_pSetting			= std::make_shared<MainGameSetting
 std::shared_ptr<Window> g_pMainWindow				= nullptr;
 std::shared_ptr<DirectInput> g_pDirectInput			= nullptr;
 std::shared_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
-std::shared_ptr<ShaderManager> g_pShaderManager		= nullptr;
+std::shared_ptr<MShaderManager> ShaderManager		= nullptr;
 std::shared_ptr<Renderer> g_pRenderer				= nullptr;
 std::shared_ptr<MainGame> g_pMainGame				= nullptr;
 std::shared_ptr<PhysXX> g_pPhysics					= nullptr;
@@ -36,9 +36,9 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 	g_pGraphicDevice	= std::make_shared<GraphicDevice>();
 	
-	g_pShaderManager	= std::make_shared<ShaderManager>();
+	ShaderManager	= std::make_shared<MShaderManager>();
 	ShaderLoader shaderLoader;
-	shaderLoader.loadShaderFiles(g_pShaderManager);
+	shaderLoader.loadShaderFiles(ShaderManager);
 
 	g_pGraphicDevice->BuildInputLayout();
 
@@ -58,7 +58,7 @@ const bool EngineRelease()
 {
 	g_pMainGame.reset();
 
-	g_pShaderManager->Release();
+	ShaderManager->Release();
 	g_pRenderer->Release();
 	g_pGraphicDevice->Release();
 
