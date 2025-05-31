@@ -126,14 +126,14 @@ void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *p
 {
 	releaseShader();
 	std::shared_ptr<VertexShader> vertexShader = nullptr;
-	if (g_pShaderManager->getVertexShader(vertexShaderFileName, vertexShader))
+	if (ShaderManager->getVertexShader(vertexShaderFileName, vertexShader))
 	{
 		_vertexShader = vertexShader;
 		_vertexShaderFileName = vertexShaderFileName;;
 	}
 	
 	std::shared_ptr<PixelShader> pixelShader = nullptr;
-	if (g_pShaderManager->getPixelShader(pixelShaderFileName, pixelShader))
+	if (ShaderManager->getPixelShader(pixelShaderFileName, pixelShader))
 	{
 		_pixelShader = pixelShader;
 		_pixelShaderFileName = pixelShaderFileName;
@@ -151,7 +151,7 @@ void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *p
 	setShader(vertexShaderFileName, pixelShaderFileName);
 
 	std::shared_ptr<GeometryShader> geometryShader = nullptr;
-	if (g_pShaderManager->getGeometryShader(geomtryShaderFileName, geometryShader))
+	if (ShaderManager->getGeometryShader(geomtryShaderFileName, geometryShader))
 	{
 		_geometryShader = geometryShader;
 		_geometryShaderFileName = geomtryShaderFileName;;
