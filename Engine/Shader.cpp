@@ -74,9 +74,9 @@
 //	}
 //}
 
-Shader::Shader(const std::wstring &filePathName)
-	: _constantBuffers(CastValue<uint32>(ConstantBuffersLayer::Count), nullptr)
-	, _variableInfos(CastValue<uint32>(ConstantBuffersLayer::Count), std::vector<VariableInfo>())
+MShader::MShader(const std::wstring &filePathName)
+	: ConstantBuffers(CastValue<uint32>(EConstantBufferLayer::Count), nullptr)
+	, Variables(CastValue<uint32>(EConstantBufferLayer::Count), std::vector<FShaderVariable>())
 {
 	if (filePathName.empty())
 	{
@@ -84,35 +84,46 @@ Shader::Shader(const std::wstring &filePathName)
 	}
 
 	FAILED_CHECK_THROW(D3DReadFileToBlob(filePathName.c_str(), &_pBlob));
-	MakeCosntantBuffers();
+	CreateCosntantBuffers();
 }
 
-Shader::~Shader()
+MShader::~MShader()
 {
 	SafeRelease(_pBlob);
 }
 
-void Shader::UpdateConstantBuffer(const ConstantBuffersLayer layer, std::vector<VariableInfo> &varialbeInfos)
+void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FShaderVariable> &varialbeInfos)
 {
 	uint32 index = CastValue<uint32>(layer);
-	if (nullptr == _constantBuffers[index])
+	if (nullptr == ConstantBuffers[index])
 	{
 		return;
 	}
 
-	uint32 size = _constantBuffers[index]->getSize();
+	uint32 size = ConstantBuffers[index]->getSize();
 	Byte *pData = (Byte*)_aligned_malloc(size, 16);
-	for (VariableInfo &varialbeInfo : varialbeInfos)
+	for (FShaderVariable &varialbeInfo : varialbeInfos)
 	{
-		memcpy(pData + varialbeInfo._offset, varialbeInfo._pValue, varialbeInfo._size);
+		memcpy(pData + varialbeInfo.Offset, varialbeInfo.Value, varialbeInfo.Size);
 	}
 
-	_constantBuffers[index]->update(pData, size);
+	ConstantBuffers[index]->update(pData, size);
 
 	_aligned_free((void*)pData);
 }
 
-void Shader::MakeCosntantBuffers()
+void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
+{
+	uint32 index = CastValue<uint32>(layer);
+	if (nullptr == ConstantBuffers[index])
+	{
+		return;
+	}
+
+	ConstantBuffers[index]->Update();
+}
+
+void MShader::CreateCosntantBuffers()
 {
 	ID3D11ShaderReflection *pShaderReflection = nullptr;
 
@@ -121,17 +132,16 @@ void Shader::MakeCosntantBuffers()
 	D3D11_SHADER_DESC shaderDesc = { 0 };
 	FAILED_CHECK_THROW(pShaderReflection->GetDesc(&shaderDesc));
 
-	uint32 constantBufferCount = static_cast<uint32>(shaderDesc.ConstantBuffers);
-	if (constantBufferCount > CastValue<uint32>(ConstantBuffersLayer::Count))
+	uint32 ConstantBufferLayerNum = CastValue<uint32>(EConstantBufferLayer::Count);
+	uint32 constantBufferNum = static_cast<uint32>(shaderDesc.ConstantBuffers);
+	if (constantBufferNum > ConstantBufferLayerNum)
 	{
 		DEV_ASSERT_MSG("ConstantBuffer의 개수가 ConstantBuffersLayer::Countf를 넘어섭니다.");
-		return;
 	}
 
-	_constantBuffers.reserve(CastValue<size_t>(ConstantBuffersLayer::Count));
-	for (uint32 constantBufferIndex = 0; constantBufferIndex < constantBufferCount; ++constantBufferIndex)
+	for (uint32 ConstantBufferCounter = 0; ConstantBufferCounter < constantBufferNum; ++ConstantBufferCounter)
 	{
-		ID3D11ShaderReflectionConstantBuffer *pReflectionConstantBuffer = pShaderReflection->GetConstantBufferByIndex(constantBufferIndex);
+		ID3D11ShaderReflectionConstantBuffer *pReflectionConstantBuffer = pShaderReflection->GetConstantBufferByIndex(ConstantBufferCounter);
 		if (nullptr == pReflectionConstantBuffer)
 		{
 			FAILED_CHECK_THROW(E_FAIL);
@@ -140,16 +150,15 @@ void Shader::MakeCosntantBuffers()
 		D3D11_SHADER_BUFFER_DESC bufferDesc = {};
 		FAILED_CHECK_THROW(pReflectionConstantBuffer->GetDesc(&bufferDesc));
 		std::vector<Byte> bufferData(bufferDesc.Size, 0);
-
-		D3D11_SHADER_INPUT_BIND_DESC bindDesc = {};
-		pShaderReflection->GetResourceBindingDescByName(bufferDesc.Name, &bindDesc);
-		uint32 slotIndex = bindDesc.BindPoint;
-
 		uint32 variableCount = bufferDesc.Variables;
-		_variableInfos[slotIndex].reserve(variableCount);
-		for (uint32 variableIndex = 0; variableIndex < variableCount; ++variableIndex)
+
+		D3D11_SHADER_INPUT_BIND_DESC ShaderInputBindDesc = {};
+		pShaderReflection->GetResourceBindingDescByName(bufferDesc.Name, &ShaderInputBindDesc);
+		uint32 LayerIndex = ShaderInputBindDesc.BindPoint;
+		
+		for (uint32 VariableIndex = 0; VariableIndex < variableCount; ++VariableIndex)
 		{
-			ID3D11ShaderReflectionVariable *pReflectionVariable = pReflectionConstantBuffer->GetVariableByIndex(variableIndex);
+			ID3D11ShaderReflectionVariable *pReflectionVariable = pReflectionConstantBuffer->GetVariableByIndex(VariableIndex);
 			if (nullptr == pReflectionVariable)
 			{
 				FAILED_CHECK_THROW(E_FAIL);
@@ -175,25 +184,33 @@ void Shader::MakeCosntantBuffers()
 			}
 			}
 
-			_variableInfos[slotIndex].emplace_back(variableDesc.StartOffset, variableDesc.Size);
+			std::wstring VariableName;
+			StringToWString(variableDesc.Name, VariableName);
+
+			Variables[LayerIndex].emplace_back(variableDesc.StartOffset, variableDesc.Size);
+			FShaderVariableInfo NewVarbleInfo;
+			NewVarbleInfo.Layer			= static_cast<EConstantBufferLayer>(LayerIndex);
+			NewVarbleInfo.Index			= VariableIndex;	
+			VariableInfos[VariableName] = NewVarbleInfo;
 		}
 		
-		std::shared_ptr<ConstantBuffer> pConstantBuffer = std::make_shared<ConstantBuffer>(bufferDesc.Size, bufferData.data(), bufferDesc.Variables);
-		_constantBuffers[slotIndex] = pConstantBuffer;
+		ConstantBuffers[LayerIndex] = std::make_shared<MConstantBuffer>(bufferDesc.Size, bufferData.data(), bufferDesc.Variables);
 	}
+
+	SafeRelease(pShaderReflection);
 }
 
-const uint32 Shader::getVariableCountOfConstantBuffer(const ConstantBuffersLayer layer)
+const uint32 MShader::getVariableCountOfConstantBuffer(const EConstantBufferLayer layer)
 {
-	return _constantBuffers[CastValue<uint32>(layer)]->getCountOfVariables();
+	return ConstantBuffers[CastValue<uint32>(layer)]->getCountOfVariables();
 }
 
-ID3D10Blob* Shader::getBlob()
+ID3D10Blob* MShader::getBlob()
 {
 	return _pBlob;
 }
 
-std::vector<std::vector<VariableInfo>>& Shader::getVariableInfos()
+std::vector<std::vector<FShaderVariable>>& MShader::GetVariableInfos()
 {
-	return _variableInfos;
+	return Variables;
 }
