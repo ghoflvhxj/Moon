@@ -413,12 +413,12 @@ void Renderer::updateConstantBuffer()
 	// 모든 쉐이더 타입에 대해 common constant buffer를 업데이트함
 	for (uint32 index = 0; index < CastValue<uint32>(ShaderType::Count); ++index)
 	{
-		auto& shaders = g_pShaderManager->getShaders(CastValue<ShaderType>(index));
+		auto& Shaders = ShaderManager->GetShaders(CastValue<ShaderType>(index));
 
-		for (auto& pair : shaders)
+		for (auto& Pair : Shaders)
 		{
-			std::shared_ptr<Shader> shader = pair.second;
-			auto &VS_CBuffers = shader->getVariableInfos();
+			std::shared_ptr<MShader>& Shader = Pair.second;
+			auto &VS_CBuffers = Shader->GetVariableInfos();
 
 			// PerConstant 레이어 
 			if (g_pRenderer->IsDirtyConstant())
@@ -426,29 +426,28 @@ void Renderer::updateConstantBuffer()
 				Vec4 resolution = { CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 0.f, 0.f };
 				BOOL bLight = TRUE;
 
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 0, &resolution);
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::Constant, 1, &bLight);
-				shader->UpdateConstantBuffer(ConstantBuffersLayer::Constant, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::Constant)]);
+				Shader->SetValue(TEXT("resolution"), resolution);
+				Shader->SetValue(TEXT("bLight"), bLight);
+				Shader->UpdateConstantBuffer(EConstantBufferLayer::Constant);
 			}
 
 			// PerTick 레이어
-			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 0, &g_pMainGame->getMainCameraViewMatrix());
-			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 1, &g_pMainGame->getMainCameraProjectioinMatrix());
-			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 2, &IDENTITYMATRIX);
-			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 3, &g_pMainGame->getMainCameraOrthographicProjectionMatrix());
-			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 4, &g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
+			Shader->SetValue(TEXT("viewMatrix"), g_pMainGame->getMainCameraViewMatrix());
+			Shader->SetValue(TEXT("projectionMatrix"), g_pMainGame->getMainCameraProjectioinMatrix());
+			Shader->SetValue(TEXT("identityMatrix"), IDENTITYMATRIX);
+			Shader->SetValue(TEXT("orthographicProjectionMatrix"), g_pMainGame->getMainCameraOrthographicProjectionMatrix());
+			Shader->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
 			if (bool bDirectionalLightExist = CastValue<uint32>(_directionalLightDirection.size()) > 0)
 			{
 				std::vector<Vec4> lightPosition(3);
 				std::vector<Mat4> lightViewProj(3);
 				Test(lightViewProj, lightPosition);
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 5, &lightPosition[0]);
-				copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 6, &lightViewProj[0]);
+				Shader->SetValue(TEXT("lightPos"), lightPosition);
+				Shader->SetValue(TEXT("lightViewProjMatrix"), lightViewProj);
 			}
+			Shader->SetValue(TEXT("cascadeDistance"), _cascadeDistance);
 
-			copyBufferData(VS_CBuffers, ConstantBuffersLayer::PerTick, 7, &_cascadeDistance[0]);
-
-			shader->UpdateConstantBuffer(ConstantBuffersLayer::PerTick, VS_CBuffers[CastValue<uint32>(ConstantBuffersLayer::PerTick)]);
+			Shader->UpdateConstantBuffer(EConstantBufferLayer::PerTick);
 		}
 	}
 	
@@ -457,13 +456,14 @@ void Renderer::updateConstantBuffer()
 	// Costant레이어 CBuffer 업데이트
 }
 
-void Renderer::copyBufferData(std::vector<std::vector<VariableInfo>> &infos, ConstantBuffersLayer layer, uint32 index, const void *pData)
-{
-	if (infos[CastValue<uint32>(layer)].size() <= index)
-		return;
-
-	memcpy(infos[CastValue<uint32>(layer)][index]._pValue, pData, infos[CastValue<uint32>(layer)][index]._size);
-}
+// DEPRECATED
+//void Renderer::copyBufferData(std::vector<std::vector<FShaderVariable>> &infos, EConstantBufferLayer layer, uint32 index, const void *pData)
+//{
+//	if (infos[CastValue<uint32>(layer)].size() <= index)
+//		return;
+//
+//	memcpy(infos[CastValue<uint32>(layer)][index].Value, pData, infos[CastValue<uint32>(layer)][index].Size);
+//}
 
 void Renderer::toggleRenderTarget()
 {

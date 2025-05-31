@@ -67,7 +67,8 @@ private:
 	void FrustumCulling();
 	// PerConstant, PerTick 콘스탄트 버퍼를 업데이트함.
 	void updateConstantBuffer();
-	inline void copyBufferData(std::vector<std::vector<VariableInfo>> &infos, ConstantBuffersLayer layer, uint32 index, const void *pData);
+
+	//inline void copyBufferData(std::vector<std::vector<FShaderVariable>> &infos, EConstantBufferLayer layer, uint32 index, const void *pData);	DEPRECATED
 	
 public:
 	uint32 TotalPrimitiveNum = 0;
@@ -82,6 +83,7 @@ private:
 public:
 	const bool IsDirtyConstant() const;
 private:
+	// 한 프레임 동안에 ConstantBuffer가 변경되었는지 여부를 판단하기 위한 변수
 	bool _bDirtyConstant;
 
 	void Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition);
