@@ -15,11 +15,11 @@ struct VertexIn
 struct VertexOut
 {
 	float4 pos			: SV_POSITION;
-    float3 worldPos     : TEXCOORD4;
+    float3 worldPos     : POSITION0;
 	float2 uv			: TEXCOORD0;
-    float3 normal		: TEXCOORD1;
-    float3 tangent      : TEXCOORD2;
-	float3 binormal		: TEXCOORD3;
+    float3 normal       : NORMAL0;
+    float3 tangent      : NORMAL1;
+    float3 binormal     : NORMAL2;
 };
 
 struct VertexOut_Simple
