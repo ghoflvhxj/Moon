@@ -87,11 +87,18 @@ inline void SafeReleaseArray(std::vector<T> &arr)
 	arr.clear();
 }
 
-inline void ToChar(const std::wstring& wstr, char Buffer[], int BufferSize)
+inline void WStringToString(const std::wstring& wstr, char Buffer[], int BufferSize)
 {
 	memset(Buffer, 0, sizeof(BufferSize));
 	int Length = static_cast<int>(wstr.length()) + 1;
 	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), Length, Buffer, Length * 2, nullptr, nullptr);
+}
+
+inline void StringToWString(const char* Buffer, std::wstring& wstr)
+{
+	int BufferSize = static_cast<int>(strlen(Buffer));
+	wstr.resize(BufferSize);
+	MultiByteToWideChar(CP_ACP, 0, Buffer, BufferSize, wstr.data(), BufferSize * 2);
 }
 
 #define __FUNCTION_H__

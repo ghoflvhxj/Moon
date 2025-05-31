@@ -280,7 +280,7 @@ void FBXLoader::InitializeFbxSdk()
 	}
 
 	char FilePathName[255] = { 0, };
-	ToChar(_filePathName, FilePathName, 255);
+	WStringToString(_filePathName, FilePathName, 255);
 	if (false == _pImporter->Initialize(FilePathName))
 	{
 		DEV_ASSERT_MSG("FbxImporter 초기화에 실패했습니다!");
@@ -810,7 +810,7 @@ void FBXLoader::loadTexture(FbxProperty *property, const TextureType textureType
 			//FilePathName.assign(_filePath.begin(), _filePath.end());
 
 			char FilePathName[255] = { 0, };
-			ToChar(_filePath, FilePathName, 255);
+			WStringToString(_filePath, FilePathName, 255);
 			strcat_s(FilePathName, 255, PathFindFileNameA(fileTexture->GetFileName()));
 
 			std::shared_ptr<TextureComponent> pTextureComponent = std::make_shared<TextureComponent>(FilePathName);
