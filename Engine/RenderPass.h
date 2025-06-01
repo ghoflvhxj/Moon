@@ -27,7 +27,7 @@ public:
 	virtual void Begin();
 	/*virtual*/ void End();
 	virtual void DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList);
-	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) = 0;
+	virtual const bool processPrimitiveData(const FPrimitiveData& primitiveData);
 	virtual void render(const FPrimitiveData &primitiveData) = 0;
 
 	// ·»´õ Å¸°Ù

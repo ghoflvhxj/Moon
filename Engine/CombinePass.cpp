@@ -17,16 +17,6 @@
 
 using namespace DirectX;
 
-const bool CombinePass::processPrimitiveData(const FPrimitiveData &primitiveData)
-{
-	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
-
-	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	memcpy(VS_CBuffer_PerObject[0]._pValue, &PrimitiveComponent->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
-
-	return true;
-}
-
 void CombinePass::render(const FPrimitiveData &primitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
@@ -48,14 +38,14 @@ void CombinePass::render(const FPrimitiveData &primitiveData)
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	_vertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	auto &variablesVS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	_vertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variablesVS);	// RenderPass에 설정된 쉐이더를 사용함!
 	_vertexShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	_pixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	_pixelShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS); // RenderPass에 설정된 쉐이더를 사용함!
 	_pixelShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
@@ -98,28 +88,7 @@ const bool GeometryPass::processPrimitiveData(const FPrimitiveData &primitiveDat
 		return false;
 	}
 
-	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
-
-	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	memcpy(VS_CBuffer_PerObject[0]._pValue, &PrimitiveComponent->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
-
-	BOOL animated = primitiveData._matrices != nullptr;
-	if (animated)
-	{
-		memcpy(VS_CBuffer_PerObject[1]._pValue, primitiveData._matrices, VS_CBuffer_PerObject[1]._size);
-	}
-	memcpy(VS_CBuffer_PerObject[2]._pValue, &animated, VS_CBuffer_PerObject[2]._size);
-
-	auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	if (PS_CBuffer_PerObject.empty() == false)
-	{
-		BOOL bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Normal) ? TRUE : FALSE;
-		memcpy(PS_CBuffer_PerObject[0]._pValue, &bUseTexture, PS_CBuffer_PerObject[0]._size);
-		bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Specular) ? TRUE : FALSE;
-		memcpy(PS_CBuffer_PerObject[1]._pValue, &bUseTexture, PS_CBuffer_PerObject[1]._size);
-	}
-
-	return true;
+	return RenderPass::processPrimitiveData(primitiveData);
 }
 
 void GeometryPass::render(const FPrimitiveData &primitiveData)
@@ -143,14 +112,14 @@ void GeometryPass::render(const FPrimitiveData &primitiveData)
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
 	primitiveData._pMaterial->getVertexShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
 	primitiveData._pMaterial->getPixelShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
@@ -187,7 +156,7 @@ const bool ShadowDepthPass::processPrimitiveData(const FPrimitiveData & primitiv
 		return false;
 	}
 
-	return true;
+	return RenderPass::processPrimitiveData(primitiveData);
 }
 
 void ShadowDepthPass::render(const FPrimitiveData & primitiveData)
@@ -211,20 +180,21 @@ void ShadowDepthPass::render(const FPrimitiveData & primitiveData)
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	_vertexShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	_vertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
 	_vertexShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	_pixelShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	_pixelShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
 	_pixelShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Geometry Shader
-	auto &variableInfosGS = _geometryShader->getVariableInfos()[CastValue<int>(ShaderType::Geometry)];
-	_geometryShader->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosGS);
+	// 주석 제거하기
+	auto &variableInfosGS = _geometryShader->GetVariables()[CastValue<int>(ShaderType::Geometry)];
+	_geometryShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosGS);
 	_geometryShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
@@ -257,26 +227,23 @@ const bool LightPass::processPrimitiveData(const FPrimitiveData &primitiveData)
 
 	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
 
-	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	memcpy(VS_CBuffer_PerObject[0]._pValue, &PrimitiveComponent->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
-
 	Vec3 trans = PrimitiveComponent->getTranslation();
 	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
 	Vec4 color = { 1.f, 1.f, 1.f, 1.f };
-	auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	memcpy(PS_CBuffer_PerObject[0]._pValue, &transAndRange, PS_CBuffer_PerObject[0]._size);
+
 	XMVECTOR rotationVector = XMLoadFloat3(&PrimitiveComponent->getRotation());
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(rotationVector);
 	Mat4 rotMatrix = IDENTITYMATRIX;
 	XMStoreFloat4x4(&rotMatrix, rotationMatrix);
 	Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
-	memcpy(PS_CBuffer_PerObject[1]._pValue, &look, PS_CBuffer_PerObject[1]._size);
-	memcpy(PS_CBuffer_PerObject[2]._pValue, &color, PS_CBuffer_PerObject[2]._size);
-	memcpy(PS_CBuffer_PerObject[3]._pValue, &g_pMainGame->getMainCamera()->getViewMatrix(), PS_CBuffer_PerObject[3]._size);
-	memcpy(PS_CBuffer_PerObject[4]._pValue, &g_pMainGame->getMainCamera()->getInvesrViewMatrix(), PS_CBuffer_PerObject[4]._size);
-	memcpy(PS_CBuffer_PerObject[5]._pValue, &g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix(), PS_CBuffer_PerObject[5]._size);
 
-	return true;
+	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
+	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
+	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
+	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
+	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
+
+	return RenderPass::processPrimitiveData(primitiveData);
 }
 
 void LightPass::render(const FPrimitiveData &primitiveData)
@@ -300,14 +267,14 @@ void LightPass::render(const FPrimitiveData &primitiveData)
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	//auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	//primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
 	primitiveData._pMaterial->getVertexShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	//auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	//primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
 	primitiveData._pMaterial->getPixelShader()->SetToDevice();
 
 	//primitiveData._pMaterial->SetTexturesToDevice();
@@ -336,27 +303,6 @@ void LightPass::render(const FPrimitiveData &primitiveData)
 	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool SkyPass::processPrimitiveData(const FPrimitiveData &primitiveData)
-{
-	if (primitiveData._primitiveType != EPrimitiveType::Sky)
-	{
-		return false;
-	}
-
-	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
-
-	auto &VS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	memcpy(VS_CBuffer_PerObject[0]._pValue, &PrimitiveComponent->getWorldMatrix(), VS_CBuffer_PerObject[0]._size);
-
-	//auto &PS_CBuffer_PerObject = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	//BOOL bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Normal) ? TRUE : FALSE;
-	//memcpy(PS_CBuffer_PerObject[0]._pValue, &bUseTexture, PS_CBuffer_PerObject[0]._size);
-	//bUseTexture = primitiveData._pMaterial->useTextureType(TextureType::Specular) ? TRUE : FALSE;
-	//memcpy(PS_CBuffer_PerObject[1]._pValue, &bUseTexture, PS_CBuffer_PerObject[1]._size);
-
-	return true;
-}
-
 void SkyPass::render(const FPrimitiveData & primitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
@@ -378,14 +324,14 @@ void SkyPass::render(const FPrimitiveData & primitiveData)
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, ConstantBuffersLayer::PerObject);
-	primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosVS);
+	//auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	//primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
 	primitiveData._pMaterial->getVertexShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, ConstantBuffersLayer::PerObject);
-	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(ConstantBuffersLayer::PerObject, variableInfosPS);
+	//auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	//primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
 	primitiveData._pMaterial->getPixelShader()->SetToDevice();
 
 	primitiveData._pMaterial->SetTexturesToDevice();

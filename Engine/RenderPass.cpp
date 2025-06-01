@@ -62,27 +62,22 @@ void RenderPass::Begin()
 	}
 
 	uint32 ResorceViewNum = CastValue<uint32>(CachedResourceViews.size());
-	for (uint32 i = 0; i < ResorceViewNum; ++i)
+	for(const FResourceViewBindData& ResourceViewBindData : _resourceViewList)
 	{
-		if (CachedResourceViews[i] == nullptr)
-		{
-			continue;
-		}
-
-		g_pGraphicDevice->getContext()->PSSetShaderResources(i, 1, &CachedResourceViews[i]->AsTexture()->getRawResourceViewPointer());
+		g_pGraphicDevice->getContext()->PSSetShaderResources(ResourceViewBindData.Index, 1, &ResourceViewBindData.ReourceView->AsTexture()->getRawResourceViewPointer());
 	}
 }
 
 void RenderPass::End()
 {
-	uint32 ResorceViewNum = CastValue<uint32>(CachedResourceViews.size());
-	std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
-	g_pGraphicDevice->getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
+	//uint32 ResorceViewNum = CastValue<uint32>(CachedResourceViews.size());
+	std::vector<ID3D11ShaderResourceView*> RowResourceViews(8, nullptr);
+	g_pGraphicDevice->getContext()->PSSetShaderResources(0, 8, RowResourceViews.data());
 
 	uint32 renderTargetCount = CachedRenderTargets.size() == 0 ? 1 : CachedRenderTargets.size();
 	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(renderTargetCount, nullptr);
 	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
-	g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(renderTargetCount), &restoreRenderTargetViewArray[0], _pOldDepthStencilView);
+	g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(renderTargetCount), restoreRenderTargetViewArray.data(), _pOldDepthStencilView);
 
 	//// Ω¶¿Ã¥ı ∏Æº“Ω∫ ∫‰ «ÿ¡¶
 	//for (const FResourceViewBindData& ResourceViewBindData : _resourceViewList)
@@ -116,10 +111,37 @@ void RenderPass::DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 	{
 		if (processPrimitiveData(PrimitiveData))
 		{
+			PrimitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
+			PrimitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
 			render(PrimitiveData);
 		}
 	}
 	//}
+}
+
+const bool RenderPass::processPrimitiveData(const FPrimitiveData& primitiveData)
+{
+	std::shared_ptr<PrimitiveComponent> Primitive = primitiveData._pPrimitive.lock();
+
+	// -------------------------------------------------------------------------------------------------------------------------
+	// πˆ≈ÿΩ∫Ω¶¿Ã¥ı ConstantBuffer
+	primitiveData._pMaterial->getVertexShader()->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
+	// æ÷¥‘ ∞¸∑√ ∫Øºˆ
+	BOOL animated = primitiveData._matrices != nullptr;
+	primitiveData._pMaterial->getVertexShader()->SetValue(TEXT("animated"), animated);
+	if (animated == TRUE)
+	{
+		primitiveData._pMaterial->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), primitiveData._matrices);
+	}
+
+	// -------------------------------------------------------------------------------------------------------------------------
+	// «»ºøΩ¶¿Ã¥ı ConstantBuffer
+	BOOL bUseNormal = primitiveData._pMaterial->useTextureType(TextureType::Normal) ? TRUE : FALSE;
+	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
+	BOOL bUseSpecular = primitiveData._pMaterial->useTextureType(TextureType::Specular) ? TRUE : FALSE;
+	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
+
+	return true;
 }
 
 void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
