@@ -66,32 +66,19 @@ private:
 	Graphic::CullMode _eCullMode;
 	bool bUseAlpha;
 
+public:
+	void SetAlphaMask(bool InValue) { bAlphaMask = InValue; }
+	const bool IsAlphaMasked() const { return bAlphaMask; }
+private:
+	bool bAlphaMask;
 
 public:
 	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType shaderType, const EConstantBufferLayer layer);
 	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType shaderType, const uint32 index);
 	
+	// 유틸리티	함수들
 public:
-	const bool useTextureType(const TextureType type);
-//public:
-//	void setFillMode(const Graphic::FillMode eFillMode);
-//private:
-//	Graphic::FillMode _eFillMode;
-//
-//public:
-//	void setCullMode(const Graphic::CullMode eCullMode);
-//private:
-//	Graphic::CullMode _eCullMode;
-//
-//public:
-//	void setDepthWriteMode(const Graphic::DepthWriteMode eDepthWriteMode);
-//private:
-//	Graphic::DepthWriteMode _eDepthWriteMode;
-//
-//public:
-//	void setBlendState(const Graphic::Blend eBlend);
-//private:
-//	Graphic::Blend _eBlend;
+	const bool IsTextureTypeUsed(const TextureType type);
 };
 
 #define __MATERIAL_H__

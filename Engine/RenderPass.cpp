@@ -136,11 +136,12 @@ const bool RenderPass::processPrimitiveData(const FPrimitiveData& primitiveData)
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// ÇÈ¼¿½¦ÀÌ´õ ConstantBuffer
-	BOOL bUseNormal = primitiveData._pMaterial->useTextureType(TextureType::Normal) ? TRUE : FALSE;
+	BOOL bUseNormal = primitiveData._pMaterial->IsTextureTypeUsed(TextureType::Normal) ? TRUE : FALSE;
 	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
-	BOOL bUseSpecular = primitiveData._pMaterial->useTextureType(TextureType::Specular) ? TRUE : FALSE;
+	BOOL bUseSpecular = primitiveData._pMaterial->IsTextureTypeUsed(TextureType::Specular) ? TRUE : FALSE;
 	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
-
+	BOOL bAlphaMask = primitiveData._pMaterial->IsAlphaMasked() ? TRUE : FALSE;
+	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bAlphaMask"), bAlphaMask);
 	return true;
 }
 

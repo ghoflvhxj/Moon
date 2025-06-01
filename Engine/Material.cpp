@@ -34,6 +34,7 @@ Material::Material()
 	//, _eDepthWriteMode{ DepthWriteMode::Enable }
 	//, _eBlend{ Blend::Object }
 	, bUseAlpha{ false }
+	, bAlphaMask{ false }
 {
 }
 
@@ -154,7 +155,7 @@ std::vector<FShaderVariable>& Material::getConstantBufferVariables(const ShaderT
 	return shaders[shaderTypeIndex]->GetVariables()[CastValue<uint32>(layer)];
 }
 
-const bool Material::useTextureType(const TextureType type)
+const bool Material::IsTextureTypeUsed(const TextureType type)
 {
 	return _textureList[CastValue<uint32>(type)] != nullptr ? true : false;
 }

@@ -4,6 +4,7 @@ cbuffer PS_CBuffer_Texture : register(b2)
 {
 	bool bUseNormalTexture;
 	bool bUseSpecularTexture;
+    bool bAlphaMask;
 };
 
 float CalculateShadowFactor(int cascadeIndex, float4 lightspacepos)
@@ -55,24 +56,26 @@ PixelOut_GeometryPass main(PixelIn pIn)
     
     float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
     
+    if (bAlphaMask)
+    {
+        clip(pOut.color.rgb - float3(0.13f, 0.13f, 0.13f));
+    }
     
-    
-	
-	if (true == bUseNormalTexture)
-	{
-		const float3x3 tanToView = float3x3(
-			normalize(pIn.tangent),
-			normalize(pIn.binormal),
-			normalize(pIn.normal)
-		);
+    if (true == bUseNormalTexture)
+    {
+        const float3x3 tanToView = float3x3(
+		normalize(pIn.tangent),
+		normalize(pIn.binormal),
+		normalize(pIn.normal)
+	);
 		
-		normal.x = (normal.x * 2.f) - 1.f;
-		normal.y = -(normal.y * 2.f) + 1.f;
-		normal.z = normal.z;
-		normal = mul(normal, tanToView);
+        normal.x = (normal.x * 2.f) - 1.f;
+        normal.y = -(normal.y * 2.f) + 1.f;
+        normal.z = normal.z;
+        normal = mul(normal, tanToView);
 
-		pOut.normal = float4(normal, 1.f);
-	}
+        pOut.normal = float4(normal, 1.f);
+    }
 
 	if (true == bUseSpecularTexture)
 	{
