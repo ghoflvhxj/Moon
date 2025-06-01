@@ -10,9 +10,13 @@ public:
 	~MConstantBuffer();
 
 public:
-	void Update();
-	void update(const void *pData, const size_t dataSize);
+	// 데이터를 디바이스에 올림
+	void Commit();
+	// 데이터를 업데이트 하고 디바이스에 올림
+	void Update(const void *pData);
+	// 특정 데이터만 업데이트 할 떄 사용
 	void SetData(int32 Offset, Byte* InData, uint32 InSize);
+
 	//void setBufferToDevice(UINT &stride, UINT &offset);
 
 public:

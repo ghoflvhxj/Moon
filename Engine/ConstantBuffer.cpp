@@ -19,20 +19,21 @@ MConstantBuffer::MConstantBuffer(const uint32 bufferSize, const void *buffer, co
 	D3D11_SUBRESOURCE_DATA sd	= {};
 	sd.pSysMem					= buffer;
 
-	Buffer = new Byte[bufferSize];
+	Buffer = (Byte*)_aligned_malloc(bufferSize, 16);
+	ZeroMemory(Buffer, bufferSize);
 
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateBuffer(&bd, &sd, &_pBuffer));
 }
 
 MConstantBuffer::~MConstantBuffer()
 {
-	delete[] Buffer;
+	_aligned_free(Buffer);
 	Buffer = nullptr;
 
 	SafeRelease(_pBuffer);
 }
 
-void MConstantBuffer::Update()
+void MConstantBuffer::Commit()
 {
 	D3D11_MAPPED_SUBRESOURCE mappedSubResource = {};
 	g_pGraphicDevice->getContext()->Map(_pBuffer, 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedSubResource);
@@ -40,12 +41,11 @@ void MConstantBuffer::Update()
 	g_pGraphicDevice->getContext()->Unmap(_pBuffer, 0u);
 }
 
-void MConstantBuffer::update(const void * pData, const size_t dataSize)
+void MConstantBuffer::Update(const void * pData)
 {
-	D3D11_MAPPED_SUBRESOURCE mappedSubResource = {};
-	g_pGraphicDevice->getContext()->Map(_pBuffer, 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedSubResource);
-	memcpy(mappedSubResource.pData, pData, dataSize);
-	g_pGraphicDevice->getContext()->Unmap(_pBuffer, 0u);
+	memcpy(Buffer, pData, BufferSize);
+
+	Commit();
 }
 
 void MConstantBuffer::SetData(int32 Offset, Byte* InData, uint32 InSize)
