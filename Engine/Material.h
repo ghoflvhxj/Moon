@@ -68,12 +68,9 @@ private:
 
 
 public:
-	std::vector<FShaderVariable>& getConstantBufferVariableInfos(const ShaderType shaderType, const EConstantBufferLayer layer);
-	std::vector<FShaderVariable>& getConstantBufferVariableInfos(const ShaderType shaderType, const uint32 index);
-private:
-	std::vector<std::vector<std::vector<FShaderVariable>>> _variableInfosPerShaderType;	// 각 쉐이더 당 콘스탄트 버퍼의 변수 정보 저장
+	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType shaderType, const EConstantBufferLayer layer);
+	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType shaderType, const uint32 index);
 	
-
 public:
 	const bool useTextureType(const TextureType type);
 //public:

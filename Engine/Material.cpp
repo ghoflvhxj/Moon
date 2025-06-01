@@ -28,8 +28,6 @@ Material::Material()
 	: _vertexShader{ nullptr }
 	, _pixelShader{ nullptr }
 	, _textureList(enumToIndex(TextureType::End), nullptr)
-
-	, _variableInfosPerShaderType(CastValue<size_t>(ShaderType::Count), std::vector<std::vector<FShaderVariable>>())
 	, _eTopology{ D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST }
 	, _eFillMode{ FillMode::Solid }
 	, _eCullMode{ CullMode::Backface }
@@ -86,22 +84,6 @@ void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pix
 		return;
 	}
 	_pixelShaderFileName = pixelShaderFileName;
-
-	//-------------------------------------------------------------------------------------------------------
-	size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
-	std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
-	shaders[CastValue<uint32>(ShaderType::Vertex)]	= _vertexShader;
-	shaders[CastValue<uint32>(ShaderType::Pixel)]	= _pixelShader;
-
-	for (size_t shaderTypeIndex = 0; shaderTypeIndex < shaderTypeCount; ++shaderTypeIndex)
-	{
-		if (shaders[shaderTypeIndex] == nullptr)
-		{
-			continue;
-		}
-
-		_variableInfosPerShaderType[shaderTypeIndex] = shaders[shaderTypeIndex]->GetVariableInfos(); // 각 쉐이더의 콘스탄트 버퍼 변수 정보를 등록
-	}
 }
 
 void Material::releaseShader()
@@ -150,12 +132,12 @@ const Graphic::CullMode Material::getCullMode() const
 	return _eCullMode;
 }
 
-std::vector<FShaderVariable>& Material::getConstantBufferVariableInfos(const ShaderType shaderType, const uint32 index)
+std::vector<FShaderVariable>& Material::getConstantBufferVariables(const ShaderType shaderType, const uint32 index)
 {
-	return _variableInfosPerShaderType[CastValue<uint32>(shaderType)][index];
+	return getConstantBufferVariables(shaderType, static_cast<EConstantBufferLayer>(index));
 }
 
-std::vector<FShaderVariable>& Material::getConstantBufferVariableInfos(const ShaderType shaderType, const EConstantBufferLayer layer)
+std::vector<FShaderVariable>& Material::getConstantBufferVariables(const ShaderType shaderType, const EConstantBufferLayer layer)
 {
 	size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
 	std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
@@ -169,7 +151,7 @@ std::vector<FShaderVariable>& Material::getConstantBufferVariableInfos(const Sha
 		return Dummy;
 	}
 
-	return shaders[shaderTypeIndex]->GetVariableInfos()[CastValue<uint32>(layer)];
+	return shaders[shaderTypeIndex]->GetVariables()[CastValue<uint32>(layer)];
 }
 
 const bool Material::useTextureType(const TextureType type)
