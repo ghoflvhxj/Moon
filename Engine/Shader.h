@@ -138,6 +138,26 @@ public:
 		ConstantBuffers[static_cast<int32>(ShaderVariableInfo.Layer)]->SetData(ShaderVariable.Offset, ShaderVariable.Value, ShaderVariable.Size);
 	}
 	template <class T>
+	void SetValue(const std::wstring& InName, T* InValue)
+	{
+		if (VariableInfos.find(InName) == VariableInfos.end())
+		{
+			return;
+		}
+
+		const FShaderVariableInfo& ShaderVariableInfo = VariableInfos[InName];
+		const std::vector<FShaderVariable>& LayerVariables = Variables[static_cast<int32>(ShaderVariableInfo.Layer)];
+		if (ShaderVariableInfo.Index >= LayerVariables.size())
+		{
+			return;
+		}
+
+		const FShaderVariable& ShaderVariable = LayerVariables[ShaderVariableInfo.Index];
+
+		memcpy(ShaderVariable.Value, InValue, ShaderVariable.Size);
+		ConstantBuffers[static_cast<int32>(ShaderVariableInfo.Layer)]->SetData(ShaderVariable.Offset, ShaderVariable.Value, ShaderVariable.Size);
+	}
+	template <class T>
 	void SetValue(const std::wstring& InName, const std::vector<T>& InValue)
 	{
 		if (VariableInfos.find(InName) == VariableInfos.end())
@@ -171,7 +191,7 @@ protected:
 	std::vector<std::shared_ptr<MConstantBuffer>> ConstantBuffers;
 
 public:
-	std::vector<std::vector<FShaderVariable>>& GetVariableInfos();
+	std::vector<std::vector<FShaderVariable>>& GetVariables();
 private:
 	// ConstantBuffer 레이어 별로 변수 정보 저장
 	std::vector<std::vector<FShaderVariable>> Variables;	

@@ -92,35 +92,47 @@ MShader::~MShader()
 	SafeRelease(_pBlob);
 }
 
-void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FShaderVariable> &varialbeInfos)
+void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FShaderVariable>& InVariables)
 {
-	uint32 index = CastValue<uint32>(layer);
-	if (nullptr == ConstantBuffers[index])
+	uint32 Index = CastValue<uint32>(layer);
+	if (nullptr == ConstantBuffers[Index])
 	{
 		return;
 	}
 
-	uint32 size = ConstantBuffers[index]->getSize();
-	Byte *pData = (Byte*)_aligned_malloc(size, 16);
-	for (FShaderVariable &varialbeInfo : varialbeInfos)
+	uint32 size = ConstantBuffers[Index]->getSize();
+	Byte* pData = (Byte*)_aligned_malloc(size, 16);
+	for (FShaderVariable& varialbeInfo : InVariables)
 	{
 		memcpy(pData + varialbeInfo.Offset, varialbeInfo.Value, varialbeInfo.Size);
 	}
 
-	ConstantBuffers[index]->update(pData, size);
+	ConstantBuffers[Index]->Update(pData);
 
 	_aligned_free((void*)pData);
+
+	//for (const FShaderVariable& Variable : InVariables)
+	//{
+	//	ConstantBuffers[Index]->SetData(Variable.Offset, Variable.Value, Variable.Size);
+	//}
+
+	//ConstantBuffers[Index]->Commit();
 }
 
 void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
 {
-	uint32 index = CastValue<uint32>(layer);
-	if (nullptr == ConstantBuffers[index])
+	uint32 Index = CastValue<uint32>(layer);
+	if (nullptr == ConstantBuffers[Index])
 	{
 		return;
 	}
 
-	ConstantBuffers[index]->Update();
+	for (const FShaderVariable& Variable : Variables[Index])
+	{
+		ConstantBuffers[Index]->SetData(Variable.Offset, Variable.Value, Variable.Size);
+	}
+
+	ConstantBuffers[Index]->Commit();
 }
 
 void MShader::CreateCosntantBuffers()
@@ -210,7 +222,7 @@ ID3D10Blob* MShader::getBlob()
 	return _pBlob;
 }
 
-std::vector<std::vector<FShaderVariable>>& MShader::GetVariableInfos()
+std::vector<std::vector<FShaderVariable>>& MShader::GetVariables()
 {
 	return Variables;
 }
