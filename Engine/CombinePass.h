@@ -62,7 +62,7 @@ public:
 	virtual ~SkyPass() = default;
 
 public:
-	//virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
+	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
 
 private:
 	void render(const FPrimitiveData & primitiveData);

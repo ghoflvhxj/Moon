@@ -38,8 +38,7 @@ const bool SkyComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitive
 
 	FPrimitiveData primitiveData = {};
 	primitiveData._pPrimitive = shared_from_this();
-	//primitiveData._pVertexBuffer = _pSkyMesh->getVertexBuffers()[0];
-	//primitiveData._pIndexBuffer = _pSkyMesh->getIndexBuffer();
+	primitiveData.MeshData = _pSkyMesh->GetMeshData(0);
 	primitiveData._pMaterial = _pSkyMesh->getMaterials()[0];
 	primitiveData._primitiveType = EPrimitiveType::Sky;
 	primitiveDataList.emplace_back(primitiveData);

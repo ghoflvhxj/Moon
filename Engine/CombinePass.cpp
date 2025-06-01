@@ -303,6 +303,16 @@ void LightPass::render(const FPrimitiveData &primitiveData)
 	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
+const bool SkyPass::processPrimitiveData(const FPrimitiveData& primitiveData)
+{
+	if (primitiveData._primitiveType != EPrimitiveType::Sky)
+	{
+		return false;
+	}
+
+	return RenderPass::processPrimitiveData(primitiveData);
+}
+
 void SkyPass::render(const FPrimitiveData & primitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
