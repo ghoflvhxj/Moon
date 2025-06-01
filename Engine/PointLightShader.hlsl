@@ -6,7 +6,6 @@ cbuffer PixelShaderConstantBuffer : register (b2)
 	float4 g_lightDirection;
 	float4 g_lightColor;		// w = Power
 
-	row_major matrix g_CameraViewMatrix;
 	row_major matrix g_inverseCameraViewMatrix;
 	row_major matrix g_inverseProjectiveMatrix;
 };
