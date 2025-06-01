@@ -65,6 +65,11 @@ void Player::initialize()
 	{
 		_pDynamicMeshComponent->getDynamicMesh()->getMaterial(i)->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
 	}
+	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(0)->SetAlphaMask(true);
+	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(1)->SetAlphaMask(true);
+	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(2)->SetAlphaMask(true);
+	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
+	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
 #endif
 
 #if UseSkySphere == 1

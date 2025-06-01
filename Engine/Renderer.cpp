@@ -418,7 +418,7 @@ void Renderer::updateConstantBuffer()
 		for (auto& Pair : Shaders)
 		{
 			std::shared_ptr<MShader>& Shader = Pair.second;
-			auto &VS_CBuffers = Shader->GetVariableInfos();
+			auto &VS_CBuffers = Shader->GetVariables();
 
 			// PerConstant ·¹ÀÌ¾î 
 			if (g_pRenderer->IsDirtyConstant())
