@@ -20,26 +20,27 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Launch.cpp" />
-    <ClCompile Include="Misc\backends\imgui_impl_dx11.cpp" />
-    <ClCompile Include="Misc\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="Misc\imgui.cpp" />
-    <ClCompile Include="Misc\imgui_draw.cpp" />
-    <ClCompile Include="Misc\imgui_tables.cpp" />
-    <ClCompile Include="Misc\imgui_widgets.cpp" />
     <ClCompile Include="MyGame.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Misc\backends\imgui_impl_dx11.h" />
-    <ClInclude Include="Misc\backends\imgui_impl_win32.h" />
-    <ClInclude Include="Misc\imconfig.h" />
-    <ClInclude Include="Misc\imgui.h" />
-    <ClInclude Include="Misc\imgui_internal.h" />
-    <ClInclude Include="Misc\imstb_rectpack.h" />
-    <ClInclude Include="Misc\imstb_textedit.h" />
-    <ClInclude Include="Misc\imstb_truetype.h" />
     <ClInclude Include="MyGame.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imconfig.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imgui.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imgui_internal.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imstb_truetype.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -106,14 +107,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)Header;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Libraries\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\Bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)Header;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Libraries\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\Bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -150,17 +151,19 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Header\Engine;$(SolutionDir)\Header\FBXSDK;$(SolutionDir)\Header\NvidiaPhysX\Basic\include;$(SolutionDir)\Header\NvidiaPhysX\Shared\include;$(ProjectDir)Misc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(SolutionDir)Engine\Source\ThirdParty;$(SolutionDir)$(ProjectName)\Source\ThirdParty;$(SolutionDir)$(ProjectName)\Source\ThirdParty\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeaderFile />
+      <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\Debug\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Engine.lib;d3d11.lib;libfbxsdk.lib;PhysXFoundation_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysX_64.lib;PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>
       </EntryPointSymbol>
@@ -175,7 +178,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Header\Engine;$(SolutionDir)\Header\FBXSDK;$(ProjectDir)Misc</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine;$(SolutionDir)Engine\Source\ThirdParty</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -186,7 +189,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\Release\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Engine.lib;d3d11.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>
       </EntryPointSymbol>

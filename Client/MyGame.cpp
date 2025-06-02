@@ -17,9 +17,9 @@
 #include "Camera.h"
 #include "Player.h"
 
-#include "Misc/imgui.h"
-#include "Misc/backends/imgui_impl_win32.h"
-#include "Misc/backends/imgui_impl_dx11.h"
+#include "imgui.h"
+#include "ImGui/backends/imgui_impl_win32.h"
+#include "ImGui/backends/imgui_impl_dx11.h"
 
 using namespace DirectX;
 

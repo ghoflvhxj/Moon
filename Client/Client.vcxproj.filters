@@ -26,24 +26,13 @@
     <ClCompile Include="Player.cpp">
       <Filter>Actor\Player</Filter>
     </ClCompile>
-    <ClCompile Include="Misc\backends\imgui_impl_dx11.cpp">
-      <Filter>etc\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Misc\backends\imgui_impl_win32.cpp">
-      <Filter>etc\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Misc\imgui.cpp">
-      <Filter>etc\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Misc\imgui_tables.cpp">
-      <Filter>etc\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Misc\imgui_widgets.cpp">
-      <Filter>etc\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="Misc\imgui_draw.cpp">
-      <Filter>etc\ImGUI</Filter>
-    </ClCompile>
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -51,29 +40,13 @@
     <ClInclude Include="Player.h">
       <Filter>Actor\Player</Filter>
     </ClInclude>
-    <ClInclude Include="Misc\backends\imgui_impl_dx11.h">
-      <Filter>etc\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Misc\backends\imgui_impl_win32.h">
-      <Filter>etc\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Misc\imgui.h">
-      <Filter>etc\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Misc\imconfig.h">
-      <Filter>etc\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Misc\imgui_internal.h">
-      <Filter>etc\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Misc\imstb_rectpack.h">
-      <Filter>etc\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Misc\imstb_textedit.h">
-      <Filter>etc\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Misc\imstb_truetype.h">
-      <Filter>etc\ImGUI</Filter>
-    </ClInclude>
+    <ClInclude Include="Source\ThirdParty\ImGui\imgui.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imconfig.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imgui_internal.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.h" />
+    <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.h" />
   </ItemGroup>
 </Project>

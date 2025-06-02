@@ -12,7 +12,7 @@
 
 #include "MainGameSetting.h"
 
-#include "backends/imgui_impl_win32.h"
+#include "ImGui/backends/imgui_impl_win32.h"
 
 LPCWSTR title = TEXT("ShootingGame");
 HWND g_hWnd;
