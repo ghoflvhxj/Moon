@@ -10,6 +10,14 @@
 class VertexShader;
 class PixelShader;
 
+enum class ESamplerFilter
+{
+	Point,
+	Linear,
+	Anisotropic,
+	Count
+};
+
 class ENGINE_DLL GraphicDevice
 {
 public:
@@ -55,7 +63,7 @@ public:
 	//-------------------------------------------------------------------------
 	// State
 public:
-	ID3D11SamplerState* getSamplerState();
+	ID3D11SamplerState* getSamplerState(ESamplerFilter SamplerFilter);
 	ID3D11RasterizerState *getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode);
 	ID3D11DepthStencilState *getDepthStencilState(const Graphic::DepthWriteMode eDetphWrite);
 	ID3D11BlendState *getBlendState(const Graphic::Blend eBlend);
@@ -66,7 +74,7 @@ private:
 	const bool buildBlendState();
 
 private:
-	std::vector<ID3D11SamplerState*>		_samplerList;
+	std::vector<ID3D11SamplerState*>		Samplers;
 	std::vector<ID3D11RasterizerState*>		_rasterizerList;
 	std::vector<ID3D11DepthStencilState *>	_depthStencilStateList;
 	std::vector<ID3D11BlendState*>			_blendStateList;

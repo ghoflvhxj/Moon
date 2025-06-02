@@ -164,7 +164,7 @@ void GraphicDevice::Release()
 	_spriteFont.reset();
 	_spriteBatch.reset();
 
-	SafeReleaseArray(_samplerList);
+	SafeReleaseArray(Samplers);
 	SafeReleaseArray(_rasterizerList);
 	SafeReleaseArray(_depthStencilStateList);
 	SafeReleaseArray(_blendStateList);
@@ -332,49 +332,68 @@ void GraphicDevice::End()
 
 const bool GraphicDevice::buildSamplerState()
 {
-	// 샘플러 스태이트
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
-	samplerDesc.BorderColor[0] = 1.f;
-	samplerDesc.BorderColor[1] = 1.f;
-	samplerDesc.BorderColor[2] = 1.f;
-	samplerDesc.BorderColor[3] = 1.f;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	samplerDesc.MaxAnisotropy = 16u;
-	samplerDesc.MaxLOD = FLT_MAX;
-	samplerDesc.MinLOD = -FLT_MAX;
-	samplerDesc.MipLODBias = 0.f;
+	auto CreateSamplerLambda = [this](D3D11_SAMPLER_DESC& samplerDesc)
+	{
+		ID3D11SamplerState* pSamplerState = nullptr;
+		FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState), false);
+		Samplers.emplace_back(pSamplerState);
+	};
 
-	ID3D11SamplerState *pSamplerState = nullptr;
-	FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState), false);
-	_samplerList.emplace_back(pSamplerState);
-	m_pImmediateContext->PSSetSamplers(0, 1, &pSamplerState);
+	D3D11_SAMPLER_DESC SamplerDesc = {};
+	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	SamplerDesc.BorderColor[0] = 1.f;
+	SamplerDesc.BorderColor[1] = 1.f;
+	SamplerDesc.BorderColor[2] = 1.f;
+	SamplerDesc.BorderColor[3] = 1.f;
+	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	SamplerDesc.MaxAnisotropy = 16u;
+	SamplerDesc.MaxLOD = FLT_MAX;
+	SamplerDesc.MinLOD = -FLT_MAX;
+	SamplerDesc.MipLODBias = 0.f;
 
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	samplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-	samplerDesc.BorderColor[0] = 1.f;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_GREATER;
-	samplerDesc.MaxAnisotropy = 16u;
-	samplerDesc.MaxLOD = FLT_MAX;
-	samplerDesc.MinLOD = -FLT_MAX;
-	samplerDesc.MipLODBias = 0.f;
+	// Point
+	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_POINT;
+	CreateSamplerLambda(SamplerDesc);
 
-	pSamplerState = nullptr;
-	FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState), false);
-	_samplerList.emplace_back(pSamplerState);
+	// Linear
+	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	CreateSamplerLambda(SamplerDesc);
+
+	// Anisotropic
+	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
+	SamplerDesc.MaxAnisotropy = 16u;
+	CreateSamplerLambda(SamplerDesc);
+
+	// Comparison MIN MAG LINEAR MIP POINT
+	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	SamplerDesc.BorderColor[0] = 1.f;
+	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_GREATER;
+	SamplerDesc.MaxAnisotropy = 16u;
+	SamplerDesc.MaxLOD = FLT_MAX;
+	SamplerDesc.MinLOD = -FLT_MAX;
+	SamplerDesc.MipLODBias = 0.f;
+
+	ID3D11SamplerState* pSamplerState = nullptr;
+	FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
+	Samplers.emplace_back(pSamplerState);
 	m_pImmediateContext->PSSetSamplers(1, 1, &pSamplerState);
 
-	//m_pImmediateContext->PSSetSamplers(0, CastValue<UINT>(_samplerList.size()), &_samplerList[0]);
+	m_pImmediateContext->PSSetSamplers(0, 1, &Samplers[0]);
 
 	return true;
 }
 
-ID3D11SamplerState* GraphicDevice::getSamplerState()
+ID3D11SamplerState* GraphicDevice::getSamplerState(ESamplerFilter SamplerFilter)
 {
+	if (enumToIndex(SamplerFilter) < Samplers.size())
+	{
+		return Samplers[enumToIndex(SamplerFilter)];
+	}
+
 	return nullptr;
 }
 

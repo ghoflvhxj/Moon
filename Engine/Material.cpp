@@ -53,6 +53,12 @@ void Material::SetTexturesToDevice()
 	}
 
 	g_pGraphicDevice->getContext()->PSSetShaderResources(0, CastValue<UINT>(rawData.size()), &rawData[0]);
+
+	ID3D11SamplerState* SamplerState = IsAlphaMasked() ? g_pGraphicDevice->getSamplerState(ESamplerFilter::Point) : g_pGraphicDevice->getSamplerState(ESamplerFilter::Anisotropic);
+	if (SamplerState)
+	{
+		g_pGraphicDevice->getContext()->PSSetSamplers(0, 1, &SamplerState);
+	}
 }
 
 void Material::setOwner(std::shared_ptr<PrimitiveComponent> pOwner)
