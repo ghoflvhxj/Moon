@@ -2,7 +2,7 @@
 #include "Renderer.h"
 
 // DirectXTK
-#include <SpriteFont.h>
+#include "DirectXTK/SpriteFont.h"
 
 // Graphic
 #include "GraphicDevice.h"

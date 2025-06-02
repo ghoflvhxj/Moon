@@ -3,7 +3,7 @@
 #define __SPHERECOMPONENT_H__
 
 #include "PrimitiveComponent.h"
-#include <PxPhysicsAPI.h>
+#include "NvidiaPhysX/PxPhysicsAPI.h"
 
 class ENGINE_DLL SphereComponent : public PrimitiveComponent
 {

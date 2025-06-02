@@ -2,8 +2,6 @@
 #include "SphereComponent.h"
 
 #include "MainGame.h"
-
-#include <PxPhysicsAPI.h>
 #include "MPhysX.h"
 
 using namespace physx;

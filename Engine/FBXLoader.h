@@ -1,8 +1,8 @@
 #pragma once
 #ifndef __FBXLOADER_H__
 
-#include <fbxsdk.h>
-#include <FBXSDK/scene/fbxaxissystem.h>
+#include "FBXSDK/fbxsdk.h"
+#include "FBXSDK/fbxsdk/scene/fbxaxissystem.h"
 #include "Vertex.h"
 
 #include "DynamicMeshComponentUtility.h"

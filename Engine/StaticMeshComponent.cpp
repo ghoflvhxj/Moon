@@ -16,7 +16,7 @@
 #include "FBXLoader.h"
 
 #include "MPhysX.h"
-#include <PxPhysicsAPI.h>
+#include "NvidiaPhysX/PxPhysicsAPI.h"
 
 #include <DirectXMath.h>
 using namespace DirectX;

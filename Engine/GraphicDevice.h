@@ -2,7 +2,7 @@
 #ifndef __GRAPHIC_DEVICE_H__
 
 // DirectXTK
-#include <SpriteFont.h>
+#include "DirectXTK/SpriteFont.h"
 
 #include "EngineException.h"
 #include "Vertex.h"

@@ -3,7 +3,7 @@
 
 #include "GraphicDevice.h"
 
-#include "WICTextureLoader.h"
+#include "DirectXTK/WICTextureLoader.h"
 
 using namespace DirectX;
 

@@ -2,7 +2,7 @@
 #ifndef __PHYSX_H__
 #define __PHYSX_H__
 
-#include <PxPhysicsAPI.h>
+#include "NvidiaPhysX/PxPhysicsAPI.h"
 #include "GraphicDevice.h"
 
 using namespace physx;
