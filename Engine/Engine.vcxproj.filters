@@ -150,10 +150,12 @@
     <Filter Include="Module\PhysX">
       <UniqueIdentifier>{d395f175-0e53-489b-a38e-44b43668c91a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Module\Test">
+      <UniqueIdentifier>{4a7c475d-96e0-436e-be17-ad3db91f6334}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
-    <ClCompile Include="AnimationController.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CombinePass.cpp" />
@@ -205,6 +207,9 @@
     <ClCompile Include="WindowException.cpp" />
     <ClCompile Include="WindowManager.cpp" />
     <ClCompile Include="World.cpp" />
+    <ClCompile Include="AnimationController.cpp">
+      <Filter>Module\Test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
