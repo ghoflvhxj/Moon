@@ -9,16 +9,20 @@ VertexOut main(VertexIn vIn)
 
 	matrix boneTransform =
 	{
-		0.f, 0.f, 0.f, 0.f,
-		0.f, 0.f, 0.f, 0.f,
-		0.f, 0.f, 0.f, 0.f,
-		0.f, 0.f, 0.f, 0.f
+		1.f, 0.f, 0.f, 0.f,
+		0.f, 1.f, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f
 	};
 
-	for (int i = 0; i < 4; ++i)
-	{
-		boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);
-	}
+    if (animated)
+    {
+        boneTransform *= 0.f;
+        for (int i = 0; i < 4; ++i)
+        {
+            boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);
+        }
+    }
 	
 	float4 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);
 	vOut.pos		= mul(float4(animatedPos.xyz, 1.f), worldViewProj);

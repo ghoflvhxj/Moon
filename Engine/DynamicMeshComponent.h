@@ -8,6 +8,7 @@
 #include "Vertex.h"
 
 class Skeleton;
+class MFBXLoader;
 
 class ENGINE_DLL DynamicMesh : public StaticMesh
 {
@@ -15,7 +16,7 @@ public:
 	DynamicMesh() = default;
 
 public: //삭제예정
-	virtual void InitializeFromFBX(const std::wstring& Path) override;
+	virtual void InitializeFromFBX(MFBXLoader& FbxLoaderm, const std::wstring& FilePath) override;
 public:
 	AnimationClip& getAnimationClip(const int index);
 	const uint32 getJointCount() const;
@@ -33,7 +34,7 @@ class ENGINE_DLL DynamicMeshComponent : public PrimitiveComponent
 {
 public:
 	explicit DynamicMeshComponent();
-	explicit DynamicMeshComponent(const char *filePathName);
+	explicit DynamicMeshComponent(const std::wstring& FilePath);
 	virtual ~DynamicMeshComponent();
 
 public:

@@ -35,9 +35,9 @@ protected:
 	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
 
 public:
-	std::shared_ptr<Material> getMaterial() { return _pMaterial; }
+	std::shared_ptr<MMaterial> getMaterial() { return _pMaterial; }
 protected:
-	std::shared_ptr<Material> _pMaterial;
+	std::shared_ptr<MMaterial> _pMaterial;
 };
 
 Skeleton::Skeleton(DynamicMesh* dynamicMesh)
@@ -64,62 +64,24 @@ Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 	}
 
 	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
-	_pMaterial = std::make_shared<Material>();
+	_pMaterial = std::make_shared<MMaterial>();
 	_pMaterial->setShader(TEXT("Bone.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 	_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 }
 
-void DynamicMesh::InitializeFromFBX(const std::wstring& Path)
+void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
 {
-	FBXLoader fbxLoader(Path.c_str(), _animationClipList);
+	StaticMesh::InitializeFromFBX(FbxLoader, FilePath);
+	FbxLoader.LoadAnim(_animationClipList);
 
-	uint32 GeometryNum = fbxLoader.GetGeometryNum();
-	const std::vector<VertexList>& Vertices = fbxLoader.getVerticesList();
-	const std::vector<IndexList>& Indices = fbxLoader.getIndicesList();
-
-	// FBX를 이용해 Serialize할 데이터들을 저장
-	for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
+	for (std::shared_ptr<MMaterial>& Material : Materials)
 	{
-		auto MeshData = std::make_shared<FMeshData>();
-		MeshData->Vertices = Vertices[GeometryIndex];
-		MeshData->Indices = Indices[GeometryIndex];
-		MeshDataList.push_back(MeshData);
+		// 디폴트 쉐이더
+		Material->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
 	}
 
-	Tetures = std::move(fbxLoader.getTextures());
-	_geometryCount = fbxLoader.GetGeometryNum();
-	_geometryLinkMaterialIndices = std::move(fbxLoader.getLinkList());
-	if (_geometryLinkMaterialIndices.size() == 0)
-	{
-		_geometryLinkMaterialIndices.emplace_back(0);
-	}
-
-	uint32 materialCount = fbxLoader.getMaterialCount();
-	uint32 fixedMaterialCount = (materialCount > 0) ? materialCount : 1;
-	_materialList.reserve(CastValue<size_t>(fixedMaterialCount));
-	for (uint32 i = 0; i < fixedMaterialCount; ++i)
-	{
-		std::shared_ptr<Material> pMaterial = std::make_shared<Material>();
-
-		bool applyedFixedMaterial = (materialCount == 0);
-		if (false == applyedFixedMaterial)
-		{
-			pMaterial->setTexture(Tetures[i]);
-		}
-		pMaterial->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
-
-		_materialList.push_back(pMaterial);
-	}
-
-	_jointList = std::move(fbxLoader._jointList);
+	_jointList = FbxLoader._jointList;
 	_jointCount = CastValue<uint32>(_jointList.size());
-
-	uint32 geometryCount = fbxLoader.GetGeometryNum();
-	_pVertexBuffers.reserve(CastValue<size_t>(geometryCount));
-	for (uint32 i = 0; i < geometryCount; ++i)
-	{
-		//_pVertexBuffers.emplace_back(std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(Vertices[i].size()), Vertices[i].data()));
-	}
 
 	_pSkeleton = std::make_shared<Skeleton>(this);
 }
@@ -145,16 +107,11 @@ DynamicMeshComponent::DynamicMeshComponent()
 
 }
 
-DynamicMeshComponent::DynamicMeshComponent(const char *filePathName)
+DynamicMeshComponent::DynamicMeshComponent(const std::wstring& FilePath)
 	: PrimitiveComponent()
 {
 	Mesh = std::make_shared<DynamicMesh>();
-
-	// 임시, 파라미터 wstring으로 변경 필요
-	std::string Temp(filePathName);
-	std::wstring Path(Temp.begin(), Temp.end());
-
-	Mesh->InitializeFromFBX(Path);
+	Mesh->LoadFromFBX(FilePath);
 }
 
 DynamicMeshComponent::~DynamicMeshComponent()

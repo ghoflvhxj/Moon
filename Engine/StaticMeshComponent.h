@@ -6,6 +6,7 @@
 
 class VertexBuffer;
 class IndexBuffer;
+class MFBXLoader;
 
 namespace physx
 {
@@ -30,34 +31,36 @@ public:
 	StaticMesh() = default;
 	
 public:
-	virtual void InitializeFromFBX(const std::wstring& Path);
+	void LoadFromFBX(const std::wstring& Path);
+	virtual void InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath);
 public:
 	const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
 	const std::vector<Vec3>& GetAllVertexPosition() const;
-	std::vector<TextureList>	Tetures;
+	std::vector<TextureList>	Textures;
 	std::vector<uint32>			_geometryLinkMaterialIndices;
 	std::vector<Vec3>			AllVertexPosition;
 
 public:
-	std::weak_ptr<FMeshData> GetMeshData(const uint32 Index) const { return MeshDataList[Index]; }
+	const std::shared_ptr<FMeshData>& GetMeshData(const uint32 Index) const;
+	const uint32 GetMeshNum() const { return static_cast<uint32>(MeshDataList.size()); }
 protected:
 	std::vector<std::shared_ptr<FMeshData>> MeshDataList;
 
 public:
 	MaterialList& getMaterials();
-	std::shared_ptr<Material> getMaterial(const uint32 index);
-	const uint32 getMaterialCount() const;
+	std::shared_ptr<MMaterial> getMaterial(const uint32 index);
+	const uint32 GetMaterialNum() const;
 protected:
-	MaterialList _materialList;
+	MaterialList Materials;
 
 public:
 	const uint32 getGeometryCount() const;
 protected:
-	uint32 _geometryCount = 0;
+	uint32 GeometryNum = 0;
 
 public:
 	const uint32 getVertexCount() const;
-	uint32 VertexCount = 0;
+	uint32 TotalVertexNum = 0;
 
 public:
 	std::shared_ptr<BoundingBox> getBoundingBox();
@@ -85,8 +88,8 @@ public:
 
 public:
 	explicit StaticMeshComponent();
-	explicit StaticMeshComponent(const char *filePathName);
-	explicit StaticMeshComponent(const char *filePathName, bool bUsePhysX, bool bUseRigidStatic = true);
+	explicit StaticMeshComponent(const std::wstring& FilePath);
+	explicit StaticMeshComponent(const std::wstring& FilePath, bool bUsePhysX, bool bUseRigidStatic = true);
 	virtual ~StaticMeshComponent();
 
 public:

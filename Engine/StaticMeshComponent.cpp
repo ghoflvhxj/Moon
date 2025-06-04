@@ -21,17 +21,19 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
-#pragma region StaticMesh
-void StaticMesh::InitializeFromFBX(const std::wstring& Path)
-{
-	FBXLoader fbxLoader;
-	fbxLoader.LoadMesh(Path);
+#undef min
+#undef max
 
-	uint32 GeometryNum						= fbxLoader.GetGeometryNum();
-	const std::vector<VertexList>& Vertices	= fbxLoader.getVerticesList();
-	const std::vector<IndexList>& Indices	= fbxLoader.getIndicesList();
+void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
+{
+	MFBXLoader FbxLoader;
+	InitializeFromFBX(FbxLoader, FilePath);
+
+	const std::vector<VertexList>& Vertices = FbxLoader.getVerticesList();
+	const std::vector<IndexList>& Indices = FbxLoader.getIndicesList();
 
 	// FBX를 이용해 Serialize할 데이터들을 저장
+	GeometryNum = FbxLoader.GetGeometryNum();
 	for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
 	{
 		auto MeshData = std::make_shared<FMeshData>();
@@ -39,32 +41,49 @@ void StaticMesh::InitializeFromFBX(const std::wstring& Path)
 		MeshData->Indices = Indices[GeometryIndex];
 		MeshDataList.push_back(MeshData);
 	}
-	
-	//FBXLoader fbxLoader(Path);
-	VertexCount = fbxLoader.GetTotalVertexNum();
-	Tetures = std::move(fbxLoader.getTextures());
-	_geometryCount = fbxLoader.GetGeometryNum();
-	_geometryLinkMaterialIndices = fbxLoader.getLinkList();
+
+	// 중심점과 모든 버텍스 위치
+	AllVertexPosition.reserve(TotalVertexNum);
+	CenterPos = { 0.f, 0.f, 0.f };
+	for (auto& vertices : Vertices)
+	{
+		for (auto& vertex : vertices)
+		{
+			AllVertexPosition.emplace_back(Vec3(vertex.Pos.x, vertex.Pos.y, vertex.Pos.z));
+			CenterPos.x += vertex.Pos.x;
+			CenterPos.y += vertex.Pos.y;
+			CenterPos.z += vertex.Pos.z;
+		}
+	}
+	CenterPos.x /= CastValue<float>(TotalVertexNum);
+	CenterPos.y /= CastValue<float>(TotalVertexNum);
+	CenterPos.z /= CastValue<float>(TotalVertexNum);
+}
+
+void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
+{
+	FbxLoader.LoadMesh(FilePath);
+
+	Textures = FbxLoader.GetTextures(); // MaterialTextures
+	_geometryLinkMaterialIndices = FbxLoader.getLinkList();
 	if (_geometryLinkMaterialIndices.size() == 0)
 	{
 		_geometryLinkMaterialIndices.emplace_back(0);
 	}
 
-	uint32 materialCount = fbxLoader.getMaterialCount();
-	uint32 fixedMaterialCount = (materialCount > 0) ? materialCount : 1;
-	_materialList.reserve(CastValue<size_t>(fixedMaterialCount));
-	for (uint32 i = 0; i < fixedMaterialCount; ++i)
+	uint32 MaterialNum = std::max(1u, FbxLoader.GetMaterialNum());
+	Materials.reserve(MaterialNum);
+	for (uint32 MaterialIndex = 0; MaterialIndex < MaterialNum; ++MaterialIndex)
 	{
-		std::shared_ptr<Material> pMaterial = std::make_shared<Material>();
+		std::shared_ptr<MMaterial> NewMaterial = std::make_shared<MMaterial>();
 
-		bool applyedFixedMaterial = (materialCount == 0);
-		if (false == applyedFixedMaterial)
+		if (MaterialIndex < Textures.size())
 		{
-			pMaterial->setTexture(Tetures[i]);
+			NewMaterial->setTextures(Textures[MaterialIndex]);
 		}
-		pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
-
-		_materialList.push_back(pMaterial);
+		
+		NewMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso"));
+		Materials.push_back(NewMaterial);
 	}
 
 	// 모든 버텍스를 모아 하나의 버텍스만 사용... 굳이?
@@ -83,27 +102,10 @@ void StaticMesh::InitializeFromFBX(const std::wstring& Path)
 	//_pIndexBuffer = std::make_shared<IndexBuffer>(sizeof(Index), indexCount, &_indicesList[0]);
 
 	// 바운딩 박스
-	Vec3 min, max;
-	fbxLoader.getBoundingBoxInfo(min, max);
-	_pBoundingBox = std::make_shared<BoundingBox>(min, max);
-
-	// 중심점과 모든 버텍스 위치
-	uint32 VertexCount = fbxLoader.GetTotalVertexNum();
-	AllVertexPosition.reserve(VertexCount);
-	CenterPos = { 0.f, 0.f, 0.f };
-	for (auto& vertices : Vertices)
-	{
-		for (auto& vertex : vertices)
-		{
-			AllVertexPosition.emplace_back(Vec3(vertex.Pos.x, vertex.Pos.y, vertex.Pos.z));
-			CenterPos.x += vertex.Pos.x;
-			CenterPos.y += vertex.Pos.y;
-			CenterPos.z += vertex.Pos.z;
-		}
-	}
-	CenterPos.x /= CastValue<float>(VertexCount);
-	CenterPos.y /= CastValue<float>(VertexCount);
-	CenterPos.z /= CastValue<float>(VertexCount);
+	//TotalVertexNum = FbxLoader.GetTotalVertexNum();
+	//Vec3 min, max;
+	//FbxLoader.getBoundingBoxInfo(min, max);
+	//_pBoundingBox = std::make_shared<BoundingBox>(min, max);
 }
 
 const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
@@ -116,25 +118,35 @@ const std::vector<Vec3>& StaticMesh::GetAllVertexPosition() const
 	return AllVertexPosition;
 }
 
+const std::shared_ptr<FMeshData>& StaticMesh::GetMeshData(const uint32 Index) const
+{
+	if (Index < GetMeshNum())
+	{
+		return MeshDataList[Index];
+	}
+	
+	return nullptr;
+}
+
 MaterialList& StaticMesh::getMaterials()
 {
-	return _materialList;
+	return Materials;
 }
 
-std::shared_ptr<Material> StaticMesh::getMaterial(const uint32 index)
+std::shared_ptr<MMaterial> StaticMesh::getMaterial(const uint32 index)
 {
-	return _materialList[index];
+	return Materials[index];
 }
 
-const uint32 StaticMesh::getMaterialCount() const
+const uint32 StaticMesh::GetMaterialNum() const
 {
-	return CastValue<uint32>(_materialList.size());
+	return CastValue<uint32>(Materials.size());
 }
 
 
 const uint32 StaticMesh::getGeometryCount() const
 {
-	return _geometryCount;
+	return GeometryNum;
 }
 
 std::shared_ptr<BoundingBox> StaticMesh::getBoundingBox()
@@ -157,33 +169,27 @@ const Vec3& StaticMesh::GetCenterPos() const
 	return CenterPos;
 }
 
-#pragma endregion
-
 StaticMeshComponent::StaticMeshComponent()
 	: PrimitiveComponent()
 {
 
 }
 
-StaticMeshComponent::StaticMeshComponent(const char *filePathName)
+StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath)
 	: PrimitiveComponent()
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
 
 	// 임시, 파라미터 wstring으로 변경 필요
-	std::string Temp(filePathName);
-	std::wstring Path(Temp.begin(), Temp.end());
-	_pStaticMesh->InitializeFromFBX(Path);
+	_pStaticMesh->LoadFromFBX(FilePath);
 }
 
-StaticMeshComponent::StaticMeshComponent(const char *filePathName, bool bUsePhysX, bool bUseRigidStatic)
+StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath, bool bUsePhysX, bool bUseRigidStatic)
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
 
 	// 임시, 파라미터 wstring으로 변경 필요
-	std::string Temp(filePathName);
-	std::wstring Path(Temp.begin(), Temp.end());
-	_pStaticMesh->InitializeFromFBX(Path);
+	_pStaticMesh->LoadFromFBX(FilePath);
 
 	if (bUsePhysX)
 	{

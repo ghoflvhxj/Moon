@@ -85,18 +85,18 @@ public:
 };
 
 
-class TextureComponent;
+class MTexture;
 
-class FBXLoader
+class MFBXLoader
 {
 public:
-	explicit FBXLoader();
-	explicit FBXLoader(const wchar_t *filePathName);
-	explicit FBXLoader(const wchar_t*filePathName, std::vector<AnimationClip> &animationClipList);
-	~FBXLoader();
+	explicit MFBXLoader();
+	explicit MFBXLoader(const wchar_t *filePathName);
+	~MFBXLoader();
 
 
 public:
+	void LoadAnim(std::vector<AnimationClip>& animationClipList);
 	bool LoadMesh(const std::wstring& Path);
 
 private:
@@ -105,7 +105,7 @@ private:
 
 private:
 	std::wstring _filePathName;
-	std::wstring _filePath;
+	std::wstring Directory;
 
 private:
 	void initializeSDK();
@@ -145,19 +145,27 @@ private:
 	std::vector<fbxsdk::FbxMesh*> _meshList;
 	std::set<fbxsdk::FbxCluster*> clustermap;
 private:
-	void loadTexture(fbxsdk::FbxProperty *property, const TextureType textureType);
-	const char* getSurfacePropertyString(const TextureType textureType);
+	void LoadTexturesFromFBXMaterial(FbxSurfaceMaterial* SurfaceMaterial, uint32 MaterialIndex);
+	const char* GetTexturePropertyString(ETextureType TextureType);
 
 public:
 	std::vector<VertexList>&	getVerticesList();
 	std::vector<IndexList>&		getIndicesList();
-	std::vector<TextureList>&	getTextures();
+	std::vector<TextureList>& GetTextures();
 	const std::vector<uint32>&	getLinkList() const;
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
 	std::vector<std::map<int, std::vector<int>>> _indexMap;
+	
 	std::vector<TextureList>	_texturesList;
+
+	//// 사용된 텍스쳐
+	//std::vector<MTexture> _texturesList;
+
+	//// 매터리얼 - 텍스처 인덱스 바인딩
+	//std::vector<uint32, std::vector<uint32>> MaterialTextureIndicesMap;
+
 	std::vector<uint32>			_linkList;
 	int meshCounter;
 
@@ -170,10 +178,10 @@ private:
 
 public:
 	const uint32 GetGeometryNum() const;
-	const uint32 getMaterialCount() const;
+	const uint32 GetMaterialNum() const;
 private:
 	uint32 GeometryCount;
-	uint32 _materialCount;
+	uint32 MaterialNum;
 
 public:
 	const uint32 GetTotalVertexNum() const;
