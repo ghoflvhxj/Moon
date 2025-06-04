@@ -5,12 +5,12 @@
 
 #include "PrimitiveComponent.h"
 
-class TextureComponent;
+class MTexture;
 class VertexBuffer;
 class IndexBuffer;
 class MConstantBuffer;
 
-class Material;
+class MMaterial;
 
 class ENGINE_DLL TerrainComponent : public PrimitiveComponent
 {
@@ -58,16 +58,16 @@ public:
 	const bool Test(const Vec3 &pos, float *pY);
 
 public:
-	const bool addTexture(std::shared_ptr<TextureComponent> pTexture);
-	void setTexture(const uint32 index, std::shared_ptr<TextureComponent> pTexture);
+	const bool addTexture(std::shared_ptr<MTexture> pTexture);
+	void setTexture(const uint32 index, std::shared_ptr<MTexture> pTexture);
 protected:
-	std::vector<std::shared_ptr<TextureComponent>> _textureList;
+	std::vector<std::shared_ptr<MTexture>> _textureList;
 
 public:
-	void setMaterial(std::shared_ptr<Material> pMaterial);
-	std::shared_ptr<Material>& getMaterial();
+	void setMaterial(std::shared_ptr<MMaterial> pMaterial);
+	std::shared_ptr<MMaterial>& getMaterial();
 private:
-	std::shared_ptr<Material> _pMaterial;
+	std::shared_ptr<MMaterial> _pMaterial;
 };
 
 #define __TERRAIN_COMPONENT_H__

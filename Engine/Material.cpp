@@ -24,10 +24,10 @@
 
 using namespace Graphic;
 
-Material::Material()
+MMaterial::MMaterial()
 	: _vertexShader{ nullptr }
 	, _pixelShader{ nullptr }
-	, _textureList(enumToIndex(TextureType::End), nullptr)
+	, _textureList(enumToIndex(ETextureType::End), nullptr)
 	, _eTopology{ D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST }
 	, _eFillMode{ FillMode::Solid }
 	, _eCullMode{ CullMode::Backface }
@@ -38,12 +38,12 @@ Material::Material()
 {
 }
 
-Material::~Material()
+MMaterial::~MMaterial()
 {
-	releaseShader();
+	ClearShader();
 }
 
-void Material::SetTexturesToDevice()
+void MMaterial::SetTexturesToDevice()
 {
 	std::vector<ID3D11ShaderResourceView*> rawData;
 	rawData.reserve(_textureList.size());
@@ -61,24 +61,24 @@ void Material::SetTexturesToDevice()
 	}
 }
 
-void Material::setOwner(std::shared_ptr<PrimitiveComponent> pOwner)
+void MMaterial::setOwner(std::shared_ptr<PrimitiveComponent> pOwner)
 {
 	_pOwner = pOwner;
 }
 
-std::shared_ptr<MShader> Material::getVertexShader()
+std::shared_ptr<MShader> MMaterial::getVertexShader()
 {
 	return _vertexShader;
 }
 
-std::shared_ptr<MShader> Material::getPixelShader()
+std::shared_ptr<MShader> MMaterial::getPixelShader()
 {
 	return _pixelShader;
 }
 
-void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
+void MMaterial::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
 {
-	releaseShader();
+	ClearShader();
 
 	if (false == ShaderManager->getVertexShader(vertexShaderFileName, _vertexShader))
 	{
@@ -93,58 +93,58 @@ void Material::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pix
 	_pixelShaderFileName = pixelShaderFileName;
 }
 
-void Material::releaseShader()
+void MMaterial::ClearShader()
 {
 	_vertexShaderFileName.clear();
 	_pixelShaderFileName.clear();
 }
 
-void Material::setTexture(const TextureType textureType, std::shared_ptr<TextureComponent> pTexture)
+void MMaterial::setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture)
 {
 	_textureList[enumToIndex(textureType)] = pTexture;
 }
 
-void Material::setTexture(std::vector<std::shared_ptr<TextureComponent>> &textureList)
+void MMaterial::setTextures(std::vector<std::shared_ptr<MTexture>> &textureList)
 {
 	_textureList = textureList;
 }
 
-void Material::setTopology(const D3D_PRIMITIVE_TOPOLOGY eTopology)
+void MMaterial::setTopology(const D3D_PRIMITIVE_TOPOLOGY eTopology)
 {
 	_eTopology = eTopology;
 }
 
-void Material::setFillMode(const Graphic::FillMode fillMode)
+void MMaterial::setFillMode(const Graphic::FillMode fillMode)
 {
 	_eFillMode = fillMode;
 }
 
-void Material::setCullMode(const Graphic::CullMode cullMode)
+void MMaterial::setCullMode(const Graphic::CullMode cullMode)
 {
 	_eCullMode = cullMode;
 }
 
-const D3D_PRIMITIVE_TOPOLOGY Material::getTopology() const
+const D3D_PRIMITIVE_TOPOLOGY MMaterial::getTopology() const
 {
 	return _eTopology;
 }
 
-const Graphic::FillMode Material::getFillMode() const
+const Graphic::FillMode MMaterial::getFillMode() const
 {
 	return _eFillMode;
 }
 
-const Graphic::CullMode Material::getCullMode() const
+const Graphic::CullMode MMaterial::getCullMode() const
 {
 	return _eCullMode;
 }
 
-std::vector<FShaderVariable>& Material::getConstantBufferVariables(const ShaderType shaderType, const uint32 index)
+std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const ShaderType shaderType, const uint32 index)
 {
 	return getConstantBufferVariables(shaderType, static_cast<EConstantBufferLayer>(index));
 }
 
-std::vector<FShaderVariable>& Material::getConstantBufferVariables(const ShaderType shaderType, const EConstantBufferLayer layer)
+std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const ShaderType shaderType, const EConstantBufferLayer layer)
 {
 	size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
 	std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
@@ -161,7 +161,7 @@ std::vector<FShaderVariable>& Material::getConstantBufferVariables(const ShaderT
 	return shaders[shaderTypeIndex]->GetVariables()[CastValue<uint32>(layer)];
 }
 
-const bool Material::IsTextureTypeUsed(const TextureType type)
+const bool MMaterial::IsTextureTypeUsed(const ETextureType type)
 {
 	return _textureList[CastValue<uint32>(type)] != nullptr ? true : false;
 }

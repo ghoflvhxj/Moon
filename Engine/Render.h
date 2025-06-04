@@ -10,7 +10,7 @@
 
 // 프레임워크
 class PrimitiveComponent;
-class TextureComponent;
+class MTexture;
 
 // 렌더
 class RenderTarget;
@@ -71,13 +71,13 @@ struct FMeshData;
 class PrimitiveComponent;
 class IndexBuffer;
 class VertexBuffer;
-class Material;
+class MMaterial;
 class MShader;
 
 struct FPrimitiveData
 {
 	std::weak_ptr<PrimitiveComponent>			_pPrimitive;
-	std::shared_ptr<Material>					_pMaterial;
+	std::shared_ptr<MMaterial>					_pMaterial;
 	EPrimitiveType _primitiveType;
 
 	// 메시가 채우는 데이터

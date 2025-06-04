@@ -5,8 +5,8 @@
 
 #include "PrimitiveComponent.h"
 
-class TextureComponent;
-class Material;
+class MTexture;
+class MMaterial;
 
 class ENGINE_DLL MeshComponent abstract : public PrimitiveComponent
 {
@@ -26,17 +26,17 @@ public:
 	//virtual void render() override;
 
 public:
-	const bool addTexture(std::shared_ptr<TextureComponent> pTexture);
-	void setTexture(const TextureType textureType, std::shared_ptr<TextureComponent> pTexture);
-	std::shared_ptr<TextureComponent>& getTexture(const TextureType textureType);
+	const bool addTexture(std::shared_ptr<MTexture> pTexture);
+	void setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture);
+	std::shared_ptr<MTexture>& getTexture(const ETextureType textureType);
 private:
-	std::vector<std::shared_ptr<TextureComponent>> _textureList;
+	std::vector<std::shared_ptr<MTexture>> _textureList;
 
 public:
-	void setMaterial(std::shared_ptr<Material> pMaterial);
-	std::shared_ptr<Material>& getMaterial();
+	void setMaterial(std::shared_ptr<MMaterial> pMaterial);
+	std::shared_ptr<MMaterial>& getMaterial();
 private:
-	std::shared_ptr<Material> _pMaterial;
+	std::shared_ptr<MMaterial> _pMaterial;
 };
 
 #define __MESH_COMPONENT_H__

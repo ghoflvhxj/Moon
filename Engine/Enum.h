@@ -16,7 +16,7 @@ enum class MOUSEAXIS
 	X, Y, Z, END
 };
 
-enum class TextureType : uint32
+enum class ETextureType : uint32
 {
 	// ±âº»
 	Diffuse

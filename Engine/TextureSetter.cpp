@@ -5,7 +5,7 @@
 
 #include "TextureComponent.h"
 
-TextureSetter::TextureSetter(std::vector<std::shared_ptr<TextureComponent>> &textureList)
+TextureSetter::TextureSetter(std::vector<std::shared_ptr<MTexture>> &textureList)
 	: _textureCount{ 0u }
 {
 	_textureCount = static_cast<uint32>(textureList.size());

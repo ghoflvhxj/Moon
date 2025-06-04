@@ -34,9 +34,9 @@ protected:
 	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
 
 public:
-	std::shared_ptr<Material> getMaterial();
+	std::shared_ptr<MMaterial> getMaterial();
 protected:
-	std::shared_ptr<Material> _pMaterial;
+	std::shared_ptr<MMaterial> _pMaterial;
 };
 
 class ENGINE_DLL PrimitiveComponent abstract : public SceneComponent, public std::enable_shared_from_this<PrimitiveComponent>

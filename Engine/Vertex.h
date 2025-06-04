@@ -64,11 +64,12 @@ using Index		= uint32;
 using VertexList	= std::vector<Vertex>;
 using IndexList		= std::vector<Index>;
 
-class TextureComponent;
-using TextureList	= std::vector<std::shared_ptr<TextureComponent>>;
+class MTexture;
+// TextureType을 인덱스로 텍스쳐를 저장
+using TextureList	= std::vector<std::shared_ptr<MTexture>>;
 
-class Material;
-using MaterialList	= std::vector<std::shared_ptr<Material>>;
+class MMaterial;
+using MaterialList	= std::vector<std::shared_ptr<MMaterial>>;
 
 #define __VERTEX_H__
 #endif

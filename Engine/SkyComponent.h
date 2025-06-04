@@ -5,7 +5,7 @@
 
 struct FPrimitiveData;
 class StaticMesh;
-class Material;
+class MMaterial;
 class ENGINE_DLL SkyComponent : public PrimitiveComponent
 {
 public:

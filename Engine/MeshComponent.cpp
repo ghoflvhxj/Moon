@@ -51,7 +51,7 @@ MeshComponent::~MeshComponent()
 //	_pMaterial->render(shared_from_this());
 //}
 
-const bool MeshComponent::addTexture(std::shared_ptr<TextureComponent> pTexture)
+const bool MeshComponent::addTexture(std::shared_ptr<MTexture> pTexture)
 {
 	if (_textureList.size() == _textureList.capacity())
 		return false;
@@ -60,25 +60,25 @@ const bool MeshComponent::addTexture(std::shared_ptr<TextureComponent> pTexture)
 	return true;
 }
 
-void MeshComponent::setMaterial(std::shared_ptr<Material> pMaterial)
+void MeshComponent::setMaterial(std::shared_ptr<MMaterial> pMaterial)
 {
 	_pMaterial = pMaterial;
 }
 
-std::shared_ptr<Material>& MeshComponent::getMaterial()
+std::shared_ptr<MMaterial>& MeshComponent::getMaterial()
 {
 	return _pMaterial;
 }
 
-void MeshComponent::setTexture(const TextureType textureType, std::shared_ptr<TextureComponent> pTexture)
+void MeshComponent::setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture)
 {
 	_textureList[enumToIndex(textureType)] = pTexture;
 
 	// 매터리얼에 새로운 텍스쳐를 바인딩 해줌
-	_pMaterial->setTexture(_textureList);
+	_pMaterial->setTextures(_textureList);
 }
 
-std::shared_ptr<TextureComponent> &MeshComponent::getTexture(const TextureType textureType)
+std::shared_ptr<MTexture> &MeshComponent::getTexture(const ETextureType textureType)
 {
 	return _textureList[enumToIndex(textureType)];
 }

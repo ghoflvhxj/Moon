@@ -68,7 +68,7 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 
 	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
 
-	_pMaterial = std::make_shared<Material>();
+	_pMaterial = std::make_shared<MMaterial>();
 	_pMaterial->setShader(TEXT("VertexShader.cso"), TEXT("PixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 	_pMaterial->setFillMode(Graphic::FillMode::WireFrame);
 	_pMaterial->setCullMode(Graphic::CullMode::None);
@@ -79,7 +79,7 @@ std::shared_ptr<VertexBuffer> BoundingBox::getVertexBuffer()
 	return _pVertexBuffer;
 }
 
-std::shared_ptr<Material> BoundingBox::getMaterial()
+std::shared_ptr<MMaterial> BoundingBox::getMaterial()
 {
 	return _pMaterial;
 }

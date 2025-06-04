@@ -79,8 +79,8 @@ void TerrainComponent::initializeMeshInfromation()
 		}
 	}
 
-	_pMaterial = std::make_shared<Material>();
-	_pMaterial->setTexture(_textureList);
+	_pMaterial = std::make_shared<MMaterial>();
+	_pMaterial->setTextures(_textureList);
 	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 }
 
@@ -138,7 +138,7 @@ const bool TerrainComponent::Test(const Vec3 &pos, float *pY)
 	return true;
 }
 
-const bool TerrainComponent::addTexture(std::shared_ptr<TextureComponent> pTexture)
+const bool TerrainComponent::addTexture(std::shared_ptr<MTexture> pTexture)
 {
 	if (_textureList.size() == _textureList.capacity())
 		return false;
@@ -147,20 +147,20 @@ const bool TerrainComponent::addTexture(std::shared_ptr<TextureComponent> pTextu
 	return true;
 }
 
-void TerrainComponent::setTexture(const uint32 index, std::shared_ptr<TextureComponent> pTexture)
+void TerrainComponent::setTexture(const uint32 index, std::shared_ptr<MTexture> pTexture)
 {
 	_textureList[index] = pTexture;
 
 	// 매터리얼에 새로운 텍스쳐를 바인딩 해줌
-	_pMaterial->setTexture(_textureList);
+	_pMaterial->setTextures(_textureList);
 }
 
-void TerrainComponent::setMaterial(std::shared_ptr<Material> pMaterial)
+void TerrainComponent::setMaterial(std::shared_ptr<MMaterial> pMaterial)
 {
 	_pMaterial = pMaterial;
 }
 
-std::shared_ptr<Material>& TerrainComponent::getMaterial()
+std::shared_ptr<MMaterial>& TerrainComponent::getMaterial()
 {
 	return _pMaterial;
 }

@@ -49,7 +49,7 @@ const bool MyGame::initialize()
 	MyActor = std::make_shared<Actor>();
 	//a = std::make_shared<SphereComponent>();
 	//MyActor->addComponent(TEXT("Root"), a);
-	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx", true, false);
+	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Lantern/Lantern.fbx"), true, false);
 	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 	_pStaticMeshComponent->setTranslation(0.f, 5.f, 0.f);
 	_pStaticMeshComponent->setDrawingBoundingBox(true);

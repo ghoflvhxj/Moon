@@ -12,17 +12,17 @@ class MShader;
 class VertexShader;
 class PixelShader;
 
-class TextureComponent;
+class MTexture;
 class PrimitiveComponent;
 class DynamicMeshComponent;
 
 struct FShaderVariable;
 
-class ENGINE_DLL Material
+class ENGINE_DLL MMaterial
 {
 public:
-	explicit Material();
-	~Material();
+	explicit MMaterial();
+	~MMaterial();
 
 public:
 	void SetTexturesToDevice();
@@ -38,7 +38,7 @@ public:
 	std::shared_ptr<MShader> getPixelShader();
 	void setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
 private:
-	void releaseShader();
+	void ClearShader();
 private:
 	std::wstring _vertexShaderFileName;
 	std::wstring _pixelShaderFileName;
@@ -46,10 +46,10 @@ private:
 	std::shared_ptr<PixelShader>	_pixelShader; 
 
 public:
-	void setTexture(const TextureType textureType, std::shared_ptr<TextureComponent> pTexture);
-	void setTexture(std::vector<std::shared_ptr<TextureComponent>> &textureList);
+	void setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture);
+	void setTextures(std::vector<std::shared_ptr<MTexture>> &textureList);
 private:
-	std::vector<std::shared_ptr<TextureComponent>> _textureList;
+	std::vector<std::shared_ptr<MTexture>> _textureList;
 
 public:
 	void setTopology(const D3D_PRIMITIVE_TOPOLOGY eTopology);
@@ -78,7 +78,7 @@ public:
 	
 	// 유틸리티	함수들
 public:
-	const bool IsTextureTypeUsed(const TextureType type);
+	const bool IsTextureTypeUsed(const ETextureType type);
 };
 
 #define __MATERIAL_H__

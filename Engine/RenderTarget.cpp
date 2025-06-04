@@ -39,7 +39,7 @@ RenderTarget::~RenderTarget()
 	SAFE_RELEASE(_pDepthStencilView);
 }
 
-std::shared_ptr<TextureComponent> RenderTarget::AsTexture()
+std::shared_ptr<MTexture> RenderTarget::AsTexture()
 {
 	return _pRenderTargetTexture;
 }
@@ -60,7 +60,7 @@ void RenderTarget::initializeTexture(RenderTagetInfo &renderTargetInfo)
 	renderTagetDesc.CPUAccessFlags = 0;
 	renderTagetDesc.MiscFlags = 0;
 
-	_pRenderTargetTexture = std::make_shared<TextureComponent>();
+	_pRenderTargetTexture = std::make_shared<MTexture>();
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&renderTagetDesc, nullptr, &_pRenderTargetTexture->getRawTexturePointer()));
 
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
@@ -114,7 +114,7 @@ void RenderTarget::initializeTexture(RenderTagetInfo &renderTargetInfo)
 	depthStencilDesc.CPUAccessFlags = 0;
 	depthStencilDesc.MiscFlags = 0;
 
-	_pDepthStencilTexture = std::make_shared<TextureComponent>();
+	_pDepthStencilTexture = std::make_shared<MTexture>();
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&depthStencilDesc, nullptr, &_pDepthStencilTexture->getRawTexturePointer()));
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(_pDepthStencilTexture->getRawTexturePointer(), nullptr, &_pDepthStencilView));
 }

@@ -36,7 +36,7 @@ constexpr Mat4 ZEROMATRIX = {	0.f, 0.f, 0.f, 0.f,
 								0.f, 0.f, 0.f, 0.f,
 								0.f, 0.f, 0.f, 0.f };
 
-constexpr uint32 TEXTURE_COUNT = static_cast<uint32>(TextureType::End);
+constexpr uint32 TEXTURE_COUNT = static_cast<uint32>(ETextureType::End);
 
 namespace EngineColors
 {

@@ -1,12 +1,12 @@
 #pragma once
 #ifndef __TEXTURE_SETTER_H__
 
-class TextureComponent;
+class MTexture;
 
 class TextureSetter
 {
 public:
-	explicit TextureSetter(std::vector<std::shared_ptr<TextureComponent>> &textureList);
+	explicit TextureSetter(std::vector<std::shared_ptr<MTexture>> &textureList);
 	explicit TextureSetter() = delete;
 	~TextureSetter();
 

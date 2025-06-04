@@ -7,7 +7,7 @@ class MeshComponent;
 class StaticMeshComponent;
 class DynamicMeshComponent;
 class TerrainComponent;
-class TextureComponent;
+class MTexture;
 class PointLightComponent;
 class DirectionalLightComponent;
 class SkyComponent;
@@ -25,6 +25,7 @@ protected:
 	virtual void tick(const Time deltaTime) override;
 
 public:
+	void Test(bool bPretty = false);
 	//void rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent);
 
 private:
@@ -33,7 +34,7 @@ private:
 	std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent2;
 	std::shared_ptr<DynamicMeshComponent>	_pDynamicMeshComponent;
 	std::shared_ptr<SkyComponent>			_pSkyComponent;
-	std::shared_ptr<TextureComponent>		_pTextureComponent;
+	std::shared_ptr<MTexture>		_pTextureComponent;
 	std::shared_ptr<PointLightComponent>	_pLightComponent;
 	std::shared_ptr<DirectionalLightComponent>	_pLightComponent2;
 

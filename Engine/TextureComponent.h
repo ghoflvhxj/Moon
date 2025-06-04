@@ -1,9 +1,7 @@
 #pragma once
 #ifndef __TEXTURE_COMPONENT_H__
 
-#include "Component.h"
-
-class ENGINE_DLL TextureComponent : public Component
+class ENGINE_DLL MTexture
 {
 public:
 	using RawTexture	= ID3D11Texture2D;
@@ -11,12 +9,12 @@ public:
 	using ResourceView	= ID3D11ShaderResourceView;
 	using ResourceViewPtr = ID3D11ShaderResourceView*;
 public:
-	explicit TextureComponent(const wchar_t *fileName);
-	explicit TextureComponent(const char *fileName);
-	explicit TextureComponent(RawTexturePtr pTexture);
-	explicit TextureComponent(ID3D11ShaderResourceView *pShaderResourceView);
-	explicit TextureComponent();
-	virtual ~TextureComponent();
+	explicit MTexture(const wchar_t *fileName);
+	explicit MTexture(const char *fileName);
+	explicit MTexture(RawTexturePtr pTexture);
+	explicit MTexture(ID3D11ShaderResourceView *pShaderResourceView);
+	explicit MTexture();
+	virtual ~MTexture();
 
 public:
 	const bool loadTextureFile(const wchar_t *fileName);

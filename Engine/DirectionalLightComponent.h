@@ -9,7 +9,7 @@ class VertexBuffer;
 class IndexBuffer;
 class MConstantBuffer;
 
-class TextureComponent;
+class MTexture;
 
 class ENGINE_DLL DirectionalLightComponent : public LightComponent
 {

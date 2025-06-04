@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __RENDER_TARGET_H__
 
-class TextureComponent;
+class MTexture;
 
 struct RenderTagetInfo
 {
@@ -18,11 +18,11 @@ public:
 	virtual ~RenderTarget();
 	
 public:
-	std::shared_ptr<TextureComponent> AsTexture();
+	std::shared_ptr<MTexture> AsTexture();
 private:
 	void initializeTexture(RenderTagetInfo &renderTargetInfo);
-	std::shared_ptr<TextureComponent> _pRenderTargetTexture;
-	std::shared_ptr<TextureComponent> _pDepthStencilTexture;
+	std::shared_ptr<MTexture> _pRenderTargetTexture;
+	std::shared_ptr<MTexture> _pDepthStencilTexture;
 
 public:
 	ID3D11RenderTargetView* AsRenderTargetView();

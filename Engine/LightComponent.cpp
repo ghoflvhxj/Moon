@@ -12,9 +12,9 @@ LightComponent::LightComponent(void)
 	, _shown		{ true }
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->InitializeFromFBX(TEXT("Base/Plane.fbx"));
+	_pStaticMesh->LoadFromFBX(TEXT("Base/Plane.fbx"));
 
-	if (_pStaticMesh->getMaterialCount() == 0)
+	if (_pStaticMesh->GetMaterialNum() == 0)
 	{
 		
 	}

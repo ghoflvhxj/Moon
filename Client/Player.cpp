@@ -33,10 +33,10 @@ Player::~Player()
 
 void Player::initialize()
 {
-	_pTextureComponent = std::make_shared<TextureComponent>(TEXT("./Resources/Texture/Player.jpeg"));
+	_pTextureComponent = std::make_shared<MTexture>(TEXT("./Resources/Texture/Player.jpeg"));
 
-	_pMeshComponent = std::make_shared<StaticMeshComponent>("Base/Box.fbx", true, true);
-	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent);
+	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Box.fbx"), true, true);
+	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, _pTextureComponent);
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
 	_pMeshComponent->setScale(50.f, 1.f, 50.f);
 	_pMeshComponent->setTranslation(1.f, -3.f, 20.f);
@@ -48,7 +48,7 @@ void Player::initialize()
 	//_pStaticMeshComponent->setDrawingBoundingBox(true);
 	//addComponent(TEXT("test"), _pStaticMeshComponent);
 
-	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>("Table/Table.fbx", true, true);
+	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>(TEXT("Table/Table.fbx"), true, true);
 	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
 	_pStaticMeshComponent2->setDrawingBoundingBox(true);
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
@@ -57,7 +57,7 @@ void Player::initialize()
 	addComponent(TEXT("PointLight"), _pLightComponent);
 
 #if UseDynamicMesh == 1
-	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>("2B/2b.fbx");
+	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>(TEXT("2B/2b.fbx"));
 	_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
 	_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
@@ -73,9 +73,9 @@ void Player::initialize()
 #endif
 
 #if UseSkySphere == 1
-	std::shared_ptr<TextureComponent> _pTextureComponent2 = std::make_shared<TextureComponent>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
+	std::shared_ptr<MTexture> _pTextureComponent2 = std::make_shared<MTexture>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
 	_pSkyComponent = std::make_shared<SkyComponent>();
-	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(TextureType::Diffuse, _pTextureComponent2);
+	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, _pTextureComponent2);
 	addComponent(TEXT("Sky"), _pSkyComponent);
 	_pSkyComponent->setRotation(Vec3{ XMConvertToRadians(270.f), 0.f, 0.f });
 #endif

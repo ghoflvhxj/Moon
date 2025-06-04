@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __CONSTANT_BUFFER_H__
 
-class Material;
+class MMaterial;
 
 class MConstantBuffer
 {

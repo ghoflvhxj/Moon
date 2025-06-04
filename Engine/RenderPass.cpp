@@ -101,12 +101,6 @@ void RenderPass::End()
 
 void RenderPass::DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 {
-	//for (auto& primitive : renderQueue)
-	//{
-	//	// 컴포넌트가 가지고 있는 PrimitiveData 목록을 가져옴
-	//	std::vector<FPrimitiveData> primitiveDataList;
-	//	primitive->GetPrimitiveData(primitiveDataList);
-
 	for (auto& PrimitiveData : PrimitiveDatList)
 	{
 		if (processPrimitiveData(PrimitiveData))
@@ -116,7 +110,6 @@ void RenderPass::DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 			render(PrimitiveData);
 		}
 	}
-	//}
 }
 
 const bool RenderPass::processPrimitiveData(const FPrimitiveData& primitiveData)
@@ -136,9 +129,9 @@ const bool RenderPass::processPrimitiveData(const FPrimitiveData& primitiveData)
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer
-	BOOL bUseNormal = primitiveData._pMaterial->IsTextureTypeUsed(TextureType::Normal) ? TRUE : FALSE;
+	BOOL bUseNormal = primitiveData._pMaterial->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
 	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
-	BOOL bUseSpecular = primitiveData._pMaterial->IsTextureTypeUsed(TextureType::Specular) ? TRUE : FALSE;
+	BOOL bUseSpecular = primitiveData._pMaterial->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
 	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
 	BOOL bAlphaMask = primitiveData._pMaterial->IsAlphaMasked() ? TRUE : FALSE;
 	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bAlphaMask"), bAlphaMask);

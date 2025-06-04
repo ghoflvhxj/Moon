@@ -7,17 +7,15 @@
 
 using namespace DirectX;
 
-TextureComponent::TextureComponent(const wchar_t *fileName)
-	: Component()
-	, _rawTexture{ nullptr }
+MTexture::MTexture(const wchar_t *fileName)
+	: _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
 {
 	loadTextureFile(fileName);
 }
 
-TextureComponent::TextureComponent(const char *fileName)
-	: Component()
-	, _rawTexture{ nullptr }
+MTexture::MTexture(const char *fileName)
+	: _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
 {
 	wchar_t wFileName[MAX_PATH] = {};
@@ -28,9 +26,8 @@ TextureComponent::TextureComponent(const char *fileName)
 	loadTextureFile(wFileName);
 }
 
-TextureComponent::TextureComponent(TextureComponent::RawTexturePtr pTexture)
-	: Component()
-	,_rawTexture{ pTexture }
+MTexture::MTexture(MTexture::RawTexturePtr pTexture)
+	: _rawTexture{ pTexture }
 	, _pResourceView{ nullptr }
 {
 	D3D11_TEXTURE2D_DESC texturDesc = {};
@@ -44,29 +41,27 @@ TextureComponent::TextureComponent(TextureComponent::RawTexturePtr pTexture)
 	g_pGraphicDevice->getDevice()->CreateShaderResourceView(_rawTexture, &desc, &_pResourceView);
 }
 
-TextureComponent::TextureComponent(ID3D11ShaderResourceView *pShaderResourceView)
-	: Component()
-	, _rawTexture{ nullptr }
+MTexture::MTexture(ID3D11ShaderResourceView* pShaderResourceView)
+	: _rawTexture{ nullptr }
 	, _pResourceView{ pShaderResourceView }
 {
 	SAFE_ADDREF(_pResourceView);
 }
 
-TextureComponent::TextureComponent()
-	: Component()
-	, _rawTexture{ nullptr }
+MTexture::MTexture()
+	: _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
 {
 
 }
 
-TextureComponent::~TextureComponent()
+MTexture::~MTexture()
 {
 	SAFE_RELEASE(_pResourceView);
 	SAFE_RELEASE(_rawTexture);
 }
 
-const bool TextureComponent::loadTextureFile(const wchar_t *fileName)
+const bool MTexture::loadTextureFile(const wchar_t *fileName)
 {
 	if(nullptr != _pResourceView)
 		_pResourceView->Release();
@@ -79,17 +74,17 @@ const bool TextureComponent::loadTextureFile(const wchar_t *fileName)
 	return true;
 }
 
-void TextureComponent::setTexture(const uint32 index)
+void MTexture::setTexture(const uint32 index)
 {
 	g_pGraphicDevice->getContext()->PSSetShaderResources(index, 1, &_pResourceView);
 }
 
-TextureComponent::RawTexturePtr& TextureComponent::getRawTexturePointer()
+MTexture::RawTexturePtr& MTexture::getRawTexturePointer()
 {
 	return _rawTexture;
 }
 
-TextureComponent::ResourceViewPtr& TextureComponent::getRawResourceViewPointer()
+MTexture::ResourceViewPtr& MTexture::getRawResourceViewPointer()
 {
 	return _pResourceView;
 }
