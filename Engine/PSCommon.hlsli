@@ -5,6 +5,7 @@ struct PixelIn
 	float4 pos			: SV_POSITION;
     float3 worldPos		: POSITION0;
 	float2 uv			: TEXCOORD0;
+    float2 Clip			: TEXCOORD1;
 	float3 normal		: NORMAL0;
 	float3 tangent		: NORMAL1;
 	float3 binormal		: NORMAL2;
@@ -60,12 +61,14 @@ SamplerComparisonState cmpSampler
 
 float4 PixelToWorld(float2 uv, float4 depth, matrix inverseProjectiveMatrix, matrix inverseCameraViewMatrix)
 {
+	// uv좌표를 (0 <= x, y <= 1) 투영좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 1이다)
 	float4 pixelProjectionPosition = float4(0.f, 0.f, 0.f, 0.f);
 	pixelProjectionPosition.x = (uv.x * 2.f - 1.f) * depth.w;
 	pixelProjectionPosition.y = (uv.y * -2.f + 1.f) * depth.w;
-	pixelProjectionPosition.z = depth.x * depth.w * depth.w;
+    pixelProjectionPosition.z = depth.x * depth.w;
 	pixelProjectionPosition.w = depth.w;
 
+	// 투영좌표에 역투영&뷰 행렬을 곱해 월드 좌표를 얻음
 	float4x4 inverseProjectViewMatrix = mul(inverseProjectiveMatrix, inverseCameraViewMatrix);
 	float4 pixelWorldPosition = mul(pixelProjectionPosition, inverseProjectViewMatrix);
 

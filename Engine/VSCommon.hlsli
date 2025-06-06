@@ -17,6 +17,7 @@ struct VertexOut
 	float4 pos			: SV_POSITION;
     float3 worldPos     : POSITION0;
 	float2 uv			: TEXCOORD0;
+    float2 Clip         : TEXCOORD1;
     float3 normal       : NORMAL0;
     float3 tangent      : NORMAL1;
     float3 binormal     : NORMAL2;
