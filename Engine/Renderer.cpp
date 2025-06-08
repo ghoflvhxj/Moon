@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "Renderer.h"
 
 // DirectXTK
@@ -35,6 +35,9 @@
 #include "Camera.h"
 
 #include <tuple>
+
+#undef max
+#undef min
 
 using namespace DirectX;
 
@@ -80,12 +83,12 @@ void Renderer::initialize(void) noexcept
 
 	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Plane.fbx"), false);
 	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
-	_pMeshComponent->setScale(Vec3{ CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f });
+	_pMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
 	_pMeshComponent->SceneComponent::Update(0.f);
 
 	RenderTagetInfo shadowMapInfo = {};
-	shadowMapInfo.width = 1920;
-	shadowMapInfo.height = 1080;
+	shadowMapInfo.width = 1024 * 2;
+	shadowMapInfo.height = 1024 * 2;
 	shadowMapInfo.textureArrayCount = CastValue<int>(_cascadeDistance.size());
 
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
@@ -109,6 +112,7 @@ void Renderer::initialize(void) noexcept
 		);
 
 		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::Black;
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<GeometryPass>());
@@ -183,7 +187,7 @@ void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComp
 
 		uint32 PrimitiveKey = InPrimitiveComponent->GetPrimitiveID();
 
-		// ¹öÅØ½º ¹öÆÛ »ı¼º
+		// ë²„í…ìŠ¤ ë²„í¼ ìƒì„±
 		if (bMakeBuffer == false && VertexBufferMap.find(PrimitiveKey) == VertexBufferMap.end())
 		{
 			bMakeBuffer = true;
@@ -200,17 +204,17 @@ void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComp
 
 		PrimitiveData._pVertexBuffer = VertexBufferMap[PrimitiveKey][i];
 
-		// ÀÎµ¦½º ¹öÆÛ »ı¼º
+		// ì¸ë±ìŠ¤ ë²„í¼ ìƒì„±
 		// --
 
-		// ¸ÅÅÍ¸®¾ó Å¸ÀÔ¿¡ µû¶ó ¾î´À ·»´õ¸µ¿¡ µé¾î°¥Áö °áÁ¤
+		// ë§¤í„°ë¦¬ì–¼ íƒ€ì…ì— ë”°ë¼ ì–´ëŠ ë Œë”ë§ì— ë“¤ì–´ê°ˆì§€ ê²°ì •
 		if (bMakeBuffer)
 		{
-			if (PrimitiveData._pMaterial->IsUseAlpha())
-			{
-				ForwardPrimitiveDataMap[PrimitiveKey].push_back(PrimitiveData);
-			}
-			else
+			//if (PrimitiveData._pMaterial->IsUseAlpha())
+			//{
+			//	ForwardPrimitiveDataMap[PrimitiveKey].push_back(PrimitiveData);
+			//}
+			//else
 			{
 				DeferredPrimitiveDataMap[PrimitiveKey].push_back(PrimitiveData);
 			}
@@ -264,7 +268,7 @@ void Renderer::renderScene()
 		}
 	}
 
-	// ±âº» ÆĞ½º
+	// ê¸°ë³¸ íŒ¨ìŠ¤
 	uint32 combinePassIndex = CastValue<uint32>(ERenderPass::Combine);
 	for (uint32 i = 0; i < combinePassIndex; ++i)
 	{
@@ -273,7 +277,7 @@ void Renderer::renderScene()
 		_renderPasses[i]->End();
 	}
 
-	// È¥ÇÕ ÆĞ½º
+	// í˜¼í•© íŒ¨ìŠ¤
 	std::vector<std::weak_ptr<PrimitiveComponent>> temp;
 	temp.emplace_back(_pMeshComponent);
 
@@ -293,10 +297,10 @@ void Renderer::renderScene()
 	_renderPasses[combinePassIndex]->DoPass(PrimitiveDataList);
 	_renderPasses[combinePassIndex]->End();
 
-	// Æ÷½ºÆ®ÇÁ·Î¼¼½º ÆĞ½º
+	// í¬ìŠ¤íŠ¸í”„ë¡œì„¸ìŠ¤ íŒ¨ìŠ¤
 
 
-	// ·»´õ Å¸°Ù
+	// ë Œë” íƒ€ê²Ÿ
 #ifdef _DEBUG
 	//if (true == _drawRenderTarget)
 	//{
@@ -341,7 +345,7 @@ void Renderer::FrustumCulling()
 	m_planes[0] = XMVectorSet(x, y, z, w);
 	m_planes[0] = XMPlaneNormalize(m_planes[0]);
 
-	// ÀıµÎÃ¼ÀÇ ¸Õ Æò¸éÀ» °è»êÇÕ´Ï´Ù.
+	// ì ˆë‘ì²´ì˜ ë¨¼ í‰ë©´ì„ ê³„ì‚°í•©ë‹ˆë‹¤.
 	x = (float)(matrix._14 - matrix._13);
 	y = (float)(matrix._24 - matrix._23);
 	z = (float)(matrix._34 - matrix._33);
@@ -349,7 +353,7 @@ void Renderer::FrustumCulling()
 	m_planes[1] = XMVectorSet(x, y, z, w);
 	m_planes[1] = XMPlaneNormalize(m_planes[1]);
 
-	// ÀıµÎÃ¼ÀÇ ¿ŞÂÊ Æò¸éÀ» °è»êÇÕ´Ï´Ù.
+	// ì ˆë‘ì²´ì˜ ì™¼ìª½ í‰ë©´ì„ ê³„ì‚°í•©ë‹ˆë‹¤.
 	x = (float)(matrix._14 + matrix._11);
 	y = (float)(matrix._24 + matrix._21);
 	z = (float)(matrix._34 + matrix._31);
@@ -357,7 +361,7 @@ void Renderer::FrustumCulling()
 	m_planes[2] = XMVectorSet(x, y, z, w);
 	m_planes[2] = XMPlaneNormalize(m_planes[2]);
 
-	// ÀıµÎÃ¼ÀÇ ¿À¸¥ÂÊ Æò¸éÀ» °è»êÇÕ´Ï´Ù.
+	// ì ˆë‘ì²´ì˜ ì˜¤ë¥¸ìª½ í‰ë©´ì„ ê³„ì‚°í•©ë‹ˆë‹¤.
 	x = (float)(matrix._14 - matrix._11);
 	y = (float)(matrix._24 - matrix._21);
 	z = (float)(matrix._34 - matrix._31);
@@ -365,7 +369,7 @@ void Renderer::FrustumCulling()
 	m_planes[3] = XMVectorSet(x, y, z, w);
 	m_planes[3] = XMPlaneNormalize(m_planes[3]);
 
-	// ÀıµÎÃ¼ÀÇ À­ Æò¸éÀ» °è»êÇÕ´Ï´Ù.
+	// ì ˆë‘ì²´ì˜ ìœ— í‰ë©´ì„ ê³„ì‚°í•©ë‹ˆë‹¤.
 	x = (float)(matrix._14 - matrix._12);
 	y = (float)(matrix._24 - matrix._22);
 	z = (float)(matrix._34 - matrix._32);
@@ -373,7 +377,7 @@ void Renderer::FrustumCulling()
 	m_planes[4] = XMVectorSet(x, y, z, w);
 	m_planes[4] = XMPlaneNormalize(m_planes[4]);
 
-	// ÀıµÎÃ¼ÀÇ ¾Æ·¡ Æò¸éÀ» °è»êÇÕ´Ï´Ù.
+	// ì ˆë‘ì²´ì˜ ì•„ë˜ í‰ë©´ì„ ê³„ì‚°í•©ë‹ˆë‹¤.
 	x = (float)(matrix._14 + matrix._12);
 	y = (float)(matrix._24 + matrix._22);
 	z = (float)(matrix._34 + matrix._32);
@@ -410,7 +414,7 @@ void Renderer::FrustumCulling()
 
 void Renderer::updateConstantBuffer()
 {
-	// ¸ğµç ½¦ÀÌ´õ Å¸ÀÔ¿¡ ´ëÇØ common constant buffer¸¦ ¾÷µ¥ÀÌÆ®ÇÔ
+	// ëª¨ë“  ì‰ì´ë” íƒ€ì…ì— ëŒ€í•´ common constant bufferë¥¼ ì—…ë°ì´íŠ¸í•¨
 	for (uint32 index = 0; index < CastValue<uint32>(ShaderType::Count); ++index)
 	{
 		auto& Shaders = ShaderManager->GetShaders(CastValue<ShaderType>(index));
@@ -420,10 +424,10 @@ void Renderer::updateConstantBuffer()
 			std::shared_ptr<MShader>& Shader = Pair.second;
 			auto &VS_CBuffers = Shader->GetVariables();
 
-			// PerConstant ·¹ÀÌ¾î 
+			// PerConstant ë ˆì´ì–´ 
 			if (g_pRenderer->IsDirtyConstant())
 			{
-				Vec4 resolution = { CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 0.f, 0.f };
+				Vec4 resolution = { g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 0.f, 0.f };
 				BOOL bLight = TRUE;
 
 				Shader->SetValue(TEXT("resolution"), resolution);
@@ -431,7 +435,7 @@ void Renderer::updateConstantBuffer()
 				Shader->UpdateConstantBuffer(EConstantBufferLayer::Constant);
 			}
 
-			// PerTick ·¹ÀÌ¾î
+			// PerTick ë ˆì´ì–´
 			Shader->SetValue(TEXT("viewMatrix"), g_pMainGame->getMainCameraViewMatrix());
 			Shader->SetValue(TEXT("projectionMatrix"), g_pMainGame->getMainCameraProjectioinMatrix());
 			Shader->SetValue(TEXT("identityMatrix"), IDENTITYMATRIX);
@@ -453,7 +457,7 @@ void Renderer::updateConstantBuffer()
 	
 	_bDirtyConstant = false;
 	_directionalLightDirection.clear();
-	// Costant·¹ÀÌ¾î CBuffer ¾÷µ¥ÀÌÆ®
+	// Costantë ˆì´ì–´ CBuffer ì—…ë°ì´íŠ¸
 }
 
 // DEPRECATED
@@ -477,61 +481,72 @@ const bool Renderer::IsDirtyConstant() const
 
 void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition)
 {
-	float tanHalfVFov = tan(XMConvertToRadians(g_pSetting->getFov() / 2.f));
-	float tanHalfHFov = tanHalfVFov * g_pSetting->getAspectRatio();
+	float tanHalfVertical = tan(XMConvertToRadians(g_pSetting->getFov() / 2.f));
+	float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();
+	XMMATRIX cameraWorldMatrix = XMLoadFloat4x4(&g_pMainGame->getMainCamera()->getInvesrViewMatrix());
 
 	for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Far); ++cascadeIndex)
 	{
-		float depth = _cascadeDistance[cascadeIndex];
-		float nextDepth = _cascadeDistance[cascadeIndex + 1];
-		float xn = _cascadeDistance[cascadeIndex] * tanHalfHFov;
-		float xf = _cascadeDistance[cascadeIndex + 1] * tanHalfHFov;
-		float yn = _cascadeDistance[cascadeIndex] * tanHalfVFov;
-		float yf = _cascadeDistance[cascadeIndex + 1] * tanHalfVFov;
+		float Depth = _cascadeDistance[cascadeIndex];
+		float NextDepth = _cascadeDistance[cascadeIndex + 1];
+		float XNear = _cascadeDistance[cascadeIndex] * tanHalfHorizen;
+		float XFar = _cascadeDistance[cascadeIndex + 1] * tanHalfHorizen;
+		float YNear = _cascadeDistance[cascadeIndex] * tanHalfVertical;
+		float YFar = _cascadeDistance[cascadeIndex + 1] * tanHalfVertical;
+		float DepthCenter = (NextDepth + Depth) / 2.f;
 
-		std::vector<Vec3> frustumCascadeVertices = {
+		std::vector<Vec3> FrustumVertices = {
 			//near Face
-			{xn,yn,depth},
-			{-xn,yn,depth},
-			{xn,-yn,depth},
-			{-xn,-yn,depth},
+			{XNear,YNear,Depth},
+			{-XNear,YNear,Depth},
+			{XNear,-YNear,Depth},
+			{-XNear,-YNear,Depth},
 			//far Face
-			{xf,yf,nextDepth},
-			{-xf,yf,nextDepth},
-			{xf,-yf,nextDepth},
-			{-xf,-yf,nextDepth}
+			{XFar,YFar,NextDepth},
+			{-XFar,YFar,NextDepth},
+			{XFar,-YFar,NextDepth},
+			{-XFar,-YFar,NextDepth}
 		};
 
-		XMMATRIX cameraWorldMatrix = XMLoadFloat4x4(&g_pMainGame->getMainCamera()->getInvesrViewMatrix());
-		XMVECTOR cascadeCenter = XMVectorSet(VEC4ZERO.x, VEC4ZERO.y, VEC4ZERO.z, VEC4ZERO.w);
-		for (auto& vertex : frustumCascadeVertices)
+		// CascadeFrustumì˜ ì¤‘ì‹¬ ìœ„ì¹˜ë¥¼ êµ¬í•¨
+		XMVECTOR CascadeCenter = XMVectorSet(VEC4ZERO.x, VEC4ZERO.y, VEC4ZERO.z, VEC4ZERO.w);
+		for (auto& vertex : FrustumVertices)
 		{
-			XMVECTOR worldVertex = XMVector3Transform(XMVectorSet(vertex.x, vertex.y, vertex.z, 1.f), cameraWorldMatrix);
-			XMStoreFloat3(&vertex, worldVertex);
-
-			cascadeCenter += worldVertex;
+			CascadeCenter += XMLoadFloat3(&vertex);
 		}
-		cascadeCenter /= CastValue<float>(frustumCascadeVertices.size());
+		CascadeCenter /= static_cast<float>(FrustumVertices.size());
 
-		float maxDistance = 0.f;
-		for (auto& vertex : frustumCascadeVertices)
+		// ì¤‘ê°„ìœ„ì¹˜ì™€ ê°€ì¥ ë¨¼ ì ì„ ê¸°ì¤€ìœ¼ë¡œ Radius ì„¤ì •
+		float radius = 0.f;
+		for (auto& vertex : FrustumVertices)
 		{
-			Vec3 distance;
-			XMStoreFloat3(&distance, XMVector3Length(XMLoadFloat3(&vertex) - cascadeCenter));
+			Vec3 Distance;
+			XMStoreFloat3(&Distance, XMVector3Length(XMLoadFloat3(&vertex) - CascadeCenter));
 
-			maxDistance = std::max<float>(distance.x, maxDistance);
+			radius = std::max<float>(Distance.x, radius);
 		}
-
-		float radius = std::ceil(maxDistance * 16.f) / 16.f;
+		//radius = std::ceil(radius * 2.f) / 2.f;
 
 		XMVECTOR lightDirection = XMVector3Normalize(XMVectorSet(_directionalLightDirection[0].x, _directionalLightDirection[0].y, _directionalLightDirection[0].z, 0.f));
-		XMVECTOR directionalLightPos = cascadeCenter - (lightDirection * radius);
-
-		XMMATRIX LookAtMatrix = XMMatrixLookAtLH(directionalLightPos, cascadeCenter, XMLoadFloat3(&VEC3UP));
-		XMMATRIX OrthograhpicMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, 0.f, 2.f * radius);
-		
+		XMVECTOR CascadeCenterInWorld = XMVector3TransformCoord(CascadeCenter, cameraWorldMatrix);
+		XMVECTOR directionalLightPos = CascadeCenterInWorld - (lightDirection * radius);
 		XMStoreFloat4(&lightPosition[cascadeIndex], directionalLightPos);
-		XMStoreFloat4x4(&lightViewProj[cascadeIndex], XMMatrixMultiply(LookAtMatrix, OrthograhpicMatrix));
+
+		float Near = std::max(DepthCenter - radius, 0.1f);
+		float Far = 2.f * radius;
+		XMMATRIX OrthograhpicMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, Near, Far);
+
+		XMMATRIX LightView = XMMatrixLookAtLH(directionalLightPos, directionalLightPos + lightDirection, XMLoadFloat3(&VEC3UP));
+		//XMVECTOR projCenter = XMVector3TransformCoord(CascadeCenter, LightView);
+		//float worldTexelSize = radius * 2.f / 2048.f;
+		//float snapX = roundf(XMVectorGetX(projCenter) / worldTexelSize) * worldTexelSize;
+		//float snapY = roundf(XMVectorGetY(projCenter) / worldTexelSize) * worldTexelSize;
+		//LightView.r[3].m128_f32[0] += (snapX - XMVectorGetX(projCenter));
+		//LightView.r[3].m128_f32[1] += (snapY - XMVectorGetY(projCenter));
+
+		XMMATRIX LightViewProj = XMMatrixMultiply(LightView, OrthograhpicMatrix);
+		XMStoreFloat4x4(&lightViewProj[cascadeIndex], LightViewProj);
+
 		lightViewProj[cascadeIndex]._41 = round(lightViewProj[cascadeIndex]._41 * 10.f) / 10.f;
 		lightViewProj[cascadeIndex]._42 = round(lightViewProj[cascadeIndex]._42 * 10.f) / 10.f;
 	}

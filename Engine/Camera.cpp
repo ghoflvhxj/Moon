@@ -90,7 +90,7 @@ void Camera::updateProjectionMatrix()
 	matrix = XMMatrixInverse(nullptr, matrix);
 	XMStoreFloat4x4(&_inversePerspectiveProjectionMatrix, matrix);
 
-	matrix = XMMatrixOrthographicLH(Int32ToFloat(g_pSetting->getResolutionWidth()), Int32ToFloat(g_pSetting->getResolutionHeight()), 0.1f, 1000.f);
+	matrix = XMMatrixOrthographicLH(g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 0.1f, 1000.f);
 	XMStoreFloat4x4(&_orthographicProjectionMatrix, matrix);
 	matrix = XMMatrixInverse(nullptr, matrix);
 	XMStoreFloat4x4(&_inverseOrthographicProjectionMatrix, matrix);

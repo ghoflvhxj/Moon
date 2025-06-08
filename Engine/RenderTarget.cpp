@@ -18,8 +18,8 @@ RenderTarget::RenderTarget()
 {
 	RenderTagetInfo info = {};
 	info.textureArrayCount = 1;
-	info.width = CastValue<UINT>(g_pSetting->getResolutionWidth());
-	info.height = CastValue<UINT>(g_pSetting->getResolutionHeight());
+	info.width = g_pSetting->getResolutionWidth<UINT>();
+	info.height = g_pSetting->getResolutionHeight<UINT>();
 
 	initializeTexture(info);
 }

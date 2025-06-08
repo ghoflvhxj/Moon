@@ -9,8 +9,16 @@ public:
 	
 public:
 	const float getAspectRatio() const;
-	const int getResolutionWidth() const;
-	const int getResolutionHeight() const;
+	template <class T>
+	const T getResolutionWidth() const
+	{
+		return static_cast<T>(_resolutionWidth);
+	}
+	template <class T>
+	const T getResolutionHeight() const
+	{
+		return static_cast<T>(_resolutionHeight);
+	}
 	const BOOL getLighting() const;
 private:
 	int _resolutionWidth;

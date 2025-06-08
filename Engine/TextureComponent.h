@@ -24,6 +24,9 @@ public:
 private:
 	RawTexture		*_rawTexture;
 	ResourceView	*_pResourceView;
+
+public:
+	const bool GetResolution(uint32& OutWidth, uint32& OutHeight);
 };
 
 #define __TEXTURE_COMPONENT_H__

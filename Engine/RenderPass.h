@@ -99,6 +99,9 @@ public:
 	void SetUseOwningDepthStencilBuffer(const bool bUse);
 private:
 	bool _bUseOwningDepthStencilBuffer;
+
+public:
+	DirectX::XMVECTORF32 Color = EngineColors::Black;
 };
 
 #endif

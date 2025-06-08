@@ -19,7 +19,7 @@ LightComponent::LightComponent(void)
 		
 	}
 
-	setScale(CastValue<float>(g_pSetting->getResolutionWidth()), CastValue<float>(g_pSetting->getResolutionHeight()), 1.f);
+	setScale(g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f);
 	setTranslation(0.f, 0.f, 1.f);
 }
 

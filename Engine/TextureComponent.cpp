@@ -57,16 +57,16 @@ MTexture::MTexture()
 
 MTexture::~MTexture()
 {
-	SAFE_RELEASE(_pResourceView);
-	SAFE_RELEASE(_rawTexture);
+	SafeRelease(_pResourceView);
+	SafeRelease(_rawTexture);
 }
 
 const bool MTexture::loadTextureFile(const wchar_t *fileName)
 {
 	if(nullptr != _pResourceView)
-		_pResourceView->Release();
+		SafeRelease(_pResourceView);
 	if (nullptr != _rawTexture)
-		_rawTexture->Release();
+		SafeRelease(_rawTexture);
 
 
 	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource **)&_rawTexture, &_pResourceView));
@@ -87,4 +87,20 @@ MTexture::RawTexturePtr& MTexture::getRawTexturePointer()
 MTexture::ResourceViewPtr& MTexture::getRawResourceViewPointer()
 {
 	return _pResourceView;
+}
+
+const bool MTexture::GetResolution(uint32& OutWidth, uint32& OutHeight)
+{
+	if (_rawTexture == nullptr)
+	{
+		return false;
+	}
+
+	D3D11_TEXTURE2D_DESC TextureDesc = {};
+	_rawTexture->GetDesc(&TextureDesc);
+	
+	OutWidth = TextureDesc.Width;
+	OutHeight = TextureDesc.Height;
+
+	return true;
 }

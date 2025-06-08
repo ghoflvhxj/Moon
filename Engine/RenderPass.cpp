@@ -53,7 +53,7 @@ void RenderPass::Begin()
 
 			if (true == bClearTargets)
 			{
-				g_pGraphicDevice->getContext()->ClearRenderTargetView(ResourceViewBindData.ReourceView->AsRenderTargetView(), reinterpret_cast<const float*>(&EngineColors::Black));
+				g_pGraphicDevice->getContext()->ClearRenderTargetView(ResourceViewBindData.ReourceView->AsRenderTargetView(), reinterpret_cast<const float*>(&Color));
 				g_pGraphicDevice->getContext()->ClearDepthStencilView(ResourceViewBindData.ReourceView->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 			}
 		}

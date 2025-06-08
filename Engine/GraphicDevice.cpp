@@ -70,8 +70,8 @@ const bool GraphicDevice::initializeGrahpicDevice()
 	// ÀåÄ¡, ½º¿ÒÃ¼ÀÎ »ý¼º
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
 	swapDesc.BufferCount = 1;
-	swapDesc.BufferDesc.Width = g_pSetting->getResolutionWidth();
-	swapDesc.BufferDesc.Height = g_pSetting->getResolutionHeight();
+	swapDesc.BufferDesc.Width = g_pSetting->getResolutionWidth<UINT>();
+	swapDesc.BufferDesc.Height = g_pSetting->getResolutionHeight<UINT>();
 	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
@@ -104,8 +104,8 @@ const bool GraphicDevice::initializeGrahpicDevice()
 
 	// ±íÀÌ ½ºÅÙ½Ç ºä »ý¼º
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
-	depthStencilDesc.Width = g_pSetting->getResolutionWidth();
-	depthStencilDesc.Height = g_pSetting->getResolutionHeight();
+	depthStencilDesc.Width = g_pSetting->getResolutionWidth<UINT>();
+	depthStencilDesc.Height = g_pSetting->getResolutionHeight<UINT>();
 	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
@@ -125,8 +125,8 @@ const bool GraphicDevice::initializeGrahpicDevice()
 	// ºäÆ÷Æ®
 	_viewport.TopLeftX = 0;
 	_viewport.TopLeftY = 0;
-	_viewport.Width = static_cast<FLOAT>(g_pSetting->getResolutionWidth());
-	_viewport.Height = static_cast<FLOAT>(g_pSetting->getResolutionHeight());
+	_viewport.Width = g_pSetting->getResolutionWidth<FLOAT>();
+	_viewport.Height = g_pSetting->getResolutionHeight<FLOAT>();
 	_viewport.MaxDepth = 1.f;
 	_viewport.MinDepth = 0.f;
 
@@ -371,10 +371,8 @@ const bool GraphicDevice::buildSamplerState()
 	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 	SamplerDesc.BorderColor[0] = 1.f;
-	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_GREATER;
+	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
 	SamplerDesc.MaxAnisotropy = 16u;
-	SamplerDesc.MaxLOD = FLT_MAX;
-	SamplerDesc.MinLOD = -FLT_MAX;
 	SamplerDesc.MipLODBias = 0.f;
 
 	ID3D11SamplerState* pSamplerState = nullptr;

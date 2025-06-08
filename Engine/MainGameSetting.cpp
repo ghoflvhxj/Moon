@@ -18,16 +18,6 @@ const float MainGameSetting::getAspectRatio() const
 	return static_cast<float>(_resolutionWidth) / _resolutionHeight;
 }
 
-const int MainGameSetting::getResolutionWidth() const
-{
-	return _resolutionWidth;
-}
-
-const int MainGameSetting::getResolutionHeight() const
-{
-	return _resolutionHeight;
-}
-
 const BOOL MainGameSetting::getLighting() const
 {
 	return _bLighting;
