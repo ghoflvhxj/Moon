@@ -15,6 +15,9 @@
 // Actor
 #include "Camera.h"
 
+// юс╫ц
+#include "LightComponent.h"
+
 using namespace DirectX;
 
 void CombinePass::render(const FPrimitiveData &primitiveData)
@@ -230,6 +233,13 @@ const bool LightPass::processPrimitiveData(const FPrimitiveData &primitiveData)
 	Vec3 trans = PrimitiveComponent->getTranslation();
 	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
 	Vec4 color = { 1.f, 1.f, 1.f, 1.f };
+	if (std::shared_ptr<LightComponent> LightComp = std::static_pointer_cast<LightComponent>(primitiveData._pPrimitive.lock()))
+	{
+		color.x = LightComp->getColor().x;
+		color.y = LightComp->getColor().y;
+		color.z = LightComp->getColor().z;
+	}
+	
 
 	XMVECTOR rotationVector = XMLoadFloat3(&PrimitiveComponent->getRotation());
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(rotationVector);

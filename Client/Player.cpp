@@ -33,13 +33,13 @@ Player::~Player()
 
 void Player::initialize()
 {
-	_pTextureComponent = std::make_shared<MTexture>(TEXT("./Resources/Texture/Player.jpeg"));
+	_pTextureComponent = std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg"));
 
 	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Box.fbx"), true, true);
 	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, _pTextureComponent);
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
-	_pMeshComponent->setScale(50.f, 1.f, 50.f);
-	_pMeshComponent->setTranslation(1.f, -3.f, 20.f);
+	_pMeshComponent->setScale(20.f, 1.f, 20.f);
+	_pMeshComponent->setTranslation(1.f, -3.f, 0.f);
 	_pMeshComponent->SetGravity(true);
 
 	//_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
@@ -53,18 +53,15 @@ void Player::initialize()
 	_pStaticMeshComponent2->setDrawingBoundingBox(true);
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
-	_pLightComponent = std::make_shared<PointLightComponent>();
-	addComponent(TEXT("PointLight"), _pLightComponent);
+	//_pLightComponent = std::make_shared<PointLightComponent>();
+	//_pLightComponent->setRange(0.2f);
+	//addComponent(TEXT("PointLight"), _pLightComponent);
 
 #if UseDynamicMesh == 1
 	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>(TEXT("2B/2b.fbx"));
 	_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
 	_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
-	for (int i = 0; i < _pDynamicMeshComponent->getDynamicMesh()->getMaterialCount(); ++i)
-	{
-		_pDynamicMeshComponent->getDynamicMesh()->getMaterial(i)->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
-	}
 	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(0)->SetAlphaMask(true);
 	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(1)->SetAlphaMask(true);
 	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(2)->SetAlphaMask(true);
@@ -83,7 +80,7 @@ void Player::initialize()
 #if UseDirectionalLight == 1
 	_pLightComponent2 = std::make_shared<DirectionalLightComponent>();
 	addComponent(TEXT("DirectionalLight"), _pLightComponent2);
-	_pLightComponent2->setRotation(Vec3{ XMConvertToRadians(45.f), 0.f, 0.f });
+	_pLightComponent2->setTranslation(0.f, 0.f, 1000.f);
 #endif
 	//_pCollisionShapeComponent = std::make_shared<CollisionShapeComponent>();
 	//addComponent(TEXT("CollisionShape"), _pCollisionShapeComponent);
@@ -95,14 +92,14 @@ void Player::initialize()
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> colorDis(0, 255);
-	std::uniform_int_distribution<int> transDis(0, 100);
+	std::uniform_int_distribution<int> transDis(0, 10);
 
-	for (int i = 0; i < 50; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 		std::shared_ptr<PointLightComponent> pLight = std::make_shared<PointLightComponent>();
 		pLight->setTranslation(Vec3(transDis(gen) / 1.f, 1.f, transDis(gen) / 1.f));
 		pLight->setColor(Vec3(colorDis(gen) / 255.f, colorDis(gen) / 255.f, colorDis(gen) / 255.f));
-		pLight->setRange(3.f);
+		pLight->setRange(1.f);
 		_pLightComponentList.push_back(pLight);
 
 		std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
@@ -166,7 +163,7 @@ void Player::tick(const Time deltaTime)
 	std::uniform_int_distribution<int> moveDis(-10, 10);
 	if (!_pLightComponentList.empty())
 	{
-		for (int i = 0; i < 50; ++i)
+		for (int i = 0; i < _pLightComponentList.size(); ++i)
 		{
 			Vec3 trans = _pLightComponentList[i]->getTranslation();
 			trans.x += moveDis(gen) * deltaTime;

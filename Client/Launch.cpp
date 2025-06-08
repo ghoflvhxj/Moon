@@ -45,7 +45,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		wndClass.lpszMenuName = nullptr;
 		pWindowManager->AddWindowClass(wndClass);
 
-		RECT rt = { 0, 0, getSetting()->getResolutionWidth(), getSetting()->getResolutionHeight() };
+		RECT rt = { 0, 0, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>() };
 		AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, FALSE);
 
 		pWindow = pWindowManager->CreateWindow(title, rt.right - rt.left, rt.bottom - rt.top, title);
