@@ -3,8 +3,9 @@
 PixelOut_ShadowDepth main(PixelIn pIn)
 {
     PixelOut_ShadowDepth pOut;
-    pOut.shadowDepth = pIn.pos.z / pIn.pos.w;
-    //pOut.shadowDepth = float4(1.f, 1.f, 1.f, 1.f);
+    pOut.shadowDepth = pIn.Clip.x; // 직교투영이므로 z값을 사용
+    //pOut.shadowDepth = float4(pIn.pos.z, 0.f, 0.f, 1.f);
+    //clip(pOut.shadowDepth > 0.f ? 1.f : -1.f);
     
     return pOut;
 }

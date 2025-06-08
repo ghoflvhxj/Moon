@@ -7,50 +7,56 @@ cbuffer PS_CBuffer_Texture : register(b2)
     bool bAlphaMask;
 };
 
-float CalculateShadowFactor(int cascadeIndex, float4 lightspacepos)
+float CalculateShadowFactor(int cascadeIndex, float4 PixelPosInLightViewProj)
 {
-    float3 projCoords = lightspacepos.xyz / lightspacepos.w;
-    projCoords.x = projCoords.x * 0.5f + 0.5f;
-    projCoords.y = -projCoords.y * 0.5f + 0.5f;
-    if (projCoords.z > 1.f)
-    {
-        return 0.f;
-    }
-	
-    float bias = 0.005f;
-    float3 samplePos = float3(projCoords.x, projCoords.y, cascadeIndex);
+    // 픽셀의 투영 좌표계 위치를 NDC(-1~1, -1~1)로 만들고(직교투영은 생략), UV(0~1, 0~1)로 변환. 
+    //float3 projCoords = lightspacepos.xyz / lightspacepos.w;
     float shadow = 0.f;
-    
-    int sampeleCount = 3;
-    int temp = sampeleCount / 2;
-    [unroll]
-    for (int x = -temp; x <= temp; ++x)
+    float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
+    saturate(ShadowDepthUV);
+
+    float bias = 0.005f;
+    float Depth = PixelPosInLightViewProj.z - bias;
+
+    //if (PixelPosInLightViewProj.z < 1.f)
     {
+        int sampleCount = 3;
+        int temp = sampleCount / 2;
+        int Counter = 0;
+        
         [unroll]
-        for (int y = -temp; y <= temp; ++y)
+        for (int x = -temp; x <= temp; ++x)
         {
-            float4 temp = g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, samplePos, projCoords.z - bias, int2(x, y));
-            shadow += temp.x;
+            [unroll]
+            for (int y = -temp; y <= temp; ++y)
+            {
+                // ShadowDepth에 기록된 깊이(0.7)가 계산한 깊이보다 더 크다면(0.4), 이 픽셀은 그림자가 없음
+                // ShadowDepth에 기록된 깊이가 계산한 깊이보다 더 작다면, 이 픽셀은 그림자가 있음
+                // 그러니까 ShadowDepth 샘플링한 값이 더 작다면 1이 반환되서 ShadowFactor를 증가시킴
+                
+                shadow += 1.f - g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, ShadowDepthUV, Depth, int2(x, y)).x;
+            }
         }
+        
+        shadow /= sampleCount * sampleCount;
+        //shadow = ShadowDepthUV.x;
+        //shadow = g_ShadowDepth.Sample(g_Sampler, ShadowDepthUV).r;
+        //shadow = g_ShadowDepth.Sample(g_Sampler, ShadowDepthUV).r < Depth ? 1.f : 0.f;
+        //shadow = g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, ShadowDepthUV, Depth);
     }
-    shadow /= float(sampeleCount * sampeleCount);
-    return shadow;
     
-    //float4 temp = g_ShadowDepth.Sample(g_Sampler, samplePos);
-    //return temp.x < projCoords.z - bias ? 1.f : 0.f;
+
+    return shadow;
 }
 
 PixelOut_GeometryPass main(PixelIn pIn)
 {
 	PixelOut_GeometryPass pOut;
     
-	// �ȼ� ���̴����� SV_POSITION�� z ������ ���� ��ġ �����̴�
-	// x' = x / tan(@/2)*r, z ������ �Ŀ��� -1<=x'<=1 �� ������ ����
-	// y' = 1 / tan(@/2), z ������ �Ŀ��� -1<=y'<=1 �� ������ ����
-	// z' = z * far/(far-near) - (near*far/(far-near)) = ((z-near)*far) / (far-near) -> 0<=z'<=far, z ������ �Ŀ��� 0<=z'<=1 �� ������ ����
-	// w' = ���� ��� ���ϱ� ���� z��ǥ
+    float NDCDepth = pIn.Clip.x / pIn.Clip.y;
+    
 	pOut.color		= g_Diffuse.Sample(g_Sampler, pIn.uv);
-	pOut.depth		= float4(pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.z / pIn.pos.w, pIn.pos.w);
+    pOut.depth      = float4(NDCDepth, NDCDepth, NDCDepth, pIn.Clip.y);
 	pOut.normal		= float4(pIn.normal, 1.f);  
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
     
@@ -59,6 +65,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
     if (bAlphaMask)
     {
         clip(pOut.color.rgb - float3(0.13f, 0.13f, 0.13f));
+        pOut.color.rgb = smoothstep(0.f, 1.f, pOut.color.rgb);
     }
     
     if (true == bUseNormalTexture)
@@ -83,30 +90,90 @@ PixelOut_GeometryPass main(PixelIn pIn)
 		pOut.specular = float4(specular, 1.f);
 	}
 	
-
-    float cascadeDistanceInCameraViewProj[3];
-    for (int i = 0; i < 3; ++i)
-    {
-        cascadeDistanceInCameraViewProj[i] = mul(float4(0.f, 0.f, cascadeDistance[i+1], 1.f), projectionMatrix).z;
-    }
-    
-    float4 pixelPosInLightSpace = { 0.f, 0.f, 2.f, 1.f };
+    // 이 픽셀의 cascade 단계를 찾음
     int cascadeIndex = 0;
-    for (int j = 0; j < 3; ++j)
+    for (int j = 1; j < 4; ++j)
     {
-        if (pIn.pos.w <= cascadeDistanceInCameraViewProj[j])
+        // 깊이 값을 비교해서 크다면, 단계를 찾은 것.
+        if (pIn.Clip.y <= cascadeDistance[j])
         {
-            cascadeIndex = j;
-            pixelPosInLightSpace = mul(float4(pIn.worldPos, 1.0f), lightViewProjMatrix[j]);
+            cascadeIndex = j - 1;
             break;
         }
     }
     
-    float shadowFactor = CalculateShadowFactor(cascadeIndex, pixelPosInLightSpace);
-    if (shadowFactor > 0.f)
-    {
-        pOut.color.xyz *= 1.f - (shadowFactor/2.f);
+    // 픽셀의 월드 위치를 빛의 시점의 직교투영 좌표계로 변환
+    //float4 PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.0f), lightViewProjMatrix[cascadeIndex]);
+    float4 PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.0f), lightViewProjMatrix[cascadeIndex]);
+    //float4 PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.0f), mul(viewMatrix, projectionMatrix));
+    //float4 PixelPosInLightViewProj = float4(pIn.worldPos, 1.0f);
+    float shadowFactor = CalculateShadowFactor(cascadeIndex, PixelPosInLightViewProj);
+    //if (shadowFactor > 0.f)
+    {   
+        // 그림자가 없으면 1이고, 있으면 1보다 작을거임
+        pOut.color.xyz *= 1.f - CalculateShadowFactor(cascadeIndex, PixelPosInLightViewProj);
     }
+    
+    //pOut.color = float4(PixelPosInLightViewProj.z, shadowFactor, 0.f, 1.f);
+    
+    /*
+    쉐오두 값 테스트
+    */
+    float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
+    pOut.color = float4(ShadowDepthUV, g_ShadowDepth.Sample(g_Sampler, ShadowDepthUV).r);
+    
+    /*
+    쉐도우 UV 테스트
+    */
+    //float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
+    //pOut.color = float4(ShadowDepthUV, 1.f);
+    
+    /* 
+    쉐도우 맵 지형에 그리기 테스트
+    지형이 그림자 맵을 그대로 그려야 함
+    근데 카메라가 움직이면 그림자 맵의 위치가 바뀌는데 흠?
+    */
+    //float3 color = g_ShadowDepth.Sample(g_Sampler, float3(pIn.uv, 0)).xyz;
+    //pOut.color = float4(color.x, color.x, color.x, 1.f);
+    
+    /*
+    픽셀의 월드 좌표 테스트
+    */
+    //pOut.color = float4(pIn.worldPos, 1.f); // 성공
+    
+    /*
+    빛 시점의 투영 좌표계에서 픽셀의 위치 테스트. 
+    직교투영이니 바로 NDC임.
+    x는 -1 ~ 1 범위이니 +1 해줘서 봐야 함, 왼쪽이 검정 오른쪽이 빨강
+    y는 -1 ~ 1 범위이니 +1 해줘서 봐야 함, 위쪽이 빨강 아래쪽이 검정
+    카메라가 움직일 때마다 빛의 위치가 다르게 되니, x는 좌우, y는 상하로 움직이면서 테스트 해야 함
+    */
+    //pOut.color = float4(PixelPosInLightViewProj.z, 0.f, 0.f, 1.f); //성공, -1 ~ 1 범위가 맞음
+    
+    /*
+    빛의 위치 테스트
+    */
+    //pOut.color = float4(lightPos[0].xyz, 1.f); 카메라 위치가 변하니 frustum 위치도 변경됨. 따라서 라이트 포지션도 변경되는게 맞음
+    
+    /*
+    Cascade 테스트
+    */
+    //if (cascadeIndex == 0)
+    //{
+    //    pOut.color = float4(1.f, 0.f, 0.f, 1.f); // 첫번째 캐스케이드
+    //}
+    //else if(cascadeIndex == 1)
+    //{
+    //    pOut.color = float4(0.f, 1.f, 0.f, 1.f); // 두번째 캐스케이드
+    //}
+    //else if(cascadeIndex == 2)
+    //{
+    //    pOut.color = float4(0.f, 0.f, 1.f, 1.f); // 세번째 캐스케이드
+    //}
+    //else if(cascadeIndex == 3)
+    //{
+    //    pOut.color = float4(1.f, 1.f, 0.f, 1.f); // 네번째 캐스케이드
+    //}
     
     return pOut;
 }

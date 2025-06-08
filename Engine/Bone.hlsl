@@ -30,6 +30,7 @@ VertexOut main(VertexIn vIn)
     // 변환된 좌표 계산
     vOut.pos = mul(animatedPos, worldViewProj);
     vOut.worldPos = mul(animatedPos, worldMatrix).xyz;
+    vOut.Clip = float2(0.f, 0.f);
 
     // 법선, 탄젠트, 바이노멀 계산
     float4 normal = float4(vIn.normal, 0.f);

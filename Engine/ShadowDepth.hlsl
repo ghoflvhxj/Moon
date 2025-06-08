@@ -3,30 +3,31 @@
 VertexOut main(VertexIn vIn)
 {
     VertexOut vOut = (VertexOut)0;
-
-    if (animated == false)
+    
+    matrix worldView = mul(worldMatrix, viewMatrix);
+    matrix worldViewProj = mul(worldView, projectionMatrix);
+    
+    matrix boneTransform =
     {
-        vOut.pos = mul(float4(vIn.pos, 1.f), worldMatrix);
-    }
-    else
-    {
-        matrix boneTransform =
-        {
-            0.f, 0.f, 0.f, 0.f,
-		    0.f, 0.f, 0.f, 0.f,
-		    0.f, 0.f, 0.f, 0.f,
-		    0.f, 0.f, 0.f, 0.f
-        };
+        1.f, 0.f, 0.f, 0.f,
+		0.f, 1.f, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f
+    };
 
+    if (animated)
+    {
+        boneTransform *= 0.f;
         for (int i = 0; i < 4; ++i)
         {
             boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);
         }
-        
-        float4 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);
-
-        vOut.pos = mul(float4(animatedPos.x, animatedPos.y, animatedPos.z, 1.f), worldMatrix);
     }
- 
+    
+    float4 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);
+    
+    vOut.pos = mul(animatedPos, worldMatrix);
+    vOut.worldPos = mul(animatedPos, worldMatrix);
+    
     return vOut;
 }
