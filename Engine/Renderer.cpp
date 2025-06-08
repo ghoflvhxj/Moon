@@ -112,7 +112,7 @@ void Renderer::initialize(void) noexcept
 		);
 
 		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::Black;
+		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
 	}
 
 	_renderPasses.emplace_back(CreateRenderPass<GeometryPass>());
