@@ -536,7 +536,12 @@ void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPo
 		float Far = 2.f * radius;
 		XMMATRIX OrthograhpicMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, Near, Far);
 
-		XMMATRIX LightView = XMMatrixLookAtLH(directionalLightPos, directionalLightPos + lightDirection, XMLoadFloat3(&VEC3UP));
+		XMVECTOR UpVector = XMLoadFloat3(&VEC3UP);
+		if (fabs(XMVectorGetX(XMVector3Dot(UpVector, lightDirection))) > 0.999f)
+		{
+			UpVector = XMVectorSet(1.f, 0, 0, 0);
+		}
+		XMMATRIX LightView = XMMatrixLookAtLH(directionalLightPos, directionalLightPos + lightDirection, UpVector);
 		//XMVECTOR projCenter = XMVector3TransformCoord(CascadeCenter, LightView);
 		//float worldTexelSize = radius * 2.f / 2048.f;
 		//float snapX = roundf(XMVectorGetX(projCenter) / worldTexelSize) * worldTexelSize;
