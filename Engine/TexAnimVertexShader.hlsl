@@ -33,5 +33,9 @@ VertexOut main(VertexIn vIn)
 	vOut.tangent	= mul(float4(vIn.tangent, 0.f), worldView).xyz;
 	vOut.binormal	= mul(float4(vIn.binormal, 0.f), worldView).xyz;
 	
+    vOut.pos = mul(animatedPos, worldViewProj);
+    vOut.worldPos = mul(animatedPos, worldMatrix).xyz;
+    vOut.Clip = vOut.pos.zw;
+	
 	return vOut;
 }

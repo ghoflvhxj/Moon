@@ -15,10 +15,10 @@ float CalculateShadowFactor(int cascadeIndex, float4 PixelPosInLightViewProj)
     float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
     saturate(ShadowDepthUV);
 
-    float bias = 0.005f;
+    float bias = 0.01f;
     float Depth = PixelPosInLightViewProj.z - bias;
 
-    //if (PixelPosInLightViewProj.z < 1.f)
+    if (Depth < 1.f)
     {
         int sampleCount = 3;
         int temp = sampleCount / 2;
@@ -30,9 +30,8 @@ float CalculateShadowFactor(int cascadeIndex, float4 PixelPosInLightViewProj)
             [unroll]
             for (int y = -temp; y <= temp; ++y)
             {
-                // ShadowDepth에 기록된 깊이(0.7)가 계산한 깊이보다 더 크다면(0.4), 이 픽셀은 그림자가 없음
-                // ShadowDepth에 기록된 깊이가 계산한 깊이보다 더 작다면, 이 픽셀은 그림자가 있음
-                // 그러니까 ShadowDepth 샘플링한 값이 더 작다면 1이 반환되서 ShadowFactor를 증가시킴
+                // ShadowDepth을 샘플링해 저장된 깊이(빛 시점에서의 깊이)와, 현재 픽셀을 깊이를 비교함
+                // 즉 샘플링한 게 더 적으면 그림자가 적용됨
                 
                 shadow += 1.f - g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, ShadowDepthUV, Depth, int2(x, y)).x;
             }
@@ -117,10 +116,17 @@ PixelOut_GeometryPass main(PixelIn pIn)
     //pOut.color = float4(PixelPosInLightViewProj.z, shadowFactor, 0.f, 1.f);
     
     /*
+    깊이 값 비교 테스트
+    */
+    //float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
+    //pOut.color = float4(PixelPosInLightViewProj.z, g_ShadowDepth.Sample(g_Sampler, ShadowDepthUV).r, 0.f, 1.f);
+    
+    /*
     쉐오두 값 테스트
     */
-    float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
-    pOut.color = float4(ShadowDepthUV, g_ShadowDepth.Sample(g_Sampler, ShadowDepthUV).r);
+    //float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
+    //pOut.color = float4(ShadowDepthUV, g_ShadowDepth.Sample(g_Sampler, ShadowDepthUV).r);
+    //pOut.color = float4(ShadowDepthUV, cascadeIndex);
     
     /*
     쉐도우 UV 테스트
@@ -133,8 +139,8 @@ PixelOut_GeometryPass main(PixelIn pIn)
     지형이 그림자 맵을 그대로 그려야 함
     근데 카메라가 움직이면 그림자 맵의 위치가 바뀌는데 흠?
     */
-    //float3 color = g_ShadowDepth.Sample(g_Sampler, float3(pIn.uv, 0)).xyz;
-    //pOut.color = float4(color.x, color.x, color.x, 1.f);
+    //float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
+    //pOut.color = float4(g_ShadowDepth.Sample(g_Sampler, ShadowDepthUV).x, PixelPosInLightViewProj.z, 0.f, 1.f);
     
     /*
     픽셀의 월드 좌표 테스트
