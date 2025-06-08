@@ -1,6 +1,8 @@
 #include "Include.h"
 #include "RenderPass.h"
 
+#include "MainGameSetting.h"
+
 // Graphic
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -66,6 +68,21 @@ void RenderPass::Begin()
 	{
 		g_pGraphicDevice->getContext()->PSSetShaderResources(ResourceViewBindData.Index, 1, &ResourceViewBindData.ReourceView->AsTexture()->getRawResourceViewPointer());
 	}
+
+	if (_renderTargetList.size() > 0)
+	{
+		uint32 Width = 0, Height = 0;
+		_renderTargetList[0].ReourceView->AsTexture()->GetResolution(Width, Height);
+		D3D11_VIEWPORT Viewport;
+		UINT ViewportNum = 0;
+		Viewport.Width = static_cast<float>(Width);
+		Viewport.Height = static_cast<float>(Height);
+		Viewport.TopLeftX = 0.f;
+		Viewport.TopLeftY = 0.f;
+		Viewport.MinDepth = 0.f;
+		Viewport.MaxDepth = 1.f;
+		g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
+	}
 }
 
 void RenderPass::End()
@@ -94,6 +111,15 @@ void RenderPass::End()
 	//	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
 	//	g_pGraphicDevice->getContext()->OMSetRenderTargets(renderTargetCount, restoreRenderTargetViewArray.data(), _pOldDepthStencilView);
 	//}
+
+	D3D11_VIEWPORT Viewport;
+	Viewport.Width = g_pSetting->getResolutionWidth<FLOAT>();
+	Viewport.Height = g_pSetting->getResolutionHeight<FLOAT>();
+	Viewport.TopLeftX = 0.f;
+	Viewport.TopLeftY = 0.f;
+	Viewport.MinDepth = 0.f;
+	Viewport.MaxDepth = 1.f;
+	g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
 
 	SafeRelease(_pOldRenderTargetView);
 	SafeRelease(_pOldDepthStencilView);
