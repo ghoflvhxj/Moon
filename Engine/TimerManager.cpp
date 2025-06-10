@@ -6,8 +6,8 @@
 using namespace std;
 using namespace chrono;
 
-TimerManager::TimerManager()
-	: Manager<TimerManager>()
+MTimerManager::MTimerManager()
+	: Manager<MTimerManager>()
 	, m_beginCount()
 	, m_previousCount()
 	, m_currentCount()
@@ -18,26 +18,13 @@ TimerManager::TimerManager()
 	m_currentCount = m_beginCount;
 }
 
-TimerManager::TimerManager(const std::shared_ptr<MainGame> pMainGame)
-	: Manager<TimerManager>()
-	, m_beginCount()
-	, m_previousCount()
-	, m_currentCount()
-	, m_pOwningGame{ pMainGame }
-{
-	m_beginCount = system_clock::now();
-
-	m_previousCount = m_beginCount;
-	m_currentCount = m_beginCount;
-}
-
-void TimerManager::Tick()
+void MTimerManager::Tick()
 {
 	m_previousCount = m_currentCount;
 	m_currentCount = system_clock::now();
 }
 
-const bool TimerManager::SetTimer(TimerHandle &handle, const TimerFunction &function, const bool loop, const float rate)
+const bool MTimerManager::SetTimer(TimerHandle &handle, const TimerFunction &function, const bool loop, const float rate)
 {
 	std::shared_ptr<TimerData> newTimerData = std::make_shared<TimerData>();
 	newTimerData->function = function; 
@@ -59,22 +46,22 @@ const bool TimerManager::SetTimer(TimerHandle &handle, const TimerFunction &func
 	return true;
 }
 
-const Time TimerManager::GetDeltaTime() const
+const Time MTimerManager::GetDeltaTime() const
 {
 	return duration<Time>(m_currentCount - m_previousCount).count();
 }
 
-const Time TimerManager::GetTotalTime() const
+const Time MTimerManager::GetTotalTime() const
 {
 	return duration<Time>(m_currentCount - m_beginCount).count();
 }
 
-const Time TimerManager::GetPauseTime() const
+const Time MTimerManager::GetPauseTime() const
 {
 	return Time();
 }
 
-const Time TimerManager::GetActiveTime() const
+const Time MTimerManager::GetActiveTime() const
 {
 	return Time();
 }

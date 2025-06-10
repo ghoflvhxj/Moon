@@ -3,12 +3,12 @@
 
 #include "Manager.h"
 
-class MainGame;
+class MTimerManager;
 
 class ENGINE_DLL FrameManager : public Manager<FrameManager>
 {
 public:
-	explicit FrameManager(std::shared_ptr<MainGame> pMainGame);
+	explicit FrameManager(std::shared_ptr<MTimerManager>& InTimermanager);
 	virtual ~FrameManager();
 
 public:
@@ -35,7 +35,7 @@ private:
 	bool m_lock;
 
 private:
-	std::weak_ptr<MainGame> m_pOwningGame;
+	std::weak_ptr<MTimerManager> TimerManager;
 };
 
 #define __FRAME_MANAGER_H__

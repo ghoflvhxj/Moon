@@ -24,13 +24,12 @@ struct TimerData
 };
 
 class MainGame;
-class ENGINE_DLL TimerManager : public Manager<TimerManager>
+class ENGINE_DLL MTimerManager : public Manager<MTimerManager>
 {
 	//--------------------------------------------------
 public:
-	explicit TimerManager();
-	explicit TimerManager(const std::shared_ptr<MainGame> pMainGame);
-	virtual ~TimerManager() = default;
+	explicit MTimerManager();
+	virtual ~MTimerManager() = default;
 
 public:
 	virtual void Tick();

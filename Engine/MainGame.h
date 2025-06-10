@@ -3,7 +3,7 @@
 #include "Vertex.h"
 
 class Window;
-class TimerManager;
+class MTimerManager;
 class FrameManager;
 
 class MeshComponent;
@@ -51,9 +51,9 @@ private:
 	Time _deltaTime;	// 게임의 델타타임과 타이머의 델타타임은 엄연히 다름...! 프레임간의 델타타임 vs while 루프간의 델타타임
 
 public:
-	const std::shared_ptr<TimerManager> getTimerManager() const;
+	const std::shared_ptr<MTimerManager> getTimerManager() const;
 private:
-	mutable std::shared_ptr<TimerManager> _pTimerManager;
+	mutable std::shared_ptr<MTimerManager> _pTimerManager;
 
 public:
 	const std::shared_ptr<FrameManager> getFrameManager() const;

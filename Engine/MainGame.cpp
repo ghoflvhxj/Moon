@@ -95,13 +95,13 @@ const Time MainGame::getDeltaTime() const
 
 const bool MainGame::initialize()
 {
-	_pTimerManager = std::make_shared<TimerManager>(shared_from_this());
-	_pFrameManager = std::make_shared<FrameManager>(shared_from_this());
+	_pTimerManager = std::make_shared<MTimerManager>();
+	_pFrameManager = std::make_shared<FrameManager>(_pTimerManager);
 
 	return true;
 }
 
-const std::shared_ptr<TimerManager> MainGame::getTimerManager() const
+const std::shared_ptr<MTimerManager> MainGame::getTimerManager() const
 {
 	return (_pTimerManager) ? _pTimerManager : nullptr;
 }

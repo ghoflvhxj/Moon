@@ -4,9 +4,9 @@
 #include "TimerManager.h"
 #include "MainGame.h"
 
-FrameManager::FrameManager(std::shared_ptr<MainGame> pMainGame)
+FrameManager::FrameManager(std::shared_ptr<MTimerManager>& InTimermanager)
 	: Manager<FrameManager>()
-	, m_pOwningGame{ pMainGame }
+	, TimerManager(InTimermanager)
 	, m_targetFrame{ 0 }
 	, m_currentFrame{ 0 }
 	, m_frameCounter{ 0 }
@@ -23,9 +23,12 @@ FrameManager::~FrameManager()
 
 void FrameManager::Tick()
 {
-	assert(m_pOwningGame.lock() != nullptr);
+	if (TimerManager.expired())
+	{
+		return;
+	}
 
-	m_time += m_pOwningGame.lock()->getTimerManager()->GetDeltaTime();
+	m_time += TimerManager.lock()->GetDeltaTime();
 	m_lock = true;
 
 	if (m_time > m_timePerFrame)
@@ -33,7 +36,7 @@ void FrameManager::Tick()
 		m_time = 0.f;
 		m_lock = false;
 
-		CaculateFrame(m_pOwningGame.lock()->getTimerManager()->GetTotalTime());
+		CaculateFrame(TimerManager.lock()->GetTotalTime());
 	}
 }
 
