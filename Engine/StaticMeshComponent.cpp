@@ -75,7 +75,7 @@ void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& Fi
 	Materials.reserve(MaterialNum);
 	for (uint32 MaterialIndex = 0; MaterialIndex < MaterialNum; ++MaterialIndex)
 	{
-		std::shared_ptr<MMaterial> NewMaterial = std::make_shared<MMaterial>();
+		std::shared_ptr<MMaterial>& NewMaterial = std::make_shared<MMaterial>();
 
 		if (MaterialIndex < Textures.size())
 		{
@@ -191,7 +191,7 @@ StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath, bool bUse
 	// 임시, 파라미터 wstring으로 변경 필요
 	_pStaticMesh->LoadFromFBX(FilePath);
 
-	if (bUsePhysX)
+	if (g_pPhysics && bUsePhysX)
 	{
 		PxMaterial *PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
 		g_pPhysics->CreateConvex(_pStaticMesh->GetAllVertexPosition(), &PhysXConvexMesh);
