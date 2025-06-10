@@ -10,10 +10,10 @@ class PhysXX;
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow);
 ENGINE_DLL const bool EngineLoop();
 ENGINE_DLL const bool EngineRelease();
-ENGINE_DLL std::shared_ptr<GraphicDevice> getGraphicDevice();
-ENGINE_DLL std::shared_ptr<Renderer> getRenderer();
-ENGINE_DLL std::shared_ptr<MainGame> getMainGame();
-ENGINE_DLL std::shared_ptr<MainGameSetting> getSetting();
+ENGINE_DLL std::unique_ptr<GraphicDevice>& getGraphicDevice();
+ENGINE_DLL std::unique_ptr<Renderer>& getRenderer();
+ENGINE_DLL std::unique_ptr<MainGame>& getMainGame();
+ENGINE_DLL std::unique_ptr<MainGameSetting>& getSetting();
 
 template <class T>
 const bool createMainGame(std::shared_ptr<T> &pGame)
@@ -25,7 +25,7 @@ const bool createMainGame(std::shared_ptr<T> &pGame)
 	return true;
 }
 
-ENGINE_DLL const bool setGame(std::shared_ptr<MainGame> pGame);
+ENGINE_DLL const bool setGame(std::unique_ptr<MainGame>&& pGame);
 
 #define __MOON_ENGINE_H__
 #endif

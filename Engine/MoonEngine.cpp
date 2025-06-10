@@ -12,17 +12,21 @@
 #include "ShaderManager.h"
 #include "ShaderLoader.h"
 
+#include "Core/ResourceManager.h"
+#include "Core/ResourceLoader.h"
+
 HINSTANCE g_hInstance;
 HWND g_hWnd;
 
-std::shared_ptr<MainGameSetting> g_pSetting			= std::make_shared<MainGameSetting>();
+std::unique_ptr<MainGameSetting> g_pSetting			= std::make_unique<MainGameSetting>();
 std::shared_ptr<Window> g_pMainWindow				= nullptr;
-std::shared_ptr<DirectInput> g_pDirectInput			= nullptr;
-std::shared_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
-std::shared_ptr<MShaderManager> ShaderManager		= nullptr;
-std::shared_ptr<Renderer> g_pRenderer				= nullptr;
-std::shared_ptr<MainGame> g_pMainGame				= nullptr;
-std::shared_ptr<PhysXX> g_pPhysics					= nullptr;
+std::unique_ptr<DirectInput> g_pDirectInput			= nullptr;
+std::unique_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
+std::unique_ptr<MShaderManager> ShaderManager		= nullptr;
+std::unique_ptr<Renderer> g_pRenderer				= nullptr;
+std::unique_ptr<MainGame> g_pMainGame				= nullptr;
+std::unique_ptr<PhysXX> g_pPhysics					= nullptr;
+std::unique_ptr<MResourceManager> g_ResourceManager	= nullptr;
 		
 
 const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow)
@@ -32,19 +36,22 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 	g_pMainWindow		= pWindow;
 
-	g_pDirectInput		= std::make_shared<DirectInput>();
+	g_pDirectInput		= std::make_unique<DirectInput>();
 
-	g_pGraphicDevice	= std::make_shared<GraphicDevice>();
+	g_pGraphicDevice	= std::make_unique<GraphicDevice>();
 	
-	ShaderManager	= std::make_shared<MShaderManager>();
+	ShaderManager	= std::make_unique<MShaderManager>();
 	ShaderLoader shaderLoader;
 	shaderLoader.loadShaderFiles(ShaderManager);
 
 	g_pGraphicDevice->BuildInputLayout();
 
-	g_pPhysics			= std::make_shared<PhysXX>();
+	g_pPhysics			= std::make_unique<PhysXX>();
 
-	g_pRenderer			= std::make_shared<Renderer>();
+	g_pRenderer			= std::make_unique<Renderer>();
+
+	g_ResourceManager = std::make_unique<MResourceManager>();
+	g_ResourceManager->AddLoader(std::make_shared<MTextureLoader>());
 
 	return true;
 }
@@ -59,36 +66,37 @@ const bool EngineRelease()
 	g_pMainGame.reset();
 
 	ShaderManager->Release();
+	g_ResourceManager->Release();
 	g_pRenderer->Release();
 	g_pGraphicDevice->Release();
 
 	return true;
 }
 
-std::shared_ptr<GraphicDevice> getGraphicDevice()
+std::unique_ptr<GraphicDevice>& getGraphicDevice()
 {
 	return g_pGraphicDevice;
 }
 
-std::shared_ptr<Renderer> getRenderer()
+std::unique_ptr<Renderer>& getRenderer()
 {
 	return g_pRenderer;
 }
 
-std::shared_ptr<MainGame> getMainGame()
+std::unique_ptr<MainGame>& getMainGame()
 {
 	return g_pMainGame;
 }
 
-std::shared_ptr<MainGameSetting> getSetting()
+std::unique_ptr<MainGameSetting>& getSetting()
 {
 	return g_pSetting;
 }
 
-const bool setGame(std::shared_ptr<MainGame> pGame)
+const bool setGame(std::unique_ptr<MainGame>&& pGame)
 {
 	pGame->MainGame::initialize();
-	g_pMainGame = pGame;
+	g_pMainGame = std::move(pGame);
 
 	return true;
 }

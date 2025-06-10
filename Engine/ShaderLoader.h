@@ -11,11 +11,11 @@ public:
 	~ShaderLoader();
 
 public:
-	const bool loadShaderFiles(std::shared_ptr<MShaderManager> shaderManager);
+	const bool loadShaderFiles(const std::unique_ptr<MShaderManager>& shaderManager);
 private:
-	const bool loadVertexShaderFromFiles(std::shared_ptr<MShaderManager> shaderManager);
-	const bool loadPixelShaderFromFiles(std::shared_ptr<MShaderManager> shaderManager);
-	const bool loadGeometryShaderFromFiles(std::shared_ptr<MShaderManager> shaderManager);
+	const bool loadVertexShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager);
+	const bool loadPixelShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager);
+	const bool loadGeometryShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager);
 };
 
 #define __SHADER_LOADER_H__
