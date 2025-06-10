@@ -30,7 +30,7 @@ RenderPass::RenderPass()
 	, _geometryShader{ std::make_shared<GeometryShader>() }
 	, _bShaderSet{ false }
 	, bClearTargets{ true }
-	, _bUseOwningDepthStencilBuffer{ false }
+	, UsedDepthStencilBuffer{ ERenderTarget::Count }
 {
 }
 
@@ -59,8 +59,9 @@ void RenderPass::Begin()
 				g_pGraphicDevice->getContext()->ClearDepthStencilView(ResourceViewBindData.ReourceView->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 			}
 		}
-
-		g_pGraphicDevice->getContext()->OMSetRenderTargets(RenderTargetNum, RowRenderTargets.data(), _bUseOwningDepthStencilBuffer ? CachedRenderTargets[static_cast<int>(ERenderTarget::ShadowDepth)]->getDepthStencilView() : _pOldDepthStencilView);
+		
+		// PointRenderPass에서, CachedRenderTargets[static_cast<int>(ERenderTarget::DirectionalShadowDepth)]를 고정적으로 사용하고 있음...
+		g_pGraphicDevice->getContext()->OMSetRenderTargets(RenderTargetNum, RowRenderTargets.data(), UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[enumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
 	}
 
 	uint32 ResorceViewNum = CastValue<uint32>(CachedResourceViews.size());
@@ -91,10 +92,10 @@ void RenderPass::End()
 	std::vector<ID3D11ShaderResourceView*> RowResourceViews(8, nullptr);
 	g_pGraphicDevice->getContext()->PSSetShaderResources(0, 8, RowResourceViews.data());
 
-	uint32 renderTargetCount = CachedRenderTargets.size() == 0 ? 1 : CachedRenderTargets.size();
-	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(renderTargetCount, nullptr);
+	uint32 RenderTargetNum = static_cast<uint32>(CachedRenderTargets.size() == 0 ? 1 : CachedRenderTargets.size());
+	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(RenderTargetNum, nullptr);
 	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
-	g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(renderTargetCount), restoreRenderTargetViewArray.data(), _pOldDepthStencilView);
+	g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), _pOldDepthStencilView);
 
 	//// 쉐이더 리소스 뷰 해제
 	//for (const FResourceViewBindData& ResourceViewBindData : _resourceViewList)
@@ -131,36 +132,36 @@ void RenderPass::DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 	{
 		if (processPrimitiveData(PrimitiveData))
 		{
-			PrimitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
-			PrimitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
+			PrimitiveData._pMaterial.lock()->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
+			PrimitiveData._pMaterial.lock()->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
 			render(PrimitiveData);
 		}
 	}
 }
 
-const bool RenderPass::processPrimitiveData(const FPrimitiveData& primitiveData)
+const bool RenderPass::processPrimitiveData(const FPrimitiveData& PrimitiveData)
 {
-	std::shared_ptr<PrimitiveComponent> Primitive = primitiveData._pPrimitive.lock();
+	std::shared_ptr<PrimitiveComponent> Primitive = PrimitiveData._pPrimitive.lock();
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 버텍스쉐이더 ConstantBuffer
-	primitiveData._pMaterial->getVertexShader()->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
+	PrimitiveData._pMaterial.lock()->getVertexShader()->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
 	// 애님 관련 변수
-	BOOL animated = primitiveData._matrices != nullptr;
-	primitiveData._pMaterial->getVertexShader()->SetValue(TEXT("animated"), animated);
+	BOOL animated = PrimitiveData._matrices != nullptr;
+	PrimitiveData._pMaterial.lock()->getVertexShader()->SetValue(TEXT("animated"), animated);
 	if (animated == TRUE)
 	{
-		primitiveData._pMaterial->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), primitiveData._matrices);
+		PrimitiveData._pMaterial.lock()->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), PrimitiveData._matrices);
 	}
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer
-	BOOL bUseNormal = primitiveData._pMaterial->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
-	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
-	BOOL bUseSpecular = primitiveData._pMaterial->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
-	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
-	BOOL bAlphaMask = primitiveData._pMaterial->IsAlphaMasked() ? TRUE : FALSE;
-	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("bAlphaMask"), bAlphaMask);
+	BOOL bUseNormal = PrimitiveData._pMaterial.lock()->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
+	BOOL bUseSpecular = PrimitiveData._pMaterial.lock()->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
+	BOOL bAlphaMask = PrimitiveData._pMaterial.lock()->IsAlphaMasked() ? TRUE : FALSE;
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("bAlphaMask"), bAlphaMask);
 	return true;
 }
 
@@ -219,8 +220,8 @@ void RenderPass::SetClearTargets(const bool bClear)
 	bClearTargets = bClear;
 }
 
-void RenderPass::SetUseOwningDepthStencilBuffer(const bool bUse)
+void RenderPass::SetUseOwningDepthStencilBuffer(const ERenderTarget bUse)
 {
-	_bUseOwningDepthStencilBuffer = bUse;
+	UsedDepthStencilBuffer = bUse;
 }
 

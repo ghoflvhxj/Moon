@@ -3,26 +3,37 @@
 
 class MTexture;
 
-struct RenderTagetInfo
+struct FRenderTagetInfo
 {
-	int textureArrayCount;
-	UINT width;
-	UINT height;
+	FRenderTagetInfo()
+		: TextrueNum{ 1 }
+		, Width{ 0 }
+		, Height{ 0 }
+		, bCube{ false }
+	{
+	}
+	uint32 TextrueNum;
+	uint32 Width;
+	uint32 Height;
+	bool bCube;
+
+	static const FRenderTagetInfo GetDefault();
+	static const FRenderTagetInfo GetCube();
 };
 
 class RenderTarget
 {
 public:
 	explicit RenderTarget();
-	explicit RenderTarget(RenderTagetInfo &info);
+	explicit RenderTarget(const FRenderTagetInfo& RenderTargetInfo);
 	virtual ~RenderTarget();
 	
 public:
 	std::shared_ptr<MTexture> AsTexture();
 private:
-	void initializeTexture(RenderTagetInfo &renderTargetInfo);
-	std::shared_ptr<MTexture> _pRenderTargetTexture;
-	std::shared_ptr<MTexture> _pDepthStencilTexture;
+	void initializeTexture(const FRenderTagetInfo& RenderTargetInfo);
+	std::shared_ptr<MTexture> RenderTargetTexture;	// uniqueptr로 변경하기
+	std::shared_ptr<MTexture> DepthStencilTexture;	// uniqueptr로 변경하기
 
 public:
 	ID3D11RenderTargetView* AsRenderTargetView();

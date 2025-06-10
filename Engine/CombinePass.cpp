@@ -20,34 +20,34 @@
 
 using namespace DirectX;
 
-void CombinePass::render(const FPrimitiveData &primitiveData)
+void CombinePass::render(const FPrimitiveData &PrimitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	if (nullptr != primitiveData._pVertexBuffer)
+	if (nullptr != PrimitiveData._pVertexBuffer)
 	{
-		primitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
+		PrimitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
 	}
 
-	//if (nullptr != primitiveData._pIndexBuffer)
+	//if (nullptr != PrimitiveData._pIndexBuffer)
 	//{
-	//	primitiveData._pIndexBuffer->setBufferToDevice(offset);
+	//	PrimitiveData._pIndexBuffer->setBufferToDevice(offset);
 	//}
 
-	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterial->getTopology());
+	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(PrimitiveData._pMaterial.lock()->getTopology());
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variablesVS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	auto &variablesVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
 	_vertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variablesVS);	// RenderPass에 설정된 쉐이더를 사용함!
 	_vertexShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	auto &variableInfosPS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
 	_pixelShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS); // RenderPass에 설정된 쉐이더를 사용함!
 	_pixelShader->SetToDevice();
 
@@ -68,16 +68,16 @@ void CombinePass::render(const FPrimitiveData &primitiveData)
 	g_pGraphicDevice->getContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
-	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
+	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(PrimitiveData._pIndexBuffer->getIndexCount())
 	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
 	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
 
-	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
+	g_pGraphicDevice->getContext()->Draw(PrimitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool GeometryPass::processPrimitiveData(const FPrimitiveData &primitiveData)
+const bool GeometryPass::processPrimitiveData(const FPrimitiveData &PrimitiveData)
 {
-	switch (primitiveData._primitiveType)
+	switch (PrimitiveData._primitiveType)
 	{
 	case EPrimitiveType::Mesh:
 		break;
@@ -91,49 +91,49 @@ const bool GeometryPass::processPrimitiveData(const FPrimitiveData &primitiveDat
 		return false;
 	}
 
-	return RenderPass::processPrimitiveData(primitiveData);
+	return RenderPass::processPrimitiveData(PrimitiveData);
 }
 
-void GeometryPass::render(const FPrimitiveData &primitiveData)
+void GeometryPass::render(const FPrimitiveData &PrimitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	if (nullptr != primitiveData._pVertexBuffer)
+	if (nullptr != PrimitiveData._pVertexBuffer)
 	{
-		primitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
+		PrimitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
 	}
 
-	//if (nullptr != primitiveData._pIndexBuffer)
+	//if (nullptr != PrimitiveData._pIndexBuffer)
 	//{
-	//	primitiveData._pIndexBuffer->setBufferToDevice(offset);
+	//	PrimitiveData._pIndexBuffer->setBufferToDevice(offset);
 	//}
 
-	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterial->getTopology());
+	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(PrimitiveData._pMaterial.lock()->getTopology());
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
-	primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
-	primitiveData._pMaterial->getVertexShader()->SetToDevice();
+	auto &variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	PrimitiveData._pMaterial.lock()->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
+	PrimitiveData._pMaterial.lock()->getVertexShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
-	primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
-	primitiveData._pMaterial->getPixelShader()->SetToDevice();
+	auto &variableInfosPS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	PrimitiveData._pMaterial.lock()->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Geometry Shader
 	g_pGraphicDevice->getContext()->GSSetShader(nullptr, nullptr, 0);
 
-	primitiveData._pMaterial->SetTexturesToDevice();
+	PrimitiveData._pMaterial.lock()->SetTexturesToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// RasterizerState
-	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(primitiveData._pMaterial->getFillMode(), primitiveData._pMaterial->getCullMode()));
+	g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(PrimitiveData._pMaterial.lock()->getFillMode(), PrimitiveData._pMaterial.lock()->getCullMode()));
 
 	//--------------------------------------------------------------------------------------------------------------------------------
 	// DepthStencilState
@@ -144,52 +144,58 @@ void GeometryPass::render(const FPrimitiveData &primitiveData)
 	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
-	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
+	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(PrimitiveData._pIndexBuffer->getIndexCount())
 	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
 	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
 
-	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
+	g_pGraphicDevice->getContext()->Draw(PrimitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool ShadowDepthPass::processPrimitiveData(const FPrimitiveData & primitiveData)
+DirectionalShadowDepthPass::DirectionalShadowDepthPass()
+	: RenderPass()
+{
+	SetUseOwningDepthStencilBuffer(ERenderTarget::DirectionalShadowDepth);
+}
+
+const bool DirectionalShadowDepthPass::processPrimitiveData(const FPrimitiveData & PrimitiveData)
 {
 	// 렌더 큐 만들기
-	if (primitiveData._primitiveType != EPrimitiveType::Mesh)
+	if (PrimitiveData._primitiveType != EPrimitiveType::Mesh)
 	{
 		return false;
 	}
 
-	return RenderPass::processPrimitiveData(primitiveData);
+	return RenderPass::processPrimitiveData(PrimitiveData);
 }
 
-void ShadowDepthPass::render(const FPrimitiveData & primitiveData)
+void DirectionalShadowDepthPass::render(const FPrimitiveData & PrimitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	if (nullptr != primitiveData._pVertexBuffer)
+	if (nullptr != PrimitiveData._pVertexBuffer)
 	{
-		primitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
+		PrimitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
 	}
 
-	//if (nullptr != primitiveData._pIndexBuffer)
+	//if (nullptr != PrimitiveData._pIndexBuffer)
 	//{
-	//	primitiveData._pIndexBuffer->setBufferToDevice(offset);
+	//	PrimitiveData._pIndexBuffer->setBufferToDevice(offset);
 	//}
 
-	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterial->getTopology());
+	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(PrimitiveData._pMaterial.lock()->getTopology());
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	auto &variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
 	_vertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
 	_vertexShader->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	auto &variableInfosPS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Pixel, EConstantBufferLayer::PerObject);
 	_pixelShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
 	_pixelShader->SetToDevice();
 
@@ -213,27 +219,27 @@ void ShadowDepthPass::render(const FPrimitiveData & primitiveData)
 	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
-	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer-CO>getIndexCount())
+	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(PrimitiveData._pIndexBuffer-CO>getIndexCount())
 	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
 	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
 
-	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
+	g_pGraphicDevice->getContext()->Draw(PrimitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool LightPass::processPrimitiveData(const FPrimitiveData &primitiveData)
+const bool LightPass::processPrimitiveData(const FPrimitiveData &PrimitiveData)
 {
 	// 렌더 큐 만들기
-	if (primitiveData._primitiveType != EPrimitiveType::Light)
+	if (PrimitiveData._primitiveType != EPrimitiveType::Light)
 	{
 		return false;
 	}
 
-	PrimitiveComponent* PrimitiveComponent = primitiveData._pPrimitive.lock().get();
+	PrimitiveComponent* PrimitiveComponent = PrimitiveData._pPrimitive.lock().get();
 
 	Vec3 trans = PrimitiveComponent->getTranslation();
 	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
 	Vec4 color = { 1.f, 1.f, 1.f, 1.f };
-	if (std::shared_ptr<LightComponent> LightComp = std::static_pointer_cast<LightComponent>(primitiveData._pPrimitive.lock()))
+	if (std::shared_ptr<LightComponent> LightComp = std::static_pointer_cast<LightComponent>(PrimitiveData._pPrimitive.lock()))
 	{
 		color.x = LightComp->getColor().x;
 		color.y = LightComp->getColor().y;
@@ -247,47 +253,47 @@ const bool LightPass::processPrimitiveData(const FPrimitiveData &primitiveData)
 	XMStoreFloat4x4(&rotMatrix, rotationMatrix);
 	Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
 
-	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
-	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
-	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
-	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
-	primitiveData._pMaterial->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
 
-	return RenderPass::processPrimitiveData(primitiveData);
+	return RenderPass::processPrimitiveData(PrimitiveData);
 }
 
-void LightPass::render(const FPrimitiveData &primitiveData)
+void LightPass::render(const FPrimitiveData& PrimitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	if (nullptr != primitiveData._pVertexBuffer)
+	if (nullptr != PrimitiveData._pVertexBuffer)
 	{
-		primitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
+		PrimitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
 	}
 
-	//if (nullptr != primitiveData._pIndexBuffer)
+	//if (nullptr != PrimitiveData._pIndexBuffer)
 	//{
-	//	primitiveData._pIndexBuffer->setBufferToDevice(offset);
+	//	PrimitiveData._pIndexBuffer->setBufferToDevice(offset);
 	//}
 
-	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterial->getTopology());
+	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(PrimitiveData._pMaterial.lock()->getTopology());
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	//auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, EConstantBufferLayer::PerObject);
-	//primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
-	primitiveData._pMaterial->getVertexShader()->SetToDevice();
+	//auto &variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariableInfos(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	//PrimitiveData._pMaterial.lock()->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
+	PrimitiveData._pMaterial.lock()->getVertexShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	//auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, EConstantBufferLayer::PerObject);
-	//primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
-	primitiveData._pMaterial->getPixelShader()->SetToDevice();
+	//auto &variableInfosPS = PrimitiveData._pMaterial.lock()->getConstantBufferVariableInfos(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	//PrimitiveData._pMaterial.lock()->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetToDevice();
 
-	//primitiveData._pMaterial->SetTexturesToDevice();
+	//PrimitiveData._pMaterial.lock()->SetTexturesToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Geometry Shader
@@ -306,55 +312,55 @@ void LightPass::render(const FPrimitiveData &primitiveData)
 	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
-	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
+	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(PrimitiveData._pIndexBuffer->getIndexCount())
 	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
 	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
 
-	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
+	g_pGraphicDevice->getContext()->Draw(PrimitiveData._pVertexBuffer->getVertexCount(), 0);
 }
 
-const bool SkyPass::processPrimitiveData(const FPrimitiveData& primitiveData)
+const bool SkyPass::processPrimitiveData(const FPrimitiveData& PrimitiveData)
 {
-	if (primitiveData._primitiveType != EPrimitiveType::Sky)
+	if (PrimitiveData._primitiveType != EPrimitiveType::Sky)
 	{
 		return false;
 	}
 
-	return RenderPass::processPrimitiveData(primitiveData);
+	return RenderPass::processPrimitiveData(PrimitiveData);
 }
 
-void SkyPass::render(const FPrimitiveData & primitiveData)
+void SkyPass::render(const FPrimitiveData& PrimitiveData)
 {
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Input Assembler
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
-	if (nullptr != primitiveData._pVertexBuffer)
+	if (nullptr != PrimitiveData._pVertexBuffer)
 	{
-		primitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
+		PrimitiveData._pVertexBuffer->setBufferToDevice(stride, offset);
 	}
 
-	//if (nullptr != primitiveData._pIndexBuffer)
+	//if (nullptr != PrimitiveData._pIndexBuffer)
 	//{
-	//	primitiveData._pIndexBuffer->setBufferToDevice(offset);
+	//	PrimitiveData._pIndexBuffer->setBufferToDevice(offset);
 	//}
 
-	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(primitiveData._pMaterial->getTopology());
+	g_pGraphicDevice->getContext()->IASetPrimitiveTopology(PrimitiveData._pMaterial.lock()->getTopology());
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Vertex Shader
-	//auto &variableInfosVS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Vertex, EConstantBufferLayer::PerObject);
-	//primitiveData._pMaterial->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
-	primitiveData._pMaterial->getVertexShader()->SetToDevice();
+	//auto &variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariableInfos(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+	//PrimitiveData._pMaterial.lock()->getVertexShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
+	PrimitiveData._pMaterial.lock()->getVertexShader()->SetToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Pixel Shader
-	//auto &variableInfosPS = primitiveData._pMaterial->getConstantBufferVariableInfos(ShaderType::Pixel, EConstantBufferLayer::PerObject);
-	//primitiveData._pMaterial->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
-	primitiveData._pMaterial->getPixelShader()->SetToDevice();
+	//auto &variableInfosPS = PrimitiveData._pMaterial.lock()->getConstantBufferVariableInfos(ShaderType::Pixel, EConstantBufferLayer::PerObject);
+	//PrimitiveData._pMaterial.lock()->getPixelShader()->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosPS);
+	PrimitiveData._pMaterial.lock()->getPixelShader()->SetToDevice();
 
-	primitiveData._pMaterial->SetTexturesToDevice();
+	PrimitiveData._pMaterial.lock()->SetTexturesToDevice();
 
 	//---------------------------------------------------------------------------------------------------------------------------------
 	// Geometry Shader
@@ -373,9 +379,15 @@ void SkyPass::render(const FPrimitiveData & primitiveData)
 	g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 
 	//--------------------------------------------------------------------------------------------------------------------------------
-	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(primitiveData._pIndexBuffer->getIndexCount())
+	//g_pGraphicDevice->getContext()->DrawIndexed(static_cast<UINT>(PrimitiveData._pIndexBuffer->getIndexCount())
 	//	, static_cast<UINT>(_indexOffsetList[indexOffsetCount - 1])
 	//	, static_cast<UINT>(_vertexOffsetList[indexOffsetCount - 1]));
 
-	g_pGraphicDevice->getContext()->Draw(primitiveData._pVertexBuffer->getVertexCount(), 0);
+	g_pGraphicDevice->getContext()->Draw(PrimitiveData._pVertexBuffer->getVertexCount(), 0);
+}
+
+PointShadowDepthPass::PointShadowDepthPass()
+	: RenderPass()
+{
+	SetUseOwningDepthStencilBuffer(ERenderTarget::PointShadowDepth);
 }

@@ -29,8 +29,8 @@ enum class ERenderTarget
 	LightDiffuse,
 	LightSpecular,
 
-	ShadowDepth,
-	//Shadow,
+	DirectionalShadowDepth,
+	PointShadowDepth,
 
 	Count
 };
@@ -38,6 +38,7 @@ enum class ERenderTarget
 enum class ERenderPass
 {
 	ShadowDepth,
+	PointShadowDepth,
 	Geometry,
 	Light,
 	SkyPass,

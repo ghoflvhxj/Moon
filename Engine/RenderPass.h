@@ -27,8 +27,8 @@ public:
 	virtual void Begin();
 	/*virtual*/ void End();
 	virtual void DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList);
-	virtual const bool processPrimitiveData(const FPrimitiveData& primitiveData);
-	virtual void render(const FPrimitiveData &primitiveData) = 0;
+	virtual const bool processPrimitiveData(const FPrimitiveData& PrimitiveData);
+	virtual void render(const FPrimitiveData & PrimitiveData) = 0;
 
 	// ·»´õ Å¸°Ù
 public:
@@ -96,9 +96,9 @@ private:
 	bool bClearTargets;
 
 public:
-	void SetUseOwningDepthStencilBuffer(const bool bUse);
+	void SetUseOwningDepthStencilBuffer(const ERenderTarget bUse);
 private:
-	bool _bUseOwningDepthStencilBuffer;
+	ERenderTarget UsedDepthStencilBuffer;
 
 public:
 	DirectX::XMVECTORF32 Color = EngineColors::Black;

@@ -29,17 +29,27 @@ private:
 	void render(const FPrimitiveData &primitiveData);
 };
 
-class ShadowDepthPass : public RenderPass
+class DirectionalShadowDepthPass : public RenderPass
 {
 public:
-	explicit ShadowDepthPass() = default;
-	virtual ~ShadowDepthPass() = default;
+	explicit DirectionalShadowDepthPass();
+	virtual ~DirectionalShadowDepthPass() = default;
 
 public:
 	virtual const bool processPrimitiveData(const FPrimitiveData & primitiveData) override;
 
 private:
 	void render(const FPrimitiveData & primitiveData);
+};
+
+class PointShadowDepthPass : public RenderPass
+{
+public:
+	explicit PointShadowDepthPass();
+	virtual ~PointShadowDepthPass() = default;
+
+private:
+	void render(const FPrimitiveData& primitiveData) {}
 };
 
 class LightPass : public RenderPass

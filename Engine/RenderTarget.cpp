@@ -11,112 +11,146 @@
 #include "MainGameSetting.h"
 
 RenderTarget::RenderTarget()
-	: _pRenderTargetTexture{ nullptr }
+	: RenderTargetTexture{ nullptr }
 	, _pRenderTargetView{ nullptr }
-	, _pDepthStencilTexture{ nullptr }
+	, DepthStencilTexture{ nullptr }
 	, _pDepthStencilView{ nullptr }
 {
-	RenderTagetInfo info = {};
-	info.textureArrayCount = 1;
-	info.width = g_pSetting->getResolutionWidth<UINT>();
-	info.height = g_pSetting->getResolutionHeight<UINT>();
-
-	initializeTexture(info);
+	initializeTexture(FRenderTagetInfo::GetDefault());
 }
 
-RenderTarget::RenderTarget(RenderTagetInfo &info)
-	: _pRenderTargetTexture{ nullptr }
+RenderTarget::RenderTarget(const FRenderTagetInfo& RenderTargetInfo)
+	: RenderTargetTexture{ nullptr }
 	, _pRenderTargetView{ nullptr }
-	, _pDepthStencilTexture{ nullptr }
+	, DepthStencilTexture{ nullptr }
 	, _pDepthStencilView{ nullptr }
 {
-	initializeTexture(info);
+	initializeTexture(RenderTargetInfo);
 }
 
 RenderTarget::~RenderTarget()
 {
-	SAFE_RELEASE(_pRenderTargetView)
-	SAFE_RELEASE(_pDepthStencilView);
+	SafeRelease(_pRenderTargetView);
+	SafeRelease(_pDepthStencilView);
 }
 
 std::shared_ptr<MTexture> RenderTarget::AsTexture()
 {
-	return _pRenderTargetTexture;
+	return RenderTargetTexture;
 }
 
-void RenderTarget::initializeTexture(RenderTagetInfo &renderTargetInfo)
+void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 {
-	// RenderTargetView
-	D3D11_TEXTURE2D_DESC renderTagetDesc = {};
-	renderTagetDesc.Width = renderTargetInfo.width;
-	renderTagetDesc.Height = renderTargetInfo.height;
-	renderTagetDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	renderTagetDesc.SampleDesc.Count = 1;
-	renderTagetDesc.SampleDesc.Quality = 0;
-	renderTagetDesc.ArraySize = renderTargetInfo.textureArrayCount;
-	renderTagetDesc.MipLevels = 1;
-	renderTagetDesc.Usage = D3D11_USAGE_DEFAULT;
-	renderTagetDesc.Format = renderTargetInfo.textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_TYPELESS;
-	renderTagetDesc.CPUAccessFlags = 0;
-	renderTagetDesc.MiscFlags = 0;
+	bool bDepthOnly = RenderTargetInfo.TextrueNum == 1;
+	bool bSingleTexture = RenderTargetInfo.TextrueNum <= 1;
 
-	_pRenderTargetTexture = std::make_shared<MTexture>();
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&renderTagetDesc, nullptr, &_pRenderTargetTexture->getRawTexturePointer()));
+	// RenderTarget ÅØ½ºÃ³
+	D3D11_TEXTURE2D_DESC TextureDesc = {};
+	TextureDesc.Width = RenderTargetInfo.Width;
+	TextureDesc.Height = RenderTargetInfo.Height;
+	TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	TextureDesc.SampleDesc.Count = 1;
+	TextureDesc.SampleDesc.Quality = 0;
+	TextureDesc.ArraySize = RenderTargetInfo.TextrueNum;
+	TextureDesc.MipLevels = 1;
+	TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+	TextureDesc.Format = bDepthOnly ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_TYPELESS;
+	TextureDesc.CPUAccessFlags = 0;
+	TextureDesc.MiscFlags = RenderTargetInfo.bCube ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 
-	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = { };
-	renderTargetViewDesc.Format = renderTargetInfo.textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
-	if (renderTargetInfo.textureArrayCount <= 1)
+	RenderTargetTexture = std::make_shared<MTexture>();
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&TextureDesc, nullptr, &RenderTargetTexture->GetTextureResource()));
+
+	// RenderTarget ·»´õ Å¸°Ù ºä
+	D3D11_RENDER_TARGET_VIEW_DESC RenderTargetViewDesc		= { };
+	RenderTargetViewDesc.Format								= bDepthOnly ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
+	if (bSingleTexture)
 	{
-		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		renderTargetViewDesc.Texture2D.MipSlice = 0;
+		RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		RenderTargetViewDesc.Texture2D.MipSlice = 0;
+	}
+	else if(RenderTargetInfo.bCube)
+	{
+		RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+		RenderTargetViewDesc.Texture2DArray.ArraySize = 6;
+		RenderTargetViewDesc.Texture2DArray.FirstArraySlice = 0;
+		RenderTargetViewDesc.Texture2DArray.MipSlice = 0;
 	}
 	else
 	{
-		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-		renderTargetViewDesc.Texture2DArray.MipSlice = 0;
-		renderTargetViewDesc.Texture2DArray.FirstArraySlice = 0;
-		renderTargetViewDesc.Texture2DArray.ArraySize = renderTargetInfo.textureArrayCount;
+		RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+		RenderTargetViewDesc.Texture2DArray.ArraySize = RenderTargetInfo.TextrueNum;
+		RenderTargetViewDesc.Texture2DArray.FirstArraySlice = 0;
+		RenderTargetViewDesc.Texture2DArray.MipSlice = 0;
 	}
-	
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(_pRenderTargetTexture->getRawTexturePointer(), &renderTargetViewDesc, &_pRenderTargetView));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(RenderTargetTexture->GetTextureResource(), &RenderTargetViewDesc, &_pRenderTargetView));
 
-	// ShaderResouceView
-	D3D11_SHADER_RESOURCE_VIEW_DESC svd = { };
-	svd.Format = renderTargetInfo.textureArrayCount == 1 ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
-	if (renderTargetInfo.textureArrayCount <= 1)
+	// RenderTarget ½¦ÀÌ´õ ¸®¼Ò½º ºä
+	D3D11_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc	= { };
+	ShaderResourceViewDesc.Format							= bDepthOnly ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
+	ShaderResourceViewDesc.ViewDimension					= bSingleTexture ? D3D11_SRV_DIMENSION_TEXTURE2D : RenderTargetInfo.bCube ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+	if (bSingleTexture)
 	{
-		svd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		svd.Texture2D.MipLevels = -1;
-		svd.Texture2D.MostDetailedMip = 0;
+		ShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		ShaderResourceViewDesc.Texture2D.MipLevels = -1;
+		ShaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+	}
+	else if (RenderTargetInfo.bCube)
+	{
+		ShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+		ShaderResourceViewDesc.TextureCube.MipLevels = -1;
+		ShaderResourceViewDesc.TextureCube.MostDetailedMip = 0;
 	}
 	else
 	{
-		svd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-		svd.Texture2DArray.MipLevels = -1;
-		svd.Texture2DArray.MostDetailedMip = 0;
-		svd.Texture2DArray.ArraySize = renderTargetInfo.textureArrayCount;
-		svd.Texture2DArray.FirstArraySlice = 0;
+		ShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+		ShaderResourceViewDesc.Texture2DArray.ArraySize = RenderTargetInfo.TextrueNum;
+		ShaderResourceViewDesc.Texture2DArray.MipLevels = -1;
+		ShaderResourceViewDesc.Texture2DArray.MostDetailedMip = 0;
+		ShaderResourceViewDesc.Texture2DArray.FirstArraySlice = 0;
 	}
 
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(_pRenderTargetTexture->getRawTexturePointer(), &svd, &_pRenderTargetTexture->getRawResourceViewPointer()));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(RenderTargetTexture->GetTextureResource(), &ShaderResourceViewDesc, &RenderTargetTexture->getRawResourceViewPointer()));
 
-	// DepthStencilView
-	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
-	depthStencilDesc.Width = renderTargetInfo.width;
-	depthStencilDesc.Height = renderTargetInfo.height;
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.ArraySize = renderTargetInfo.textureArrayCount;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.CPUAccessFlags = 0;
-	depthStencilDesc.MiscFlags = 0;
+	// DepthStencil ÅØ½ºÃÄ
+	D3D11_TEXTURE2D_DESC DepthStencilTextureDesc = { };
+	DepthStencilTextureDesc.Width = RenderTargetInfo.Width;
+	DepthStencilTextureDesc.Height = RenderTargetInfo.Height;
+	DepthStencilTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	DepthStencilTextureDesc.SampleDesc.Count = 1;
+	DepthStencilTextureDesc.SampleDesc.Quality = 0;
+	DepthStencilTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+	DepthStencilTextureDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	DepthStencilTextureDesc.ArraySize = RenderTargetInfo.TextrueNum;
+	DepthStencilTextureDesc.MipLevels = 1;
+	DepthStencilTextureDesc.CPUAccessFlags = 0;
+	DepthStencilTextureDesc.MiscFlags = RenderTargetInfo.bCube ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
+	DepthStencilTexture = std::make_shared<MTexture>();
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&DepthStencilTextureDesc, nullptr, &DepthStencilTexture->GetTextureResource()));
 
-	_pDepthStencilTexture = std::make_shared<MTexture>();
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&depthStencilDesc, nullptr, &_pDepthStencilTexture->getRawTexturePointer()));
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(_pDepthStencilTexture->getRawTexturePointer(), nullptr, &_pDepthStencilView));
+	// DepthStencil µª½º ½ºÅÙ½Ç ºä
+	D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
+	DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	if (bSingleTexture)
+	{
+		DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		DepthStencilViewDesc.Texture2D.MipSlice = 0;
+	}
+	else if (RenderTargetInfo.bCube)
+	{
+		DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+		DepthStencilViewDesc.Texture2DArray.ArraySize = 6;
+		DepthStencilViewDesc.Texture2DArray.FirstArraySlice = 0;
+		DepthStencilViewDesc.Texture2DArray.MipSlice = 0;
+	}
+	else
+	{
+		DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+		DepthStencilViewDesc.Texture2DArray.ArraySize = RenderTargetInfo.TextrueNum;
+		DepthStencilViewDesc.Texture2DArray.FirstArraySlice = 0;
+		DepthStencilViewDesc.Texture2DArray.MipSlice = 0;
+	}
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(DepthStencilTexture->GetTextureResource(), &DepthStencilViewDesc, &_pDepthStencilView));
 }
 
 ID3D11RenderTargetView* RenderTarget::AsRenderTargetView()
@@ -127,4 +161,26 @@ ID3D11RenderTargetView* RenderTarget::AsRenderTargetView()
 ID3D11DepthStencilView* RenderTarget::getDepthStencilView()
 {
 	return _pDepthStencilView;
+}
+
+const FRenderTagetInfo FRenderTagetInfo::GetDefault()
+{
+	FRenderTagetInfo RenderTargetInfo = {};
+	RenderTargetInfo.bCube = false;
+	RenderTargetInfo.TextrueNum = 1;
+	RenderTargetInfo.Width = g_pSetting->getResolutionWidth<UINT>();
+	RenderTargetInfo.Height = g_pSetting->getResolutionHeight<UINT>();
+
+	return RenderTargetInfo;
+}
+
+const FRenderTagetInfo FRenderTagetInfo::GetCube()
+{
+	FRenderTagetInfo RenderTargetInfo;
+	RenderTargetInfo.bCube = true;
+	RenderTargetInfo.TextrueNum = 6;
+	RenderTargetInfo.Width = 2048;	// ½¦µµ¿ì¸Ê ÇØ»óµµ
+	RenderTargetInfo.Height = 2048;
+
+	return RenderTargetInfo;
 }

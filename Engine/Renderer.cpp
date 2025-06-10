@@ -61,7 +61,7 @@ Renderer::Renderer(void) noexcept
 	_cascadeDistance[CastValue<int>(EFrustumCascade::Far)] = 1000.f;
 
 	_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
-	_renderPasses.reserve(CastValue<size_t>(ERenderPass::Count));
+	RenderPasses.reserve(CastValue<size_t>(ERenderPass::Count));
 	initialize();
 }
 
@@ -85,86 +85,110 @@ void Renderer::Release()
 
 void Renderer::initialize(void) noexcept
 {
-	std::shared_ptr<MTexture> _pTextureComponent = std::make_shared<MTexture>(TEXT("./Resources/Texture/Player.jpeg"));
-
 	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Plane.fbx"), false);
 	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	_pMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
 	_pMeshComponent->SceneComponent::Update(0.f);
 
-	RenderTagetInfo shadowMapInfo = {};
-	shadowMapInfo.width = 1024 * 2;
-	shadowMapInfo.height = 1024 * 2;
-	shadowMapInfo.textureArrayCount = CastValue<int>(_cascadeDistance.size());
-
+	// 렌더 타겟 추가
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
 	{
+		FRenderTagetInfo RenderTargetInfo;
+
 		switch (CastValue<ERenderTarget>(i))
 		{
-		case ERenderTarget::ShadowDepth:
-			_renderTargets.emplace_back(std::make_shared<RenderTarget>(shadowMapInfo));
-			break;
-		default:
-			_renderTargets.emplace_back(std::make_shared<RenderTarget>());
-			break;
+		case ERenderTarget::DirectionalShadowDepth:
+		{
+			RenderTargetInfo.bCube = false;
+			RenderTargetInfo.Width = 1024 * 2;
+			RenderTargetInfo.Height = 1024 * 2;
+			RenderTargetInfo.TextrueNum = CastValue<int>(_cascadeDistance.size());
 		}
+		break;
+		case ERenderTarget::PointShadowDepth:
+		{
+			RenderTargetInfo = FRenderTagetInfo::GetCube();
+			RenderTargetInfo.Width = 1024 * 2;
+			RenderTargetInfo.Height = 1024 * 2;
+		}
+		break;
+		default:
+		{
+			RenderTargetInfo = FRenderTagetInfo::GetDefault();
+		}
+		break;
+		}
+
+		_renderTargets.emplace_back(std::make_shared<RenderTarget>(RenderTargetInfo));
 	}
 
-	_renderPasses.emplace_back(CreateRenderPass<ShadowDepthPass>());
+	// 렌더 패스 추가
+	RenderPasses.emplace_back(CreateRenderPass<DirectionalShadowDepthPass>());
 	{
-		_renderPasses.back()->SetUseOwningDepthStencilBuffer(true);
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->initializeRenderTargets(_renderTargets,
-			ERenderTarget::ShadowDepth
+		RenderPasses[enumToIndex(ERenderPass::ShadowDepth)]->initializeRenderTargets(_renderTargets,
+			ERenderTarget::DirectionalShadowDepth
 		);
 
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
-		_renderPasses[enumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
+		RenderPasses[enumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
+		RenderPasses[enumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
 	}
 
-	_renderPasses.emplace_back(CreateRenderPass<GeometryPass>());
+	RenderPasses.emplace_back(CreateRenderPass<PointShadowDepthPass>());
 	{
-		_renderPasses[enumToIndex(ERenderPass::Geometry)]->initializeRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->initializeRenderTargets(_renderTargets,
+			ERenderTarget::PointShadowDepth
+		);
+
+		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
+		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
+	}
+
+	RenderPasses.emplace_back(CreateRenderPass<GeometryPass>());
+	{
+		RenderPasses[enumToIndex(ERenderPass::Geometry)]->initializeRenderTargets(_renderTargets,
 			ERenderTarget::Diffuse, 
 			ERenderTarget::Depth, 
 			ERenderTarget::Normal, 
 			ERenderTarget::Specular);
 
-		_renderPasses[enumToIndex(ERenderPass::Geometry)]->initializeResourceViews(_renderTargets,
-			ERenderTarget::ShadowDepth);
+		RenderPasses[enumToIndex(ERenderPass::Geometry)]->initializeResourceViews(_renderTargets,
+			ERenderTarget::DirectionalShadowDepth);
 	}
 
-	_renderPasses.emplace_back(CreateRenderPass<LightPass>());
+	RenderPasses.emplace_back(CreateRenderPass<LightPass>());
 	{
-		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::Light)]->initializeRenderTargets(_renderTargets,
 			ERenderTarget::LightDiffuse,
 			ERenderTarget::LightSpecular);
 
-		_renderPasses[enumToIndex(ERenderPass::Light)]->initializeResourceViews(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::Light)]->initializeResourceViews(_renderTargets,
 			ERenderTarget::Depth,
 			ERenderTarget::Normal,
 			ERenderTarget::Specular);
 	}
 
-	_renderPasses.emplace_back(CreateRenderPass<SkyPass>());
+	RenderPasses.emplace_back(CreateRenderPass<SkyPass>());
 	{
-		_renderPasses[enumToIndex(ERenderPass::SkyPass)]->initializeRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::SkyPass)]->initializeRenderTargets(_renderTargets,
 			ERenderTarget::Diffuse,
 			ERenderTarget::LightDiffuse);
 
-		_renderPasses[enumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
+		RenderPasses[enumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
 	}
 
-	_renderPasses.emplace_back(CreateRenderPass<CombinePass>());
+	RenderPasses.emplace_back(CreateRenderPass<CombinePass>());
 	{
-		_renderPasses[enumToIndex(ERenderPass::Combine)]->initializeResourceViews(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::Combine)]->initializeResourceViews(_renderTargets,
 			ERenderTarget::Diffuse,
 			ERenderTarget::LightDiffuse,
 			ERenderTarget::LightSpecular);
 
-		_renderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
+		RenderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	}
 
 	// 
+	//assert(e && );
+	ASSERT_MSG(enumToIndex(ERenderPass::Count) == static_cast<uint32>(RenderPasses.size()), "ERenderPass::Count와 RenderPasses의 개수가 맞지 않음.");
 }
 
 void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComponent)
@@ -278,9 +302,9 @@ void Renderer::renderScene()
 	uint32 combinePassIndex = CastValue<uint32>(ERenderPass::Combine);
 	for (uint32 i = 0; i < combinePassIndex; ++i)
 	{
-		_renderPasses[i]->Begin();
-		_renderPasses[i]->DoPass(RenderablePrimitiveData);
-		_renderPasses[i]->End();
+		RenderPasses[i]->Begin();
+		RenderPasses[i]->DoPass(RenderablePrimitiveData);
+		RenderPasses[i]->End();
 	}
 
 	// 혼합 패스
@@ -299,9 +323,9 @@ void Renderer::renderScene()
 		PrimitiveDataList[0]._pVertexBuffer = std::make_shared<VertexBuffer>(VertexSize, VertexNum, Buffer);
 	}
 
-	_renderPasses[combinePassIndex]->Begin();
-	_renderPasses[combinePassIndex]->DoPass(PrimitiveDataList);
-	_renderPasses[combinePassIndex]->End();
+	RenderPasses[combinePassIndex]->Begin();
+	RenderPasses[combinePassIndex]->DoPass(PrimitiveDataList);
+	RenderPasses[combinePassIndex]->End();
 
 	// 포스트프로세스 패스
 
@@ -485,7 +509,7 @@ const bool Renderer::IsDirtyConstant() const
 	return _bDirtyConstant;
 }
 
-void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition)
+void Renderer::Test(std::vector<Mat4>& OutLightViewProj, std::vector<Vec4>& lightPosition)
 {
 	float tanHalfVertical = tan(XMConvertToRadians(g_pSetting->getFov() / 2.f));
 	float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();
@@ -539,7 +563,7 @@ void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPo
 		XMStoreFloat4(&lightPosition[cascadeIndex], directionalLightPos);
 
 		float Near = std::max(DepthCenter - radius, 0.1f);
-		float Far = 2.f * radius;
+		float Far = radius * 2.f;
 		XMMATRIX OrthograhpicMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, Near, Far);
 
 		XMVECTOR UpVector = XMLoadFloat3(&VEC3UP);
@@ -556,9 +580,20 @@ void Renderer::Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPo
 		//LightView.r[3].m128_f32[1] += (snapY - XMVectorGetY(projCenter));
 
 		XMMATRIX LightViewProj = XMMatrixMultiply(LightView, OrthograhpicMatrix);
-		XMStoreFloat4x4(&lightViewProj[cascadeIndex], LightViewProj);
+		XMStoreFloat4x4(&OutLightViewProj[cascadeIndex], LightViewProj);
 
-		lightViewProj[cascadeIndex]._41 = round(lightViewProj[cascadeIndex]._41 * 10.f) / 10.f;
-		lightViewProj[cascadeIndex]._42 = round(lightViewProj[cascadeIndex]._42 * 10.f) / 10.f;
+		OutLightViewProj[cascadeIndex]._41 = round(OutLightViewProj[cascadeIndex]._41 * 10.f) / 10.f;
+		OutLightViewProj[cascadeIndex]._42 = round(OutLightViewProj[cascadeIndex]._42 * 10.f) / 10.f;
+
+		if (cascadeIndex == 2)
+		{
+			XMVECTOR Test = XMVector3TransformCoord(XMVectorSet(0.f, 0.f, 10.f, 1.f), LightViewProj);
+			Vec3 TestStore;
+			XMStoreFloat3(&TestStore, Test);
+
+			std::wostringstream ss;
+			ss << TEXT("LightView x:") << TestStore.x << TEXT(", y:") << TestStore.y << TEXT(", z:") << TestStore.z << std::endl;
+			OutputDebugString(ss.str().c_str());
+		}
 	}
 }

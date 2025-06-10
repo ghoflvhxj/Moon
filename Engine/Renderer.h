@@ -57,7 +57,7 @@ private:
 
 	// ·»´õ ÆÐ½º
 private:
-	std::vector<std::shared_ptr<RenderPass>> _renderPasses;
+	std::vector<std::shared_ptr<RenderPass>> RenderPasses;
 
 public:
 	void render();
