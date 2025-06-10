@@ -73,8 +73,14 @@ Renderer::~Renderer() noexcept
 void Renderer::Release()
 {
 	_renderTargets.clear();
-	_renderPasses.clear();
+	RenderPasses.clear();
 	_pMeshComponent.reset();
+
+	CachedPrimitiveComponents.clear();
+	RenderablePrimitiveComponents.clear();
+	ForwardPrimitiveDataMap.clear();
+	DeferredPrimitiveDataMap.clear();
+	VertexBufferMap.clear();
 }
 
 void Renderer::initialize(void) noexcept

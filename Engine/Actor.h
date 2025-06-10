@@ -10,7 +10,7 @@ class ENGINE_DLL Actor : public std::enable_shared_from_this<Actor>
 {
 public:
 	explicit Actor();
-	~Actor();
+	virtual ~Actor();
 
 public:
 	void update(const Time deltaTime);

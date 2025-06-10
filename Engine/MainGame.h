@@ -19,7 +19,7 @@ public:
 	explicit MainGame();
 	MainGame(const MainGame &ref) = delete;
 	MainGame(MainGame &&ref) = delete;
-	~MainGame() = default;
+	virtual ~MainGame() = default;
 
 	MainGame &operator=(const MainGame &ref) = delete;
 

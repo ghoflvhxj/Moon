@@ -13,6 +13,7 @@ Actor::Actor()
 
 Actor::~Actor()
 {
+	_components.clear();
 }
 
 void Actor::update(const Time deltaTime)
