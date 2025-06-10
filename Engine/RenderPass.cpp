@@ -20,7 +20,7 @@
 // Actor
 #include "Camera.h"
 
-#include "TextureComponent.h"
+#include "Texture.h"
 
 RenderPass::RenderPass()
 	: _pOldRenderTargetView{ nullptr }

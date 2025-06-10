@@ -12,12 +12,14 @@
 #include <exception>
 #include <random>
 #include <algorithm>
+#include <filesystem>
 class __declspec(dllexport) std::exception;
 
 #include <vector>
 #include <list>
 #include <map>
 #include <unordered_map>
+#include <set>
 
 // Window Platform
 #ifdef _WIN64

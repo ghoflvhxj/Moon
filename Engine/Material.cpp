@@ -18,7 +18,7 @@
 
 #include "MainGame.h"
 
-#include "TextureComponent.h"
+#include "Texture.h"
 #include "PrimitiveComponent.h"
 #include "DynamicMeshComponent.h"
 
@@ -59,11 +59,6 @@ void MMaterial::SetTexturesToDevice()
 	{
 		g_pGraphicDevice->getContext()->PSSetSamplers(0, 1, &SamplerState);
 	}
-}
-
-void MMaterial::setOwner(std::shared_ptr<PrimitiveComponent> pOwner)
-{
-	_pOwner = pOwner;
 }
 
 std::shared_ptr<MShader> MMaterial::getVertexShader()

@@ -1,5 +1,5 @@
 #include "Include.h"
-#include "TextureComponent.h"
+#include "Texture.h"
 
 #include "GraphicDevice.h"
 
@@ -7,26 +7,14 @@
 
 using namespace DirectX;
 
-MTexture::MTexture(const wchar_t *fileName)
+MTexture::MTexture(const std::wstring& FilePath)
 	: _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
 {
-	loadTextureFile(fileName);
+	loadTextureFile(FilePath.c_str());
 }
 
-MTexture::MTexture(const char *fileName)
-	: _rawTexture{ nullptr }
-	, _pResourceView{ nullptr }
-{
-	wchar_t wFileName[MAX_PATH] = {};
-
-	int len = MultiByteToWideChar(CP_ACP, 0, fileName, static_cast<int>(strlen(fileName)), NULL, NULL);
-	MultiByteToWideChar(CP_ACP, 0, fileName, static_cast<int>(strlen(fileName)), wFileName, len);
-
-	loadTextureFile(wFileName);
-}
-
-MTexture::MTexture(MTexture::RawTexturePtr pTexture)
+MTexture::MTexture(ID3D11Texture2D* pTexture)
 	: _rawTexture{ pTexture }
 	, _pResourceView{ nullptr }
 {
@@ -57,6 +45,7 @@ MTexture::MTexture()
 
 MTexture::~MTexture()
 {
+	OutputDebugStringW(TEXT("Release Texture\n"));
 	SafeRelease(_pResourceView);
 	SafeRelease(_rawTexture);
 }
@@ -68,7 +57,6 @@ const bool MTexture::loadTextureFile(const wchar_t *fileName)
 	if (nullptr != _rawTexture)
 		SafeRelease(_rawTexture);
 
-
 	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource **)&_rawTexture, &_pResourceView));
 	
 	return true;
@@ -79,12 +67,12 @@ void MTexture::setTexture(const uint32 index)
 	g_pGraphicDevice->getContext()->PSSetShaderResources(index, 1, &_pResourceView);
 }
 
-MTexture::RawTexturePtr& MTexture::getRawTexturePointer()
+ID3D11Texture2D*& MTexture::GetTextureResource()
 {
 	return _rawTexture;
 }
 
-MTexture::ResourceViewPtr& MTexture::getRawResourceViewPointer()
+ID3D11ShaderResourceView*& MTexture::getRawResourceViewPointer()
 {
 	return _pResourceView;
 }

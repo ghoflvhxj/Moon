@@ -57,10 +57,12 @@
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="SkyComponent.cpp" />
+    <ClCompile Include="Source\Core\ResourceLoader.cpp" />
+    <ClCompile Include="Source\Core\ResourceManager.cpp" />
     <ClCompile Include="SphereComponent.cpp" />
     <ClCompile Include="StaticMeshComponent.cpp" />
     <ClCompile Include="TerrainComponent.cpp" />
-    <ClCompile Include="TextureComponent.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureSetter.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
@@ -122,11 +124,13 @@
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SkyComponent.h" />
+    <ClInclude Include="Source\Core\ResourceLoader.h" />
+    <ClInclude Include="Source\Core\ResourceManager.h" />
     <ClInclude Include="SphereComponent.h" />
     <ClInclude Include="StaticMeshComponent.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TerrainComponent.h" />
-    <ClInclude Include="TextureComponent.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureSetter.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="ThreadPool.h" />
@@ -304,7 +308,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>ENGINE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source\ThirdParty;$(ProjectDir)Source\ThirdParty\FBXSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Source;$(ProjectDir)Source\ThirdParty;$(ProjectDir)Source\ThirdParty\FBXSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -342,7 +346,7 @@ call CopyDebug.bat</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>ENGINE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source\ThirdParty;$(ProjectDir)Source\ThirdParty\FBXSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Source;$(ProjectDir)Source\ThirdParty;$(ProjectDir)Source\ThirdParty\FBXSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>

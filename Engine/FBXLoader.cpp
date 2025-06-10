@@ -1,7 +1,7 @@
 #include "Include.h"
 #include "FBXLoader.h"
-
-#include "TextureComponent.h"
+#include "Texture.h"
+#include "Core/ResourceManager.h"
 #include <Shlwapi.h>
 #include <stdlib.h>
 #include <locale>
@@ -782,17 +782,17 @@ void MFBXLoader::LoadTexturesFromFBXMaterial(FbxSurfaceMaterial* SurfaceMaterial
 		OutputDebugString(DebugString.c_str());
 		for (int TextureIndex = 0; TextureIndex < TextureNum; ++TextureIndex)
 		{
-			FbxTexture* Texture = Property.GetSrcObject<FbxTexture>(TextureIndex);
-			FbxFileTexture* FileTexture = FbxCast<FbxFileTexture>(Texture);
+			FbxFileTexture* FileTexture = FbxCast<FbxFileTexture>(Property.GetSrcObject<FbxTexture>(TextureIndex));
 
-			char FilePath[255] = { 0, };
-			WStringToString(Directory, FilePath, 255);
-			strcat_s(FilePath, 255, PathFindFileNameA(FileTexture->GetFileName()));
-
-			std::shared_ptr<MTexture> NewTexture = std::make_shared<MTexture>(FilePath);
-
-			TextureList& textureList = _texturesList.back();
-			textureList[TextureTypeIndex] = NewTexture;
+			const char* TempFilePath = FileTexture->GetFileName();
+			std::wstring FilePath = Directory + std::filesystem::path(TempFilePath).filename().wstring();
+	
+			std::shared_ptr<MTexture> Texture = nullptr;
+			if (g_ResourceManager->Load(FilePath, Texture))
+			{
+				TextureList& textureList = _texturesList.back();
+				textureList[TextureTypeIndex] = Texture;
+			}
 		}
 
 		int layeredTextureCount = Property.GetSrcObjectCount<FbxLayeredTexture>();

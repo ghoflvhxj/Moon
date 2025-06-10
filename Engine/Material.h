@@ -27,12 +27,6 @@ public:
 public:
 	void SetTexturesToDevice();
 
-	// 삭제 예정
-public:
-	void setOwner(std::shared_ptr<PrimitiveComponent> pOwner);
-private:
-	std::shared_ptr<PrimitiveComponent> _pOwner;
-
 public:
 	std::shared_ptr<MShader> getVertexShader();
 	std::shared_ptr<MShader> getPixelShader();

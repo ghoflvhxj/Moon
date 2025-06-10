@@ -3,7 +3,7 @@
 
 #include "GraphicDevice.h"
 
-#include "TextureComponent.h"
+#include "Texture.h"
 
 TextureSetter::TextureSetter(std::vector<std::shared_ptr<MTexture>> &textureList)
 	: _textureCount{ 0u }

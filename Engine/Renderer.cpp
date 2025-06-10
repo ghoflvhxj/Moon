@@ -30,7 +30,7 @@
 #include "LightComponent.h"
 #include "StaticMeshComponent.h"
 
-#include "TextureComponent.h"
+#include "Texture.h"
 
 #include "Camera.h"
 

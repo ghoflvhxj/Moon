@@ -4,7 +4,7 @@
 #include "ShaderManager.h"
 
 #include "StaticMeshComponent.h"
-#include "TextureComponent.h"
+#include "Texture.h"
 #include "Material.h"
 #include "Renderer.h"
 

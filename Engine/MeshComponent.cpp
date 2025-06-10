@@ -4,7 +4,7 @@
 #include "GraphicDevice.h"
 #include "Material.h"
 
-#include "TextureComponent.h"
+#include "Texture.h"
 
 #include "MainGame.h"
 #include "Camera.h"

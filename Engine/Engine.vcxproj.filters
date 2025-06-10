@@ -195,7 +195,7 @@
     <ClCompile Include="SphereComponent.cpp" />
     <ClCompile Include="StaticMeshComponent.cpp" />
     <ClCompile Include="TerrainComponent.cpp" />
-    <ClCompile Include="TextureComponent.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureSetter.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
@@ -210,6 +210,8 @@
     <ClCompile Include="AnimationController.cpp">
       <Filter>Module\Test</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Core\ResourceManager.cpp" />
+    <ClCompile Include="Source\Core\ResourceLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -368,7 +370,7 @@
     <ClInclude Include="TerrainComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="TextureComponent.h">
+    <ClInclude Include="Texture.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="TextureSetter.h">
@@ -408,6 +410,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="World.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\ResourceManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\ResourceLoader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
