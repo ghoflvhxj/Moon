@@ -8,7 +8,7 @@
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
 #include "DynamicMeshComponent.h"
-#include "TextureComponent.h"
+#include "Texture.h"
 #include "PointLightComponent.h"
 #include "DirectionalLightComponent.h"
 #include "SkyComponent.h"
@@ -23,20 +23,22 @@
 using namespace DirectX;
 
 Player::Player()
+	: Actor()
 {
 	initialize();
 }
 
 Player::~Player()
 {
+	std::cout << "asd" << std::endl;
 }
 
 void Player::initialize()
 {
-	_pTextureComponent = std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg"));
+	GroundTexture = std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg"));
 
 	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Box.fbx"), true, true);
-	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, _pTextureComponent);
+	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, GroundTexture);
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
 	_pMeshComponent->setScale(20.f, 1.f, 20.f);
 	_pMeshComponent->setTranslation(1.f, -3.f, 0.f);
@@ -60,7 +62,7 @@ void Player::initialize()
 #if UseDynamicMesh == 1
 	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>(TEXT("2B/2b.fbx"));
 	_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
-	_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
+	//_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
 	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(0)->SetAlphaMask(true);
 	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(1)->SetAlphaMask(true);

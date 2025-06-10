@@ -22,6 +22,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd)
 {
+	// 콘솔 창
 	#ifdef UNICODE
 	#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
 	#else
@@ -52,7 +53,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		g_hWnd = pWindow->getHandle();
 
 		EngineInit(hInstance, pWindow);
-		setGame(std::make_shared<MyGame>());
+		setGame(std::make_unique<MyGame>());
 	}
 	catch (const EngineException &e)
 	{

@@ -8,7 +8,7 @@
 
 #include "Renderer.h"
 
-#include "TextureComponent.h"
+#include "Texture.h"
 #include "MeshComponent.h"
 #include "TerrainComponent.h"
 #include "PointLightComponent.h"
@@ -79,7 +79,6 @@ void MyGame::intializeImGui()
 	ImGui::CreateContext();
 	ImGuiIO &io = ImGui::GetIO();
 	ImGui::StyleColorsDark();
-	// ÇÃ·§Æû/·»´õ·¯¸¦ ¹ÙÀÎµù
 	ImGui_ImplWin32_Init(g_hWnd);
 	ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
 }
