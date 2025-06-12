@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "Shader.h"
 
 #include "GraphicDevice.h"
@@ -34,7 +34,7 @@
 //		FAILED_CHECK_THROW(pReflectionConstantBuffer->GetDesc(&bufferDesc));
 //
 //		std::vector<Byte> bufferData(bufferDesc.Size, 0);
-//		std::shared_ptr<ConstantBuffer> pConstantBuffer = std::make_shared<ConstantBuffer>(bufferDesc.Size, bufferData.data(), bufferDesc.Variables);	// ¿©±â¼­ »ó¼ö¹öÆÛ¶ó°í È®Á¤Áö¾ú´Âµ¥, ÀÌ·¯Áö ¸»°í »ó¼ö¹öÆÛ°¡ ¹öÆÛ¸¦ »ó¼Ó¹Ş°Ô ¸¸µé°í, ¹öÆÛ Å¬·¡½º Ãß°¡
+//		std::shared_ptr<ConstantBuffer> pConstantBuffer = std::make_shared<ConstantBuffer>(bufferDesc.Size, bufferData.data(), bufferDesc.Variables);	// ì—¬ê¸°ì„œ ìƒìˆ˜ë²„í¼ë¼ê³  í™•ì •ì§€ì—ˆëŠ”ë°, ì´ëŸ¬ì§€ ë§ê³  ìƒìˆ˜ë²„í¼ê°€ ë²„í¼ë¥¼ ìƒì†ë°›ê²Œ ë§Œë“¤ê³ , ë²„í¼ í´ë˜ìŠ¤ ì¶”ê°€
 //		uint32 variableCount = bufferDesc.Variables;
 //
 //		for (uint32 variableIndex = 0; variableIndex < variableCount; ++variableIndex)
@@ -61,11 +61,11 @@
 //			//
 //			//switch (bufferDesc.Type)
 //			//{
-//			//case D3D11_CBUFFER_TYPE::D3D11_CT_TBUFFER: // ÅØ½ºÃÄ ¹öÆÛ
+//			//case D3D11_CBUFFER_TYPE::D3D11_CT_TBUFFER: // í…ìŠ¤ì³ ë²„í¼
 //			//{
 //			//	break;
 //			//}
-//			//case D3D11_CBUFFER_TYPE::D3D11_CT_CBUFFER: // »ó¼ö ¹öÆÛ
+//			//case D3D11_CBUFFER_TYPE::D3D11_CT_CBUFFER: // ìƒìˆ˜ ë²„í¼
 //			//{
 //			//	break;
 //			//}
@@ -95,28 +95,22 @@ MShader::~MShader()
 void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FShaderVariable>& InVariables)
 {
 	uint32 Index = CastValue<uint32>(layer);
-	if (nullptr == ConstantBuffers[Index])
-	{
-		return;
-	}
+    
+    for (int i=0; i< Variables[Index].size(); ++i)
+    {
+        Variables[Index][i] = InVariables[i];
+    }
 
-	uint32 size = ConstantBuffers[Index]->getSize();
-	Byte* pData = (Byte*)_aligned_malloc(size, 16);
-	for (FShaderVariable& varialbeInfo : InVariables)
-	{
-		memcpy(pData + varialbeInfo.Offset, varialbeInfo.Value, varialbeInfo.Size);
-	}
+    UpdateConstantBuffer(layer);
 
-	ConstantBuffers[Index]->Update(pData);
-
-	_aligned_free((void*)pData);
-
-	//for (const FShaderVariable& Variable : InVariables)
+	//uint32 size = ConstantBuffers[Index]->getSize();
+	//Byte* pData = (Byte*)_aligned_malloc(size, 16);
+	//for (FShaderVariable& varialbeInfo : InVariables)
 	//{
-	//	ConstantBuffers[Index]->SetData(Variable.Offset, Variable.Value, Variable.Size);
+	//	memcpy(pData + varialbeInfo.Offset, varialbeInfo.Value, varialbeInfo.Size);
 	//}
-
-	//ConstantBuffers[Index]->Commit();
+	//ConstantBuffers[Index]->Update(pData);
+	//_aligned_free((void*)pData);
 }
 
 void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
@@ -148,7 +142,7 @@ void MShader::CreateCosntantBuffers()
 	uint32 constantBufferNum = static_cast<uint32>(shaderDesc.ConstantBuffers);
 	if (constantBufferNum > ConstantBufferLayerNum)
 	{
-		DEV_ASSERT_MSG("ConstantBufferÀÇ °³¼ö°¡ ConstantBuffersLayer::Countf¸¦ ³Ñ¾î¼·´Ï´Ù.");
+		DEV_ASSERT_MSG("ConstantBufferì˜ ê°œìˆ˜ê°€ ConstantBuffersLayer::Countfë¥¼ ë„˜ì–´ì„­ë‹ˆë‹¤.");
 	}
 
 	for (uint32 ConstantBufferCounter = 0; ConstantBufferCounter < constantBufferNum; ++ConstantBufferCounter)
@@ -186,11 +180,11 @@ void MShader::CreateCosntantBuffers()
 
 			switch (bufferDesc.Type)
 			{
-			case D3D11_CBUFFER_TYPE::D3D11_CT_TBUFFER: // ÅØ½ºÃÄ ¹öÆÛ
+			case D3D11_CBUFFER_TYPE::D3D11_CT_TBUFFER: // í…ìŠ¤ì³ ë²„í¼
 			{
 				break;
 			}
-			case D3D11_CBUFFER_TYPE::D3D11_CT_CBUFFER: // »ó¼ö ¹öÆÛ
+			case D3D11_CBUFFER_TYPE::D3D11_CT_CBUFFER: // ìƒìˆ˜ ë²„í¼
 			{
 				break;
 			}
