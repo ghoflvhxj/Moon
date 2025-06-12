@@ -28,11 +28,11 @@ public:
 	std::vector<Index>	_indices;
 
 public:
-	std::shared_ptr<VertexBuffer> getVertexBuffer() { return _pVertexBuffer; }
-	std::shared_ptr<IndexBuffer> getIndexBuffer() { return nullptr; }
+	std::shared_ptr<MVertexBuffer> getVertexBuffer() { return _pVertexBuffer; }
+	std::shared_ptr<MIndexBuffer> getIndexBuffer() { return nullptr; }
 protected:
-	std::shared_ptr<VertexBuffer> _pVertexBuffer;
-	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
+	std::shared_ptr<MVertexBuffer> _pVertexBuffer;
+	std::shared_ptr<MIndexBuffer> _pIndexBuffer = nullptr;
 
 public:
 	std::shared_ptr<MMaterial> getMaterial() { return _pMaterial; }
@@ -63,7 +63,7 @@ Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 		}
 	}
 
-	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
+	_pVertexBuffer = std::make_shared<MVertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
 	_pMaterial = std::make_shared<MMaterial>();
 	_pMaterial->setShader(TEXT("Bone.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
 	_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __TERRAIN_COMPONENT_H__
 
 #include "Vertex.h"
@@ -6,8 +6,8 @@
 #include "PrimitiveComponent.h"
 
 class MTexture;
-class VertexBuffer;
-class IndexBuffer;
+class MVertexBuffer;
+class MIndexBuffer;
 class MConstantBuffer;
 
 class MMaterial;
@@ -39,7 +39,7 @@ private:
 
 
 //public:
-//	// PrimitiveComponentÀ»(¸¦) ÅëÇØ »ó¼ÓµÊ
+//	// PrimitiveComponentì„(ë¥¼) í†µí•´ ìƒì†ë¨
 //	virtual void render() override;
 
 public:

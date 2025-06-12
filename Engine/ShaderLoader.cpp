@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "ShaderLoader.h"
 
 #include "ShaderManager.h"
@@ -19,7 +19,7 @@ ShaderLoader::~ShaderLoader()
 
 const bool ShaderLoader::loadShaderFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
-	// ¸ÖÆ¼ ¾²·¹µå·Î º¯°æÇÏ±â
+	// ë©€í‹° ì“°ë ˆë“œë¡œ ë³€ê²½í•˜ê¸°
 	loadVertexShaderFromFiles(shaderManager);
 	loadPixelShaderFromFiles(shaderManager);
 	loadGeometryShaderFromFiles(shaderManager);
@@ -29,7 +29,7 @@ const bool ShaderLoader::loadShaderFiles(const std::unique_ptr<MShaderManager>& 
 
 const bool ShaderLoader::loadVertexShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
-	OutputDebugString(TEXT("VertexShader ºÒ·¯¿À´Â Áß...\r\n"));
+	OutputDebugString(TEXT("VertexShader ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘...\r\n"));
 
 	WCHAR path[MAX_PATH] = {};
 	getVertexShaderDirectory(path);
@@ -51,7 +51,7 @@ const bool ShaderLoader::loadVertexShaderFromFiles(const std::unique_ptr<MShader
 
 const bool ShaderLoader::loadPixelShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
-	OutputDebugString(TEXT("PixelShader ºÒ·¯¿À´Â Áß...\r\n"));
+	OutputDebugString(TEXT("PixelShader ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘...\r\n"));
 
 	WCHAR path[MAX_PATH];
 	getPixelShaderDirectory(path);
@@ -73,7 +73,7 @@ const bool ShaderLoader::loadPixelShaderFromFiles(const std::unique_ptr<MShaderM
 
 const bool ShaderLoader::loadGeometryShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
-	OutputDebugString(TEXT("GeometryShader ºÒ·¯¿À´Â Áß...\r\n"));
+	OutputDebugString(TEXT("GeometryShader ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘...\r\n"));
 
 	WCHAR path[MAX_PATH] = {};
 	getGeometryShaderDirectory(path);
@@ -82,7 +82,7 @@ const bool ShaderLoader::loadGeometryShaderFromFiles(const std::unique_ptr<MShad
 	auto &fileList = fileFinder.getFileList();
 	for (auto &filePathName : fileList)
 	{
-		std::shared_ptr<GeometryShader> pShader = std::make_shared<GeometryShader>(filePathName);
+		std::shared_ptr<MGeometryShader> pShader = std::make_shared<MGeometryShader>(filePathName);
 
 		WCHAR fileName[MAX_PATH] = {};
 		lstrcpy(fileName, PathFindFileName(filePathName.c_str()));

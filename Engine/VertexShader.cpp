@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "VertexShader.h"
 
 #include "GraphicDevice.h"
@@ -30,6 +30,7 @@ VertexShader::~VertexShader()
 
 void VertexShader::SetToDevice()
 {
+    // 이거는 구조를 수정해야 할듯. 렌더러가 이 함수 내용을 직접 호출하도록
 	g_pGraphicDevice->getContext()->VSSetShader(_pVertexShader, nullptr, 0);
 
 	std::vector<ID3D11Buffer*> rawBuffers;

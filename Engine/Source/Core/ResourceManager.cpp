@@ -1,4 +1,4 @@
-#include "ResourceManager.h"
+﻿#include "ResourceManager.h"
 
 void MResourceManager::AddLoader(const std::shared_ptr<MResourceLoader>& ResourceLoader)
 {

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __SHADER_MANAGER_H__
 
 #include "Shader.h"
@@ -6,7 +6,7 @@
 class MShader;
 class VertexShader;
 class PixelShader;
-class GeometryShader;
+class MGeometryShader;
 
 class MShaderManager
 {
@@ -26,8 +26,8 @@ public:
 	const bool						addVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader);
 	const bool						getPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader);
 	const bool						addPixelShader(const wchar_t *fileName, std::shared_ptr<PixelShader> &pixelShader);
-	const bool						getGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader);
-	const bool						addGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader);
+	const bool						getGeometryShader(const wchar_t *fileName, std::shared_ptr<MGeometryShader> &geometryShader);
+	const bool						addGeometryShader(const wchar_t *fileName, std::shared_ptr<MGeometryShader> &geometryShader);
 private:
 	const bool						addShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<MShader> &pShader);
 	ShaderMap&						getShaderMap(const ShaderType type);
@@ -40,7 +40,7 @@ private:
 
 public:
 	ID3D10Blob*						getVertexShaderBlob(const wchar_t *shaderName);
-//	void							releaseBlob();	// InputLayout »ı¼ºÀ» À§ÇØ ³²°ÜµÎ¾ú´ø BlobÀ» ¼Ò¸ê½ÃÅµ´Ï´Ù.
+//	void							releaseBlob();	// InputLayout ìƒì„±ì„ ìœ„í•´ ë‚¨ê²¨ë‘ì—ˆë˜ Blobì„ ì†Œë©¸ì‹œí‚µë‹ˆë‹¤.
 //public:
 //	inline BlobMap&					getBlobMap(const ShaderType type);
 //private:

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Include.h"
 #include "ResourceLoader.h"

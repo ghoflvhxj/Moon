@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __GRAPHIC_DEVICE_H__
 
 // DirectXTK
@@ -65,7 +65,7 @@ public:
 public:
 	ID3D11SamplerState* getSamplerState(ESamplerFilter SamplerFilter);
 	ID3D11RasterizerState *getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode);
-	ID3D11DepthStencilState *getDepthStencilState(const Graphic::DepthWriteMode eDetphWrite);
+	ID3D11DepthStencilState *getDepthStencilState(const Graphic::EDepthWriteMode eDetphWrite);
 	ID3D11BlendState *getBlendState(const Graphic::Blend eBlend);
 private:
 	const bool buildSamplerState();
@@ -86,7 +86,7 @@ public:
 	std::unique_ptr<DirectX::SpriteFont> _spriteFont;
 
 	//-------------------------------------------------------------------------
-	// ÀÎÅÍÆäÀÌ½º ·¡ÇÎ
+	// ì¸í„°í˜ì´ìŠ¤ ë˜í•‘
 public:
 	void SetVertexShader(std::shared_ptr<VertexShader> &vertexShader);
 	void SetPixelShader(std::shared_ptr<PixelShader> &pixelShader);
@@ -102,8 +102,8 @@ public:
 	ID3D11DeviceContext *getImmediateContext();
 	ID3D11DeviceContext *getDefferedContext();
 private:
-	ID3D11DeviceContext *m_pImmediateContext;	// Áï½Ã ¹®¸Æ: ½Ì±Û ¾²·¹µå¿ë
-	ID3D11DeviceContext *m_pDeferredContext;	// Áö¿¬ ¹®¸Æ: ¸ÖÆ¼ ¾²·¹µå¿ë CreateDeferredContext·Î »ı¼ºÇÑ´Ù
+	ID3D11DeviceContext *m_pImmediateContext;	// ì¦‰ì‹œ ë¬¸ë§¥: ì‹±ê¸€ ì“°ë ˆë“œìš©
+	ID3D11DeviceContext *m_pDeferredContext;	// ì§€ì—° ë¬¸ë§¥: ë©€í‹° ì“°ë ˆë“œìš© CreateDeferredContextë¡œ ìƒì„±í•œë‹¤
 
 private:
 	IDXGISwapChain *m_pSwapChain;

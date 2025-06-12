@@ -1,9 +1,9 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "IndexBuffer.h"
 #include "GraphicDevice.h"
 #include "WindowException.h"
 
-IndexBuffer::IndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, void *buffer)
+MIndexBuffer::MIndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, void *buffer)
 	: _pBuffer		{ nullptr }
 	, _indexCount	{ indexCount }
 {
@@ -26,22 +26,22 @@ IndexBuffer::IndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, 
 	}
 }
 
-IndexBuffer::~IndexBuffer()
+MIndexBuffer::~MIndexBuffer()
 {
 	SafeRelease(_pBuffer);
 }
 
-void IndexBuffer::setBufferToDevice(UINT &offset)
+void MIndexBuffer::setBufferToDevice(UINT &offset)
 {
 	g_pGraphicDevice->getContext()->IASetIndexBuffer(_pBuffer, DXGI_FORMAT::DXGI_FORMAT_R32_UINT, offset);
 }
 
-ID3D11Buffer *const IndexBuffer::getBuffer()
+ID3D11Buffer *const MIndexBuffer::getBuffer()
 {
 	return _pBuffer;
 }
 
-const uint32 IndexBuffer::getIndexCount() const
+const uint32 MIndexBuffer::getIndexCount() const
 {
 	return _indexCount;
 }

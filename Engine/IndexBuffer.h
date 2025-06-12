@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 #ifndef __INDEX_BUFFER_H__
 
-class IndexBuffer
+class MIndexBuffer
 {
 public:
-	explicit IndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, void *buffer);
-	~IndexBuffer();
+	explicit MIndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, void *buffer);
+	~MIndexBuffer();
 
 public:
 	void setBufferToDevice(UINT &offset);

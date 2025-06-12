@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "GraphicDevice.h"
 
 #include "Vertex.h"
@@ -47,8 +47,8 @@ GraphicDevice::GraphicDevice()
 GraphicDevice::~GraphicDevice()
 {
 	/*----------------------------------
-	* Àü¿ª Á¤Àû °´Ã¼µéÀÇ »ý¼º°ú ¼Ò¸ê¿¡ ¼ø¼­°¡ ¾ø¾î¼­, ÀÚ¿øµéÀ» ¼Ò¸êÀÚ¿¡ ÇØÁ¦ÇÏÁö ¾Ê°í RelaseÇÔ¼ö·Î »©³½´Ù.
-	* À©µµ¿ì°¡ ¸ÕÀú ¼Ò¸êµÉ ¶§´Â ½º¿ÒÃ¼ÀÎÀÌ ÇØÁ¦°¡ ¾ÈµÇ±â ¶§¹®! 
+	* ì „ì—­ ì •ì  ê°ì²´ë“¤ì˜ ìƒì„±ê³¼ ì†Œë©¸ì— ìˆœì„œê°€ ì—†ì–´ì„œ, ìžì›ë“¤ì„ ì†Œë©¸ìžì— í•´ì œí•˜ì§€ ì•Šê³  Relaseí•¨ìˆ˜ë¡œ ë¹¼ë‚¸ë‹¤.
+	* ìœˆë„ìš°ê°€ ë¨¼ì € ì†Œë©¸ë  ë•ŒëŠ” ìŠ¤ì™‘ì²´ì¸ì´ í•´ì œê°€ ì•ˆë˜ê¸° ë•Œë¬¸! 
 	----------------------------------*/
 
 	//m_pPixelShader->Release();
@@ -67,7 +67,7 @@ GraphicDevice::~GraphicDevice()
 
 const bool GraphicDevice::initializeGrahpicDevice()
 {
-	// ÀåÄ¡, ½º¿ÒÃ¼ÀÎ »ý¼º
+	// ìž¥ì¹˜, ìŠ¤ì™‘ì²´ì¸ ìƒì„±
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
 	swapDesc.BufferCount = 1;
 	swapDesc.BufferDesc.Width = g_pSetting->getResolutionWidth<UINT>();
@@ -96,13 +96,13 @@ const bool GraphicDevice::initializeGrahpicDevice()
 		&m_pDevice, nullptr, &m_pImmediateContext
 	));	
 
-	// ·»´õ Å¸°Ù ºä »ý¼º
+	// ë Œë” íƒ€ê²Ÿ ë·° ìƒì„±
 	ID3D11Texture2D *pBackBuffer = nullptr;
 	FAILED_CHECK_THROW(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pBackBuffer));
 	FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView));
 	SafeRelease(pBackBuffer);
 
-	// ±íÀÌ ½ºÅÙ½Ç ºä »ý¼º
+	// ê¹Šì´ ìŠ¤í…ì‹¤ ë·° ìƒì„±
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
 	depthStencilDesc.Width = g_pSetting->getResolutionWidth<UINT>();
 	depthStencilDesc.Height = g_pSetting->getResolutionHeight<UINT>();
@@ -122,7 +122,7 @@ const bool GraphicDevice::initializeGrahpicDevice()
 	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
 
-	// ºäÆ÷Æ®
+	// ë·°í¬íŠ¸
 	_viewport.TopLeftX = 0;
 	_viewport.TopLeftY = 0;
 	_viewport.Width = g_pSetting->getResolutionWidth<FLOAT>();
@@ -244,7 +244,7 @@ ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode
 
 const bool GraphicDevice::buildDepthStencilState()
 {
-	_depthStencilStateList.reserve(CastValue<uint32>(Graphic::DepthWriteMode::Count));
+	_depthStencilStateList.reserve(CastValue<uint32>(Graphic::EDepthWriteMode::Count));
 	ID3D11DepthStencilState *pDepthStencilState = nullptr;
 
 	//-------------------------------------------------------------------------------------
@@ -274,7 +274,7 @@ const bool GraphicDevice::buildDepthStencilState()
 	return true;
 }
 
-ID3D11DepthStencilState *GraphicDevice::getDepthStencilState(const Graphic::DepthWriteMode eDetphWrite)
+ID3D11DepthStencilState *GraphicDevice::getDepthStencilState(const Graphic::EDepthWriteMode eDetphWrite)
 {
 	return _depthStencilStateList[enumToIndex(eDetphWrite)];
 }

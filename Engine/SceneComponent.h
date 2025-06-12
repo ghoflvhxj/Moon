@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef __SCENE_COMPONENT_H__
 
 #include "Component.h"

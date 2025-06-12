@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __RENDER_H__
 
 #include "GraphicDevice.h"
@@ -8,11 +8,11 @@
 								void Set##name(bool New##name) { b##name = New##name; }\
 								bool Is##name() { return b##name; }
 
-// ÇÁ·¹ÀÓ¿öÅ©
+// í”„ë ˆì„ì›Œí¬
 class PrimitiveComponent;
 class MTexture;
 
-// ·»´õ
+// ë Œë”
 class RenderTarget;
 class RenderPass;
 
@@ -70,26 +70,30 @@ enum class EPrimitiveType
 
 struct FMeshData;
 class PrimitiveComponent;
-class IndexBuffer;
-class VertexBuffer;
+class MIndexBuffer;
+class MVertexBuffer;
 class MMaterial;
 class MShader;
 
 struct FPrimitiveData
 {
+    FPrimitiveData()
+        : _primitiveType(EPrimitiveType::Count), _jointCount(0), _matrices(nullptr) 
+    {}
+
 	std::weak_ptr<PrimitiveComponent>			_pPrimitive;
 	std::weak_ptr<MMaterial>					_pMaterial;
 	EPrimitiveType _primitiveType;
 
-	// ¸Ş½Ã°¡ Ã¤¿ì´Â µ¥ÀÌÅÍ
+	// ë©”ì‹œê°€ ì±„ìš°ëŠ” ë°ì´í„°
 	std::weak_ptr<FMeshData>					MeshData;
 
-	// ·»´õ·¯°¡ Ã¤¿öÁà¾ß ÇÏ´Â µ¥ÀÌÅÍ
-	std::shared_ptr<VertexBuffer>				_pVertexBuffer;
-	std::shared_ptr<IndexBuffer>				_pIndexBuffer;
+	// ë Œë”ëŸ¬ê°€ ì±„ì›Œì¤˜ì•¼ í•˜ëŠ” ë°ì´í„°
+	std::shared_ptr<MVertexBuffer>				VertexBuffer;
+	std::shared_ptr<MIndexBuffer>				IndexBuffer;
 
-	// ´ÙÀÌ³ª¹Í ¸Ş½¬¿ë
-	Mat4 *_matrices = nullptr;
+	// ë‹¤ì´ë‚˜ë¯¹ ë©”ì‰¬ìš©
+	Mat4* _matrices = nullptr;
 	uint32 _jointCount;
 };
 

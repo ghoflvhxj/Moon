@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "ShaderManager.h"
 
 #include "Shader.h"
@@ -49,7 +49,7 @@ const bool MShaderManager::getShader(const ShaderType type, const wchar_t *fileN
 {
 	if (false == MapUtility::FindGet(getShaderMap(type), std::wstring(fileName), shader))
 	{
-		DEV_ASSERT_MSG("½¦ÀÌ´õ ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù!");
+		DEV_ASSERT_MSG("ì‰ì´ë” íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤!");
 		return false;
 	}
 
@@ -97,19 +97,19 @@ const bool MShaderManager::addPixelShader(const wchar_t *fileName, std::shared_p
 	return addShader(ShaderType::Pixel, fileName, pShader);
 }
 
-const bool MShaderManager::getGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader)
+const bool MShaderManager::getGeometryShader(const wchar_t *fileName, std::shared_ptr<MGeometryShader> &geometryShader)
 {
 	std::shared_ptr<MShader> pShader = nullptr;
 	if (true == getShader(ShaderType::Geometry, fileName, pShader))
 	{
-		geometryShader = std::static_pointer_cast<GeometryShader>(pShader);
+		geometryShader = std::static_pointer_cast<MGeometryShader>(pShader);
 		return true;
 	}
 
 	return false;
 }
 
-const bool MShaderManager::addGeometryShader(const wchar_t *fileName, std::shared_ptr<GeometryShader> &geometryShader)
+const bool MShaderManager::addGeometryShader(const wchar_t *fileName, std::shared_ptr<MGeometryShader> &geometryShader)
 {
 	std::shared_ptr<MShader> pShader = geometryShader;
 	return addShader(ShaderType::Geometry, fileName, pShader);

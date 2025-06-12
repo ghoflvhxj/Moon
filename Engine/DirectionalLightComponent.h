@@ -1,12 +1,12 @@
-#pragma once
+﻿#pragma once
 #ifndef __DIRECTIONAL_LIGHT_COMPONENT_H__
 
 #include "LightComponent.h"
 
 #include "Vertex.h"
 
-class VertexBuffer;
-class IndexBuffer;
+class MVertexBuffer;
+class MIndexBuffer;
 class MConstantBuffer;
 
 class MTexture;

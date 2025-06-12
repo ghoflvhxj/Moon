@@ -1,15 +1,15 @@
-#pragma once
+﻿#pragma once
 #ifndef __GEOMETRY_SHADER_H__
 #define __GEOMETRY_SHADER_H__
 
 #include "Shader.h"
 
-class GeometryShader : public MShader
+class MGeometryShader : public MShader
 {
 public:
-	explicit GeometryShader(const std::wstring &filePathName);
-	explicit GeometryShader();
-	virtual ~GeometryShader();
+	explicit MGeometryShader(const std::wstring &filePathName);
+	explicit MGeometryShader();
+	virtual ~MGeometryShader();
 
 public:
 	virtual void SetToDevice() override;

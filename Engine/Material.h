@@ -1,11 +1,11 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __MATERIAL_H__
 
 #include "Vertex.h"
 #include "Shader.h"
 
-class VertexBuffer;
-class IndexBuffer;
+class MVertexBuffer;
+class MIndexBuffer;
 class MConstantBuffer;
 
 class MShader;
@@ -70,7 +70,7 @@ public:
 	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType shaderType, const EConstantBufferLayer layer);
 	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType shaderType, const uint32 index);
 	
-	// À¯Æ¿¸®Æ¼	ÇÔ¼öµé
+	// ìœ í‹¸ë¦¬í‹°	í•¨ìˆ˜ë“¤
 public:
 	const bool IsTextureTypeUsed(const ETextureType type);
 };

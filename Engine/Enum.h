@@ -1,5 +1,4 @@
-#pragma once
-#ifndef __ENUM_H__
+﻿#pragma once
 
 enum class INPUT_EVENT
 {
@@ -18,13 +17,13 @@ enum class MOUSEAXIS
 
 enum class ETextureType : uint32
 {
-	// �⺻
+	// 기본
 	Diffuse
 	, Depth
 	, Normal
 	, Specular
 
-	// Ư��ȿ��
+	// 특수효과
 	, Distortion
 	, Emssive
 
@@ -48,7 +47,7 @@ namespace Graphic
 		, Count
 	};
 
-	enum class DepthWriteMode
+	enum class EDepthWriteMode
 	{
 		Enable
 		, Disable
@@ -62,6 +61,3 @@ namespace Graphic
 		, End
 	};
 }
-
-#define __ENUM_H__
-#endif

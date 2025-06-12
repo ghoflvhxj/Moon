@@ -35,40 +35,30 @@ struct PixelOut_LightPass
 	float4 lightSpecular	: SV_TARGET5;
 };
 
-Texture2D g_Diffuse		: register(t0);
-Texture2D g_Depth		: register(t1);
-Texture2D g_Normal		: register(t2);
-Texture2D g_Specular	: register(t3);
-
-Texture2D g_LightDiffuse	: register(t4);
-Texture2D g_LightSpecular	: register(t5);
-
+// ì…°ì´ë”ì—ì„œ ì‚¬ìš©í•˜ëŠ” í…ìŠ¤ì³
+Texture2D g_Diffuse				: register(t0);
+Texture2D g_Depth				: register(t1);
+Texture2D g_Normal				: register(t2);
+Texture2D g_Specular			: register(t3);
+Texture2D g_LightDiffuse		: register(t4);
+Texture2D g_LightSpecular		: register(t5);
 Texture2DArray g_ShadowDepth	: register(t6);
 
+// ì…°ì´ë”ì—ì„œ ì‚¬ìš©í•˜ëŠ” ìƒ˜í”ŒëŸ¬
 SamplerState g_Sampler : register(s0);
 SamplerComparisonState g_SamplerCoparison : register(s1);
 
-SamplerComparisonState cmpSampler
-{
-   // sampler state
-    Filter = COMPARISON_MIN_MAG_MIP_LINEAR;
-    AddressU = MIRROR;
-    AddressV = MIRROR;
- 
-   // sampler comparison state
-    ComparisonFunc = LESS_EQUAL;
-};
-
+// í”½ì…€ ì¢Œí‘œë¥¼ ì›”ë“œ ì¢Œí‘œë¡œ ë³€í™˜í•˜ëŠ” í•¨ìˆ˜
 float4 PixelToWorld(float2 uv, float4 depth, matrix inverseProjectiveMatrix, matrix inverseCameraViewMatrix)
 {
-	// uvÁÂÇ¥¸¦ (0 <= x, y <= 1) Åõ¿µÁÂÇ¥·Î (-1 <= x, y <= 1, ´Ü UVÁÂÇ¥´Â YÀ§ ÂÊÀÌ 1ÀÌ´Ù)
+	// uvì¢Œí‘œë¥¼ (0 <= x, y <= 1) íˆ¬ì˜ì¢Œí‘œë¡œ (-1 <= x, y <= 1, ë‹¨ UVì¢Œí‘œëŠ” Yìœ„ ìª½ì´ 1ì´ë‹¤)
 	float4 pixelProjectionPosition = float4(0.f, 0.f, 0.f, 0.f);
 	pixelProjectionPosition.x = (uv.x * 2.f - 1.f) * depth.w;
 	pixelProjectionPosition.y = (uv.y * -2.f + 1.f) * depth.w;
     pixelProjectionPosition.z = depth.x * depth.w;
 	pixelProjectionPosition.w = depth.w;
 
-	// Åõ¿µÁÂÇ¥¿¡ ¿ªÅõ¿µ&ºä Çà·ÄÀ» °öÇØ ¿ùµå ÁÂÇ¥¸¦ ¾òÀ½
+	// íˆ¬ì˜ì¢Œí‘œì— ì—­íˆ¬ì˜&ë·° í–‰ë ¬ì„ ê³±í•´ ì›”ë“œ ì¢Œí‘œë¥¼ ì–»ìŒ
 	float4x4 inverseProjectViewMatrix = mul(inverseProjectiveMatrix, inverseCameraViewMatrix);
 	float4 pixelWorldPosition = mul(pixelProjectionPosition, inverseProjectViewMatrix);
 

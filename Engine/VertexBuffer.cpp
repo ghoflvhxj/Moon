@@ -1,9 +1,9 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "VertexBuffer.h"
 #include "GraphicDevice.h"
 #include "WindowException.h"
 
-VertexBuffer::VertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer)
+MVertexBuffer::MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer)
 	: _pBuffer		{ nullptr }
 	, _vertexCount	{ vertexCount }
 {
@@ -26,22 +26,22 @@ VertexBuffer::VertexBuffer(const uint32 vertexSize, const uint32 vertexCount, co
 	}
 }
 
-VertexBuffer::~VertexBuffer()
+MVertexBuffer::~MVertexBuffer()
 {
 	SafeRelease(_pBuffer);
 }
 
-void VertexBuffer::setBufferToDevice(UINT &stride, UINT &offset)
+void MVertexBuffer::setBufferToDevice(UINT &stride, UINT &offset)
 {
 	g_pGraphicDevice->getContext()->IASetVertexBuffers(0, 1, &_pBuffer, &stride, &offset);
 }
 
-ID3D11Buffer* VertexBuffer::getBuffer()
+ID3D11Buffer* MVertexBuffer::getBuffer()
 {
 	return _pBuffer;
 }
 
-const uint32 VertexBuffer::getVertexCount() const
+const uint32 MVertexBuffer::getVertexCount() const
 {
 	return _vertexCount;
 }

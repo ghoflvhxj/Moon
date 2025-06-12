@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef __PRIMITIVE_COMPONENT_H__
 
 #include "SceneComponent.h"
@@ -6,8 +6,8 @@
 
 struct FPrimitiveData;
 
-class VertexBuffer;
-class IndexBuffer;
+class MVertexBuffer;
+class MIndexBuffer;
 
 class ENGINE_DLL BoundingBox
 {
@@ -27,11 +27,11 @@ protected:
 	std::vector<Index>		_indices;
 
 public:
-	std::shared_ptr<VertexBuffer> getVertexBuffer();
-	std::shared_ptr<IndexBuffer> getIndexBuffer();
+	std::shared_ptr<MVertexBuffer> getVertexBuffer();
+	std::shared_ptr<MIndexBuffer> getIndexBuffer();
 protected:
-	std::shared_ptr<VertexBuffer> _pVertexBuffer;
-	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
+	std::shared_ptr<MVertexBuffer> _pVertexBuffer;
+	std::shared_ptr<MIndexBuffer> _pIndexBuffer = nullptr;
 
 public:
 	std::shared_ptr<MMaterial> getMaterial();

@@ -1,11 +1,11 @@
-#pragma once
+Ôªø#pragma once
 #ifndef __STATIC_MESH_COMPONENT_H__
 #include "PrimitiveComponent.h"
 
 #include "Vertex.h"
 
-class VertexBuffer;
-class IndexBuffer;
+class MVertexBuffer;
+class MIndexBuffer;
 class MFBXLoader;
 
 namespace physx
@@ -68,11 +68,11 @@ private:
 	std::shared_ptr<BoundingBox> _pBoundingBox;
 
 public:
-	std::vector<std::shared_ptr<VertexBuffer>> getVertexBuffers();
-	std::shared_ptr<IndexBuffer> getIndexBuffer();
+	std::vector<std::shared_ptr<MVertexBuffer>> getVertexBuffers();
+	std::shared_ptr<MIndexBuffer> getIndexBuffer();
 protected:
-	std::vector<std::shared_ptr<VertexBuffer>> _pVertexBuffers;
-	std::shared_ptr<IndexBuffer> _pIndexBuffer = nullptr;
+	std::vector<std::shared_ptr<MVertexBuffer>> _pVertexBuffers;
+	std::shared_ptr<MIndexBuffer> _pIndexBuffer = nullptr;
 
 public:
 	const Vec3& GetCenterPos() const;
@@ -125,7 +125,7 @@ private:
 	bool bStaticCollision = true;
 	float Mass = 1.f;
 
-	// ««¡˜Ω∫
+	// ÌîºÏßÅÏä§
 public:
 	physx::PxRigidActor*	GetPhysXRigidActor();
 	physx::PxRigidDynamic*	GetPhysXRigidDynamic();

@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "PrimitiveComponent.h"
 
 #include "GraphicDevice.h"
@@ -18,7 +18,7 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 	: _min(min)
 	, _max(max)
 {
-	// Á¤¸é
+	// ì •ë©´
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
 	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
 	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
@@ -26,7 +26,7 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
 	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
 
-	// ¿ÞÂÊ¸é
+	// ì™¼ìª½ë©´
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
 	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
@@ -34,7 +34,7 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
 
-	// ¾Æ·§¸é
+	// ì•„ëž«ë©´
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
 	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
@@ -42,7 +42,7 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
 	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
 
-	// ¿À¸¥ÂÊ¸é
+	// ì˜¤ë¥¸ìª½ë©´
 	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
 	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
 	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
@@ -50,7 +50,7 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
 	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
 
-	// À­¸é
+	// ìœ—ë©´
 	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
 	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
 	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
@@ -58,7 +58,7 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
 	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
 
-	// µÞ¸é
+	// ë’·ë©´
 	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
 	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
 	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
@@ -66,15 +66,15 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
 
-	_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
+	_pVertexBuffer = std::make_shared<MVertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
 
 	_pMaterial = std::make_shared<MMaterial>();
-	_pMaterial->setShader(TEXT("VertexShader.cso"), TEXT("PixelShader.cso")); // Åø¿¡¼­ ¼³Á¤ÇÑ ½¦ÀÌ´õ¸¦ ÀÐ¾î¾ß ÇÏ´Âµ¥, Áö±ÝÀº ¾øÀ¸´Ï±î ±×³É ÀÓ½Ã·Î ¶«»§
+	_pMaterial->setShader(TEXT("VertexShader.cso"), TEXT("PixelShader.cso")); // íˆ´ì—ì„œ ì„¤ì •í•œ ì‰ì´ë”ë¥¼ ì½ì–´ì•¼ í•˜ëŠ”ë°, ì§€ê¸ˆì€ ì—†ìœ¼ë‹ˆê¹Œ ê·¸ëƒ¥ ìž„ì‹œë¡œ ë•œë¹µ
 	_pMaterial->setFillMode(Graphic::FillMode::WireFrame);
 	_pMaterial->setCullMode(Graphic::CullMode::None);
 }
 
-std::shared_ptr<VertexBuffer> BoundingBox::getVertexBuffer()
+std::shared_ptr<MVertexBuffer> BoundingBox::getVertexBuffer()
 {
 	return _pVertexBuffer;
 }

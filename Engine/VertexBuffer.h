@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 #ifndef __VERTEX_BUFFER_H__
 
-class VertexBuffer final
+class MVertexBuffer final
 {
 public:
-	explicit VertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer);
-	~VertexBuffer();
+	explicit MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer);
+	~MVertexBuffer();
 
 public:
 	void setBufferToDevice(UINT &stride, UINT &offset);

@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "StaticMeshComponent.h"
 
 #include "GraphicDevice.h"
@@ -32,7 +32,7 @@ void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
 	const std::vector<VertexList>& Vertices = FbxLoader.getVerticesList();
 	const std::vector<IndexList>& Indices = FbxLoader.getIndicesList();
 
-	// FBX¸¦ ÀÌ¿ëÇØ SerializeÇÒ µ¥ÀÌÅÍµéÀ» ÀúÀå
+	// FBXë¥¼ ì´ìš©í•´ Serializeí•  ë°ì´í„°ë“¤ì„ ì €ì¥
 	GeometryNum = FbxLoader.GetGeometryNum();
 	for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
 	{
@@ -42,7 +42,7 @@ void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
 		MeshDataList.push_back(MeshData);
 	}
 
-	// Áß½ÉÁ¡°ú ¸ğµç ¹öÅØ½º À§Ä¡
+	// ì¤‘ì‹¬ì ê³¼ ëª¨ë“  ë²„í…ìŠ¤ ìœ„ì¹˜
 	AllVertexPosition.reserve(TotalVertexNum);
 	CenterPos = { 0.f, 0.f, 0.f };
 	for (auto& vertices : Vertices)
@@ -86,7 +86,7 @@ void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& Fi
 		Materials.push_back(NewMaterial);
 	}
 
-	// ¸ğµç ¹öÅØ½º¸¦ ¸ğ¾Æ ÇÏ³ªÀÇ ¹öÅØ½º¸¸ »ç¿ë... ±»ÀÌ?
+	// ëª¨ë“  ë²„í…ìŠ¤ë¥¼ ëª¨ì•„ í•˜ë‚˜ì˜ ë²„í…ìŠ¤ë§Œ ì‚¬ìš©... êµ³ì´?
 	//uint32 vertexCount = fbxLoader.getVertexCount();
 	//std::vector<Vertex> allVertex;
 	//allVertex.reserve(CastValue<size_t>(vertexCount));
@@ -97,11 +97,11 @@ void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& Fi
 	//}
 	//_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), vertexCount, allVertex.data());
 
-	// ÀÎµ¦½º ¹öÆÛ
+	// ì¸ë±ìŠ¤ ë²„í¼
 	//uint32 indexCount = CastValue<uint32>(_indicesList[0].size());
 	//_pIndexBuffer = std::make_shared<IndexBuffer>(sizeof(Index), indexCount, &_indicesList[0]);
 
-	// ¹Ù¿îµù ¹Ú½º
+	// ë°”ìš´ë”© ë°•ìŠ¤
 	//TotalVertexNum = FbxLoader.GetTotalVertexNum();
 	//Vec3 min, max;
 	//FbxLoader.getBoundingBoxInfo(min, max);
@@ -154,12 +154,12 @@ std::shared_ptr<BoundingBox> StaticMesh::getBoundingBox()
 	return _pBoundingBox;
 }
 
-std::vector<std::shared_ptr<VertexBuffer>> StaticMesh::getVertexBuffers()
+std::vector<std::shared_ptr<MVertexBuffer>> StaticMesh::getVertexBuffers()
 {
 	return _pVertexBuffers;
 }
 
-std::shared_ptr<IndexBuffer> StaticMesh::getIndexBuffer()
+std::shared_ptr<MIndexBuffer> StaticMesh::getIndexBuffer()
 {
 	return _pIndexBuffer;
 }
@@ -179,16 +179,12 @@ StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath)
 	: PrimitiveComponent()
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-
-	// ÀÓ½Ã, ÆÄ¶ó¹ÌÅÍ wstringÀ¸·Î º¯°æ ÇÊ¿ä
 	_pStaticMesh->LoadFromFBX(FilePath);
 }
 
 StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath, bool bUsePhysX, bool bUseRigidStatic)
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-
-	// ÀÓ½Ã, ÆÄ¶ó¹ÌÅÍ wstringÀ¸·Î º¯°æ ÇÊ¿ä
 	_pStaticMesh->LoadFromFBX(FilePath);
 
 	if (g_pPhysics && bUsePhysX)
