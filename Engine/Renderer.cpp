@@ -74,7 +74,7 @@ void Renderer::Release()
 {
 	_renderTargets.clear();
 	RenderPasses.clear();
-	_pMeshComponent.reset();
+	ViewMeshComponent.reset();
 
 	CachedPrimitiveComponents.clear();
 	RenderablePrimitiveComponents.clear();
@@ -85,10 +85,11 @@ void Renderer::Release()
 
 void Renderer::initialize(void) noexcept
 {
-	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Plane.fbx"), false);
-	_pMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
-	_pMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
-	_pMeshComponent->SceneComponent::Update(0.f);
+	ViewMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Plane.fbx"), false);
+	ViewMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
+	ViewMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
+    ViewMeshComponent->getStaticMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
+	ViewMeshComponent->SceneComponent::Update(0.f);
 
 	// 렌더 타겟 추가
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
@@ -125,7 +126,7 @@ void Renderer::initialize(void) noexcept
 	// 렌더 패스 추가
 	RenderPasses.emplace_back(CreateRenderPass<DirectionalShadowDepthPass>());
 	{
-		RenderPasses[enumToIndex(ERenderPass::ShadowDepth)]->initializeRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::ShadowDepth)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::DirectionalShadowDepth
 		);
 
@@ -135,7 +136,7 @@ void Renderer::initialize(void) noexcept
 
 	RenderPasses.emplace_back(CreateRenderPass<PointShadowDepthPass>());
 	{
-		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->initializeRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::PointShadowDepth
 		);
 
@@ -145,23 +146,23 @@ void Renderer::initialize(void) noexcept
 
 	RenderPasses.emplace_back(CreateRenderPass<GeometryPass>());
 	{
-		RenderPasses[enumToIndex(ERenderPass::Geometry)]->initializeRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::Geometry)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::Diffuse, 
 			ERenderTarget::Depth, 
 			ERenderTarget::Normal, 
 			ERenderTarget::Specular);
 
-		RenderPasses[enumToIndex(ERenderPass::Geometry)]->initializeResourceViews(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::Geometry)]->BindResourceViews(_renderTargets,
 			ERenderTarget::DirectionalShadowDepth);
 	}
 
 	RenderPasses.emplace_back(CreateRenderPass<LightPass>());
 	{
-		RenderPasses[enumToIndex(ERenderPass::Light)]->initializeRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::Light)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::LightDiffuse,
 			ERenderTarget::LightSpecular);
 
-		RenderPasses[enumToIndex(ERenderPass::Light)]->initializeResourceViews(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::Light)]->BindResourceViews(_renderTargets,
 			ERenderTarget::Depth,
 			ERenderTarget::Normal,
 			ERenderTarget::Specular);
@@ -169,7 +170,7 @@ void Renderer::initialize(void) noexcept
 
 	RenderPasses.emplace_back(CreateRenderPass<SkyPass>());
 	{
-		RenderPasses[enumToIndex(ERenderPass::SkyPass)]->initializeRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::SkyPass)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::Diffuse,
 			ERenderTarget::LightDiffuse);
 
@@ -178,12 +179,12 @@ void Renderer::initialize(void) noexcept
 
 	RenderPasses.emplace_back(CreateRenderPass<CombinePass>());
 	{
-		RenderPasses[enumToIndex(ERenderPass::Combine)]->initializeResourceViews(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::Combine)]->BindResourceViews(_renderTargets,
 			ERenderTarget::Diffuse,
 			ERenderTarget::LightDiffuse,
 			ERenderTarget::LightSpecular);
 
-		RenderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
+		/*RenderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));*/
 	}
 
 	// 
@@ -229,10 +230,10 @@ void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComp
 			uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
 			uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
 			const void* Buffer = MeshData->Vertices.data();
-			VertexBufferMap[PrimitiveKey].push_back(std::make_shared<VertexBuffer>(VertexSize, VertexNum, Buffer));
+			VertexBufferMap[PrimitiveKey].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer));
 		}
 
-		PrimitiveData._pVertexBuffer = VertexBufferMap[PrimitiveKey][i];
+		PrimitiveData.VertexBuffer = VertexBufferMap[PrimitiveKey][i];
 
 		// 인덱스 버퍼 생성
 		// --
@@ -303,28 +304,28 @@ void Renderer::renderScene()
 	for (uint32 i = 0; i < combinePassIndex; ++i)
 	{
 		RenderPasses[i]->Begin();
-		RenderPasses[i]->DoPass(RenderablePrimitiveData);
+		RenderPasses[i]->Render(RenderablePrimitiveData);
 		RenderPasses[i]->End();
 	}
 
 	// 혼합 패스
 	std::vector<std::weak_ptr<PrimitiveComponent>> temp;
-	temp.emplace_back(_pMeshComponent);
+	temp.emplace_back(ViewMeshComponent);
 
 	std::vector<FPrimitiveData> PrimitiveDataList;
-	_pMeshComponent->GetPrimitiveData(PrimitiveDataList);
+	ViewMeshComponent->GetPrimitiveData(PrimitiveDataList);
 
-	if (PrimitiveDataList[0]._pVertexBuffer == nullptr)
+	if (PrimitiveDataList[0].VertexBuffer == nullptr)
 	{
 		auto& MeshData = PrimitiveDataList[0].MeshData.lock();
 		uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
 		uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
 		const void* Buffer = MeshData->Vertices.data();
-		PrimitiveDataList[0]._pVertexBuffer = std::make_shared<VertexBuffer>(VertexSize, VertexNum, Buffer);
+		PrimitiveDataList[0].VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer);
 	}
 
 	RenderPasses[combinePassIndex]->Begin();
-	RenderPasses[combinePassIndex]->DoPass(PrimitiveDataList);
+	RenderPasses[combinePassIndex]->Render(PrimitiveDataList);
 	RenderPasses[combinePassIndex]->End();
 
 	// 포스트프로세스 패스
@@ -444,7 +445,7 @@ void Renderer::FrustumCulling()
 
 void Renderer::updateConstantBuffer()
 {
-	// 모든 쉐이더 타입에 대해 common constant buffer를 업데이트함
+	// 모든 쉐이더에 common constant buffer를 업데이트함
 	for (uint32 index = 0; index < CastValue<uint32>(ShaderType::Count); ++index)
 	{
 		auto& Shaders = ShaderManager->GetShaders(CastValue<ShaderType>(index));

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef __COMBINE_PASS_H__
 
 #include "RenderPass.h"
@@ -6,14 +6,17 @@
 class CombinePass : public RenderPass
 {
 public:
-	explicit CombinePass() = default;
+	explicit CombinePass();
 	virtual ~CombinePass() = default;
 
 public:
 	//virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
 
 private:
-	void render(const FPrimitiveData &primitiveData);
+    //virtual void HandleVertexShaderStage(const FPrimitiveData& PrimitiveData) override;
+    //virtual void HandlePixelShaderStage(const FPrimitiveData& PrimitiveData) override;
+    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
+    virtual void HandleOuputMergeStage(const FPrimitiveData& PrimitiveData) override;
 };
 
 class GeometryPass : public RenderPass
@@ -23,10 +26,7 @@ public:
 	virtual ~GeometryPass() = default;
 
 public:
-	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
-
-private:
-	void render(const FPrimitiveData &primitiveData);
+	virtual bool IsValidPrimitive(const FPrimitiveData &primitiveData) const override;
 };
 
 class DirectionalShadowDepthPass : public RenderPass
@@ -36,10 +36,11 @@ public:
 	virtual ~DirectionalShadowDepthPass() = default;
 
 public:
-	virtual const bool processPrimitiveData(const FPrimitiveData & primitiveData) override;
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+	virtual void UpdateObjectConstantBuffer(const FPrimitiveData & primitiveData) override;
 
-private:
-	void render(const FPrimitiveData & primitiveData);
+protected:
+    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
 };
 
 class PointShadowDepthPass : public RenderPass
@@ -49,7 +50,7 @@ public:
 	virtual ~PointShadowDepthPass() = default;
 
 private:
-	void render(const FPrimitiveData& primitiveData) {}
+    virtual void DrawPrimitive(const FPrimitiveData& primitiveData) override;
 };
 
 class LightPass : public RenderPass
@@ -59,10 +60,12 @@ public:
 	virtual ~LightPass() = default;
 
 public:
-	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+	virtual void UpdateObjectConstantBuffer(const FPrimitiveData &primitiveData) override;
 
-private:
-	void render(const FPrimitiveData &primitiveData);
+protected:
+    virtual void HandleRasterizerStage(const FPrimitiveData& primitiveData) override;
+    virtual void HandleOuputMergeStage(const FPrimitiveData& primitiveData) override;
 };
 
 class SkyPass : public RenderPass
@@ -72,10 +75,10 @@ public:
 	virtual ~SkyPass() = default;
 
 public:
-	virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
+	virtual bool IsValidPrimitive(const FPrimitiveData &primitiveData) const override;
 
-private:
-	void render(const FPrimitiveData & primitiveData);
+protected:
+    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
 };
 
 #define __COMBINE_PASS_H__

@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 #ifndef __RENDER_PASS_H__
 #define __RENDER_PASS_H__
 
 #include "Render.h"
 #include "PrimitiveComponent.h"
 
-struct FResourceViewBindData
+struct FViewBindData
 {
-	FResourceViewBindData() 
+	FViewBindData() 
 		: Index(-1)
 	{}
 	int32 Index;
@@ -26,50 +26,63 @@ public:
 public:
 	virtual void Begin();
 	/*virtual*/ void End();
-	virtual void DoPass(const std::vector<FPrimitiveData>& PrimitiveDatList);
-	virtual const bool processPrimitiveData(const FPrimitiveData& PrimitiveData);
-	virtual void render(const FPrimitiveData & PrimitiveData) = 0;
+	virtual void Render(const std::vector<FPrimitiveData>& PrimitiveDatList);
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const;
+	virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData);
+    virtual void DrawPrimitive(const FPrimitiveData& PrimitiveData);
 
-	// ���� Ÿ��
+protected:
+    virtual void HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData);
+    virtual void HandleVertexShaderStage(const FPrimitiveData& PrimitiveData);
+    virtual void HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData);
+    virtual void HandlePixelShaderStage(const FPrimitiveData& PrimitiveData);
+    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData);
+    virtual void HandleOuputMergeStage(const FPrimitiveData& PrimitiveData);
+protected:
+    bool bWriteDepthStencil = true;
+
+
 public:
+	// 렌더 타겟 바인드
 	template<class... TList>
-	void initializeRenderTargets(RenderTargets& renderTargetList, TList... args)
+	void BindRenderTargets(RenderTargets& renderTargetList, TList... args)
 	{
 		bRenderTarget = true;
 		CachedRenderTargets = renderTargetList;
-		BindResourceView(renderTargetList, _renderTargetList, args...);
+		BindView(renderTargetList, RenderTargetViewData, args...);
 	}
+	// 쉐이더 리소스 뷰 바인드
 	template<class... TList>
-	void initializeResourceViews(RenderTargets& renderTargetList, TList... args)
+	void BindResourceViews(RenderTargets& renderTargetList, TList... args)
 	{
 		CachedResourceViews = renderTargetList;
-		BindResourceView(renderTargetList, _resourceViewList, args...);
+		BindView(renderTargetList, ResourceViewData, args...);
 	}
 protected:
-	std::vector<FResourceViewBindData> _renderTargetList;
-	std::vector<FResourceViewBindData> _resourceViewList;
-	bool bRenderTarget = false;
-	RenderTargets CachedRenderTargets;
-	RenderTargets CachedResourceViews;
-
-	// ��ƿ
-private:
 	template<class T, class... TList>
-	void BindResourceView(RenderTargets& Source, std::vector<FResourceViewBindData>& Target, T arg)
+	void BindView(RenderTargets& Source, std::vector<FViewBindData>& Target, T arg)
 	{
 		int32 Index = CastValue<int32>(arg);
-		FResourceViewBindData ResourceViewBindData;
-		ResourceViewBindData.Index			= Index;
-		ResourceViewBindData.ReourceView	= Source[Index];
+		FViewBindData ResourceViewBindData;
+		ResourceViewBindData.Index = Index;
+		ResourceViewBindData.ReourceView = Source[Index];
 
 		Target.push_back(ResourceViewBindData);
 	}
 	template<class T, class... TList>
-	void BindResourceView(RenderTargets& Source, std::vector<FResourceViewBindData>& Target, T arg, TList... args)
+	void BindView(RenderTargets& Source, std::vector<FViewBindData>& Target, T arg, TList... args)
 	{
-		BindResourceView(Source, Target, arg);
-		BindResourceView(Source, Target, args...);
+		BindView(Source, Target, arg);
+		BindView(Source, Target, args...);
 	}
+
+protected:
+	std::vector<FViewBindData> RenderTargetViewData;
+	std::vector<FViewBindData> ResourceViewData;
+	bool bRenderTarget = false;
+	RenderTargets CachedRenderTargets;
+	RenderTargets CachedResourceViews;
+
 
 private:
 	ID3D11RenderTargetView *_pOldRenderTargetView;

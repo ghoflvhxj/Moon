@@ -1,11 +1,11 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __RENDERER_H__
 
 #include "Render.h"
 
 class SceneComponent;
 class StaticMeshComponent;
-class VertexBuffer;
+class MVertexBuffer;
 class RenderTarget;
 
 class ENGINE_DLL Renderer 
@@ -25,9 +25,9 @@ public:
 private:
 	void initialize(void) noexcept;
 private:
-	std::shared_ptr<StaticMeshComponent> _pMeshComponent;
+	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
 
-	// ·»´õÇÒ Primitive Ãß°¡
+	// ë Œë”í•  Primitive ì¶”ê°€
 public:
 	void AddPrimitive(std::shared_ptr<PrimitiveComponent> &pComponent);
 	std::map<uint32, std::vector<FPrimitiveData>>& GetDeferredPrimitiveData() { return DeferredPrimitiveDataMap; }
@@ -36,16 +36,16 @@ protected:
 	std::vector<std::weak_ptr<PrimitiveComponent>> RenderablePrimitiveComponents;
 	std::map<uint32, std::vector<FPrimitiveData>> ForwardPrimitiveDataMap;
 	std::map<uint32, std::vector<FPrimitiveData>> DeferredPrimitiveDataMap;
-	std::map<uint32, std::vector<std::shared_ptr<VertexBuffer>>> VertexBufferMap;
+	std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBufferMap;
 
 
-	// ÄÄÆ÷³ÍÆ®¸¦ Àü´ŞÇÏÁö ¾ÊÀº ÀÌÀ¯´Â ÀÚ·áÇü¸¸ Àü´ŞÇØ ÄÄÆ÷³ÍÆ®¿¡ ÀÇÁ¸¼ºÀ» ÁÙÀÌ·Á´Â ÀÇµµ...
+	// ì»´í¬ë„ŒíŠ¸ë¥¼ ì „ë‹¬í•˜ì§€ ì•Šì€ ì´ìœ ëŠ” ìë£Œí˜•ë§Œ ì „ë‹¬í•´ ì»´í¬ë„ŒíŠ¸ì— ì˜ì¡´ì„±ì„ ì¤„ì´ë ¤ëŠ” ì˜ë„...
 public:
 	void addDirectionalLightInfoForShadow(const Vec3 &direction);
 private:
 	std::vector<Vec3> _directionalLightDirection;
 
-	// ·»´õ Å¸°Ù
+	// ë Œë” íƒ€ê²Ÿ
 public:
 	void addRenderTargetForDebug(const std::wstring name);
 	std::shared_ptr<RenderTarget>& GetRenderTarget(ERenderTarget RenderTarget) { return _renderTargets[static_cast<int32>(RenderTarget)]; }
@@ -55,7 +55,7 @@ private:
 	std::unordered_map<std::wstring, std::shared_ptr<StaticMeshComponent>> _renderTargetMeshs;
 #endif
 
-	// ·»´õ ÆĞ½º
+	// ë Œë” íŒ¨ìŠ¤
 private:
 	std::vector<std::shared_ptr<RenderPass>> RenderPasses;
 
@@ -65,7 +65,7 @@ public:
 	void renderText();
 private:
 	void FrustumCulling();
-	// PerConstant, PerTick ÄÜ½ºÅºÆ® ¹öÆÛ¸¦ ¾÷µ¥ÀÌÆ®ÇÔ.
+	// PerConstant, PerTick ì½˜ìŠ¤íƒ„íŠ¸ ë²„í¼ë¥¼ ì—…ë°ì´íŠ¸í•¨.
 	void updateConstantBuffer();
 
 	//inline void copyBufferData(std::vector<std::vector<FShaderVariable>> &infos, EConstantBufferLayer layer, uint32 index, const void *pData);	DEPRECATED
@@ -83,7 +83,7 @@ private:
 public:
 	const bool IsDirtyConstant() const;
 private:
-	// ÇÑ ÇÁ·¹ÀÓ µ¿¾È¿¡ ConstantBuffer°¡ º¯°æµÇ¾ú´ÂÁö ¿©ºÎ¸¦ ÆÇ´ÜÇÏ±â À§ÇÑ º¯¼ö
+	// í•œ í”„ë ˆì„ ë™ì•ˆì— ConstantBufferê°€ ë³€ê²½ë˜ì—ˆëŠ”ì§€ ì—¬ë¶€ë¥¼ íŒë‹¨í•˜ê¸° ìœ„í•œ ë³€ìˆ˜
 	bool _bDirtyConstant;
 
 	void Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition);
