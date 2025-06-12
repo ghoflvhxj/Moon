@@ -1,0 +1,15 @@
+﻿root = true
+
+# All files
+[*]
+indent_style = space
+charset = utf-8-bom
+
+# Xml files
+[*.xml]
+indent_size = 2
+
+# ──────────────────────────────────────────────────────────────
+# HLSL/Shader 파일(.hlsl, .fx 등)은 BOM 없는 UTF-8로 지정
+[*.{hlsl,hlsli,fx,ush}]
+charset = utf-8
