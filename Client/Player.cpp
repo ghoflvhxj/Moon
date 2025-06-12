@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "DirectInput.h"
 
 #include "Player.h"
@@ -16,11 +16,19 @@
 
 #include "imgui.h"
 
-#define UseLight 1
+#include "rapidjson/rapidjson.h"
+#include "rapidjson/document.h"
+#include "rapidjson/filewritestream.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
+
+#define UsePointLight 0
 #define UseDirectionalLight 1
 #define UseDynamicMesh 1
 #define UseSkySphere 1
+
 using namespace DirectX;
+using namespace rapidjson;
 
 Player::Player()
 	: Actor()
@@ -72,9 +80,9 @@ void Player::initialize()
 #endif
 
 #if UseSkySphere == 1
-	std::shared_ptr<MTexture> _pTextureComponent2 = std::make_shared<MTexture>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
+	std::shared_ptr<MTexture> SkyTexture = std::make_shared<MTexture>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
 	_pSkyComponent = std::make_shared<SkyComponent>();
-	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, _pTextureComponent2);
+	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, SkyTexture);
 	addComponent(TEXT("Sky"), _pSkyComponent);
 	_pSkyComponent->setRotation(Vec3{ XMConvertToRadians(270.f), 0.f, 0.f });
 #endif
@@ -90,7 +98,7 @@ void Player::initialize()
 	//_pBoneShapeComponent = std::make_shared<CollisionShapeComponent>(_pDynamicMeshComponent->_originBoneVertexList);
 	//addComponent(TEXT("BoneShape"), _pBoneShapeComponent);
 
-#if UseLight == 1
+#if UsePointLight == 1
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> colorDis(0, 255);
@@ -154,7 +162,7 @@ void Player::tick(const Time deltaTime)
 #endif
 
 
-#if UseLight == 1
+#if UsePointLight == 1
 	if (InputManager::keyPress(DIK_P))
 	{
 		_pLightComponentList[0]->setTranslation(0.1f, 2.f, 4.f);
@@ -185,6 +193,97 @@ void Player::tick(const Time deltaTime)
 		_pLightComponent2->setRotation(rotation2);
 	}
 #endif
+}
+
+void Player::Test(bool bPretty)
+{
+	Document Doc;
+	Doc.SetObject();
+
+	Value MaterialValue(kArrayType);
+	const MaterialList& Materials = _pDynamicMeshComponent->getDynamicMesh()->getMaterials();
+	for (const std::shared_ptr<MMaterial>& Mat : Materials)
+	{
+		//Mat->
+	}
+
+	uint32 MeshNum = _pDynamicMeshComponent->getDynamicMesh()->GetMeshNum();
+	for (int i = 0; i < MeshNum; ++i)
+	{
+		Value Mesh(kObjectType);
+		Value PosValue(kArrayType);
+		Value TexValue(kArrayType);
+		Value NormalValue(kArrayType);
+
+		for (const Vertex& Vtx : _pDynamicMeshComponent->getDynamicMesh()->GetMeshData(i)->Vertices)
+		{
+			PosValue.PushBack(Vtx.Pos.x, Doc.GetAllocator());
+			PosValue.PushBack(Vtx.Pos.y, Doc.GetAllocator());
+			PosValue.PushBack(Vtx.Pos.z, Doc.GetAllocator());
+
+			TexValue.PushBack(Vtx.Tex0.x, Doc.GetAllocator());
+			TexValue.PushBack(Vtx.Tex0.y, Doc.GetAllocator());
+
+			NormalValue.PushBack(Vtx.Normal.x, Doc.GetAllocator());
+			NormalValue.PushBack(Vtx.Normal.y, Doc.GetAllocator());
+			NormalValue.PushBack(Vtx.Normal.z, Doc.GetAllocator());
+		}
+
+		Mesh.AddMember("Pos", PosValue, Doc.GetAllocator());
+		Mesh.AddMember("Tex", TexValue, Doc.GetAllocator());
+		Mesh.AddMember("Normal", NormalValue, Doc.GetAllocator());
+
+		uint32 MaterialNum = _pDynamicMeshComponent->getDynamicMesh()->GetMaterialNum();
+		Value MaterialIndices(kArrayType);
+		for (int j = 0; j < MaterialNum; ++j)
+		{
+			_pDynamicMeshComponent->getDynamicMesh()->getGeometryLinkMaterialIndex();
+		}
+		//Mesh.AddMember("Material", );
+
+		const std::string str = "Mesh" + std::to_string(i);
+		Value Name(str, Doc.GetAllocator());
+		Doc.AddMember(Name, Mesh, Doc.GetAllocator());
+	}
+
+	Value TestArray(kArrayType);
+	//Value TestArray;
+	//TestArray.SetArray();
+	for (int i = 0; i < 10; ++i)
+	{
+		TestArray.PushBack(0.1f * i, Doc.GetAllocator());
+	}
+	Doc.AddMember("TestArray", TestArray, Doc.GetAllocator());
+
+	Value TestInt;
+	TestInt.SetInt(10);
+	Doc.AddMember("TestInt", TestInt, Doc.GetAllocator());
+
+	FILE* fp = nullptr;
+	fopen_s(&fp, "D:\\Git\\Moon\\Client\\test.json", "wb");
+
+	char WriteBuffer[65536];
+	FileWriteStream WriteStream(fp, WriteBuffer, sizeof(WriteBuffer));
+
+	//Writer<FileWriteStream>* JsonWriter = nullptr;
+	//if (bPretty)
+	//{
+	//	JsonWriter = new PrettyWriter<FileWriteStream>(WriteStream);
+	//}
+	//else
+	//{
+	//	JsonWriter = new Writer<FileWriteStream>(WriteStream);
+	//}
+	
+	//JsonWriter->SetMaxDecimalPlaces(8);
+	//Doc.Accept(*JsonWriter);
+	//delete JsonWriter;
+
+	PrettyWriter<FileWriteStream> JsonWriter(WriteStream);
+	JsonWriter.SetMaxDecimalPlaces(8);
+	Doc.Accept(JsonWriter);
+
+	fclose(fp);
 }
 
 //void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)

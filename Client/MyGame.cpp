@@ -148,6 +148,15 @@ void MyGame::render()
 		}
 	}
 
+	if (ImGui::Button("SaveJson"))
+	{
+		_pPlayer->Test();
+	}
+	if (ImGui::Button("SaveJsonPretty"))
+	{
+		_pPlayer->Test(true);
+	}
+
 	ImGui::End();
 
 	ImGui::Render();
