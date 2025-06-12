@@ -35,12 +35,10 @@ public:
 	explicit DirectionalShadowDepthPass();
 	virtual ~DirectionalShadowDepthPass() = default;
 
-public:
-    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-	virtual void UpdateObjectConstantBuffer(const FPrimitiveData & primitiveData) override;
-
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+	virtual void UpdateObjectConstantBuffer(const FPrimitiveData & primitiveData) override;
 };
 
 class PointShadowDepthPass : public RenderPass
@@ -50,7 +48,9 @@ public:
 	virtual ~PointShadowDepthPass() = default;
 
 private:
-    virtual void DrawPrimitive(const FPrimitiveData& primitiveData) override;
+    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& primitiveData) override;
 };
 
 class LightPass : public RenderPass
@@ -66,6 +66,16 @@ public:
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& primitiveData) override;
     virtual void HandleOuputMergeStage(const FPrimitiveData& primitiveData) override;
+};
+
+class CollisionPass : public RenderPass
+{
+public:
+    explicit CollisionPass() = default;
+    virtual ~CollisionPass() = default;
+
+public:
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
 };
 
 class SkyPass : public RenderPass

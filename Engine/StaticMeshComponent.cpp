@@ -102,10 +102,13 @@ void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& Fi
 	//_pIndexBuffer = std::make_shared<IndexBuffer>(sizeof(Index), indexCount, &_indicesList[0]);
 
 	// 바운딩 박스
-	//TotalVertexNum = FbxLoader.GetTotalVertexNum();
-	//Vec3 min, max;
-	//FbxLoader.getBoundingBoxInfo(min, max);
-	//_pBoundingBox = std::make_shared<BoundingBox>(min, max);
+    Vec3 Min, Max;
+    FbxLoader.getBoundingBoxInfo(Min, Max);
+    _pBoundingBox = std::make_shared<BoundingBox>(Min, Max);
+
+    // 바운딩 스피어
+    float Radius = XMVectorGetX(XMVector3Length(XMLoadFloat3(&Min) - XMLoadFloat3(&Max)));
+
 }
 
 const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
@@ -239,8 +242,6 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	{
 		FPrimitiveData PrimitiveData;
 		PrimitiveData._pPrimitive = shared_from_this();
-		//primitive._pVertexBuffer = _pStaticMesh->getVertexBuffers()[geometryIndex];
-		//primitive._pIndexBuffer = _pStaticMesh->getIndexBuffer();
 		PrimitiveData._pMaterial = _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
 		PrimitiveData._primitiveType = EPrimitiveType::Mesh;
 		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
@@ -252,13 +253,13 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	std::shared_ptr<BoundingBox> &boundingBox = _pStaticMesh->getBoundingBox();
 	if (boundingBox && _bDrawBoundingBox)
 	{
-		FPrimitiveData primitive = {};
-		primitive._pPrimitive = shared_from_this();
-		//primitive._pVertexBuffer = boundingBox->getVertexBuffer();
-		//primitive._pIndexBuffer = nullptr;
-		primitive._pMaterial = boundingBox->getMaterial();
-		primitive._primitiveType = EPrimitiveType::Collision;
-		PrimitiveDataList.emplace_back(primitive);
+		FPrimitiveData PrimitiveData = {};
+		PrimitiveData._pPrimitive = shared_from_this();
+		PrimitiveData._pMaterial = boundingBox->getMaterial();
+		PrimitiveData._primitiveType = EPrimitiveType::Collision;
+        PrimitiveData.MeshData = boundingBox->GetMeshData();
+
+		PrimitiveDataList.emplace_back(PrimitiveData);
 	}
 
 	return true;

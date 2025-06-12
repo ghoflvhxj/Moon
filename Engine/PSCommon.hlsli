@@ -11,6 +11,12 @@ struct PixelIn
 	float3 binormal		: NORMAL2;
 };
 
+struct PixelIn_Simple
+{
+    float4 pos : SV_Position;
+    float4 color : Color0;
+};
+
 struct PixelOut_GeometryPass
 {
 	float4 color	: SV_TARGET0;
@@ -26,16 +32,16 @@ struct PixelOut_CombinePass
 
 struct PixelOut_ShadowDepth
 {
-    float4 shadowDepth		: SV_TARGET6;
+    float4 shadowDepth		: SV_TARGET0;
 };
 
 struct PixelOut_LightPass
 {
-	float4 lightDiffuse		: SV_TARGET4;
-	float4 lightSpecular	: SV_TARGET5;
+	float4 lightDiffuse		: SV_TARGET0;
+	float4 lightSpecular	: SV_TARGET1;
 };
 
-// 셰이더에서 사용하는 텍스쳐
+// 셰이더에서 사용하는 텍스쳐. 렌더 타겟인 경우는 인덱스가 ERenderTarget과 일치해야 함
 Texture2D g_Diffuse				: register(t0);
 Texture2D g_Depth				: register(t1);
 Texture2D g_Normal				: register(t2);
@@ -43,6 +49,7 @@ Texture2D g_Specular			: register(t3);
 Texture2D g_LightDiffuse		: register(t4);
 Texture2D g_LightSpecular		: register(t5);
 Texture2DArray g_ShadowDepth	: register(t6);
+Texture2D T_Collision           : register(t8);
 
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);

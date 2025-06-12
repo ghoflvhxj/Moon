@@ -42,27 +42,18 @@ void CombinePass::HandleOuputMergeStage(const FPrimitiveData& PrimitiveData)
 
 bool GeometryPass::IsValidPrimitive(const FPrimitiveData &PrimitiveData) const
 {
-	switch (PrimitiveData._primitiveType)
-	{
-	case EPrimitiveType::Mesh:
-		break;
-	case EPrimitiveType::Collision:
-		if (g_pRenderer->IsDrawCollision() == false)
-		{
-			return false;
-		}
-		break;
-	default:
-		return false;
-	}
-
-	return RenderPass::IsValidPrimitive(PrimitiveData);
+	return PrimitiveData._primitiveType == EPrimitiveType::Mesh && RenderPass::IsValidPrimitive(PrimitiveData);
 }
 
 DirectionalShadowDepthPass::DirectionalShadowDepthPass()
 	: RenderPass()
 {
 	SetUseOwningDepthStencilBuffer(ERenderTarget::DirectionalShadowDepth);
+}
+
+void DirectionalShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
+{
+    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 }
 
 bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
@@ -84,19 +75,34 @@ void DirectionalShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData
     _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
 }
 
-void DirectionalShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
-{
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
-}
-
 PointShadowDepthPass::PointShadowDepthPass()
     : RenderPass()
 {
     SetUseOwningDepthStencilBuffer(ERenderTarget::PointShadowDepth);
 }
 
-void PointShadowDepthPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
+void PointShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
 {
+    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
+}
+
+bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+{
+    if (PrimitiveData._primitiveType != EPrimitiveType::Mesh)
+    {
+        return false;
+    }
+
+    return RenderPass::IsValidPrimitive(PrimitiveData);
+}
+
+void PointShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
+{
+    RenderPass::UpdateObjectConstantBuffer(PrimitiveData);
+
+    // 패스 자체 쉐이더를 사용하기 때문에 오브젝트 Cbuffer를 수동으로 갱신해줌
+    auto& variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
+    _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
 }
 
 void LightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
@@ -163,4 +169,9 @@ bool SkyPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 void SkyPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
 {
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Frontface));
+}
+
+bool CollisionPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+{
+    return g_pRenderer->IsDrawCollision() && PrimitiveData._primitiveType == EPrimitiveType::Collision && RenderPass::IsValidPrimitive(PrimitiveData);
 }

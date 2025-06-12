@@ -1,10 +1,10 @@
 ﻿#pragma once
-#ifndef __PRIMITIVE_COMPONENT_H__
 
 #include "SceneComponent.h"
 #include "Vertex.h"
 
 struct FPrimitiveData;
+struct FMeshData;
 
 class MVertexBuffer;
 class MIndexBuffer;
@@ -36,7 +36,12 @@ protected:
 public:
 	std::shared_ptr<MMaterial> getMaterial();
 protected:
-	std::shared_ptr<MMaterial> _pMaterial;
+	std::shared_ptr<MMaterial> _pMaterial = nullptr;
+
+public:
+    const std::shared_ptr<FMeshData>& GetMeshData() const { return MeshData; }
+protected:
+    std::shared_ptr<FMeshData> MeshData = nullptr;
 };
 
 class ENGINE_DLL PrimitiveComponent abstract : public SceneComponent, public std::enable_shared_from_this<PrimitiveComponent>
@@ -75,6 +80,3 @@ public:
 protected:
 	bool bRendering;
 };
-
-#define __PRIMITIVE_COMPONENT_H__
-#endif

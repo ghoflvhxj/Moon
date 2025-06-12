@@ -1,10 +1,6 @@
-struct VertexOut
-{
-	float4 pos		: SV_POSITION;
-	float4 color	: COLOR;
-};
+#include "PSCommon.hlsli"
 
-float4 main(float3 color : Color) : SV_TARGET0
+float4 main(PixelIn_Simple pIn) : SV_TARGET0
 {
-	return float4(color, 1.f);
+    return float4(pIn.color.xyz, 1.f);
 }

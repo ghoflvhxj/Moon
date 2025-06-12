@@ -45,13 +45,10 @@ void RenderPass::Begin()
 
 	if (bRenderTarget)
 	{
-		uint32 RenderTargetNum = CastValue<int32>(CachedRenderTargets.size());
-		std::vector<ID3D11RenderTargetView*> RowRenderTargets(RenderTargetNum, nullptr);
-		//std::vector<ID3D11RenderTargetView*> RowRenderTargets;
-
+		std::vector<ID3D11RenderTargetView*> RowRenderTargets;
 		for (const FViewBindData ViewBindData : RenderTargetViewData)
 		{
-			RowRenderTargets[ViewBindData.Index] = ViewBindData.ReourceView->AsRenderTargetView();
+			RowRenderTargets.push_back(ViewBindData.ReourceView->AsRenderTargetView());
 
 			if (true == bClearTargets)
 			{
@@ -61,7 +58,7 @@ void RenderPass::Begin()
 		}
 		
 		// PointRenderPass에서, CachedRenderTargets[static_cast<int>(ERenderTarget::DirectionalShadowDepth)]를 고정적으로 사용하고 있음...
-		g_pGraphicDevice->getContext()->OMSetRenderTargets(RenderTargetNum, RowRenderTargets.data(), UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[enumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
+		g_pGraphicDevice->getContext()->OMSetRenderTargets(RowRenderTargets.size(), RowRenderTargets.data(), UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[enumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
 	}
 
 
@@ -83,11 +80,11 @@ void RenderPass::Begin()
 
 void RenderPass::End()
 {
-	//uint32 ResorceViewNum = CastValue<uint32>(CachedResourceViews.size());
-	std::vector<ID3D11ShaderResourceView*> RowResourceViews(8, nullptr);
-	g_pGraphicDevice->getContext()->PSSetShaderResources(0, 8, RowResourceViews.data());
+    uint32 ResorceViewNum = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+	std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
+	g_pGraphicDevice->getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
 
-	uint32 RenderTargetNum = static_cast<uint32>(CachedRenderTargets.size() == 0 ? 1 : CachedRenderTargets.size());
+	uint32 RenderTargetNum = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
 	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(RenderTargetNum, nullptr);
 	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
 	g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), _pOldDepthStencilView);

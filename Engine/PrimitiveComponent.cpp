@@ -12,6 +12,9 @@
 #include "MainGameSetting.h"
 #include "Camera.h"
 
+// FMeshData 참조용
+#include "StaticMeshComponent.h"
+
 using namespace DirectX;
 
 BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
@@ -66,12 +69,16 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
 	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
 	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
 
-	_pVertexBuffer = std::make_shared<MVertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
+	//_pVertexBuffer = std::make_shared<MVertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
 
 	_pMaterial = std::make_shared<MMaterial>();
-	_pMaterial->setShader(TEXT("VertexShader.cso"), TEXT("PixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
+	_pMaterial->setShader(TEXT("VertexShader.cso"), TEXT("PixelShader.cso"));
 	_pMaterial->setFillMode(Graphic::FillMode::WireFrame);
 	_pMaterial->setCullMode(Graphic::CullMode::None);
+
+    MeshData = std::make_shared<FMeshData>();
+    MeshData->Vertices = _vertices;
+    MeshData->Indices = _indices;
 }
 
 std::shared_ptr<MVertexBuffer> BoundingBox::getVertexBuffer()

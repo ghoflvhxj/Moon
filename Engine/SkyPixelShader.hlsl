@@ -2,16 +2,16 @@
 
 struct PixelOut
 {
-	float4 color	: SV_TARGET0;
-	float4 light	: SV_TARGET4;
+	float4 color    : SV_TARGET0;
+    float4 light    : SV_TARGET1;
 };
 
 PixelOut main(PixelIn pIn)
 {
 	PixelOut pOut;
 
-	// ½ºÄ«ÀÌ µ¼ ¸Ş½¬ÀÇ uvÁÂÇ¥¸¦ ÀÌ¿ëÇÏ´Â°Ô ¾Æ´Ï¶ó, Depth ·»´õ Å¸°Ù ¸Ş½¬ÀÇ uvÁÂÇ¥¸¦ ÀÌ¿ëÇØ¾ß ÇÔ
-	// ±×·±µ¥ Depth ·»´õ Å¸°ÙÀÇ Å©±â´Â ÇØ»óµµ¶û °°À½
+	// ìŠ¤ì¹´ì´ ë” ë©”ì‰¬ì˜ uvì¢Œí‘œë¥¼ ì´ìš©í•˜ëŠ”ê²Œ ì•„ë‹ˆë¼, Depth ë Œë” íƒ€ê²Ÿ ë©”ì‰¬ì˜ uvì¢Œí‘œë¥¼ ì´ìš©í•´ì•¼ í•¨
+	// ê·¸ëŸ°ë° Depth ë Œë” íƒ€ê²Ÿì˜ í¬ê¸°ëŠ” í•´ìƒë„ë‘ ê°™ìŒ
 	//float4 depth = g_Depth.Sample(g_Sampler, float2(pIn.pos.x / resolutionWidth, pIn.pos.y / resolutionHeight));
 
 	//clip((0.0 == depth.r) ? 1 : -1);

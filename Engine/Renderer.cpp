@@ -140,7 +140,7 @@ void Renderer::initialize(void) noexcept
 			ERenderTarget::PointShadowDepth
 		);
 
-		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
+		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPointPS.cso"), TEXT("ShadowDepthGS.cso"));
 		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
 	}
 
@@ -177,14 +177,19 @@ void Renderer::initialize(void) noexcept
 		RenderPasses[enumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
 	}
 
+    RenderPasses.emplace_back(CreateRenderPass<CollisionPass>());
+    {
+        RenderPasses[enumToIndex(ERenderPass::Collision)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::Collision);
+    }
+
 	RenderPasses.emplace_back(CreateRenderPass<CombinePass>());
 	{
 		RenderPasses[enumToIndex(ERenderPass::Combine)]->BindResourceViews(_renderTargets,
 			ERenderTarget::Diffuse,
 			ERenderTarget::LightDiffuse,
-			ERenderTarget::LightSpecular);
-
-		/*RenderPasses[enumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));*/
+			ERenderTarget::LightSpecular,
+            ERenderTarget::Collision);
 	}
 
 	// 

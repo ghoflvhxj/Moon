@@ -32,6 +32,8 @@ enum class ERenderTarget
 	DirectionalShadowDepth,
 	PointShadowDepth,
 
+    Collision,
+
 	Count
 };
 
@@ -42,6 +44,7 @@ enum class ERenderPass
 	Geometry,
 	Light,
 	SkyPass,
+    Collision,
 	Combine,
 	Count
 };
