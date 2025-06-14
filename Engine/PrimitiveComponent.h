@@ -79,4 +79,10 @@ public:
 	void SetRendering(bool bNewRendering);
 protected:
 	bool bRendering;
+
+public:
+    void setDrawingBoundingBox(const bool bDraw);
+    const bool IsDrawingBoundingBox() const;
+public:
+    bool _bDrawBoundingBox = false;
 };

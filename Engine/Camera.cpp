@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "Camera.h"
 
 // Utility
@@ -50,7 +50,7 @@ void Camera::initialize()
 
 void Camera::tick(const Time deltaTime)
 {
-	// ÀÌ¹Ì ¾÷µ¥ÀÌÆ® µÈ ÄÄÆ÷³ÍÆ®ÀÇ Á¤º¸°¡ ÇÊ¿äÇÔ
+	// ì´ë¯¸ ì—…ë°ì´íŠ¸ ëœ ì»´í¬ë„ŒíŠ¸ì˜ ì •ë³´ê°€ í•„ìš”í•¨
 	_pSceneComponent->Update(deltaTime);
 
 	updateViewMatrix();
@@ -62,7 +62,7 @@ void Camera::updateViewMatrix()
 	Vec3 eye	= _pSceneComponent->getWorldTranslation();
 	Vec3 at		= { 0.f, 0.f, 0.f };
 	Vec3 up		= { 0.f, 1.f, 0.f };
-	Vec3 to		= _pSceneComponent->getLook();
+	Vec3 to		= _pSceneComponent->GetForward();
 
 	XMMATRIX viewMatrix = XMMatrixIdentity();
 	switch (_eLookMode)
@@ -125,7 +125,7 @@ const Mat4& Camera::getProjectionMatrix()
 	}
 	default:
 	{
-		DEV_ASSERT_MSG("¾Ë ¼ö ¾ø´Â Åõ¿µ¸ğµå ÀÔ´Ï´Ù!");
+		DEV_ASSERT_MSG("ì•Œ ìˆ˜ ì—†ëŠ” íˆ¬ì˜ëª¨ë“œ ì…ë‹ˆë‹¤!");
 		return _perspectiveProjectionMatrix;
 	}
 	}
@@ -155,7 +155,7 @@ const Mat4& Camera::getInverseProjectionMatrix()
 	}
 	default:
 	{
-		DEV_ASSERT_MSG("¾Ë ¼ö ¾ø´Â Åõ¿µ¸ğµå ÀÔ´Ï´Ù!");
+		DEV_ASSERT_MSG("ì•Œ ìˆ˜ ì—†ëŠ” íˆ¬ì˜ëª¨ë“œ ì…ë‹ˆë‹¤!");
 		return _inversePerspectiveProjectionMatrix;
 	}
 	}

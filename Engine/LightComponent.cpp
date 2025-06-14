@@ -1,12 +1,15 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "LightComponent.h"
 
 #include "Renderer.h"
 #include "MainGameSetting.h"
 #include "StaticMeshComponent.h"
 
-LightComponent::LightComponent(void)
+using namespace DirectX;
+
+MLightComponent::MLightComponent(void)
 	: PrimitiveComponent()
+    , Direction     {VEC3ZERO}
 	, _color		{ 1.f, 1.f, 1.f }
 	, _intensity	{ 1.f }
 	, _shown		{ true }
@@ -23,68 +26,80 @@ LightComponent::LightComponent(void)
 	setTranslation(0.f, 0.f, 1.f);
 }
 
-LightComponent::~LightComponent(void)
+MLightComponent::~MLightComponent(void)
 {
 }
 
-const bool LightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
+void MLightComponent::Update(const Time deltaTime)
+{
+    PrimitiveComponent::Update(deltaTime);
+
+    Direction = GetForward();
+}
+
+const bool MLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
 	FPrimitiveData primitiveData = {};
 	primitiveData._pPrimitive		= shared_from_this();
-	primitiveData.MeshData = _pStaticMesh->GetMeshData(0);
-	primitiveData._primitiveType	= EPrimitiveType::Light;
+	primitiveData.MeshData          = _pStaticMesh->GetMeshData(0);
+    primitiveData._pMaterial        = getMesh()->getMaterials()[0];
 
 	primitiveDataList.emplace_back(primitiveData);
 
 	return true;
 }
 
-const Vec3& LightComponent::getColor(void) const
+Mat4& MLightComponent::getWorldMatrix()
+{
+    return LightWorldMatrix;
+}
+
+const Vec3& MLightComponent::getColor(void) const
 {
 	return _color;
 }
 
-void LightComponent::setColor(const Vec3 &color)
+void MLightComponent::setColor(const Vec3 &color)
 {
 	_color = color;
 }
 
-void LightComponent::addIntensity(const float addIntensity)
+void MLightComponent::addIntensity(const float addIntensity)
 {
 	_intensity += addIntensity;
 }
 
-void LightComponent::setIntensity(const float intensity)
+void MLightComponent::setIntensity(const float intensity)
 {
 	_intensity = intensity;
 }
 
-const float LightComponent::getIntensity()
+const float MLightComponent::getIntensity()
 {
 	return _intensity;
 }
 
-void LightComponent::show()
+void MLightComponent::show()
 {
 	_shown = true;
 }
 
-void LightComponent::hide()
+void MLightComponent::hide()
 {
 	_shown = false;
 }
 
-void LightComponent::toggle()
+void MLightComponent::toggle()
 {
 	(true == isShown()) ? hide() : show();
 }
 
-const bool LightComponent::isHidden() const
+const bool MLightComponent::isHidden() const
 {
 	return _shown == false;
 }
 
-const bool LightComponent::isShown() const
+const bool MLightComponent::isShown() const
 {
 	return _shown == true;
 }

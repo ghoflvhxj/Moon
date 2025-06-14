@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "PointLightComponent.h"
 
 #include "Render.h"
@@ -10,7 +10,7 @@
 using namespace DirectX;
 
 PointLightComponent::PointLightComponent(void)
-	: LightComponent()
+	: MLightComponent()
 	, _range{ 1.f }
 {
 	getMesh()->getMaterial(0)->setShader(TEXT("Light.cso"), TEXT("PointLightShader.cso"));
@@ -26,7 +26,7 @@ void PointLightComponent::Update(const Time deltaTime)
 
 	Vec3 trans = { 0.f, 0.f, 1.f };
 
-	// È¸ÀüÀ» Á¦°ÅÇÑ ¿ùµåÇà·Ä ¸¸µé±â
+	// íšŒì „ì„ ì œê±°í•œ ì›”ë“œí–‰ë ¬ ë§Œë“¤ê¸°
 	XMVECTOR scaleVector = XMLoadFloat3(&getScale());
 	XMVECTOR translationVector = XMLoadFloat3(&trans);
 	XMMATRIX IdentityMatrix = XMLoadFloat4x4(&IDENTITYMATRIX);
@@ -37,14 +37,13 @@ void PointLightComponent::Update(const Time deltaTime)
 		XMMatrixTranslationFromVector(translationVector)
 	};
 
-	XMStoreFloat4x4(&getWorldMatrix(), matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
+	XMStoreFloat4x4(&LightWorldMatrix, matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
 }
 
 const bool PointLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
-	LightComponent::GetPrimitiveData(primitiveDataList);
-
-	primitiveDataList[0]._pMaterial = getMesh()->getMaterials()[0];
+	MLightComponent::GetPrimitiveData(primitiveDataList);
+    primitiveDataList[0]._primitiveType = EPrimitiveType::PointLight;
 
 	return true;
 }

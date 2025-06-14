@@ -38,7 +38,12 @@ public:
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-	virtual void UpdateObjectConstantBuffer(const FPrimitiveData & primitiveData) override;
+    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData) override;
+
+protected:
+    //std::weak_ptr<class MLightComponent> CachedLightComponent;
+    //std::vector<Vec4> LightPosition;
+    //std::vector<Mat4> LightViewProj;
 };
 
 class PointShadowDepthPass : public RenderPass

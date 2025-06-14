@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 #ifndef __POINTLIGHT_COMPONENT_H__
 
 #include "LightComponent.h"
 
 struct FPrimitiveData;
 
-class ENGINE_DLL PointLightComponent : public LightComponent
+class ENGINE_DLL PointLightComponent : public MLightComponent
 {
 public:
 	explicit PointLightComponent(void);

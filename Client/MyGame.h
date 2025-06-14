@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __MYGAME_H__
 
 #include "MainGame.h"
@@ -38,7 +38,7 @@ private:
 
 private:
 	std::shared_ptr<TerrainComponent> _pTerrainComponent;
-	//std::shared_ptr<Camera>	_pCamera;			CameraÀÇ ±âº» »ı¼ºÀÚ´Â g_pMainGameÀÇ SettingÀ» °¡Á®¿Í fov¸¦ ¼³Á¤ÇÔ, ±Ùµ¥ ¾ÆÁ÷ g_pMainGameÀÌ ¼³Á¤µÇ±â ÀüÀÓ!
+	//std::shared_ptr<Camera>	_pCamera;			Cameraì˜ ê¸°ë³¸ ìƒì„±ìëŠ” g_pMainGameì˜ Settingì„ ê°€ì ¸ì™€ fovë¥¼ ì„¤ì •í•¨, ê·¼ë° ì•„ì§ g_pMainGameì´ ì„¤ì •ë˜ê¸° ì „ì„!
 
 	float _cameraSpeedScale = 1.f;
 
@@ -47,7 +47,7 @@ private:
 	bool bButtonPressed = false;
 	bool bStaticCollision = true;
 	float Force = 0.f;
-	std::shared_ptr<StaticMeshComponent> _pStaticMeshComponent;
+	std::shared_ptr<StaticMeshComponent> Lantern;
 };
 
 #define __MYGAME_H__

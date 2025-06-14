@@ -53,11 +53,6 @@ void MConstantBuffer::SetData(int32 Offset, Byte* InData, uint32 InSize)
 	memcpy(Buffer + Offset, InData, InSize);
 }
 
-//void ConstantBuffer::setBufferToDevice(UINT &stride, UINT &offset)
-//{
-//
-//}
-
 const uint32 MConstantBuffer::getSize() const
 {
 	return BufferSize;

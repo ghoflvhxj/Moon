@@ -25,9 +25,10 @@ public:
 
 public:
 	virtual void Begin();
-	/*virtual*/ void End();
+	virtual void End();
 	virtual void Render(const std::vector<FPrimitiveData>& PrimitiveDatList);
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const;
+    virtual void UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData);
 	virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData);
     virtual void DrawPrimitive(const FPrimitiveData& PrimitiveData);
 

@@ -32,6 +32,7 @@ struct VertexOut_Simple
 cbuffer VS_CBuffer_PerObject : register(b2)
 {
 	row_major matrix worldMatrix;
+    row_major matrix InverseWorldMatrix;
 	row_major matrix keyFrameMatrices[199];
 	bool animated;
 };

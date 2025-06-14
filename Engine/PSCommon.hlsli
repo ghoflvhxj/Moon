@@ -42,14 +42,16 @@ struct PixelOut_LightPass
 };
 
 // 셰이더에서 사용하는 텍스쳐. 렌더 타겟인 경우는 인덱스가 ERenderTarget과 일치해야 함
-Texture2D g_Diffuse				: register(t0);
-Texture2D g_Depth				: register(t1);
-Texture2D g_Normal				: register(t2);
-Texture2D g_Specular			: register(t3);
-Texture2D g_LightDiffuse		: register(t4);
-Texture2D g_LightSpecular		: register(t5);
-Texture2DArray g_ShadowDepth	: register(t6);
-Texture2D T_Collision           : register(t8);
+Texture2D g_Diffuse				        : register(t0);
+Texture2D g_Depth				        : register(t1);
+Texture2D g_Normal				        : register(t2);
+Texture2D g_Specular			        : register(t3);
+Texture2D g_LightDiffuse		        : register(t4);
+Texture2D g_LightSpecular		        : register(t5);
+Texture2DArray g_ShadowDepth	        : register(t6);
+TextureCube<float> g_PointLightShadowDepth     : register(t7);
+
+Texture2D T_Collision                   : register(t8);
 
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);

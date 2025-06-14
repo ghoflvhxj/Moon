@@ -18,12 +18,12 @@ public:
 	}
 
 public:
-	explicit Renderer(void) noexcept;
-	~Renderer(void) noexcept;
+	explicit Renderer() noexcept;
+	~Renderer() noexcept;
 	void Release();
 
 private:
-	void initialize(void) noexcept;
+	void initialize() noexcept;
 private:
 	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
 
@@ -37,13 +37,6 @@ protected:
 	std::map<uint32, std::vector<FPrimitiveData>> ForwardPrimitiveDataMap;
 	std::map<uint32, std::vector<FPrimitiveData>> DeferredPrimitiveDataMap;
 	std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBufferMap;
-
-
-	// 컴포넌트를 전달하지 않은 이유는 자료형만 전달해 컴포넌트에 의존성을 줄이려는 의도...
-public:
-	void addDirectionalLightInfoForShadow(const Vec3 &direction);
-private:
-	std::vector<Vec3> _directionalLightDirection;
 
 	// 렌더 타겟
 public:
@@ -60,16 +53,14 @@ private:
 	std::vector<std::shared_ptr<RenderPass>> RenderPasses;
 
 public:
-	void render();
-	void renderScene();
-	void renderText();
+	void Render();
+	void RenderScene();
+	void RenderText();
 private:
 	void FrustumCulling();
-	// PerConstant, PerTick 콘스탄트 버퍼를 업데이트함.
-	void updateConstantBuffer();
+	void UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader);
+    void UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader);
 
-	//inline void copyBufferData(std::vector<std::vector<FShaderVariable>> &infos, EConstantBufferLayer layer, uint32 index, const void *pData);	DEPRECATED
-	
 public:
 	uint32 TotalPrimitiveNum = 0;
 	uint32 showPrimitiveCount = 0;
@@ -81,14 +72,22 @@ private:
 	bool _drawRenderTarget;
 
 public:
-	const bool IsDirtyConstant() const;
+	const bool IsGlobalBufferDirty() const;
 private:
 	// 한 프레임 동안에 ConstantBuffer가 변경되었는지 여부를 판단하기 위한 변수
 	bool _bDirtyConstant;
 
-	void Test(std::vector<Mat4>& lightViewProj, std::vector<Vec4>& lightPosition);
-private:
-	std::vector<float> _cascadeDistance;
+
+public:
+    std::vector<FPrimitiveData> PointLightPrimitive;
+    std::vector<FPrimitiveData> DirectionalLightPrimitive;
+protected:
+    std::vector<float> _cascadeDistance;
+    std::vector<Vec3> LightPosition;
+    std::vector<Mat4> LightViewProj;
+
+    std::vector<Vec3> PointLightPosition;
+    std::vector<Mat4> PointLightViewProj;
 
 public:
 	RENDERER_OPTION(DrawCollision)

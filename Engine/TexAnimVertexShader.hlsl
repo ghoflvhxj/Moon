@@ -24,18 +24,31 @@ VertexOut main(VertexIn vIn)
         }
     }
 	
-	float4 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);
-	vOut.pos		= mul(float4(animatedPos.xyz, 1.f), worldViewProj);
-    vOut.worldPos	= mul(float4(animatedPos.xyz, 1.f), worldMatrix).xyz;
+	float3 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);
+    vOut.pos = mul(float4(animatedPos, 1.f), worldViewProj);
+    vOut.worldPos = mul(float4(animatedPos, 1.f), worldMatrix).xyz;
 	vOut.uv			= vIn.uv;
     vOut.Clip		= vOut.pos.zw;
-	vOut.normal		= mul(float4(vIn.normal, 0.f), worldView).xyz;
-	vOut.tangent	= mul(float4(vIn.tangent, 0.f), worldView).xyz;
-	vOut.binormal	= mul(float4(vIn.binormal, 0.f), worldView).xyz;
-	
-    vOut.pos = mul(animatedPos, worldViewProj);
-    vOut.worldPos = mul(animatedPos, worldMatrix).xyz;
-    vOut.Clip = vOut.pos.zw;
-	
+    
+    //vOut.normal = normalize(mul(float4(vIn.normal, 0.f), boneTransform).xyz);
+    //vOut.tangent = normalize(mul(float4(vIn.tangent, 0.f), boneTransform).xyz);
+    //vOut.binormal = normalize(mul(float4(vIn.binormal, 0.f), boneTransform).xyz);
+    
+    float4x4 SkinnedWorldView = mul(boneTransform, worldView);
+    vOut.normal = mul(float4(vIn.normal, 0.f), SkinnedWorldView).xyz;
+    vOut.tangent = mul(float4(vIn.tangent, 0.f), SkinnedWorldView).xyz;
+    vOut.binormal = mul(float4(vIn.binormal, 0.f), SkinnedWorldView).xyz;
+    
+    //vOut.normal = normalize(mul(float4(vIn.normal, 0.f), worldMatrix).xyz);
+    //vOut.tangent = normalize(mul(float4(vIn.tangent, 0.f), worldMatrix).xyz);
+    //vOut.binormal = normalize(mul(float4(vIn.binormal, 0.f), worldMatrix).xyz);
+    
+    //vOut.normal = normalize(mul(float4(vIn.normal, 0.f), worldView).xyz);
+    //vOut.tangent = normalize(mul(float4(vIn.tangent, 0.f), worldView).xyz);
+    //vOut.binormal = normalize(mul(float4(vIn.binormal, 0.f), worldView).xyz);
+    
+    //vOut.normal = vIn.normal;
+    //vOut.tangent = vIn.tangent;
+    //vOut.binormal = vIn.binormal;
 	return vOut;
 }

@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "MainGame.h"
 
 // System
@@ -54,7 +54,8 @@ const bool MainGame::Loop()
 
 	if (g_pRenderer)
 	{
-		g_pRenderer->render();
+        //g_pRenderer->PreRender();
+		g_pRenderer->Render();
 	}
 
 	if (g_pPhysics)

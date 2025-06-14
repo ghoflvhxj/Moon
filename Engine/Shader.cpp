@@ -92,6 +92,33 @@ MShader::~MShader()
 	SafeRelease(_pBlob);
 }
 
+void MShader::Apply()
+{
+    for (const std::shared_ptr<MConstantBuffer>& ConstantBuffer : ConstantBuffers)
+    {
+        if (ConstantBuffer == nullptr)
+        {
+            continue;
+        }
+
+        ConstantBuffer->Commit();
+    }
+
+    SetToDevice();
+}
+
+std::vector<ID3D11Buffer*> MShader::GetBuffers()
+{
+    std::vector<ID3D11Buffer*> Buffers;
+    Buffers.reserve(ConstantBuffers.size());
+    for (auto& ConstantBuffer : ConstantBuffers)
+    {
+        Buffers.emplace_back(ConstantBuffer ? ConstantBuffer->getRaw() : nullptr);
+    }
+
+    return Buffers;
+}
+
 void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FShaderVariable>& InVariables)
 {
 	uint32 Index = CastValue<uint32>(layer);
@@ -125,8 +152,6 @@ void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
 	{
 		ConstantBuffers[Index]->SetData(Variable.Offset, Variable.Value, Variable.Size);
 	}
-
-	ConstantBuffers[Index]->Commit();
 }
 
 void MShader::CreateCosntantBuffers()

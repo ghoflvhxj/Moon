@@ -58,9 +58,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
     pOut.depth      = float4(NDCDepth, NDCDepth, NDCDepth, pIn.Clip.y);
 	pOut.normal		= float4(pIn.normal, 1.f);  
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
-    
-    float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
-    
+
     if (bAlphaMask)
     {
         clip(pOut.color.rgb - float3(0.13f, 0.13f, 0.13f));
@@ -69,17 +67,12 @@ PixelOut_GeometryPass main(PixelIn pIn)
     
     if (true == bUseNormalTexture)
     {
-        const float3x3 tanToView = float3x3(
-		normalize(pIn.tangent),
-		normalize(pIn.binormal),
-		normalize(pIn.normal)
-	);
-		
-        normal.x = (normal.x * 2.f) - 1.f;
-        normal.y = -(normal.y * 2.f) + 1.f;
-        normal.z = normal.z;
-        normal = mul(normal, tanToView);
-
+        float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
+        normal = normalize(normal * 2.f - 1.f);
+        
+        float3x3 TBN = float3x3(pIn.tangent, pIn.binormal, pIn.normal);
+        normal = normalize(mul(normal, TBN));
+        
         pOut.normal = float4(normal, 1.f);
     }
 
@@ -101,17 +94,36 @@ PixelOut_GeometryPass main(PixelIn pIn)
         }
     }
     
+    // 디렉셔널 라이트 그림자
     // 픽셀의 월드 위치를 빛의 시점의 직교투영 좌표계로 변환
     //float4 PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.0f), lightViewProjMatrix[cascadeIndex]);
     float4 PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.0f), lightViewProjMatrix[cascadeIndex]);
-    //float4 PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.0f), mul(viewMatrix, projectionMatrix));
-    //float4 PixelPosInLightViewProj = float4(pIn.worldPos, 1.0f);
     float shadowFactor = CalculateShadowFactor(cascadeIndex, PixelPosInLightViewProj);
     //if (shadowFactor > 0.f)
     {   
         // 그림자가 없으면 1이고, 있으면 1보다 작을거임
         pOut.color.xyz *= 1.f - CalculateShadowFactor(cascadeIndex, PixelPosInLightViewProj);
     }
+    
+    // 포인트 라이트 그림자
+    for (int i = 0; i < 6; ++i)
+    {
+        PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.f), PointLightViewProj[i]);
+        float4 PixelNDC = PixelPosInLightViewProj / PixelPosInLightViewProj.w;
+        
+        if (-1.f <= PixelNDC.x && PixelNDC.x <= 1.f && -1.f <= PixelNDC.y && PixelNDC.y <= 1.f && 0 <= PixelNDC.z && PixelNDC.z <= 1)
+        {
+            float ShadowDepth = g_PointLightShadowDepth.Sample(g_Sampler, normalize(pIn.worldPos - PointLightPos[0].xyz)).x;
+            //pOut.color.xyz = ShadowDepth;
+            if (ShadowDepth < PixelNDC.z - 0.01f)
+            {
+                pOut.color.xyz *= 0.f;
+            }
+            
+            break;
+        }
+    }
+        
     
     //pOut.color = float4(PixelPosInLightViewProj.z, shadowFactor, 0.f, 1.f);
     

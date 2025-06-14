@@ -1,6 +1,8 @@
 ﻿#include "Include.h"
 #include "CombinePass.h"
 
+#include "MainGameSetting.h"
+
 // Renderer
 #include "Renderer.h"
 
@@ -17,6 +19,9 @@
 
 // 임시
 #include "LightComponent.h"
+
+#undef max
+#undef min
 
 using namespace DirectX;
 
@@ -47,6 +52,8 @@ bool GeometryPass::IsValidPrimitive(const FPrimitiveData &PrimitiveData) const
 
 DirectionalShadowDepthPass::DirectionalShadowDepthPass()
 	: RenderPass()
+    //, LightPosition(3)
+    //, LightViewProj(3)
 {
 	SetUseOwningDepthStencilBuffer(ERenderTarget::DirectionalShadowDepth);
 }
@@ -58,21 +65,16 @@ void DirectionalShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& Pri
 
 bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-    if (PrimitiveData._primitiveType != EPrimitiveType::Mesh)
-    {
-        return false;
-    }
-
-    return RenderPass::IsValidPrimitive(PrimitiveData);
+    return PrimitiveData._primitiveType == EPrimitiveType::Mesh && RenderPass::IsValidPrimitive(PrimitiveData);
 }
 
-void DirectionalShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData & PrimitiveData)
+void DirectionalShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
     RenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 
-    // 패스 자체 쉐이더를 사용하기 때문에 오브젝트 Cbuffer를 수동으로 갱신해줌
-    auto& variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
-    _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
+    // 패스 자체 쉐이더를 사용하기 때문에 오브젝트 Cbuffer를 수동으로 갱신해줌 (WorldMatrix, AnimMatrix 등등을 복사하는 것)
+    auto& variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::Object);
+    _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object, variableInfosVS);
 }
 
 PointShadowDepthPass::PointShadowDepthPass()
@@ -88,12 +90,7 @@ void PointShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& Primitive
 
 bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-    if (PrimitiveData._primitiveType != EPrimitiveType::Mesh)
-    {
-        return false;
-    }
-
-    return RenderPass::IsValidPrimitive(PrimitiveData);
+    return PrimitiveData._primitiveType == EPrimitiveType::Mesh && RenderPass::IsValidPrimitive(PrimitiveData);
 }
 
 void PointShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
@@ -101,25 +98,24 @@ void PointShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& Prim
     RenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 
     // 패스 자체 쉐이더를 사용하기 때문에 오브젝트 Cbuffer를 수동으로 갱신해줌
-    auto& variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::PerObject);
-    _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject, variableInfosVS);
+    auto& variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::Object);
+    _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object, variableInfosVS);
 }
 
 void LightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
 {
 	PrimitiveComponent* PrimitiveComponent = PrimitiveData._pPrimitive.lock().get();
 
-	Vec3 trans = PrimitiveComponent->getTranslation();
+	Vec3 trans = PrimitiveComponent->getWorldTranslation();
 	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
 	Vec4 color = { 1.f, 1.f, 1.f, 1.f };
-	if (std::shared_ptr<LightComponent> LightComp = std::static_pointer_cast<LightComponent>(PrimitiveData._pPrimitive.lock()))
+	if (std::shared_ptr<MLightComponent> LightComp = std::static_pointer_cast<MLightComponent>(PrimitiveData._pPrimitive.lock()))
 	{
 		color.x = LightComp->getColor().x;
 		color.y = LightComp->getColor().y;
 		color.z = LightComp->getColor().z;
 	}
 	
-
 	XMVECTOR rotationVector = XMLoadFloat3(&PrimitiveComponent->getRotation());
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(rotationVector);
 	Mat4 rotMatrix = IDENTITYMATRIX;
@@ -137,12 +133,7 @@ void LightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
 
 bool LightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-    if (PrimitiveData._primitiveType != EPrimitiveType::Light)
-    {
-        return false;
-    }
-
-    return RenderPass::IsValidPrimitive(PrimitiveData);
+    return (PrimitiveData._primitiveType == EPrimitiveType::DirectionalLight || PrimitiveData._primitiveType == EPrimitiveType::PointLight) && RenderPass::IsValidPrimitive(PrimitiveData);
 }
 
 void LightPass::HandleRasterizerStage(const FPrimitiveData& primitiveData)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef __LIGHT_COMPONENT_H__
 
 #include "PrimitiveComponent.h"
@@ -6,14 +6,25 @@
 struct FPrimitiveData;
 class StaticMesh;
 
-class ENGINE_DLL LightComponent : public PrimitiveComponent
+class ENGINE_DLL MLightComponent : public PrimitiveComponent
 {
 public:
-	explicit LightComponent(void);
-	virtual ~LightComponent(void);
+	explicit MLightComponent(void);
+	virtual ~MLightComponent(void);
 
 public:
+    virtual void Update(const Time deltaTime) override;
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
+
+public:
+    virtual Mat4& getWorldMatrix() override;
+protected:
+    Mat4 LightWorldMatrix;
+
+public:
+    const Vec3& GetDirection() const { return Direction; }
+protected:
+    Vec3 Direction;
 
 public:
 	const Vec3&	getColor(void) const;

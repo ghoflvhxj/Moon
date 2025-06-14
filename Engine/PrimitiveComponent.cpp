@@ -178,3 +178,13 @@ void PrimitiveComponent::SetRendering(bool bNewRendering)
 
 	bRendering = bNewRendering;
 }
+
+void PrimitiveComponent::setDrawingBoundingBox(const bool bDraw)
+{
+    _bDrawBoundingBox = bDraw;
+}
+
+const bool PrimitiveComponent::IsDrawingBoundingBox() const
+{
+    return _bDrawBoundingBox;
+}

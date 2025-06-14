@@ -15,8 +15,8 @@ PixelOut_LightPass main(PixelIn pIn)
 	PixelOut_LightPass pOut;
 
 	float4 depth	= g_Depth.Sample(g_Sampler, pIn.uv);
-	float4 normal	= g_Normal.Sample(g_Sampler, pIn.uv);
-	normal.w = 0.f;
+    float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);
+    normal.w = 0.f;
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
 
 	float4 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix);
@@ -30,8 +30,6 @@ PixelOut_LightPass main(PixelIn pIn)
 
 	clip((distance < range) ? 1 : -1);
 	
-    //pOut.lightDiffuse = float4(pixelWorldPosition.xyz, 1.f);
-
     float a0 = 0.f;
     float a1 = 1.f;
     float a2 = 0.f;
@@ -39,20 +37,23 @@ PixelOut_LightPass main(PixelIn pIn)
 
 	//-------------------------------------------------------------------------------------------------
     // Diffuse
-
     float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
     float diffuseFactor = saturate(dot(normalInWorld, direction));
     pOut.lightDiffuse = float4(color * diffuseFactor * attenuation * intensity, 1.f);
   
+    //pOut.lightDiffuse = float4(diffuseFactor, diffuseFactor, diffuseFactor, 1.f);
+    //pOut.lightDiffuse = float4(normal, 1.f);
+    //pOut.lightDiffuse = float4(normalInWorld, 1.f);
+    //pOut.lightDiffuse = float4(direction, 1.f);
 
 	//-------------------------------------------------------------------------------------------------
 	// Specular
-	//deltaPosition	= pixelWorldPosition.xyz - g_lightPosition.xyz;
-	//direction		= reflect(normalize(deltaPosition), normal.xyz);
-	//float3 toEye	= float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - pixelWorldPosition.xyz;
+    deltaPosition = pixelWorldPosition.xyz - g_lightPosition.xyz;
+    direction = reflect(normalize(deltaPosition), normal.xyz);
+    float3 toEye = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - pixelWorldPosition.xyz;
 
-	//float3 specularFactor = saturate(dot(direction, normalize(toEye)));
-	//pOut.lightSpecular = float4(specular.xyz * attenuation * specularFactor, 1.f);
+    float3 specularFactor = saturate(dot(direction, normalize(toEye)));
+    pOut.lightSpecular = float4(specular.xyz * attenuation * specularFactor, 1.f);
 
 	return pOut;
 }

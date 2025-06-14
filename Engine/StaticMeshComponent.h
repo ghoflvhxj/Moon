@@ -109,12 +109,6 @@ private:
 	std::shared_ptr<StaticMesh> _pStaticMesh = nullptr;
 
 public:
-	void setDrawingBoundingBox(const bool bDraw);
-	const bool IsDrawingBoundingBox() const;
-public:
-	bool _bDrawBoundingBox = false;
-
-public:
 	void Temp(float y);
 	void SetGravity(bool bGravity);
 

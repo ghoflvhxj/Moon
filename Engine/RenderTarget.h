@@ -1,7 +1,14 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __RENDER_TARGET_H__
 
 class MTexture;
+
+enum class ERenderTargetType
+{
+    None,
+    Default,
+    Depth
+};
 
 struct FRenderTagetInfo
 {
@@ -16,6 +23,7 @@ struct FRenderTagetInfo
 	uint32 Width;
 	uint32 Height;
 	bool bCube;
+    ERenderTargetType Type;
 
 	static const FRenderTagetInfo GetDefault();
 	static const FRenderTagetInfo GetCube();
@@ -32,8 +40,8 @@ public:
 	std::shared_ptr<MTexture> AsTexture();
 private:
 	void initializeTexture(const FRenderTagetInfo& RenderTargetInfo);
-	std::shared_ptr<MTexture> RenderTargetTexture;	// uniqueptr·Î º¯°æÇÏ±â
-	std::shared_ptr<MTexture> DepthStencilTexture;	// uniqueptr·Î º¯°æÇÏ±â
+	std::shared_ptr<MTexture> RenderTargetTexture;	// uniqueptrë¡œ ë³€ê²½í•˜ê¸°
+	std::shared_ptr<MTexture> DepthStencilTexture;	// uniqueptrë¡œ ë³€ê²½í•˜ê¸°
 
 public:
 	ID3D11RenderTargetView* AsRenderTargetView();

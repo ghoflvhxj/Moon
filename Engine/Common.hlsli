@@ -15,12 +15,17 @@ cbuffer CBuffer_PerTick : register(b1)
     row_major matrix viewMatrix;
     row_major matrix projectionMatrix;
 
-	// Á÷±³ Åõ¿µ¿ë
+	// ì§êµ íˆ¬ì˜ìš©
     row_major matrix identityMatrix;
     row_major matrix orthographicProjectionMatrix;
     row_major matrix inverseOrthographicProjectionMatrix;
     
+    // ë””ë ‰ì…”ë„ ë¼ì´íŠ¸
     float4 lightPos[3];
     row_major matrix lightViewProjMatrix[3];
     float4 cascadeDistance;
+    
+    // í¬ì¸íŠ¸ ë¼ì´íŠ¸
+    float4 PointLightPos[1];
+    row_major matrix PointLightViewProj[6];
 };

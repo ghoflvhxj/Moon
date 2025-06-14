@@ -4,9 +4,6 @@ VertexOut main(VertexIn vIn)
 {
     VertexOut vOut = (VertexOut)0;
     
-    matrix worldView = mul(worldMatrix, viewMatrix);
-    matrix worldViewProj = mul(worldView, projectionMatrix);
-    
     matrix boneTransform =
     {
         1.f, 0.f, 0.f, 0.f,

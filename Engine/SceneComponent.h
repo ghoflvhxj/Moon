@@ -41,14 +41,16 @@ private:
 	Vec3 m_translation;
 	Vec3 RelativeTranslation;
 public:
-	const Vec3			getLook() const;
+	const Vec3			GetForward() const;
 	const Vec3			getUp() const;
 	const Vec3			getRight() const;
 	const Vec3			getWorldTranslation() const;
 	const Mat4&			getWorldMatrix() const;
-	Mat4&				getWorldMatrix();
+	virtual Mat4&		getWorldMatrix();
+    const Mat4& GetInverseWorldMatrix() const { return InverseWorldMatrix; }
 private:
 	Mat4 _worldMatrix;
+    Mat4 InverseWorldMatrix;
 
 public:
 	void		setUpdateable(const bool isUpdateable);

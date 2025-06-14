@@ -64,7 +64,8 @@ enum class EPrimitiveType
 	Sky,
 
 	// Light
-	Light,
+	DirectionalLight,
+    PointLight,
 	
 	Collision,
 

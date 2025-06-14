@@ -28,7 +28,7 @@ PixelOut_LightPass main(PixelIn pIn)
 
 	//-------------------------------------------------------------------------------------------------
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
-	float diffuseFactor = saturate(dot(normalInWorld, -direction));	//	floatÀ¸·Î ÇØµµ µÇ´Âµ¥ ÆíÇÒ·Á°í
+	float diffuseFactor = saturate(dot(normalInWorld, -direction));	//	floatìœ¼ë¡œ í•´ë„ ë˜ëŠ”ë° í¸í• ë ¤ê³ 
 	pOut.lightDiffuse = float4(color * diffuseFactor * intensity, 1.f);
 
 	//-------------------------------------------------------------------------------------------------

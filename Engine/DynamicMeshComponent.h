@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __DYNAMIC_MESH_COMPONENT_H__
 #include "PrimitiveComponent.h"
 
@@ -15,7 +15,7 @@ class ENGINE_DLL DynamicMesh : public StaticMesh
 public:
 	DynamicMesh() = default;
 
-public: //»èÁ¦¿¹Á¤
+public: //ì‚­ì œì˜ˆì •
 	virtual void InitializeFromFBX(MFBXLoader& FbxLoaderm, const std::wstring& FilePath) override;
 public:
 	AnimationClip& getAnimationClip(const int index);
@@ -38,7 +38,7 @@ public:
 	virtual ~DynamicMeshComponent();
 
 public:
-	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
+	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList) override;
 
 public:
 	void playAnimation(const uint32 index, const Time deltaTime);

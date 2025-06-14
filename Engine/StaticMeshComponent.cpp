@@ -352,17 +352,6 @@ std::shared_ptr<StaticMesh>& StaticMeshComponent::getStaticMesh()
 	return _pStaticMesh;
 }
 
-void StaticMeshComponent::setDrawingBoundingBox(const bool bDraw)
-{
-	_bDrawBoundingBox = bDraw;
-}
-
-const bool StaticMeshComponent::IsDrawingBoundingBox() const
-{
-	return _bDrawBoundingBox;
-}
-
-
 void StaticMeshComponent::Temp(float y)
 {
 	if (PxRigidDynamic* PhysXRigidDynamic = GetPhysXRigidDynamic())

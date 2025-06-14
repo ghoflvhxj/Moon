@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "MyGame.h"
 #include "DirectInput.h"
 
@@ -49,11 +49,11 @@ const bool MyGame::initialize()
 	MyActor = std::make_shared<Actor>();
 	//a = std::make_shared<SphereComponent>();
 	//MyActor->addComponent(TEXT("Root"), a);
-	_pStaticMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Lantern/Lantern.fbx"), true, false);
-	_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	_pStaticMeshComponent->setTranslation(0.f, 5.f, 0.f);
-	_pStaticMeshComponent->setDrawingBoundingBox(true);
-	MyActor->addComponent(TEXT("test"), _pStaticMeshComponent);
+	Lantern = std::make_shared<StaticMeshComponent>(TEXT("Lantern/Lantern.fbx"), true, false);
+	Lantern->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	Lantern->setTranslation(0.f, 0.f, 0.f);
+	Lantern->setDrawingBoundingBox(true);
+	MyActor->addComponent(TEXT("test"), Lantern);
 	//a->AddChildComponent(_pStaticMeshComponent);
 	addActor(MyActor);
 
@@ -107,7 +107,8 @@ void MyGame::render()
 	//ImGui::SliderFloat("posZ", &pos.z, -10.f, 10.f);
 	//p->setTranslation(pos);
 
-	std::shared_ptr<LightComponent> p = std::static_pointer_cast<LightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
+    std::shared_ptr<MLightComponent> DirectionalLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
+    std::shared_ptr<MLightComponent> PointLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
 
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -119,32 +120,43 @@ void MyGame::render()
 	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
 	ImGui::Checkbox("Debug Collision", &getRenderer()->bDrawCollision);
 
-	if (ImGui::CollapsingHeader("DirectionalLight"))
+	if (ImGui::CollapsingHeader("DirectionalLight") && DirectionalLight)
 	{
-		Vec3 rot = p->getRotation();
+		Vec3 rot = DirectionalLight->getRotation();
 		ImGui::SliderAngle("rotX", &rot.x);
 		ImGui::SliderAngle("rotY", &rot.y);
 		ImGui::SliderAngle("rotZ", &rot.z);
-		p->setRotation(rot);
+        DirectionalLight->setRotation(rot);
 	}
+
+    // SceneComponent를 수정하게
+    if (ImGui::CollapsingHeader("PointLight") && PointLight)
+    {
+        Vec3 Pos = PointLight->getTranslation();
+        ImGui::SliderFloat("PosX", &Pos.x, -10, 10);
+        ImGui::SliderFloat("PosY", &Pos.y, -10, 10);
+        ImGui::SliderFloat("PosZ", &Pos.z, -10, 10);
+        PointLight->setTranslation(Pos);
+        Lantern->setTranslation(Pos.x, Pos.y - 1.f, Pos.z);
+    }
 
 	if (ImGui::CollapsingHeader("Actor"))
 	{
 		ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
 		if (ImGui::Button("AddForce"))
 		{
-			_pStaticMeshComponent->Temp(Force);
+			Lantern->Temp(Force);
 		}
 
 		if (ImGui::Button("ResetPos"))
 		{
-			_pStaticMeshComponent->setTranslation(0.f, 5.f, 0.f);
+			Lantern->setTranslation(0.f, 5.f, 0.f);
 		}
 
 		ImGui::Checkbox("DisableCollision", &bStaticCollision);
-		if (_pStaticMeshComponent)
+		if (Lantern)
 		{
-			_pStaticMeshComponent->SetStaticCollision(bStaticCollision);
+			Lantern->SetStaticCollision(bStaticCollision);
 		}
 	}
 
@@ -170,7 +182,7 @@ void MyGame::controlCamera(const Time deltaTime)
 		return;
 
 	Vec3 trans = pComponent->getTranslation();
-	Vec3 look = pComponent->getLook();
+	Vec3 look = pComponent->GetForward();
 	Vec3 right = pComponent->getRight();
 	float speed = _cameraSpeedScale * 1.f * deltaTime;
 

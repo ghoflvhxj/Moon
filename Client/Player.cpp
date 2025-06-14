@@ -22,10 +22,12 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/prettywriter.h"
 
-#define UsePointLight 0
-#define UseDirectionalLight 1
+#define UsePointLight 1
+#define UseRandomPointLight 0
+#define UseDirectionalLight 0
 #define UseDynamicMesh 1
 #define UseSkySphere 1
+#define UseGround 1
 
 using namespace DirectX;
 using namespace rapidjson;
@@ -43,14 +45,15 @@ Player::~Player()
 
 void Player::initialize()
 {
+#if UseGround == 1
 	GroundTexture = std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg"));
-
 	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Box.fbx"), true, true);
 	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, GroundTexture);
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
 	_pMeshComponent->setScale(20.f, 1.f, 20.f);
 	_pMeshComponent->setTranslation(1.f, -3.f, 0.f);
-	_pMeshComponent->SetGravity(true);
+	_pMeshComponent->SetGravity(true); // -> 머지?
+#endif
 
 	//_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
 	//_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
@@ -59,13 +62,16 @@ void Player::initialize()
 	//addComponent(TEXT("test"), _pStaticMeshComponent);
 
 	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>(TEXT("Table/Table.fbx"), true, true);
-	_pStaticMeshComponent2->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+	_pStaticMeshComponent2->setScale(Vec3{ 0.02f, 0.02f, 0.02f });
 	_pStaticMeshComponent2->setDrawingBoundingBox(true);
 	addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
-	//_pLightComponent = std::make_shared<PointLightComponent>();
-	//_pLightComponent->setRange(0.2f);
-	//addComponent(TEXT("PointLight"), _pLightComponent);
+#if UsePointLight == 1
+    _pLightComponent = std::make_shared<PointLightComponent>();
+    _pLightComponent->setRange(10.f);
+    _pLightComponent->setTranslation(0.f, 0.f, 0.f);
+    addComponent(TEXT("PointLight"), _pLightComponent);
+#endif
 
 #if UseDynamicMesh == 1
 	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>(TEXT("2B/2b.fbx"));
@@ -77,6 +83,7 @@ void Player::initialize()
 	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(2)->SetAlphaMask(true);
 	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
 	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
+    _pDynamicMeshComponent->setDrawingBoundingBox(true);
 #endif
 
 #if UseSkySphere == 1
@@ -98,7 +105,7 @@ void Player::initialize()
 	//_pBoneShapeComponent = std::make_shared<CollisionShapeComponent>(_pDynamicMeshComponent->_originBoneVertexList);
 	//addComponent(TEXT("BoneShape"), _pBoneShapeComponent);
 
-#if UsePointLight == 1
+#if UseRandomPointLight == 1
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> colorDis(0, 255);

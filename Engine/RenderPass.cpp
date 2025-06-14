@@ -122,11 +122,14 @@ void RenderPass::Render(const std::vector<FPrimitiveData>& PrimitiveDatList)
 {
 	for (auto& PrimitiveData : PrimitiveDatList)
 	{
-		if (IsValidPrimitive(PrimitiveData))
-		{
-            UpdateObjectConstantBuffer(PrimitiveData);
-			DrawPrimitive(PrimitiveData);
+		if (IsValidPrimitive(PrimitiveData) == false)
+        {
+            continue;
 		}
+
+        UpdateTickConstantBuffer(PrimitiveData);
+        UpdateObjectConstantBuffer(PrimitiveData);
+        DrawPrimitive(PrimitiveData);
 	}
 }
 
@@ -147,6 +150,19 @@ bool RenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
     return true;
 }
 
+void RenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
+{
+    std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
+
+    //------------------------------------------------------------------------------------------------------------------
+    // 버텍스 쉐이더 CBuffer
+    Material->getVertexShader()->SetValue(TEXT("viewMatrix"), g_pMainGame->getMainCameraViewMatrix());
+    Material->getVertexShader()->SetValue(TEXT("projectionMatrix"), g_pMainGame->getMainCameraProjectioinMatrix());
+    Material->getVertexShader()->SetValue(TEXT("identityMatrix"), IDENTITYMATRIX);
+    Material->getVertexShader()->SetValue(TEXT("orthographicProjectionMatrix"), g_pMainGame->getMainCameraOrthographicProjectionMatrix());
+    Material->getVertexShader()->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
+}
+
 void RenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
 	const std::shared_ptr<PrimitiveComponent>& Primitive = PrimitiveData._pPrimitive.lock();
@@ -155,6 +171,7 @@ void RenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 버텍스쉐이더 ConstantBuffer
 	Material->getVertexShader()->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
+    Material->getVertexShader()->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
 	// 애님 관련 변수
 	BOOL animated = PrimitiveData._matrices != nullptr;
 	Material->getVertexShader()->SetValue(TEXT("animated"), animated);
@@ -206,8 +223,8 @@ void RenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
 void RenderPass::HandleVertexShaderStage(const FPrimitiveData& PrimitiveData)
 {
     std::shared_ptr<MShader>& VertexShader = _vertexShader != nullptr ? _vertexShader : PrimitiveData._pMaterial.lock()->getVertexShader();
-    VertexShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
-    VertexShader->SetToDevice();
+    VertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
+    VertexShader->Apply();
 }
 
 void RenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
@@ -219,8 +236,8 @@ void RenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
     }
     else
     {
-        GeometryShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
-        GeometryShader->SetToDevice();
+        GeometryShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
+        GeometryShader->Apply();
     }
 }
 
@@ -229,8 +246,8 @@ void RenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
     std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
 
     std::shared_ptr<MShader>& PixelShader = _pixelShader != nullptr ? _pixelShader : Material->getPixelShader();
-    PixelShader->UpdateConstantBuffer(EConstantBufferLayer::PerObject);
-    PixelShader->SetToDevice();
+    PixelShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
+    PixelShader->Apply();
 
     Material->SetTexturesToDevice();
 

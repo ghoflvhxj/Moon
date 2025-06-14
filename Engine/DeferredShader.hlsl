@@ -18,6 +18,7 @@ PixelOut_CombinePass main(PixelIn pIn)
 	{
         pOut.color = diffuse * (light + specular);
     }
+    //pOut.color = light;
     
     pOut.color += T_Collision.Sample(g_Sampler, pIn.uv);
 

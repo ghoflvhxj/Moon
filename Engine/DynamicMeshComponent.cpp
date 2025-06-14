@@ -118,7 +118,7 @@ DynamicMeshComponent::~DynamicMeshComponent()
 {
 }
 
-const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
+const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & PrimitiveDataList)
 {
 	if (nullptr == Mesh)
 	{
@@ -129,7 +129,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &p
 	uint32 geometryCount = Mesh->getGeometryCount();
 	uint32 jointCount	 = Mesh->getJointCount();
 
-	primitiveDataList.reserve(geometryCount);
+    PrimitiveDataList.reserve(geometryCount);
 
 	std::set<uint32> matricesSet;
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
@@ -193,7 +193,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &p
 
 		primitive._matrices = _matrices;
 
-		primitiveDataList.emplace_back(primitive);
+        PrimitiveDataList.emplace_back(primitive);
 	}
 
 	if (Mesh->_pSkeleton)
@@ -216,6 +216,18 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &p
 
 		//primitiveDataList.emplace_back(primitive);
 	}
+
+    std::shared_ptr<BoundingBox>& boundingBox = Mesh->getBoundingBox();
+    if (boundingBox && _bDrawBoundingBox)
+    {
+        FPrimitiveData PrimitiveData = {};
+        PrimitiveData._pPrimitive = shared_from_this();
+        PrimitiveData._pMaterial = boundingBox->getMaterial();
+        PrimitiveData._primitiveType = EPrimitiveType::Collision;
+        PrimitiveData.MeshData = boundingBox->GetMeshData();
+
+        PrimitiveDataList.emplace_back(PrimitiveData);
+    }
 
 	return true;
 }

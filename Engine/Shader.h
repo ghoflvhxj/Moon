@@ -1,14 +1,17 @@
-#pragma once
+﻿#pragma once
 #ifndef __SHADER_H__
 #define __SHADER_H__
 
 #include "ConstantBuffer.h"
 
+// 쉐이더는 hlsl에서 사용되는 변수 값과, CBuffer를 관리를 하는 존재임
+// 지금은 쉐이더마다 CBuffer를 생성하고 있지만, 이후에는 공통된 CBuffer를 공유하는 구조로 변경하고 싶음
+
 enum class EConstantBufferLayer
 {
-	Constant,		// �ػ� �� ���� ��
-	PerTick,		// ī�޶� ��ġ? ���
-	PerObject,		// World, View, Proj ���
+	Global,		// 해상도 등 설정 값
+	Tick,		// 카메라 위치? 등등
+	Object,		// World, View, Proj 등등
 	Count
 };
 
@@ -19,7 +22,6 @@ enum class ShaderType : uint8
 	Geometry,
 	Count
 };
-
 
 struct FShaderVariable
 {
@@ -108,15 +110,23 @@ public:
 
 	// d3d11 raw
 public:
-	virtual void SetToDevice() = 0;
+    // ConstantBuffer에 저장된 버퍼를 리소스로 등록하고, 
+    void Apply();
+    virtual void SetToDevice() = 0;
+protected:
+    std::vector<ID3D11Buffer*> GetBuffers();
 
 public:
 	ID3D10Blob* getBlob();
 private:
 	ID3D10Blob *_pBlob = nullptr;
 
-	// cbuffer
+/*----------------------------------------------------------------------
+Shader는 자체적으로 hlsl에서 사용되는 변수들의 값을 관리하는데 이것들은, ConstantBuffer의 버퍼와는 별개의 존재임.
+SetValue를 통해 값을 업데이트할 수 있고, 이때 ConstantBuffer도 업데이트 함.
+----------------------------------------------------------------------*/
 public:
+    // 일반 자료형 대응
 	template <class T>
 	void SetValue(const std::wstring& InName, const T& InValue)
 	{
@@ -137,6 +147,7 @@ public:
 		memcpy(ShaderVariable.Value, &InValue, ShaderVariable.Size);
 		ConstantBuffers[static_cast<int32>(ShaderVariableInfo.Layer)]->SetData(ShaderVariable.Offset, ShaderVariable.Value, ShaderVariable.Size);
 	}
+    // 포인터 타입 대응
 	template <class T>
 	void SetValue(const std::wstring& InName, T* InValue)
 	{
@@ -157,6 +168,7 @@ public:
 		memcpy(ShaderVariable.Value, InValue, ShaderVariable.Size);
 		ConstantBuffers[static_cast<int32>(ShaderVariableInfo.Layer)]->SetData(ShaderVariable.Offset, ShaderVariable.Value, ShaderVariable.Size);
 	}
+    // 벡터 타입 대응
 	template <class T>
 	void SetValue(const std::wstring& InName, const std::vector<T>& InValue)
 	{
@@ -187,17 +199,17 @@ private:
 public:
 	const uint32 getVariableCountOfConstantBuffer(const EConstantBufferLayer layer);
 protected:
-	// ���̾� ���� ConstantBuffer�� ����
+	// 레이어 별로 ConstantBuffer를 관리
 	std::vector<std::shared_ptr<MConstantBuffer>> ConstantBuffers;
 
 public:
 	std::vector<std::vector<FShaderVariable>>& GetVariables();
 private:
-	// ConstantBuffer ���̾� ���� ���� ���� ����
+	// ConstantBuffer 레이어 별로 변수 정보 저장
 	std::vector<std::vector<FShaderVariable>> Variables;	
-	// �̸��� ������ ���ε� ����
+	// 이름과 변수의 바인딩 정보
 	std::unordered_map<std::wstring, FShaderVariableInfo> VariableInfos;
-	// ConstantBuffer �� ������Ʈ �ϴµ� ���Ǵ� ������
+	// ConstantBuffer 를 업데이트 하는데 사용되는 데이터
 	//std::vector<Byte*> Buffers;
 };
 

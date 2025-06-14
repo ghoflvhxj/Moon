@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "SceneComponent.h"
 #include "GraphicDevice.h"
 
@@ -11,6 +11,7 @@ SceneComponent::SceneComponent()
 	, m_translation{ FLOAT3_ZERO }
 	, RelativeTranslation{ FLOAT3_ZERO }
 	, _worldMatrix()
+    , InverseWorldMatrix()
 	, _bUpdateable{ false }
 	, bUpdated{ false }
 {
@@ -37,6 +38,7 @@ void SceneComponent::Update(const Time deltaTime)
 	
 	//XMMatrixMultiply()
 	XMStoreFloat4x4(&_worldMatrix, matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
+    XMStoreFloat4x4(&InverseWorldMatrix, XMMatrixInverse(nullptr, XMLoadFloat4x4(&_worldMatrix)));
 
 	if (ChildComponents.size() > 0)
 	{
@@ -128,7 +130,7 @@ const Vec3& SceneComponent::getTranslation() const
 	return m_translation;
 }
 
-const Vec3 SceneComponent::getLook() const
+const Vec3 SceneComponent::GetForward() const
 {
 	return { _worldMatrix._31, _worldMatrix._32, _worldMatrix._33 };
 }

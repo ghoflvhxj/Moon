@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "RenderTarget.h"
 
 #include "GraphicDevice.h"
@@ -41,10 +41,10 @@ std::shared_ptr<MTexture> RenderTarget::AsTexture()
 
 void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 {
-	bool bDepthOnly = RenderTargetInfo.TextrueNum == 1;
+	bool bNotDepth = RenderTargetInfo.Type != ERenderTargetType::Depth;
 	bool bSingleTexture = RenderTargetInfo.TextrueNum <= 1;
 
-	// RenderTarget ÅØ½ºÃ³
+	// RenderTarget í…ìŠ¤ì²˜
 	D3D11_TEXTURE2D_DESC TextureDesc = {};
 	TextureDesc.Width = RenderTargetInfo.Width;
 	TextureDesc.Height = RenderTargetInfo.Height;
@@ -54,16 +54,16 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 	TextureDesc.ArraySize = RenderTargetInfo.TextrueNum;
 	TextureDesc.MipLevels = 1;
 	TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-	TextureDesc.Format = bDepthOnly ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_TYPELESS;
+	TextureDesc.Format = bNotDepth ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_TYPELESS;
 	TextureDesc.CPUAccessFlags = 0;
 	TextureDesc.MiscFlags = RenderTargetInfo.bCube ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 
 	RenderTargetTexture = std::make_shared<MTexture>();
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&TextureDesc, nullptr, &RenderTargetTexture->GetTextureResource()));
 
-	// RenderTarget ·»´õ Å¸°Ù ºä
+	// RenderTarget ë Œë” íƒ€ê²Ÿ ë·°
 	D3D11_RENDER_TARGET_VIEW_DESC RenderTargetViewDesc		= { };
-	RenderTargetViewDesc.Format								= bDepthOnly ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
+	RenderTargetViewDesc.Format								= bNotDepth ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
 	if (bSingleTexture)
 	{
 		RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
@@ -85,9 +85,9 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 	}
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(RenderTargetTexture->GetTextureResource(), &RenderTargetViewDesc, &_pRenderTargetView));
 
-	// RenderTarget ½¦ÀÌ´õ ¸®¼Ò½º ºä
+	// RenderTarget ì‰ì´ë” ë¦¬ì†ŒìŠ¤ ë·°
 	D3D11_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc	= { };
-	ShaderResourceViewDesc.Format							= bDepthOnly ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
+	ShaderResourceViewDesc.Format							= bNotDepth ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
 	ShaderResourceViewDesc.ViewDimension					= bSingleTexture ? D3D11_SRV_DIMENSION_TEXTURE2D : RenderTargetInfo.bCube ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 	if (bSingleTexture)
 	{
@@ -112,7 +112,7 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(RenderTargetTexture->GetTextureResource(), &ShaderResourceViewDesc, &RenderTargetTexture->getRawResourceViewPointer()));
 
-	// DepthStencil ÅØ½ºÃÄ
+	// DepthStencil í…ìŠ¤ì³
 	D3D11_TEXTURE2D_DESC DepthStencilTextureDesc = { };
 	DepthStencilTextureDesc.Width = RenderTargetInfo.Width;
 	DepthStencilTextureDesc.Height = RenderTargetInfo.Height;
@@ -128,7 +128,7 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 	DepthStencilTexture = std::make_shared<MTexture>();
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&DepthStencilTextureDesc, nullptr, &DepthStencilTexture->GetTextureResource()));
 
-	// DepthStencil µª½º ½ºÅÙ½Ç ºä
+	// DepthStencil ëìŠ¤ ìŠ¤í…ì‹¤ ë·°
 	D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
 	DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	if (bSingleTexture)
@@ -170,6 +170,7 @@ const FRenderTagetInfo FRenderTagetInfo::GetDefault()
 	RenderTargetInfo.TextrueNum = 1;
 	RenderTargetInfo.Width = g_pSetting->getResolutionWidth<UINT>();
 	RenderTargetInfo.Height = g_pSetting->getResolutionHeight<UINT>();
+    RenderTargetInfo.Type = ERenderTargetType::Default;
 
 	return RenderTargetInfo;
 }
@@ -179,8 +180,9 @@ const FRenderTagetInfo FRenderTagetInfo::GetCube()
 	FRenderTagetInfo RenderTargetInfo;
 	RenderTargetInfo.bCube = true;
 	RenderTargetInfo.TextrueNum = 6;
-	RenderTargetInfo.Width = 2048;	// ½¦µµ¿ì¸Ê ÇØ»óµµ
+	RenderTargetInfo.Width = 2048;	// ì‰ë„ìš°ë§µ í•´ìƒë„
 	RenderTargetInfo.Height = 2048;
+    RenderTargetInfo.Type = ERenderTargetType::Default;
 
 	return RenderTargetInfo;
 }
