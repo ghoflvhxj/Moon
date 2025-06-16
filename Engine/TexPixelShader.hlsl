@@ -15,7 +15,7 @@ float CalculateShadowFactor(int cascadeIndex, float4 PixelPosInLightViewProj)
     float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
     saturate(ShadowDepthUV);
 
-    float bias = 0.01f;
+    float bias = 0.005f;
     float Depth = PixelPosInLightViewProj.z - bias;
 
     if (Depth < 1.f)
