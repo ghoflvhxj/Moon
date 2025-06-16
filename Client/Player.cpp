@@ -23,8 +23,8 @@
 #include "rapidjson/prettywriter.h"
 
 #define UsePointLight 1
-#define UseRandomPointLight 0
-#define UseDirectionalLight 0
+#define UseRandomPointLight 1
+#define UseDirectionalLight 1
 #define UseDynamicMesh 1
 #define UseSkySphere 1
 #define UseGround 1
@@ -70,6 +70,7 @@ void Player::initialize()
     _pLightComponent = std::make_shared<PointLightComponent>();
     _pLightComponent->setRange(10.f);
     _pLightComponent->setTranslation(0.f, 0.f, 0.f);
+    //_pLightComponent->setIntensity(10.f);
     addComponent(TEXT("PointLight"), _pLightComponent);
 #endif
 
@@ -170,10 +171,17 @@ void Player::tick(const Time deltaTime)
 
 
 #if UsePointLight == 1
+    static float DeltaTime = 0.f;
+    DeltaTime += deltaTime;
+    _pLightComponent->setTranslation(std::cosf(DeltaTime) * 5.f, std::sinf(DeltaTime), std::sinf(DeltaTime) * 5.f);
+#endif
+
+#if RandomPointLight == 1
 	if (InputManager::keyPress(DIK_P))
 	{
 		_pLightComponentList[0]->setTranslation(0.1f, 2.f, 4.f);
 	}
+
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
