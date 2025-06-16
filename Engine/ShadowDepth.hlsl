@@ -25,7 +25,7 @@ VertexOut main(VertexIn vIn)
     animatedPos.w = 1.f;
     
     vOut.pos = mul(animatedPos, worldMatrix);
-    vOut.worldPos = mul(animatedPos, worldMatrix);
+    vOut.worldPos = mul(animatedPos, worldMatrix).xyz;
     
     return vOut;
 }

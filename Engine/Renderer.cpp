@@ -111,13 +111,13 @@ void Renderer::initialize() noexcept
             RenderTargetInfo.Type = ERenderTargetType::Depth;
 		}
 		break;
-		case ERenderTarget::PointShadowDepth:
-		{
-			RenderTargetInfo = FRenderTagetInfo::GetCube();
-			RenderTargetInfo.Width = 1024 * 2;
-			RenderTargetInfo.Height = 1024 * 2;
+        case ERenderTarget::PointShadowDepth:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetCube();
+            RenderTargetInfo.Width = 1024 * 2;
+            RenderTargetInfo.Height = 1024 * 2;
             RenderTargetInfo.Type = ERenderTargetType::Depth;
-		}
+        }
 		break;
         case ERenderTarget::Depth:
         {
@@ -145,15 +145,15 @@ void Renderer::initialize() noexcept
 		RenderPasses[enumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
 	}
 
-	RenderPasses.emplace_back(CreateRenderPass<PointShadowDepthPass>());
-	{
-		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
-			ERenderTarget::PointShadowDepth
-		);
+    RenderPasses.emplace_back(CreateRenderPass<PointShadowDepthPass>());
+    {
+        RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::PointShadowDepth
+        );
 
-		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPointPS.cso"), TEXT("ShadowDepthPointGS.cso"));
-		RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
-	}
+        RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPointPS.cso"), TEXT("ShadowDepthPointGS.cso"));
+        RenderPasses[enumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
+    }
 
 	RenderPasses.emplace_back(CreateRenderPass<GeometryPass>());
 	{
@@ -168,17 +168,30 @@ void Renderer::initialize() noexcept
             ERenderTarget::PointShadowDepth);
 	}
 
-	RenderPasses.emplace_back(CreateRenderPass<LightPass>());
+	RenderPasses.emplace_back(CreateRenderPass<DirectionalLightPass>());
 	{
-		RenderPasses[enumToIndex(ERenderPass::Light)]->BindRenderTargets(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::LightDiffuse,
 			ERenderTarget::LightSpecular);
 
-		RenderPasses[enumToIndex(ERenderPass::Light)]->BindResourceViews(_renderTargets,
+		RenderPasses[enumToIndex(ERenderPass::DirectionalLight)]->BindResourceViews(_renderTargets,
 			ERenderTarget::Depth,
 			ERenderTarget::Normal,
-			ERenderTarget::Specular);
+			ERenderTarget::Specular,
+            ERenderTarget::DirectionalShadowDepth);
 	}
+
+    RenderPasses.emplace_back(CreateRenderPass<PointLightPass>());
+    {
+        RenderPasses[enumToIndex(ERenderPass::PointLight)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::PointLightDiffuse,
+            ERenderTarget::LightSpecular);
+        RenderPasses[enumToIndex(ERenderPass::PointLight)]->BindResourceViews(_renderTargets,
+            ERenderTarget::Depth,
+            ERenderTarget::Normal,
+            ERenderTarget::Specular,
+            ERenderTarget::PointShadowDepth);
+    }
 
 	RenderPasses.emplace_back(CreateRenderPass<SkyPass>());
 	{
@@ -201,7 +214,8 @@ void Renderer::initialize() noexcept
 			ERenderTarget::Diffuse,
 			ERenderTarget::LightDiffuse,
 			ERenderTarget::LightSpecular,
-            ERenderTarget::Collision);
+            ERenderTarget::Collision,
+            ERenderTarget::PointLightDiffuse);
 	}
 
 	// 

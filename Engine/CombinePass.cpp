@@ -102,7 +102,7 @@ void PointShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& Prim
     _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object, variableInfosVS);
 }
 
-void LightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
+void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
 {
 	PrimitiveComponent* PrimitiveComponent = PrimitiveData._pPrimitive.lock().get();
 
@@ -131,17 +131,17 @@ void LightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
 	RenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }
 
-bool LightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+bool DirectionalLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-    return (PrimitiveData._primitiveType == EPrimitiveType::DirectionalLight || PrimitiveData._primitiveType == EPrimitiveType::PointLight) && RenderPass::IsValidPrimitive(PrimitiveData);
+    return PrimitiveData._primitiveType == EPrimitiveType::DirectionalLight && RenderPass::IsValidPrimitive(PrimitiveData);
 }
 
-void LightPass::HandleRasterizerStage(const FPrimitiveData& primitiveData)
+void DirectionalLightPass::HandleRasterizerStage(const FPrimitiveData& primitiveData)
 {
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 }
 
-void LightPass::HandleOuputMergeStage(const FPrimitiveData& primitiveData)
+void DirectionalLightPass::HandleOuputMergeStage(const FPrimitiveData& primitiveData)
 {
     g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Disable), 1);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
@@ -165,4 +165,56 @@ void SkyPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
 bool CollisionPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
     return g_pRenderer->IsDrawCollision() && PrimitiveData._primitiveType == EPrimitiveType::Collision && RenderPass::IsValidPrimitive(PrimitiveData);
+}
+
+PointLightPass::PointLightPass()
+    : RenderPass()
+{
+    //SetClearTargets(false);
+}
+
+bool PointLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+{
+    //return false;
+    return PrimitiveData._primitiveType == EPrimitiveType::PointLight && RenderPass::IsValidPrimitive(PrimitiveData);
+}
+
+void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
+{
+    PrimitiveComponent* PrimitiveComponent = PrimitiveData._pPrimitive.lock().get();
+
+    Vec3 trans = PrimitiveComponent->getWorldTranslation();
+    Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
+    Vec4 color = { 1.f, 1.f, 1.f, 1.f };
+    if (std::shared_ptr<MLightComponent> LightComp = std::static_pointer_cast<MLightComponent>(PrimitiveData._pPrimitive.lock()))
+    {
+        color.x = LightComp->getColor().x;
+        color.y = LightComp->getColor().y;
+        color.z = LightComp->getColor().z;
+    }
+
+    XMVECTOR rotationVector = XMLoadFloat3(&PrimitiveComponent->getRotation());
+    XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(rotationVector);
+    Mat4 rotMatrix = IDENTITYMATRIX;
+    XMStoreFloat4x4(&rotMatrix, rotationMatrix);
+    Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
+
+    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
+    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
+    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
+    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
+    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
+
+    RenderPass::UpdateObjectConstantBuffer(PrimitiveData);
+}
+
+void PointLightPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
+{
+    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
+}
+
+void PointLightPass::HandleOuputMergeStage(const FPrimitiveData& primitiveData)
+{
+    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Disable), 1);
+    g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
 }

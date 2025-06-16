@@ -58,11 +58,11 @@ private:
     virtual void UpdateObjectConstantBuffer(const FPrimitiveData& primitiveData) override;
 };
 
-class LightPass : public RenderPass
+class DirectionalLightPass : public RenderPass
 {
 public:
-	explicit LightPass() = default;
-	virtual ~LightPass() = default;
+	explicit DirectionalLightPass() = default;
+	virtual ~DirectionalLightPass() = default;
 
 public:
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
@@ -70,6 +70,21 @@ public:
 
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& primitiveData) override;
+    virtual void HandleOuputMergeStage(const FPrimitiveData& primitiveData) override;
+};
+
+class PointLightPass : public RenderPass
+{
+public:
+    explicit PointLightPass();
+    virtual ~PointLightPass() = default;
+
+public:
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData) override;
+
+protected:
+    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual void HandleOuputMergeStage(const FPrimitiveData& primitiveData) override;
 };
 

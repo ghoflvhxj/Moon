@@ -18,6 +18,7 @@ class RenderPass;
 
 using RenderTargets = std::vector<std::shared_ptr<RenderTarget>>;
 
+// PixelShader랑 맞춰줘야 함
 enum class ERenderTarget
 {
 	//DepthPre,
@@ -34,6 +35,8 @@ enum class ERenderTarget
 
     Collision,
 
+    PointLightDiffuse,
+
 	Count
 };
 
@@ -42,7 +45,8 @@ enum class ERenderPass
 	ShadowDepth,
 	PointShadowDepth,
 	Geometry,
-	Light,
+	DirectionalLight,
+    PointLight,
 	SkyPass,
     Collision,
 	Combine,
