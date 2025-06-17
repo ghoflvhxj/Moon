@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef __PLAYER_H__
 
 #include "Actor.h"
@@ -25,7 +25,7 @@ protected:
 	virtual void tick(const Time deltaTime) override;
 
 public:
-	void Test(bool bPretty = false);
+	void JsonTest(bool bPretty = false);
 	//void rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent);
 
 private:
@@ -40,6 +40,10 @@ private:
 
 private:
 	std::vector<std::shared_ptr<PointLightComponent>>	_pLightComponentList;
+
+
+private:
+    float CameraSpeedScale = 1.f;
 };
 
 #define __PLAYER_H__

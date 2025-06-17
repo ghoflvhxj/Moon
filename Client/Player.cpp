@@ -1,10 +1,10 @@
-﻿#include "Include.h"
+﻿#include "MoonEngine.h"
+
 #include "DirectInput.h"
-
+#include "MainGame.h"
+#include "Camera.h"
 #include "Player.h"
-
 #include "Material.h"
-
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
 #include "DynamicMeshComponent.h"
@@ -12,7 +12,6 @@
 #include "PointLightComponent.h"
 #include "DirectionalLightComponent.h"
 #include "SkyComponent.h"
-#include "Material.h"
 
 #include "imgui.h"
 
@@ -23,7 +22,7 @@
 #include "rapidjson/prettywriter.h"
 
 #define UsePointLight 1
-#define UseRandomPointLight 1
+#define UseRandomPointLight 0
 #define UseDirectionalLight 1
 #define UseDynamicMesh 1
 #define UseSkySphere 1
@@ -52,14 +51,8 @@ void Player::initialize()
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
 	_pMeshComponent->setScale(20.f, 1.f, 20.f);
 	_pMeshComponent->setTranslation(1.f, -3.f, 0.f);
-	_pMeshComponent->SetGravity(true); // -> 머지?
+	//_pMeshComponent->SetGravity(true); // -> 머지?
 #endif
-
-	//_pStaticMeshComponent = std::make_shared<StaticMeshComponent>("Lantern/Lantern.fbx");
-	//_pStaticMeshComponent->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	//_pStaticMeshComponent->setTranslation(0.f, 2.f, 0.f);
-	//_pStaticMeshComponent->setDrawingBoundingBox(true);
-	//addComponent(TEXT("test"), _pStaticMeshComponent);
 
 	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>(TEXT("Table/Table.fbx"), true, true);
 	_pStaticMeshComponent2->setScale(Vec3{ 0.02f, 0.02f, 0.02f });
@@ -77,11 +70,7 @@ void Player::initialize()
 #if UseDynamicMesh == 1
 	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>(TEXT("2B/2b.fbx"));
 	_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
-	//_pDynamicMeshComponent->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
-	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(0)->SetAlphaMask(true);
-	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(1)->SetAlphaMask(true);
-	//_pDynamicMeshComponent->getDynamicMesh()->getMaterial(2)->SetAlphaMask(true);
 	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
 	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
     _pDynamicMeshComponent->setDrawingBoundingBox(true);
@@ -100,11 +89,6 @@ void Player::initialize()
 	addComponent(TEXT("DirectionalLight"), _pLightComponent2);
 	_pLightComponent2->setTranslation(0.f, 0.f, 1000.f);
 #endif
-	//_pCollisionShapeComponent = std::make_shared<CollisionShapeComponent>();
-	//addComponent(TEXT("CollisionShape"), _pCollisionShapeComponent);
-
-	//_pBoneShapeComponent = std::make_shared<CollisionShapeComponent>(_pDynamicMeshComponent->_originBoneVertexList);
-	//addComponent(TEXT("BoneShape"), _pBoneShapeComponent);
 
 #if UseRandomPointLight == 1
 	std::random_device rd;
@@ -133,34 +117,61 @@ void Player::initializeImGui()
 
 void Player::tick(const Time deltaTime)
 {
-	//Vec3 trans = _pLightComponent->getTranslation();
-	//Vec3 look = _pLightComponent->getLook();
-	//Vec3 right = _pLightComponent->getRight();
+    if (auto CameraComponent = getMainGame()->getMainCamera()->getComponent(TEXT("RootComponent")))
+    {
+        Vec3 trans = CameraComponent->getTranslation();
+        Vec3 look = CameraComponent->GetForward();
+        Vec3 right = CameraComponent->getRight();
+        float speed = CameraSpeedScale * 1.f * deltaTime;
 
-	//float speed = 0.1f;
+        if (InputManager::keyPress(DIK_LSHIFT))
+        {
+            speed *= 5.f;
+        }
 
-	//if (keyPress(DIK_UP))
-	//{
-	//	trans.x += look.x * speed;
-	//	trans.z += look.z * speed;
-	//}
-	//else if (keyPress(DIK_DOWN))
-	//{
-	//	trans.x -= look.x * speed;
-	//	trans.z -= look.z * speed;
-	//}
-	//else if (keyPress(DIK_RIGHT))
-	//{
-	//	trans.x += right.x * speed;
-	//	trans.z += right.z * speed;
-	//}
-	//else if (keyPress(DIK_LEFT))
-	//{
-	//	trans.x -= right.x * speed;
-	//	trans.z -= right.z * speed;
-	//}
+        if (InputManager::keyPress(DIK_W))
+        {
+            trans.x += look.x * speed;
+            trans.y += look.y * speed;
+            trans.z += look.z * speed;
+        }
+        else if (InputManager::keyPress(DIK_S))
+        {
+            trans.x -= look.x * speed;
+            trans.y -= look.y * speed;
+            trans.z -= look.z * speed;
+        }
+        else if (InputManager::keyPress(DIK_D))
+        {
+            trans.x += right.x * speed;
+            trans.y += right.y * speed;
+            trans.z += right.z * speed;
+        }
+        else if (InputManager::keyPress(DIK_A))
+        {
+            trans.x -= right.x * speed;
+            trans.y -= right.y * speed;
+            trans.z -= right.z * speed;
+        }
 
+        CameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
+        CameraSpeedScale = CameraSpeedScale >= 1.f ? CameraSpeedScale : 1.f;
 
+        CameraComponent->setTranslation(trans);
+
+        if (InputManager::mousePress(MOUSEBUTTON::RB))
+        {
+            Vec3 rot = CameraComponent->getRotation();
+
+            float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
+            float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
+
+            rot.x = rot.x + (((rot.x + mouseY) - rot.x) * 0.005f);
+            rot.y = rot.y + (((rot.y + mouseX) - rot.y) * 0.005f);
+            CameraComponent->setRotation(rot);
+        }
+
+    }
 
 #if UseDynamicMesh == 1
 	if (InputManager::keyPress(DIK_E))
@@ -210,7 +221,7 @@ void Player::tick(const Time deltaTime)
 #endif
 }
 
-void Player::Test(bool bPretty)
+void Player::JsonTest(bool bPretty)
 {
 	Document Doc;
 	Doc.SetObject();

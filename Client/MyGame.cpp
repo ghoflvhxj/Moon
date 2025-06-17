@@ -1,7 +1,4 @@
-﻿#include "Include.h"
-#include "MyGame.h"
-#include "DirectInput.h"
-
+﻿#include "MyGame.h"
 #include "MoonEngine.h"
 
 #include "GraphicDevice.h"
@@ -58,9 +55,9 @@ const bool MyGame::initialize()
 	addActor(MyActor);
 
 	//_pTerrainComponent = std::make_shared<TerrainComponent>(100, 100);
-	//_pTerrainComponent->setTexture(enumToIndex(TextureType::Diffuse), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_albedo.jpg")));
-	//_pTerrainComponent->setTexture(enumToIndex(TextureType::Normal), std::make_shared<TextureComponent>(TEXT("Resources/Texture/Stone_01_normal.jpg")));
-	//_pTerrainComponent->setTexture(enumToIndex(TextureType::Specular), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_Specular.jpg")));
+	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Diffuse), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_albedo.jpg")));
+	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Normal), std::make_shared<TextureComponent>(TEXT("Resources/Texture/Stone_01_normal.jpg")));
+	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Specular), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_Specular.jpg")));
 	//_pTerrainComponent->getMaterial(0)
 
 	//auto pComponent = getMainCamera()->getComponent(TEXT("RootComponent"));
@@ -162,11 +159,11 @@ void MyGame::render()
 
 	if (ImGui::Button("SaveJson"))
 	{
-		_pPlayer->Test();
+		_pPlayer->JsonTest();
 	}
 	if (ImGui::Button("SaveJsonPretty"))
 	{
-		_pPlayer->Test(true);
+		_pPlayer->JsonTest(true);
 	}
 
 	ImGui::End();
@@ -177,59 +174,59 @@ void MyGame::render()
 
 void MyGame::controlCamera(const Time deltaTime)
 {
-	auto pComponent = getMainCamera()->getComponent(TEXT("RootComponent"));
-	if (nullptr == pComponent)
-		return;
+    //auto pComponent = getMainCamera()->getComponent(TEXT("RootComponent"));
+    //if (nullptr == pComponent)
+    //    return;
 
-	Vec3 trans = pComponent->getTranslation();
-	Vec3 look = pComponent->GetForward();
-	Vec3 right = pComponent->getRight();
-	float speed = _cameraSpeedScale * 1.f * deltaTime;
+    //Vec3 trans = pComponent->getTranslation();
+    //Vec3 look = pComponent->GetForward();
+    //Vec3 right = pComponent->getRight();
+    //float speed = _cameraSpeedScale * 1.f * deltaTime;
 
-	if (InputManager::keyPress(DIK_LSHIFT))
-	{
-		speed *= 5.f;
-	}
+    //if (InputManager::keyPress(DIK_LSHIFT))
+    //{
+    //    speed *= 5.f;
+    //}
 
-	if (InputManager::keyPress(DIK_W))
-	{
-		trans.x += look.x * speed;
-		trans.y += look.y * speed;
-		trans.z += look.z * speed;
-	}
-	else if (InputManager::keyPress(DIK_S))
-	{
-		trans.x -= look.x * speed;
-		trans.y -= look.y * speed;
-		trans.z -= look.z * speed;
-	}
-	else if (InputManager::keyPress(DIK_D))
-	{
-		trans.x += right.x * speed;
-		trans.y += right.y * speed;
-			trans.z += right.z * speed;
-	}
-	else if (InputManager::keyPress(DIK_A))
-	{
-		trans.x -= right.x * speed;
-		trans.y -= right.y * speed;
-		trans.z -= right.z * speed;
-	}
+    //if (InputManager::keyPress(DIK_W))
+    //{
+    //    trans.x += look.x * speed;
+    //    trans.y += look.y * speed;
+    //    trans.z += look.z * speed;
+    //}
+    //else if (InputManager::keyPress(DIK_S))
+    //{
+    //    trans.x -= look.x * speed;
+    //    trans.y -= look.y * speed;
+    //    trans.z -= look.z * speed;
+    //}
+    //else if (InputManager::keyPress(DIK_D))
+    //{
+    //    trans.x += right.x * speed;
+    //    trans.y += right.y * speed;
+    //    trans.z += right.z * speed;
+    //}
+    //else if (InputManager::keyPress(DIK_A))
+    //{
+    //    trans.x -= right.x * speed;
+    //    trans.y -= right.y * speed;
+    //    trans.z -= right.z * speed;
+    //}
 
-	_cameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
-	_cameraSpeedScale = _cameraSpeedScale >= 1.f ? _cameraSpeedScale : 1.f;
+    //_cameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
+    //_cameraSpeedScale = _cameraSpeedScale >= 1.f ? _cameraSpeedScale : 1.f;
 
-	pComponent->setTranslation(trans);
+    //pComponent->setTranslation(trans);
 
-	if (InputManager::mousePress(MOUSEBUTTON::RB))
-	{
-		Vec3 rot = pComponent->getRotation();
+    //if (InputManager::mousePress(MOUSEBUTTON::RB))
+    //{
+    //    Vec3 rot = pComponent->getRotation();
 
-		float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
-		float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
+    //    float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
+    //    float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
 
-		rot.x = rot.x + (((rot.x + mouseY) - rot.x) * 0.005f);
-		rot.y = rot.y + (((rot.y + mouseX) - rot.y) * 0.005f);
-		pComponent->setRotation(rot);
-	}
+    //    rot.x = rot.x + (((rot.x + mouseY) - rot.x) * 0.005f);
+    //    rot.y = rot.y + (((rot.y + mouseX) - rot.y) * 0.005f);
+    //    pComponent->setRotation(rot);
+    //}
 }

@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __MYGAME_H__
 
 #include "MainGame.h"
 
@@ -40,8 +39,6 @@ private:
 	std::shared_ptr<TerrainComponent> _pTerrainComponent;
 	//std::shared_ptr<Camera>	_pCamera;			Camera의 기본 생성자는 g_pMainGame의 Setting을 가져와 fov를 설정함, 근데 아직 g_pMainGame이 설정되기 전임!
 
-	float _cameraSpeedScale = 1.f;
-
 	float time = 0.f;
 	
 	bool bButtonPressed = false;
@@ -49,6 +46,3 @@ private:
 	float Force = 0.f;
 	std::shared_ptr<StaticMeshComponent> Lantern;
 };
-
-#define __MYGAME_H__
-#endif
