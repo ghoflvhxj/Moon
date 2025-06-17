@@ -450,9 +450,6 @@ void Renderer::RenderScene()
 	TotalPrimitiveNum = CastValue<uint32>(CachedPrimitiveComponents.size());
 	FrustumCulling();
 
-    // 무엇을 렌더링 할지          -> RenderPass 안에서 PrimitiveType 이용
-    // 어느 시점으로 렌더링 할지   -> 
-
     // 렌더링 할 Prmitive 선별
 	std::vector<FPrimitiveData> RenderablePrimitiveData;
 	for (auto& Component : RenderablePrimitiveComponents)
@@ -466,47 +463,31 @@ void Renderer::RenderScene()
 		RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), DeferredPrimitiveDataMap[ID].begin(), DeferredPrimitiveDataMap[ID].end());
 	}
 
-    /*
-    // 디렉셔널 그림자 패스
-    for (int i = 0; i < 1; ++i)
-    {
-        std::shared_ptr<DirectionalShadowDepthPass>& Pass = std::static_pointer_cast<DirectionalShadowDepthPass>(RenderPasses[enumToIndex(ERenderPass::ShadowDepth)]);
-        Pass->Begin();
-        Pass->Render(RenderablePrimitiveData);
-        Pass->End();
-    }
-  
-    // 포인트 라이트 그림자 패스
-    */
-
 	// 기본 패스
-	uint32 combinePassIndex = CastValue<uint32>(ERenderPass::Combine);
-	for (uint32 i = 0; i < combinePassIndex; ++i)
+	uint32 CombinePass = EnumToIndex(ERenderPass::Combine);
+	for (uint32 PassIndex = 0; PassIndex < CombinePass; ++PassIndex)
 	{
-		RenderPasses[i]->Begin();
-		RenderPasses[i]->Render(RenderablePrimitiveData);
-		RenderPasses[i]->End();
+		RenderPasses[PassIndex]->Begin();
+		RenderPasses[PassIndex]->Render(RenderablePrimitiveData);
+		RenderPasses[PassIndex]->End();
 	}
 
 	// 혼합 패스
-	std::vector<std::weak_ptr<PrimitiveComponent>> temp;
-	temp.emplace_back(ViewMeshComponent);
+	std::vector<FPrimitiveData> ViewPrimitiveData;
+	ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
 
-	std::vector<FPrimitiveData> PrimitiveDataList;
-	ViewMeshComponent->GetPrimitiveData(PrimitiveDataList);
-
-	if (PrimitiveDataList[0].VertexBuffer == nullptr)
+	if (ViewPrimitiveData[0].VertexBuffer == nullptr)
 	{
-		auto& MeshData = PrimitiveDataList[0].MeshData.lock();
+		auto& MeshData = ViewPrimitiveData[0].MeshData.lock();
 		uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
 		uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
 		const void* Buffer = MeshData->Vertices.data();
-		PrimitiveDataList[0].VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer);
+		ViewPrimitiveData[0].VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer);
 	}
 
-	RenderPasses[combinePassIndex]->Begin();
-	RenderPasses[combinePassIndex]->Render(PrimitiveDataList);
-	RenderPasses[combinePassIndex]->End();
+	RenderPasses[CombinePass]->Begin();
+	RenderPasses[CombinePass]->Render(ViewPrimitiveData);
+	RenderPasses[CombinePass]->End();
 
 	// 포스트프로세스 패스
 
@@ -596,31 +577,31 @@ void Renderer::FrustumCulling()
 	m_planes[5] = XMVectorSet(x, y, z, w);
 	m_planes[5] = XMPlaneNormalize(m_planes[5]);
 
-	std::vector<std::weak_ptr<PrimitiveComponent>> CulledPrimitiveComponents;
-	CulledPrimitiveComponents.reserve(CachedPrimitiveComponents.size());
+	std::vector<std::weak_ptr<PrimitiveComponent>> ShownPrimitiveComponents;
+	ShownPrimitiveComponents.reserve(CachedPrimitiveComponents.size());
 
 	for (auto& WeakPrimitiveComponent : CachedPrimitiveComponents)
 	{
 		std::shared_ptr<PrimitiveComponent>& SharedPrimitiveComponent = WeakPrimitiveComponent.lock();
 
 		std::shared_ptr<BoundingBox> boundingBox = nullptr;
-		if (SharedPrimitiveComponent->getBoundingBox(boundingBox) == false)
+		if (SharedPrimitiveComponent->GetBoundingBox(boundingBox) == false)
 		{
-			CulledPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
+			ShownPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
 			continue;
 		}
 
 		if (boundingBox->cullSphere(m_planes, SharedPrimitiveComponent->getWorldTranslation(), boundingBox->getLength(SharedPrimitiveComponent->getScale())/2.f))
 		{
-			CulledPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
+			ShownPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
 		}
 	}
 
-	RenderablePrimitiveComponents.clear();
-	RenderablePrimitiveComponents = std::move(CulledPrimitiveComponents);
+    ShownPrimitiveNum = CastValue<uint32>(ShownPrimitiveComponents.size());
+    CulledPrimitiveNum = TotalPrimitiveNum - ShownPrimitiveNum;
 
-	showPrimitiveCount = CastValue<uint32>(CachedPrimitiveComponents.size());
-	culledPrimitiveCount = TotalPrimitiveNum - showPrimitiveCount;
+	RenderablePrimitiveComponents.clear();
+	RenderablePrimitiveComponents = std::move(ShownPrimitiveComponents);
 }
 
 void Renderer::UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader)
@@ -651,94 +632,3 @@ const bool Renderer::IsGlobalBufferDirty() const
 {
 	return _bDirtyConstant;
 }
-
-/*
-void Renderer::Test(std::vector<Mat4>& OutLightViewProj, std::vector<Vec4>& lightPosition)
-{
-    float tanHalfVertical = tan(XMConvertToRadians(g_pSetting->getFov() / 2.f));
-	float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();
-	XMMATRIX cameraWorldMatrix = XMLoadFloat4x4(&g_pMainGame->getMainCamera()->getInvesrViewMatrix());
-
-	for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Far); ++cascadeIndex)
-	{
-		float Depth = _cascadeDistance[cascadeIndex];
-		float NextDepth = _cascadeDistance[cascadeIndex + 1];
-		float XNear = _cascadeDistance[cascadeIndex] * tanHalfHorizen;
-		float XFar = _cascadeDistance[cascadeIndex + 1] * tanHalfHorizen;
-		float YNear = _cascadeDistance[cascadeIndex] * tanHalfVertical;
-		float YFar = _cascadeDistance[cascadeIndex + 1] * tanHalfVertical;
-		float DepthCenter = (NextDepth + Depth) / 2.f;
-
-		std::vector<Vec3> FrustumVertices = {
-			//near Face
-			{XNear,YNear,Depth},
-			{-XNear,YNear,Depth},
-			{XNear,-YNear,Depth},
-			{-XNear,-YNear,Depth},
-			//far Face
-			{XFar,YFar,NextDepth},
-			{-XFar,YFar,NextDepth},
-			{XFar,-YFar,NextDepth},
-			{-XFar,-YFar,NextDepth}
-		};
-
-		// CascadeFrustum의 중심 위치를 구함
-		XMVECTOR CascadeCenter = XMVectorSet(VEC4ZERO.x, VEC4ZERO.y, VEC4ZERO.z, VEC4ZERO.w);
-		for (auto& vertex : FrustumVertices)
-		{
-			CascadeCenter += XMLoadFloat3(&vertex);
-		}
-		CascadeCenter /= static_cast<float>(FrustumVertices.size());
-
-		// 중간위치와 가장 먼 점을 기준으로 Radius 설정
-		float radius = 0.f;
-		for (auto& vertex : FrustumVertices)
-		{
-			Vec3 Distance;
-			XMStoreFloat3(&Distance, XMVector3Length(XMLoadFloat3(&vertex) - CascadeCenter));
-
-			radius = std::max<float>(Distance.x, radius);
-		}
-		//radius = std::ceil(radius * 2.f) / 2.f;
-
-		XMVECTOR lightDirection = XMVector3Normalize(XMVectorSet(_directionalLightDirection[0].x, _directionalLightDirection[0].y, _directionalLightDirection[0].z, 0.f));
-		XMVECTOR CascadeCenterInWorld = XMVector3TransformCoord(CascadeCenter, cameraWorldMatrix);
-		XMVECTOR directionalLightPos = CascadeCenterInWorld - (lightDirection * radius);
-		XMStoreFloat4(&lightPosition[cascadeIndex], directionalLightPos);
-
-		float Near = std::max(DepthCenter - radius, 0.1f);
-		float Far = radius * 2.f;
-		XMMATRIX OrthograhpicMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, Near, Far);
-
-		XMVECTOR UpVector = XMLoadFloat3(&VEC3UP);
-		if (fabs(XMVectorGetX(XMVector3Dot(UpVector, lightDirection))) > 0.999f)
-		{
-			UpVector = XMVectorSet(1.f, 0, 0, 0);
-		}
-		XMMATRIX LightView = XMMatrixLookAtLH(directionalLightPos, directionalLightPos + lightDirection, UpVector);
-		//XMVECTOR projCenter = XMVector3TransformCoord(CascadeCenter, LightView);
-		//float worldTexelSize = radius * 2.f / 2048.f;
-		//float snapX = roundf(XMVectorGetX(projCenter) / worldTexelSize) * worldTexelSize;
-		//float snapY = roundf(XMVectorGetY(projCenter) / worldTexelSize) * worldTexelSize;
-		//LightView.r[3].m128_f32[0] += (snapX - XMVectorGetX(projCenter));
-		//LightView.r[3].m128_f32[1] += (snapY - XMVectorGetY(projCenter));
-
-		XMMATRIX LightViewProj = XMMatrixMultiply(LightView, OrthograhpicMatrix);
-		XMStoreFloat4x4(&OutLightViewProj[cascadeIndex], LightViewProj);
-
-		OutLightViewProj[cascadeIndex]._41 = round(OutLightViewProj[cascadeIndex]._41 * 10.f) / 10.f;
-		OutLightViewProj[cascadeIndex]._42 = round(OutLightViewProj[cascadeIndex]._42 * 10.f) / 10.f;
-
-		if (cascadeIndex == 2)
-		{
-			XMVECTOR Test = XMVector3TransformCoord(XMVectorSet(0.f, 0.f, 10.f, 1.f), LightViewProj);
-			Vec3 TestStore;
-			XMStoreFloat3(&TestStore, Test);
-
-			std::wostringstream ss;
-			ss << TEXT("LightView x:") << TestStore.x << TEXT(", y:") << TestStore.y << TEXT(", z:") << TestStore.z << std::endl;
-			OutputDebugString(ss.str().c_str());
-		}
-	}
-}
- */

@@ -63,8 +63,8 @@ private:
 
 public:
 	uint32 TotalPrimitiveNum = 0;
-	uint32 showPrimitiveCount = 0;
-	uint32 culledPrimitiveCount = 0;
+	uint32 ShownPrimitiveNum = 0;
+	uint32 CulledPrimitiveNum = 0;
 
 public:
 	void toggleRenderTarget();

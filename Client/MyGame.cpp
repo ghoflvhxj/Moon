@@ -116,8 +116,8 @@ void MyGame::render()
 
 	ImGui::Begin("Hello, world!");                  
 	ImGui::Text("Toatal primitive:%d", getRenderer()->TotalPrimitiveNum);
-	ImGui::Text("show primitive:%d", getRenderer()->showPrimitiveCount);
-	ImGui::Text("culled primitive:%d", getRenderer()->culledPrimitiveCount);
+	ImGui::Text("show primitive:%d", getRenderer()->ShownPrimitiveNum);
+	ImGui::Text("culled primitive:%d", getRenderer()->CulledPrimitiveNum);
 	ImGui::Checkbox("Debug Collision", &getRenderer()->bDrawCollision);
 
 	if (ImGui::CollapsingHeader("DirectionalLight") && DirectionalLight)
