@@ -58,7 +58,7 @@ void RenderPass::Begin()
 		}
 		
 		// PointRenderPass에서, CachedRenderTargets[static_cast<int>(ERenderTarget::DirectionalShadowDepth)]를 고정적으로 사용하고 있음...
-		g_pGraphicDevice->getContext()->OMSetRenderTargets(RowRenderTargets.size(), RowRenderTargets.data(), UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[enumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
+		g_pGraphicDevice->getContext()->OMSetRenderTargets(RowRenderTargets.size(), RowRenderTargets.data(), UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
 	}
 
 

@@ -1,5 +1,7 @@
-#pragma once
+﻿#pragma once
 #ifndef __MOON_ENGINE_H__
+
+#include "Include.h"
 
 class Window;
 class MainGame;

@@ -239,7 +239,7 @@ const bool GraphicDevice::buildRasterizerState()
 
 ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode)
 {
-	return _rasterizerList[(enumToIndex(eFillMode) * CastValue<uint32>(Graphic::CullMode::Count)) + enumToIndex(eCullMode)];
+	return _rasterizerList[(EnumToIndex(eFillMode) * CastValue<uint32>(Graphic::CullMode::Count)) + EnumToIndex(eCullMode)];
 }
 
 const bool GraphicDevice::buildDepthStencilState()
@@ -276,7 +276,7 @@ const bool GraphicDevice::buildDepthStencilState()
 
 ID3D11DepthStencilState *GraphicDevice::getDepthStencilState(const Graphic::EDepthWriteMode eDetphWrite)
 {
-	return _depthStencilStateList[enumToIndex(eDetphWrite)];
+	return _depthStencilStateList[EnumToIndex(eDetphWrite)];
 }
 
 const bool GraphicDevice::buildBlendState()
@@ -322,7 +322,7 @@ const bool GraphicDevice::buildBlendState()
 
 ID3D11BlendState *GraphicDevice::getBlendState(const Graphic::Blend eBlend)
 {
-	return _blendStateList[enumToIndex(eBlend)];
+	return _blendStateList[EnumToIndex(eBlend)];
 }
 
 void GraphicDevice::End()
@@ -387,9 +387,9 @@ const bool GraphicDevice::buildSamplerState()
 
 ID3D11SamplerState* GraphicDevice::getSamplerState(ESamplerFilter SamplerFilter)
 {
-	if (enumToIndex(SamplerFilter) < Samplers.size())
+	if (EnumToIndex(SamplerFilter) < Samplers.size())
 	{
-		return Samplers[enumToIndex(SamplerFilter)];
+		return Samplers[EnumToIndex(SamplerFilter)];
 	}
 
 	return nullptr;

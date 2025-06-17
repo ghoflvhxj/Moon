@@ -154,7 +154,7 @@ const bool PrimitiveComponent::GetPrimitiveData(std::vector<FPrimitiveData> &pri
 	return false;
 }
 
-const bool PrimitiveComponent::getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox)
+const bool PrimitiveComponent::GetBoundingBox(std::shared_ptr<BoundingBox> &boundingBox)
 {
 	return false;
 }

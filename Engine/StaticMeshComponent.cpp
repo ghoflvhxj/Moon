@@ -152,7 +152,7 @@ const uint32 StaticMesh::getGeometryCount() const
 	return GeometryNum;
 }
 
-std::shared_ptr<BoundingBox> StaticMesh::getBoundingBox()
+std::shared_ptr<BoundingBox> StaticMesh::GetBoundingBox()
 {
 	return _pBoundingBox;
 }
@@ -250,7 +250,7 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	}
 
 	// BoudingBox
-	std::shared_ptr<BoundingBox> &boundingBox = _pStaticMesh->getBoundingBox();
+	std::shared_ptr<BoundingBox> &boundingBox = _pStaticMesh->GetBoundingBox();
 	if (boundingBox && _bDrawBoundingBox)
 	{
 		FPrimitiveData PrimitiveData = {};
@@ -265,14 +265,14 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	return true;
 }
 
-const bool StaticMeshComponent::getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox)
+const bool StaticMeshComponent::GetBoundingBox(std::shared_ptr<BoundingBox> &boundingBox)
 {
 	if (nullptr == _pStaticMesh)
 	{
 		return false;
 	}
 
-	boundingBox = _pStaticMesh->getBoundingBox();
+	boundingBox = _pStaticMesh->GetBoundingBox();
 	return boundingBox != nullptr;
 }
 

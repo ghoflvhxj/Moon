@@ -1,4 +1,4 @@
-#include "Include.h"
+Ôªø#include "Include.h"
 #include "MeshComponent.h"
 
 #include "GraphicDevice.h"
@@ -23,34 +23,6 @@ MeshComponent::~MeshComponent()
 {
 }
 
-// ªË¡¶øπ¡§
-//void MeshComponent::initializeMeshInformation() 
-//{
-//	_vertexList.reserve(4);
-//	_vertexList.push_back({ Vec3{ -0.5f, 0.5f, 1.f }, static_cast<Vec4>(Colors::White), Vec2{0.f, 0.f}, Vec3{0.f, 0.f, -1.f} });
-//	_vertexList.push_back({ Vec3{ 0.5f, 0.5f, 1.f }, static_cast<Vec4>(Colors::Red), Vec2(1.f, 0.f), Vec3{0.f, 0.f, -1.f} });
-//	_vertexList.push_back({ Vec3{ 0.5f, -0.5f, 1.f }, static_cast<Vec4>(Colors::Green), Vec2(1.f, 1.f), Vec3{0.f, 0.f, -1.f} });
-//	_vertexList.push_back({ Vec3{ -0.5f, -0.5f, 1.f }, static_cast<Vec4>(Colors::Yellow), Vec2(0.f, 1.f), Vec3{0.f, 0.f, -1.f} });
-//
-//	_indexList.reserve(6);
-//	_indexList.push_back(0);
-//	_indexList.push_back(1);
-//	_indexList.push_back(2);
-//
-//	_indexList.push_back(0);
-//	_indexList.push_back(2);
-//	_indexList.push_back(3);
-//
-//	_pMaterial = std::make_shared<Material>(_vertexList, _indexList);
-//	_pMaterial->setTexture(_textureList);
-//	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // ≈¯ø°º≠ º≥¡§«— Ω¶¿Ã¥ı∏¶ ¿–æÓæﬂ «œ¥¬µ•, ¡ˆ±›¿∫ æ¯¿∏¥œ±Ó ±◊≥… ¿”Ω√∑Œ ∂´ªß
-//}
-
-//void MeshComponent::render()
-//{
-//	_pMaterial->render(shared_from_this());
-//}
-
 const bool MeshComponent::addTexture(std::shared_ptr<MTexture> pTexture)
 {
 	if (_textureList.size() == _textureList.capacity())
@@ -72,13 +44,13 @@ std::shared_ptr<MMaterial>& MeshComponent::getMaterial()
 
 void MeshComponent::setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture)
 {
-	_textureList[enumToIndex(textureType)] = pTexture;
+	_textureList[EnumToIndex(textureType)] = pTexture;
 
-	// ∏≈≈Õ∏ÆæÛø° ªı∑ŒøÓ ≈ÿΩ∫√ƒ∏¶ πŸ¿Œµ˘ «ÿ¡‹
+	// Îß§ÌÑ∞Î¶¨ÏñºÏóê ÏÉàÎ°úÏö¥ ÌÖçÏä§Ï≥êÎ•º Î∞îÏù∏Îî© Ìï¥Ï§å
 	_pMaterial->setTextures(_textureList);
 }
 
 std::shared_ptr<MTexture> &MeshComponent::getTexture(const ETextureType textureType)
 {
-	return _textureList[enumToIndex(textureType)];
+	return _textureList[EnumToIndex(textureType)];
 }

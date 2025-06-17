@@ -1,6 +1,6 @@
-#pragma once
-#ifndef __MAINGAME_H__
-#include "Vertex.h"
+ï»¿#pragma once
+
+#include "Include.h"
 
 class Window;
 class MTimerManager;
@@ -35,10 +35,10 @@ private:
 	void Update(const Time deltaTime);
 
 public:	
-	// µğ¹ö±ë ÇÒ ¶§ ¾²´Â ¿ëµµ
+	// ë””ë²„ê¹… í•  ë•Œ ì“°ëŠ” ìš©ë„
 	virtual void render();	
 
-	// ¾÷µ¥ÀÌÆ® ÇÒ ¾×ÅÍµéÀ» °ü¸®
+	// ì—…ë°ì´íŠ¸ í•  ì•¡í„°ë“¤ì„ ê´€ë¦¬
 public:
 	void addActor(std::shared_ptr<Actor> pActor);
 private:
@@ -48,7 +48,7 @@ private:
 public:
 	const Time getDeltaTime() const;
 private:
-	Time _deltaTime;	// °ÔÀÓÀÇ µ¨Å¸Å¸ÀÓ°ú Å¸ÀÌ¸ÓÀÇ µ¨Å¸Å¸ÀÓÀº ¾ö¿¬È÷ ´Ù¸§...! ÇÁ·¹ÀÓ°£ÀÇ µ¨Å¸Å¸ÀÓ vs while ·çÇÁ°£ÀÇ µ¨Å¸Å¸ÀÓ
+	Time _deltaTime;
 
 public:
 	const std::shared_ptr<MTimerManager> getTimerManager() const;
@@ -78,6 +78,3 @@ public:
 private:
 	std::shared_ptr<Camera> _pMainCamera;
 };
-
-#define __MAINGAME_H__
-#endif

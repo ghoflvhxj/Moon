@@ -63,7 +63,7 @@ public:
 	uint32 TotalVertexNum = 0;
 
 public:
-	std::shared_ptr<BoundingBox> getBoundingBox();
+	std::shared_ptr<BoundingBox> GetBoundingBox();
 private:
 	std::shared_ptr<BoundingBox> _pBoundingBox;
 
@@ -95,7 +95,7 @@ public:
 public:
 	virtual void Update(const Time deltaTime) override;
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
-	virtual const bool getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox) override;
+	virtual const bool GetBoundingBox(std::shared_ptr<BoundingBox> &boundingBox) override;
 	virtual void setTranslation(const Vec3 &translation) override;
 	virtual void setScale(const Vec3 &scale) override;
 

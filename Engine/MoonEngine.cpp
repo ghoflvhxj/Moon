@@ -1,5 +1,4 @@
-#include "Include.h"
-#include "MoonEngine.h"
+﻿#include "MoonEngine.h"
 
 #include "MainGameSetting.h"
 #include "Window.h"

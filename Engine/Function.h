@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __FUNCTION_H__
 
 inline void GetResourceDirectory(WCHAR buffer[])
@@ -50,7 +50,7 @@ inline uint32 enumToUInt32(const T enumValue)
 }
 
 template <class T>
-inline uint32 enumToIndex(const T enumValue)
+inline uint32 EnumToIndex(const T enumValue)
 {
 	return CastValue<uint32>(enumValue);
 }
@@ -65,7 +65,7 @@ inline bool checkFlag(const uint32 value, const uint32 flag)
 	return value && flag;
 }
 
-/* Com°´Ã¼ ¸±¸®Áî¿¡ »ç¿ë */
+/* Comê°ì²´ ë¦´ë¦¬ì¦ˆì— ì‚¬ìš© */
 template <class T>
 inline void SafeRelease(T &p)
 {

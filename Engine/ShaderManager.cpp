@@ -11,7 +11,7 @@
 #include "MapUtility.h"
 
 MShaderManager::MShaderManager()
-	: _shadersPerShaderType(enumToIndex(ShaderType::Count), ShaderMap())
+	: _shadersPerShaderType(EnumToIndex(ShaderType::Count), ShaderMap())
 {
 }
 
@@ -42,7 +42,7 @@ const bool MShaderManager::addShader(const ShaderType type, const wchar_t *fileN
 
 MShaderManager::ShaderMap &MShaderManager::getShaderMap(const ShaderType type)
 {
-	return _shadersPerShaderType[enumToIndex(type)];
+	return _shadersPerShaderType[EnumToIndex(type)];
 }
 
 const bool MShaderManager::getShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<MShader> &shader)

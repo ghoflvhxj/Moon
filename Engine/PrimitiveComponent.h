@@ -67,7 +67,7 @@ public:
 
 public:
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList);
-	virtual const bool getBoundingBox(std::shared_ptr<BoundingBox> &boundingBox);
+	virtual const bool GetBoundingBox(std::shared_ptr<BoundingBox> &boundingBox);
 
 public:
 	void				setRenderMode(const RenderMode renderMode);

@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "FBXLoader.h"
 #include "Texture.h"
 #include "Core/ResourceManager.h"
@@ -52,7 +52,7 @@ MFBXLoader::~MFBXLoader()
 
 void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 {
-	// ¾Ö´Ï¸ŞÀÌ¼Ç °ü·Ã Ã³¸®
+	// ì• ë‹ˆë©”ì´ì…˜ ê´€ë ¨ ì²˜ë¦¬
 	int animStackCount = _pImporter->GetAnimStackCount();
 	animationClipList.resize(animStackCount);
 
@@ -66,7 +66,7 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 		FbxTime endTime = pTakeInfo->mLocalTimeSpan.GetStop();
 
 		size_t jointCount = _jointList.size();
-		animationClipList[animStackIndex]._keyFrameLists.resize(jointCount); // Á¶ÀÎÆ® ¸¶´Ù Å°ÇÁ·¹ÀÓÀ» ÀúÀåÇÏ±â À§ÇØ
+		animationClipList[animStackIndex]._keyFrameLists.resize(jointCount); // ì¡°ì¸íŠ¸ ë§ˆë‹¤ í‚¤í”„ë ˆì„ì„ ì €ì¥í•˜ê¸° ìœ„í•´
 		animationClipList[animStackIndex]._animationName = animStackName.Buffer();
 		animationClipList[animStackIndex]._startFrame = CastValue<uint32>(startTime.GetFrameCount(FbxTime::eFrames30));
 		animationClipList[animStackIndex]._endFrame = CastValue<uint32>(endTime.GetFrameCount(FbxTime::eFrames30));
@@ -110,22 +110,22 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 				{
 					FbxCluster* pCluster = pSkin->GetCluster(clusterIndex);
 
-					// Á¶ÀÎÆ®ÀÇ ¹ÙÀÎµåÆ÷Áî ÀÎ¹ö½º ¸ÅÆ®¸¯½º ¾ò±â
+					// ì¡°ì¸íŠ¸ì˜ ë°”ì¸ë“œí¬ì¦ˆ ì¸ë²„ìŠ¤ ë§¤íŠ¸ë¦­ìŠ¤ ì–»ê¸°
 					pCluster->GetTransformMatrix(transformMatrix);
 					pCluster->GetTransformLinkMatrix(transformLinkMatrix);
 					globalBindPoseInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
 					// VertexAtTimeT = TransformationOfPoseAtTimeT * InverseOfGlobalBindPoseMatrix * VertexAtBindingTime 
-					// ¿¡¼­ InverseOfGlobalBindPoseMatrix¸¦ ¾ò¾î³ÂÀ½
+					// ì—ì„œ InverseOfGlobalBindPoseMatrixë¥¼ ì–»ì–´ëƒˆìŒ
 
 					const char* jointName = pCluster->GetLink()->GetName();
 					//if (_jointIndexMap.end() == _jointIndexMap.find(jointName))
 					//{
-					//	DEV_ASSERT_MSG("Ã£À» ¼ö ¾ø´Â BoneÀÔ´Ï´Ù!")
+					//	DEV_ASSERT_MSG("ì°¾ì„ ìˆ˜ ì—†ëŠ” Boneì…ë‹ˆë‹¤!")
 					//	continue;
 					//}
 					int jointIndex = _jointIndexMap[jointName];
 
-					// Á¶ÀÎÆ® ±×¸®±â ¿ë
+					// ì¡°ì¸íŠ¸ ê·¸ë¦¬ê¸° ìš©
 					FbxAMatrix temp = geometryTransform.Inverse() * transformMatrix.Inverse() * transformLinkMatrix;
 					_jointList[jointIndex]._position = { static_cast<float>(temp[3][0]), static_cast<float>(temp[3][1]), static_cast<float>(temp[3][2]) };
 					jointPositionSet.insert(jointIndex);
@@ -145,7 +145,7 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 					{
 						int controlPointIndex = pCluster->GetControlPointIndices()[j];
 
-						// ÄÁÆ®·Ñ Æ÷ÀÎÆ®°¡ °øÀ¯µÇ´Â ¹öÅØ½ºµéÀÇ ÀÎµ¦½º¸¦ °¡Á®¿È
+						// ì»¨íŠ¸ë¡¤ í¬ì¸íŠ¸ê°€ ê³µìœ ë˜ëŠ” ë²„í…ìŠ¤ë“¤ì˜ ì¸ë±ìŠ¤ë¥¼ ê°€ì ¸ì˜´
 						std::vector<int>& vertexIndices = _indexMap[meshIndex][controlPointIndex];
 						for (int vertexIndex : vertexIndices)
 						{
@@ -175,17 +175,17 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 
 					//{
 					//	PerformanceTimer timer(TEXT("LoadFrameMatrices"));
-						// ÇÁ·¹ÀÓ¿¡ Á¸ÀçÇÏ´Â Å° ÇÁ·¹ÀÓÀ» ÀúÀåÇØ¾ß ÇÔ
+						// í”„ë ˆì„ì— ì¡´ì¬í•˜ëŠ” í‚¤ í”„ë ˆì„ì„ ì €ì¥í•´ì•¼ í•¨
 					if (animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].capacity() == 0)
 					{
-						animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].reserve(animationClipList[animStackIndex]._frameCount);	// Á¶ÀÎÆ®¸¶´Ù Å°ÇÁ·¹ÀÓ °ø°£ ¿¹¾à. Å° ÇÁ·¹ÀÓÀÌ ÃÖ´ë ÇÁ·¹ÀÓ ¼ö¸¸Å­ °¡Áú ¼ö ÀÖÀ½. ±»ÀÌ? ½ÍÁö¸¸ Áö±İÀº ÃÖÀûÈ­ »ı°¢¾ÈÇÏ°í ±¸Çö
+						animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].reserve(animationClipList[animStackIndex]._frameCount);	// ì¡°ì¸íŠ¸ë§ˆë‹¤ í‚¤í”„ë ˆì„ ê³µê°„ ì˜ˆì•½. í‚¤ í”„ë ˆì„ì´ ìµœëŒ€ í”„ë ˆì„ ìˆ˜ë§Œí¼ ê°€ì§ˆ ìˆ˜ ìˆìŒ. êµ³ì´? ì‹¶ì§€ë§Œ ì§€ê¸ˆì€ ìµœì í™” ìƒê°ì•ˆí•˜ê³  êµ¬í˜„
 					}
 
 					for (uint32 frame = animationClipList[animStackIndex]._startFrame; frame <= animationClipList[animStackIndex]._endFrame; ++frame)
 					{
 						currentTime.SetFrame(static_cast<FbxLongLong>(frame), FbxTime::eFrames30);
 
-						//FbxAMatrix currentTransformOffset = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse();	// ¸Ş½ÃÀÇ ±Û·Î¹ú Æ®·£½ºÆû * Áö¿À¸ŞÆ®¸® Æ®·£½ºÆû
+						//FbxAMatrix currentTransformOffset = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse();	// ë©”ì‹œì˜ ê¸€ë¡œë²Œ íŠ¸ëœìŠ¤í¼ * ì§€ì˜¤ë©”íŠ¸ë¦¬ íŠ¸ëœìŠ¤í¼
 						XMStoreFloat4x4(&matrix, ToXMMatrix((pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse() * pCluster->GetLink()->EvaluateGlobalTransform(currentTime)));
 
 						animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].emplace_back(matrix);
@@ -269,25 +269,25 @@ void MFBXLoader::InitializeFbxSdk()
 	_pImporter = FbxImporter::Create(_pFbxManager, "");
 	if (nullptr == _pImporter)
 	{
-		DEV_ASSERT_MSG("FbxImporter°¡ nullptr ÀÔ´Ï´Ù!");
+		DEV_ASSERT_MSG("FbxImporterê°€ nullptr ì…ë‹ˆë‹¤!");
 	}
 
 	char FilePathName[255] = { 0, };
 	WStringToString(_filePathName, FilePathName, 255);
 	if (false == _pImporter->Initialize(FilePathName))
 	{
-		DEV_ASSERT_MSG("FbxImporter ÃÊ±âÈ­¿¡ ½ÇÆĞÇß½À´Ï´Ù!");
+		DEV_ASSERT_MSG("FbxImporter ì´ˆê¸°í™”ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤!");
 	}
 
 	_pScene = FbxScene::Create(_pFbxManager, "Scene");
 	if (nullptr == _pScene)
 	{
-		DEV_ASSERT_MSG("FbxSceneÀÌ nullptr  ÀÔ´Ï´Ù!");
+		DEV_ASSERT_MSG("FbxSceneì´ nullptr  ì…ë‹ˆë‹¤!");
 	}
 
 	if (false == _pImporter->Import(_pScene))
 	{
-		DEV_ASSERT_MSG("FbxImporter°¡ FbxSceneÀ» ºÒ·¯¿ÀÁö ¸øÇß½À´Ï´Ù!");
+		DEV_ASSERT_MSG("FbxImporterê°€ FbxSceneì„ ë¶ˆëŸ¬ì˜¤ì§€ ëª»í–ˆìŠµë‹ˆë‹¤!");
 	}
 }
 
@@ -388,9 +388,9 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 	_meshList.push_back(FBXMesh);
 
 	int polygonCount = FBXMesh->GetPolygonCount();
-	int vertexCounter = 0;								// ¸ÊÇÎ ¸ğµå°¡ eByPolygonVertexÀÏ °æ¿ì »ç¿ëÇÔ
+	int vertexCounter = 0;								// ë§µí•‘ ëª¨ë“œê°€ eByPolygonVertexì¼ ê²½ìš° ì‚¬ìš©í•¨
 	int vertexCount = polygonCount * 3;
-	_verticesList[meshIndex].resize(polygonCount * 3);	// ÁßÃ¸µÈ ¹öÅØ½º¸¦ Çã¿ëÇÏÁö ¾Ê±â ¶§¹®¿¡ ÀÎµ¦½ºÀÇ ¼ö¿Í °°¾ÆÁü...
+	_verticesList[meshIndex].resize(polygonCount * 3);	// ì¤‘ì²©ëœ ë²„í…ìŠ¤ë¥¼ í—ˆìš©í•˜ì§€ ì•Šê¸° ë•Œë¬¸ì— ì¸ë±ìŠ¤ì˜ ìˆ˜ì™€ ê°™ì•„ì§...
 	_indicesList[meshIndex].reserve(polygonCount * 3);
 
 	TotalVertexNum += vertexCount;
@@ -409,7 +409,7 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 			loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
 			loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
 			loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-			_indicesList[meshIndex].push_back((3 * i) + j); // ¼öÁ¤ÇØ¾ß ÇÔ
+			_indicesList[meshIndex].push_back((3 * i) + j); // ìˆ˜ì •í•´ì•¼ í•¨
 			
 			_indexMap[meshIndex][controlPointIndex].emplace_back(vertexIndex);
 
@@ -420,7 +420,7 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 
 void MFBXLoader::linkMaterial(FbxNode *pNode)
 {
-	// ÇÏ³ªÀÇ ¸ÅÅÍ¸®¾óÀ» ¿©·¯ ¸Ş½¬°¡ »ç¿ëÇÏ´Â °æ¿ì¸¦ À§ÇØ ¸µÅ©
+	// í•˜ë‚˜ì˜ ë§¤í„°ë¦¬ì–¼ì„ ì—¬ëŸ¬ ë©”ì‰¬ê°€ ì‚¬ìš©í•˜ëŠ” ê²½ìš°ë¥¼ ìœ„í•´ ë§í¬
 	int NodeMaterialNum = pNode->GetMaterialCount();
 	for (int Index = 0; Index < NodeMaterialNum; ++Index)
 	{
@@ -430,7 +430,7 @@ void MFBXLoader::linkMaterial(FbxNode *pNode)
 			continue;
 		}
 
-		// ½ÇÁ¦·Î »ç¿ëÇÏ°í ÀÖ´Â ¸ÅÅÍ¸®¾óIndex¸¦ Ã£À½
+		// ì‹¤ì œë¡œ ì‚¬ìš©í•˜ê³  ìˆëŠ” ë§¤í„°ë¦¬ì–¼Indexë¥¼ ì°¾ìŒ
 		for (uint32 i = 0; i < MaterialNum; ++i)
 		{
 			if (SurfaceMaterial == _pScene->GetMaterial(static_cast<int>(i)))
@@ -448,11 +448,11 @@ void MFBXLoader::loadPosition(Vertex &vertex, const int controlPointIndex)
 	vertex.Pos.y = ToFloat(FBXMesh->GetControlPointAt(controlPointIndex).mData[1]);
 	vertex.Pos.z = ToFloat(FBXMesh->GetControlPointAt(controlPointIndex).mData[2]);
 
-	// Min À§Ä¡ °»½Å
+	// Min ìœ„ì¹˜ ê°±ì‹ 
 	MinPosition.x = std::min(MinPosition.x, vertex.Pos.x);
 	MinPosition.y = std::min(MinPosition.y, vertex.Pos.y);
 	MinPosition.z = std::min(MinPosition.z, vertex.Pos.z);
-	// Max À§Ä¡ °»½Å
+	// Max ìœ„ì¹˜ ê°±ì‹ 
 	MaxPosition.x = std::max(MaxPosition.x, vertex.Pos.x);
 	MaxPosition.y = std::max(MaxPosition.y, vertex.Pos.y);
 	MaxPosition.z = std::max(MaxPosition.z, vertex.Pos.z);
@@ -487,7 +487,7 @@ void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int v
 		break;
 		default:
 		{
-			DEV_ASSERT_MSG("Fbx ÆÄÀÏ¿¡¼­ Ã£À» ¼ö ¾ø´Â UVÀÔ´Ï´Ù. EMappingMode::eByControlPoint");
+			DEV_ASSERT_MSG("Fbx íŒŒì¼ì—ì„œ ì°¾ì„ ìˆ˜ ì—†ëŠ” UVì…ë‹ˆë‹¤. EMappingMode::eByControlPoint");
 		}
 		break;
 		}
@@ -554,7 +554,7 @@ void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const i
 		break;
 		default:
 		{
-			DEV_ASSERT_MSG("Fbx ÆÄÀÏ¿¡¼­ Ã£À» ¼ö ¾ø´Â UVÀÔ´Ï´Ù. EMappingMode::eByControlPoint");
+			DEV_ASSERT_MSG("Fbx íŒŒì¼ì—ì„œ ì°¾ì„ ìˆ˜ ì—†ëŠ” UVì…ë‹ˆë‹¤. EMappingMode::eByControlPoint");
 		}
 		break;
 		}
@@ -623,7 +623,7 @@ void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const 
 		break;
 		default:
 		{
-			DEV_ASSERT_MSG("Fbx ÆÄÀÏ¿¡¼­ Ã£À» ¼ö ¾ø´Â UVÀÔ´Ï´Ù. EMappingMode::eByControlPoint");
+			DEV_ASSERT_MSG("Fbx íŒŒì¼ì—ì„œ ì°¾ì„ ìˆ˜ ì—†ëŠ” UVì…ë‹ˆë‹¤. EMappingMode::eByControlPoint");
 		}
 		break;
 		}
@@ -692,7 +692,7 @@ void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const
 		break;
 		default:
 		{
-			DEV_ASSERT_MSG("Fbx ÆÄÀÏ¿¡¼­ Ã£À» ¼ö ¾ø´Â UVÀÔ´Ï´Ù. EMappingMode::eByControlPoint");
+			DEV_ASSERT_MSG("Fbx íŒŒì¼ì—ì„œ ì°¾ì„ ìˆ˜ ì—†ëŠ” UVì…ë‹ˆë‹¤. EMappingMode::eByControlPoint");
 		}
 		break;
 		}
@@ -762,21 +762,21 @@ void MFBXLoader::loadTexture()
 		{
 			continue;
 		}
-		_texturesList.push_back(TextureList(enumToIndex(ETextureType::End), nullptr));
+		_texturesList.push_back(TextureList(EnumToIndex(ETextureType::End), nullptr));
 		LoadTexturesFromFBXMaterial(SurfaceMaterial, MaterialIndex);
 	}
 }
 
 void MFBXLoader::LoadTexturesFromFBXMaterial(FbxSurfaceMaterial* SurfaceMaterial, uint32 MaterialIndex)
 {
-	uint32 TextureTypeNum = enumToIndex(ETextureType::End);
+	uint32 TextureTypeNum = EnumToIndex(ETextureType::End);
 	for (uint32 TextureTypeIndex = 0; TextureTypeIndex < TextureTypeNum; ++TextureTypeIndex)
 	{
-		// ÅØ½ºÃÄ Å¸ÀÔ¿¡ ÇØ´çÇÏ´Â ÇÁ·ÎÆÛÆ¼¸¦ Ã£À½
+		// í…ìŠ¤ì³ íƒ€ì…ì— í•´ë‹¹í•˜ëŠ” í”„ë¡œí¼í‹°ë¥¼ ì°¾ìŒ
 		ETextureType TextureType = CastValue<ETextureType>(TextureTypeIndex);
 		FbxProperty& Property = SurfaceMaterial->FindProperty(GetTexturePropertyString(TextureType));
 
-		// ÅØ½ºÃÄ¸¦ ºÒ·¯¿È
+		// í…ìŠ¤ì³ë¥¼ ë¶ˆëŸ¬ì˜´
 		int TextureNum = Property.GetSrcObjectCount<FbxTexture>();
 		std::wstring DebugString = TEXT("TextureNum: ") + std::to_wstring(TextureNum);
 		OutputDebugString(DebugString.c_str());
@@ -833,7 +833,7 @@ void MFBXLoader::LoadTexturesFromFBXMaterial(FbxSurfaceMaterial* SurfaceMaterial
 	//		std::shared_ptr<MTexture> Texture = std::make_shared<MTexture>(FilePath);
 	//		
 	//		TextureList &textureList = _texturesList.back();
-	//		textureList[enumToIndex(textureType)] = Texture;
+	//		textureList[EnumToIndex(textureType)] = Texture;
 	//	}
 	//}
 }

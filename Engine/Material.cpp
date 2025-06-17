@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "Material.h"
 
 #include "MapUtility.h"
@@ -27,7 +27,7 @@ using namespace Graphic;
 MMaterial::MMaterial()
 	: _vertexShader{ nullptr }
 	, _pixelShader{ nullptr }
-	, _textureList(enumToIndex(ETextureType::End), nullptr)
+	, _textureList(EnumToIndex(ETextureType::End), nullptr)
 	, _eTopology{ D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST }
 	, _eFillMode{ FillMode::Solid }
 	, _eCullMode{ CullMode::Backface }
@@ -96,7 +96,7 @@ void MMaterial::ClearShader()
 
 void MMaterial::setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture)
 {
-	_textureList[enumToIndex(textureType)] = pTexture;
+	_textureList[EnumToIndex(textureType)] = pTexture;
 }
 
 void MMaterial::setTextures(std::vector<std::shared_ptr<MTexture>> &textureList)

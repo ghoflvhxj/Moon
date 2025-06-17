@@ -217,14 +217,14 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		//primitiveDataList.emplace_back(primitive);
 	}
 
-    std::shared_ptr<BoundingBox>& boundingBox = Mesh->getBoundingBox();
-    if (boundingBox && _bDrawBoundingBox)
+    std::shared_ptr<BoundingBox>& BoundingBox = Mesh->GetBoundingBox();
+    if (BoundingBox && _bDrawBoundingBox)
     {
         FPrimitiveData PrimitiveData = {};
         PrimitiveData._pPrimitive = shared_from_this();
-        PrimitiveData._pMaterial = boundingBox->getMaterial();
+        PrimitiveData._pMaterial = BoundingBox->getMaterial();
         PrimitiveData._primitiveType = EPrimitiveType::Collision;
-        PrimitiveData.MeshData = boundingBox->GetMeshData();
+        PrimitiveData.MeshData = BoundingBox->GetMeshData();
 
         PrimitiveDataList.emplace_back(PrimitiveData);
     }
