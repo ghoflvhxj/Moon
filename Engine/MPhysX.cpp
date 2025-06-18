@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "MPhysX.h"
 
 #define PVD_HOST "127.0.0.1"
@@ -10,15 +10,15 @@ PhysXX::PhysXX()
 {
 	Foundation = PxCreateFoundation(PX_PHYSICS_VERSION, g_DefaultAllocator, g_DefaultErrorCallback);
 
-	// ºñÁÖ¾ó µð¹ö°Å ¿¬°áÀ» À§ÇÑ ÀÛ¾÷
+	// ë¹„ì£¼ì–¼ ë””ë²„ê±° ì—°ê²°ì„ ìœ„í•œ ìž‘ì—…
 	VisualDebugger = PxCreatePvd(*Foundation);
-	PxPvdTransport* Transport = PxDefaultPvdSocketTransportCreate(PVD_HOST, 5425, 10000);
+	Transport = PxDefaultPvdSocketTransportCreate(PVD_HOST, 5425, 10000);
 	VisualDebugger->connect(*Transport, PxPvdInstrumentationFlag::eALL);
 
-	// ÇÇÁ÷½º
+	// í”¼ì§ìŠ¤
 	Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, PxTolerancesScale(), true, VisualDebugger);
 
-	// ÄíÅ·
+	// ì¿ í‚¹
 	Cooking = PxCreateCooking(PX_PHYSICS_VERSION, *Foundation, PxCookingParams(Physics->getTolerancesScale()));
 
 
@@ -37,6 +37,23 @@ PhysXX::PhysXX()
 	//PxShape* PalneShape = Physics->createShape(PxPlaneGeometry(), *Material);
 	//Plane->attachShape(*PalneShape);
 	//Scene->addActor(*Plane);
+}
+
+PhysXX::~PhysXX()
+{
+}
+
+void PhysXX::Release()
+{
+    Material->release();
+    Scene->release();
+    CpuDispatcher->release();
+
+    Cooking->release();
+    Physics->release();
+    VisualDebugger->release();
+    Transport->release();
+    Foundation->release();
 }
 
 PxPhysics* PhysXX::operator->()

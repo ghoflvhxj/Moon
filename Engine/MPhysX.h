@@ -1,9 +1,6 @@
-#pragma once
-#ifndef __PHYSX_H__
-#define __PHYSX_H__
+﻿#pragma once
 
 #include "NvidiaPhysX/PxPhysicsAPI.h"
-#include "GraphicDevice.h"
 
 using namespace physx;
 
@@ -13,18 +10,24 @@ public:
 	static PxDefaultErrorCallback g_DefaultErrorCallback;
 	static PxDefaultAllocator g_DefaultAllocator;
 
-	PxFoundation* Foundation;
-	PxPvd* VisualDebugger;
-	PxPhysics* Physics;
-	PxDefaultCpuDispatcher* CpuDispatcher;
-	PxScene* Scene;
-	PxMaterial* Material;
-	PxCooking* Cooking;
+	PxFoundation* Foundation = nullptr;
 
-	PxRigidStatic* Plane;
+	PxPvd* VisualDebugger = nullptr;
+    PxPvdTransport* Transport = nullptr;
+
+	PxPhysics* Physics = nullptr;
+	PxDefaultCpuDispatcher* CpuDispatcher = nullptr;
+	PxScene* Scene = nullptr;
+	PxMaterial* Material = nullptr;
+	PxCooking* Cooking = nullptr;
+
+	PxRigidStatic* Plane = nullptr;
 
 public:
 	PhysXX();
+    virtual ~PhysXX();
+
+    void Release();
 
 	PxPhysics* operator->();
 
@@ -32,6 +35,3 @@ public:
 
 	bool CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh);
 };
-
-
-#endif

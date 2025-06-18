@@ -17,6 +17,7 @@ namespace physx
 	class PxRigidDynamic;
 	class PxRigidActor;
 	class PxShape;
+    class PxMaterial;
 };
 
 struct FMeshData
@@ -130,6 +131,7 @@ private:
 	physx::PxRigidStatic*	PhysXRigidStatic = nullptr;
 	physx::PxRigidDynamic*	PhysXRigidDynamic = nullptr;
 	physx::PxShape*			PhysXShape = nullptr;
+    physx::PxMaterial*      PhysxMaterial = nullptr;
 };
 
 #define __STATIC_MESH_COMPONENT_H__

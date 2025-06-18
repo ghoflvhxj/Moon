@@ -68,6 +68,7 @@ const bool EngineRelease()
 	g_ResourceManager->Release();
 	g_pRenderer->Release();
 	g_pGraphicDevice->Release();
+    g_pPhysics->Release();
 
 	return true;
 }

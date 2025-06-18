@@ -192,7 +192,7 @@ StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath, bool bUse
 
 	if (g_pPhysics && bUsePhysX)
 	{
-		PxMaterial *PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
+        PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
 		g_pPhysics->CreateConvex(_pStaticMesh->GetAllVertexPosition(), &PhysXConvexMesh);
 		PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(PhysXConvexMesh);
 		PhysXShape = (*g_pPhysics)->createShape(Geometry, *PhysxMaterial);
@@ -215,6 +215,11 @@ StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath, bool bUse
 
 StaticMeshComponent::~StaticMeshComponent()
 {
+    if (PhysXRigidDynamic) PhysXRigidDynamic->release();
+    if (PhysXRigidStatic) PhysXRigidStatic->release();
+    if (PhysXShape) PhysXShape->release();
+    if (PhysXConvexMesh) PhysXConvexMesh->release();
+    if (PhysxMaterial) PhysxMaterial->release();
 }
 
 void StaticMeshComponent::Update(const Time deltaTime)
