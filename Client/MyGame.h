@@ -5,7 +5,7 @@
 class MeshComponent;
 class TerrainComponent;
 class SphereComponent;
-class Camera;
+class MCamera;
 class Actor;
 class Player;
 class StaticMeshComponent;

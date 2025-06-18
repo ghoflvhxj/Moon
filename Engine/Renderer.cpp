@@ -516,66 +516,63 @@ void Renderer::RenderText()
 
 void Renderer::FrustumCulling()
 {
-	const Mat4 &viewMatrix = g_pMainGame->getMainCameraViewMatrix();
-	Mat4 projectionMatrix = g_pMainGame->getMainCameraProjectioinMatrix();
+    const std::shared_ptr<MCamera>& Camera = g_pMainGame->getMainCamera();
 
-	float zMinimum = -projectionMatrix._43 / projectionMatrix._33;
-	float r = 1000.f / (1000.f - zMinimum);
-	projectionMatrix._33 = r;
-	projectionMatrix._43 = -r * zMinimum;
-	XMMATRIX proj = XMLoadFloat4x4(&projectionMatrix);
-	XMMATRIX viewProj = XMMatrixMultiply(XMLoadFloat4x4(&viewMatrix), proj);
+	XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&g_pMainGame->getMainCameraProjectioinMatrix()));
 
-	XMFLOAT4X4 matrix;
-	XMStoreFloat4x4(&matrix, viewProj);
+	XMFLOAT4X4 ViewProjectMatrix;
+	XMStoreFloat4x4(&ViewProjectMatrix, ViewProj);
 
-	std::vector<XMVECTOR> m_planes(6);
-	float x = (float)(matrix._14 + matrix._13);
-	float y = (float)(matrix._24 + matrix._23);
-	float z = (float)(matrix._34 + matrix._33);
-	float w = (float)(matrix._44 + matrix._43);
-	m_planes[0] = XMVectorSet(x, y, z, w);
-	m_planes[0] = XMPlaneNormalize(m_planes[0]);
+    // 평면의 방정식 ax + by + cz + d = 0을 구해야 함
 
-	// 절두체의 먼 평면을 계산합니다.
-	x = (float)(matrix._14 - matrix._13);
-	y = (float)(matrix._24 - matrix._23);
-	z = (float)(matrix._34 - matrix._33);
-	w = (float)(matrix._44 - matrix._43);
-	m_planes[1] = XMVectorSet(x, y, z, w);
-	m_planes[1] = XMPlaneNormalize(m_planes[1]);
+    // 절두체 Near 평면
+	std::vector<XMVECTOR> Planes(6);
+    float a = ViewProjectMatrix._13;
+    float b = ViewProjectMatrix._23;
+    float c = ViewProjectMatrix._33;
+    float d = ViewProjectMatrix._43;
+	Planes[0] = XMVectorSet(a, b, c, d);
+	Planes[0] = XMPlaneNormalize(Planes[0]);
 
-	// 절두체의 왼쪽 평면을 계산합니다.
-	x = (float)(matrix._14 + matrix._11);
-	y = (float)(matrix._24 + matrix._21);
-	z = (float)(matrix._34 + matrix._31);
-	w = (float)(matrix._44 + matrix._41);
-	m_planes[2] = XMVectorSet(x, y, z, w);
-	m_planes[2] = XMPlaneNormalize(m_planes[2]);
+	// 절두체 Far 평면
+	a = (float)(ViewProjectMatrix._14 - ViewProjectMatrix._13);
+	b = (float)(ViewProjectMatrix._24 - ViewProjectMatrix._23);
+	c = (float)(ViewProjectMatrix._34 - ViewProjectMatrix._33);
+	d = (float)(ViewProjectMatrix._44 - ViewProjectMatrix._43);
+	Planes[1] = XMVectorSet(a, b, c, d);
+	Planes[1] = XMPlaneNormalize(Planes[1]);
 
-	// 절두체의 오른쪽 평면을 계산합니다.
-	x = (float)(matrix._14 - matrix._11);
-	y = (float)(matrix._24 - matrix._21);
-	z = (float)(matrix._34 - matrix._31);
-	w = (float)(matrix._44 - matrix._41);
-	m_planes[3] = XMVectorSet(x, y, z, w);
-	m_planes[3] = XMPlaneNormalize(m_planes[3]);
+	// 절두체의 왼쪽 평면
+	a = (float)(ViewProjectMatrix._14 + ViewProjectMatrix._11);
+	b = (float)(ViewProjectMatrix._24 + ViewProjectMatrix._21);
+	c = (float)(ViewProjectMatrix._34 + ViewProjectMatrix._31);
+	d = (float)(ViewProjectMatrix._44 + ViewProjectMatrix._41);
+	Planes[2] = XMVectorSet(a, b, c, d);
+	Planes[2] = XMPlaneNormalize(Planes[2]);
 
-	// 절두체의 윗 평면을 계산합니다.
-	x = (float)(matrix._14 - matrix._12);
-	y = (float)(matrix._24 - matrix._22);
-	z = (float)(matrix._34 - matrix._32);
-	w = (float)(matrix._44 - matrix._42);
-	m_planes[4] = XMVectorSet(x, y, z, w);
-	m_planes[4] = XMPlaneNormalize(m_planes[4]);
+	// 절두체의 오른쪽 평면
+	a = (float)(ViewProjectMatrix._14 - ViewProjectMatrix._11);
+	b = (float)(ViewProjectMatrix._24 - ViewProjectMatrix._21);
+	c = (float)(ViewProjectMatrix._34 - ViewProjectMatrix._31);
+	d = (float)(ViewProjectMatrix._44 - ViewProjectMatrix._41);
+	Planes[3] = XMVectorSet(a, b, c, d);
+	Planes[3] = XMPlaneNormalize(Planes[3]);
 
-	// 절두체의 아래 평면을 계산합니다.
-	x = (float)(matrix._14 + matrix._12);
-	y = (float)(matrix._24 + matrix._22);
-	z = (float)(matrix._34 + matrix._32);
-	w = (float)(matrix._44 + matrix._42);
-	m_planes[5] = XMVectorSet(x, y, z, w);
-	m_planes[5] = XMPlaneNormalize(m_planes[5]);
+	// 절두체의 윗 평면
+	a = (float)(ViewProjectMatrix._14 - ViewProjectMatrix._12);
+	b = (float)(ViewProjectMatrix._24 - ViewProjectMatrix._22);
+	c = (float)(ViewProjectMatrix._34 - ViewProjectMatrix._32);
+	d = (float)(ViewProjectMatrix._44 - ViewProjectMatrix._42);
+	Planes[4] = XMVectorSet(a, b, c, d);
+	Planes[4] = XMPlaneNormalize(Planes[4]);
+
+	// 절두체의 아래 평면
+	a = (float)(ViewProjectMatrix._14 + ViewProjectMatrix._12);
+	b = (float)(ViewProjectMatrix._24 + ViewProjectMatrix._22);
+	c = (float)(ViewProjectMatrix._34 + ViewProjectMatrix._32);
+	d = (float)(ViewProjectMatrix._44 + ViewProjectMatrix._42);
+	Planes[5] = XMVectorSet(a, b, c, d);
+	Planes[5] = XMPlaneNormalize(Planes[5]);
 
 	std::vector<std::weak_ptr<PrimitiveComponent>> ShownPrimitiveComponents;
 	ShownPrimitiveComponents.reserve(CachedPrimitiveComponents.size());
@@ -591,7 +588,7 @@ void Renderer::FrustumCulling()
 			continue;
 		}
 
-		if (boundingBox->cullSphere(m_planes, SharedPrimitiveComponent->getWorldTranslation(), boundingBox->getLength(SharedPrimitiveComponent->getScale())/2.f))
+		if (boundingBox->cullSphere(Planes, SharedPrimitiveComponent->getWorldTranslation(), boundingBox->getLength(SharedPrimitiveComponent->getScale())/2.f))
 		{
 			ShownPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
 		}

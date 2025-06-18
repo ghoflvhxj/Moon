@@ -38,7 +38,7 @@ MyGame::~MyGame()
 
 const bool MyGame::initialize()
 {
-	getMainCamera()->setLookMode(Camera::LookMode::To);
+	getMainCamera()->setLookMode(MCamera::LookMode::To);
 
 	_pPlayer = std::make_shared<Player>();
 	addActor(_pPlayer);

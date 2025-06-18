@@ -9,7 +9,7 @@ class FrameManager;
 class MeshComponent;
 
 class Actor;
-class Camera;
+class MCamera;
 
 class PhysXX;
 
@@ -69,12 +69,12 @@ private:
 
 
 public:
-	void SetMainCamera(std::shared_ptr<Camera> pCamera);
-	std::shared_ptr<Camera> getMainCamera() const;
+	void SetMainCamera(std::shared_ptr<MCamera> pCamera);
+	std::shared_ptr<MCamera> getMainCamera() const;
 public:
 	const Mat4& getMainCameraViewMatrix() const;
 	const Mat4& getMainCameraProjectioinMatrix() const;
 	const Mat4& getMainCameraOrthographicProjectionMatrix() const;
 private:
-	std::shared_ptr<Camera> _pMainCamera;
+	std::shared_ptr<MCamera> _pMainCamera;
 };

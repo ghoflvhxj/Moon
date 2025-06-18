@@ -29,7 +29,7 @@ MainGame::MainGame()
 	, _pFrameManager{ nullptr }
 	
 	//, _pMainGameSetting{ std::make_shared<MainGameSetting>() }
-	, _pMainCamera(std::make_shared<Camera>(g_pSetting->getFov()))
+	, _pMainCamera(std::make_shared<MCamera>(g_pSetting->getFov()))
 {
 }
 
@@ -122,12 +122,12 @@ const Frame MainGame::getFrame() const
 //	return _pMainGameSetting;
 //}
 
-void MainGame::SetMainCamera(std::shared_ptr<Camera> pCamera)
+void MainGame::SetMainCamera(std::shared_ptr<MCamera> pCamera)
 {
 	_pMainCamera = pCamera;
 }
 
-std::shared_ptr<Camera> MainGame::getMainCamera() const
+std::shared_ptr<MCamera> MainGame::getMainCamera() const
 {
 	return _pMainCamera;
 }

@@ -11,7 +11,7 @@
 
 using namespace DirectX;
 
-Camera::Camera()
+MCamera::MCamera()
 	: Actor()
 	, _viewMatrix()
 	, _perspectiveProjectionMatrix()
@@ -23,7 +23,7 @@ Camera::Camera()
 	initialize();
 }
 
-Camera::Camera(const float fov)
+MCamera::MCamera(const float fov)
 	: Actor()
 	, _viewMatrix()
 	, _perspectiveProjectionMatrix()
@@ -35,11 +35,11 @@ Camera::Camera(const float fov)
 	initialize();
 }
 
-Camera::~Camera()
+MCamera::~MCamera()
 {
 }
 
-void Camera::initialize()
+void MCamera::initialize()
 {
 	_pSceneComponent = CreateDefaultSubObject<SceneComponent>();
 	addComponent(ROOT_COMPONENT, _pSceneComponent);
@@ -48,7 +48,7 @@ void Camera::initialize()
 	_pSceneComponent->Update(0.f);
 }
 
-void Camera::tick(const Time deltaTime)
+void MCamera::tick(const Time deltaTime)
 {
 	// 이미 업데이트 된 컴포넌트의 정보가 필요함
 	_pSceneComponent->Update(deltaTime);
@@ -57,7 +57,7 @@ void Camera::tick(const Time deltaTime)
 	updateProjectionMatrix();
 }
 
-void Camera::updateViewMatrix()
+void MCamera::updateViewMatrix()
 {
 	Vec3 eye	= _pSceneComponent->getWorldTranslation();
 	Vec3 at		= { 0.f, 0.f, 0.f };
@@ -81,37 +81,37 @@ void Camera::updateViewMatrix()
 	XMStoreFloat4x4(&_inverseViewMatrix, viewMatrix);
 }
 
-void Camera::updateProjectionMatrix()
+void MCamera::updateProjectionMatrix()
 {
 	XMMATRIX matrix = XMMatrixIdentity();
 
-	matrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(getFov()), g_pSetting->getAspectRatio(), 0.1f, 1000.f);
+	matrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(getFov()), g_pSetting->getAspectRatio(), Near, Far);
 	XMStoreFloat4x4(&_perspectiveProjectionMatrix, matrix);
 	matrix = XMMatrixInverse(nullptr, matrix);
 	XMStoreFloat4x4(&_inversePerspectiveProjectionMatrix, matrix);
 
-	matrix = XMMatrixOrthographicLH(g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 0.1f, 1000.f);
+	matrix = XMMatrixOrthographicLH(g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), Near, Far);
 	XMStoreFloat4x4(&_orthographicProjectionMatrix, matrix);
 	matrix = XMMatrixInverse(nullptr, matrix);
 	XMStoreFloat4x4(&_inverseOrthographicProjectionMatrix, matrix);
 }
 
-const Mat4& Camera::getViewMatrix() const
+const Mat4& MCamera::getViewMatrix() const
 {
 	return _viewMatrix;
 }
 
-void Camera::getViewMatrix(const Mat4 **pMatrix) const
+void MCamera::getViewMatrix(const Mat4 **pMatrix) const
 {
 	*pMatrix = &_viewMatrix;
 }
 
-const Mat4& Camera::getInvesrViewMatrix() const
+const Mat4& MCamera::getInvesrViewMatrix() const
 {
 	return _inverseViewMatrix;
 }
 
-const Mat4& Camera::getProjectionMatrix()
+const Mat4& MCamera::getProjectionMatrix()
 {
 	switch (_eProjection)
 	{
@@ -131,17 +131,17 @@ const Mat4& Camera::getProjectionMatrix()
 	}
 }
 
-const Mat4& Camera::getPerspectiveProjectionMatrix()
+const Mat4& MCamera::getPerspectiveProjectionMatrix()
 {
 	return _perspectiveProjectionMatrix;
 }
 
-const Mat4& Camera::getOrthographicProjectionMatrix()
+const Mat4& MCamera::getOrthographicProjectionMatrix()
 {
 	return _orthographicProjectionMatrix;
 }
 
-const Mat4& Camera::getInverseProjectionMatrix()
+const Mat4& MCamera::getInverseProjectionMatrix()
 {
 	switch (_eProjection)
 	{
@@ -161,32 +161,32 @@ const Mat4& Camera::getInverseProjectionMatrix()
 	}
 }
 
-const Mat4& Camera::getInversePerspectiveProjectionMatrix()
+const Mat4& MCamera::getInversePerspectiveProjectionMatrix()
 {
 	return _inversePerspectiveProjectionMatrix;
 }
 
-const Mat4& Camera::getInverseOrthographicProjectionMatrix()
+const Mat4& MCamera::getInverseOrthographicProjectionMatrix()
 {
 	return _inverseOrthographicProjectionMatrix;
 }
 
-void Camera::setLookMode(const Camera::LookMode lookMode)
+void MCamera::setLookMode(const MCamera::LookMode lookMode)
 {
 	_eLookMode = lookMode;
 }
 
-const Camera::LookMode Camera::getLookMode() const
+const MCamera::LookMode MCamera::getLookMode() const
 {
 	return _eLookMode;
 }
 
-void Camera::setFov(const float fov)
+void MCamera::setFov(const float fov)
 {
 	_fov = fov;
 }
 
-const float Camera::getFov() const
+const float MCamera::getFov() const
 {
 	return _fov;
 }

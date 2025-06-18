@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 #ifndef __CAMERA_H__
 
 #include "Actor.h"
 
 class SceneComponent;
 
-class ENGINE_DLL Camera : public Actor
+class ENGINE_DLL MCamera : public Actor
 {
 public:
 	enum class ProjectMode
@@ -19,9 +19,9 @@ public:
 	};
 
 public:
-	explicit Camera();
-	explicit Camera(const float fov);
-	virtual ~Camera();
+	explicit MCamera();
+	explicit MCamera(const float fov);
+	virtual ~MCamera();
 private:
 	void initialize();
 
@@ -70,6 +70,13 @@ public:
 	const float getFov() const;
 private:
 	float _fov;
+
+public:
+    float GetNear() const { return Near; }
+    float GetFar() const { return Far; }
+private:
+    float Near = 0.1f;
+    float Far = 1000.f;
 
 private:
 	std::shared_ptr<SceneComponent> _pSceneComponent;
