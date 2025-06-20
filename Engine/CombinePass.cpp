@@ -97,14 +97,28 @@ void PointShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& Prim
 {
     RenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 
+    std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
+
     // 패스 자체 쉐이더를 사용하기 때문에 오브젝트 Cbuffer를 수동으로 갱신해줌
-    auto& variableInfosVS = PrimitiveData._pMaterial.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::Object);
+    auto& variableInfosVS = Material->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::Object);
     _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object, variableInfosVS);
+
+    // 포인트 라이트들을 얻어와서..
+    // 그리는 건 결국 메시들임...
+    std::vector<FPrimitiveData> PointLightPrimitives;
+    for (auto& PointLightPrimitive : PointLightPrimitives)
+    {
+        Vec3 PointLightPos;
+        _geometryShader->SetValue(TEXT("PointLightPos"), PointLightPos);
+        std::vector<Mat4> PointLightViewProj;
+        _geometryShader->SetValue(TEXT("PointLigeViewProj"), PointLightViewProj);
+    }
 }
 
 void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
 {
 	PrimitiveComponent* PrimitiveComponent = PrimitiveData._pPrimitive.lock().get();
+    std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
 
 	Vec3 trans = PrimitiveComponent->getWorldTranslation();
 	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
@@ -122,11 +136,12 @@ void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &Prim
 	XMStoreFloat4x4(&rotMatrix, rotationMatrix);
 	Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
 
-	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
-	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
-	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
-	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
-	PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
+	Material->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
+	Material->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
+	Material->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
+
+	Material->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
+	Material->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
 
 	RenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }
@@ -162,15 +177,16 @@ void SkyPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Frontface));
 }
 
-bool CollisionPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
-{
-    return g_pRenderer->IsDrawCollision() && PrimitiveData._primitiveType == EPrimitiveType::Collision && RenderPass::IsValidPrimitive(PrimitiveData);
-}
-
 PointLightPass::PointLightPass()
     : RenderPass()
 {
     //SetClearTargets(false);
+}
+
+void PointLightPass::End()
+{
+    RenderPass::End();
+    PointLightIndex = 0;
 }
 
 bool PointLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
@@ -182,6 +198,7 @@ bool PointLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
     PrimitiveComponent* PrimitiveComponent = PrimitiveData._pPrimitive.lock().get();
+    std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
 
     Vec3 trans = PrimitiveComponent->getWorldTranslation();
     Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
@@ -199,11 +216,14 @@ void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveD
     XMStoreFloat4x4(&rotMatrix, rotationMatrix);
     Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
 
-    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
-    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
-    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
-    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
-    PrimitiveData._pMaterial.lock()->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
+    Material->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
+    Material->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
+    Material->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
+
+    //Material->getPixelShader()->SetValue(TEXT("PointLightIndex"), PointLightIndex++);
+
+    Material->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
+    Material->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
 
     RenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }
@@ -217,4 +237,9 @@ void PointLightPass::HandleOuputMergeStage(const FPrimitiveData& primitiveData)
 {
     g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Disable), 1);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
+}
+
+bool CollisionPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+{
+    return g_pRenderer->IsDrawCollision() && PrimitiveData._primitiveType == EPrimitiveType::Collision && RenderPass::IsValidPrimitive(PrimitiveData);
 }

@@ -79,7 +79,7 @@ private:
 
 
 public:
-    std::vector<FPrimitiveData> PointLightPrimitive;
+    std::vector<FPrimitiveData> PointLightPrimitives;
     std::vector<FPrimitiveData> DirectionalLightPrimitive;
 protected:
     std::vector<float> _cascadeDistance;

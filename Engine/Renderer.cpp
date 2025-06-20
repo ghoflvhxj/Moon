@@ -288,7 +288,7 @@ void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComp
             DirectionalLightPrimitive.push_back(PrimitiveData);
             break;
         case EPrimitiveType::PointLight:
-            PointLightPrimitive.push_back(PrimitiveData);
+            PointLightPrimitives.push_back(PrimitiveData);
             break;
         default:
             break;
@@ -406,11 +406,11 @@ void Renderer::Render()
     }
 
     // 포인트 라이트 데이터 갱신
-    if (PointLightPrimitive.size() > 0)
+    for(auto& PointLightPrimitive : PointLightPrimitives)
     {
-        const std::shared_ptr<MLightComponent>& InLightComponent = std::static_pointer_cast<MLightComponent>(PointLightPrimitive[0]._pPrimitive.lock());
+        const std::shared_ptr<MLightComponent>& LightComponent = std::static_pointer_cast<MLightComponent>(PointLightPrimitive._pPrimitive.lock());
 
-        XMVECTOR Position = XMLoadFloat3(&InLightComponent->getTranslation());
+        XMVECTOR Position = XMLoadFloat3(&LightComponent->getTranslation());
         XMStoreFloat3(&PointLightPosition[0], Position);
 
         XMVECTOR Up = XMLoadFloat3(&VEC3UP);
@@ -440,7 +440,7 @@ void Renderer::Render()
 	RenderText();
 
     DirectionalLightPrimitive.clear();
-    PointLightPrimitive.clear();
+    PointLightPrimitives.clear();
 }
 
 void Renderer::RenderScene()

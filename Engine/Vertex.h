@@ -1,5 +1,4 @@
-#pragma once
-#ifndef __VERTEX_H__
+ï»¿#pragma once
 
 #include <DirectXMath.h>
 
@@ -65,11 +64,8 @@ using VertexList	= std::vector<Vertex>;
 using IndexList		= std::vector<Index>;
 
 class MTexture;
-// TextureTypeÀ» ÀÎµ¦½º·Î ÅØ½ºÃÄ¸¦ ÀúÀå
+// TextureTypeì„ ì¸ë±ìŠ¤ë¡œ í…ìŠ¤ì³ë¥¼ ì €ì¥
 using TextureList	= std::vector<std::shared_ptr<MTexture>>;
 
 class MMaterial;
 using MaterialList	= std::vector<std::shared_ptr<MMaterial>>;
-
-#define __VERTEX_H__
-#endif

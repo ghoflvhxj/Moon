@@ -375,10 +375,20 @@ const bool GraphicDevice::buildSamplerState()
 	SamplerDesc.MaxAnisotropy = 16u;
 	SamplerDesc.MipLODBias = 0.f;
 
-	ID3D11SamplerState* pSamplerState = nullptr;
-	FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
-	Samplers.emplace_back(pSamplerState);
-	m_pImmediateContext->PSSetSamplers(1, 1, &pSamplerState);
+    {
+        ID3D11SamplerState* pSamplerState = nullptr;
+        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
+        Samplers.emplace_back(pSamplerState);
+        m_pImmediateContext->PSSetSamplers(1, 1, &pSamplerState);
+    }
+
+    {
+        SamplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_GREATER;
+        ID3D11SamplerState* pSamplerState = nullptr;
+        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
+        Samplers.emplace_back(pSamplerState);
+        m_pImmediateContext->PSSetSamplers(2, 1, &pSamplerState);
+    }
 
 	m_pImmediateContext->PSSetSamplers(0, 1, &Samplers[0]);
 

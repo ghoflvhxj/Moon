@@ -80,22 +80,16 @@ public:
     virtual ~PointLightPass() = default;
 
 public:
+    virtual void End() override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
     virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData) override;
 
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual void HandleOuputMergeStage(const FPrimitiveData& primitiveData) override;
-};
 
-class CollisionPass : public RenderPass
-{
-public:
-    explicit CollisionPass() = default;
-    virtual ~CollisionPass() = default;
-
-public:
-    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+protected:
+    uint32 PointLightIndex = 0;
 };
 
 class SkyPass : public RenderPass
@@ -109,6 +103,16 @@ public:
 
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
+};
+
+class CollisionPass : public RenderPass
+{
+public:
+    explicit CollisionPass() = default;
+    virtual ~CollisionPass() = default;
+
+public:
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
 };
 
 #define __COMBINE_PASS_H__

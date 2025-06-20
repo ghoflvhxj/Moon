@@ -23,6 +23,12 @@ struct GSOutput
     uint renderTargetIndex  : SV_RenderTargetArrayIndex;
 };
 
+cbuffer PointLightCBuffer : register(b2)
+{
+    float3 PointLightPos;
+    row_major matrix PointLightViewProj[6];
+};
+
 [maxvertexcount(18)] 
 void main(triangle GSInput input[3], inout TriangleStream<GSOutput> output)
 {
@@ -32,10 +38,12 @@ void main(triangle GSInput input[3], inout TriangleStream<GSOutput> output)
         element.renderTargetIndex = RTIndex;
         for (uint i = 0; i < 3; ++i)
         {
+            float Distance = length(PointLightPos - input[i].worldPos);
+            
             element.pos         = mul(input[i].pos, PointLightViewProj[RTIndex]);
             element.worldPos    = input[i].worldPos;
             element.uv          = input[i].uv;
-            element.Clip        = element.pos.zw;
+            element.Clip        = float2(Distance, Distance);
             element.normal      = input[i].normal;
             element.tangent     = input[i].tangent;
             element.binormal    = input[i].binormal;

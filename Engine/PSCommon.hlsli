@@ -49,13 +49,14 @@ Texture2D g_Specular			                : register(t3);
 Texture2D g_LightDiffuse		                : register(t4);
 Texture2D g_LightSpecular		                : register(t5);
 Texture2DArray g_ShadowDepth	                : register(t6);
-TextureCube<float> g_PointLightShadowDepth      : register(t7);
+TextureCube<float> g_PointLightShadowDepth      : register(t7); 
 Texture2D T_Collision                           : register(t8);
-Texture2D T_PointLightDiffuse                   : register(t9);   
+Texture2D T_PointLightDiffuse                   : register(t9); 
 
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);
-SamplerComparisonState g_SamplerCoparison : register(s1);
+SamplerComparisonState g_SamplerLess : register(s1);
+SamplerComparisonState g_SamplerGreater : register(s2);
 
 // 픽셀 좌표를 월드 좌표로 변환하는 함수
 float4 PixelToWorld(float2 uv, float4 depth, matrix inverseProjectiveMatrix, matrix inverseCameraViewMatrix)
@@ -115,7 +116,7 @@ float PixelCascadeSahdow(int cascadeIndex, float4 PixelPosInLightViewProj)
                 // ShadowDepth을 샘플링해 저장된 깊이(빛 시점에서의 깊이)와, 현재 픽셀을 깊이를 비교함
                 // 즉 샘플링한 게 더 적으면 그림자가 적용됨
                 
-                shadow += 1.f - g_ShadowDepth.SampleCmpLevelZero(g_SamplerCoparison, ShadowDepthUV, Depth, int2(x, y)).x;
+                shadow += 1.f - g_ShadowDepth.SampleCmpLevelZero(g_SamplerLess, ShadowDepthUV, Depth, int2(x, y)).x;
             }
         }
         
