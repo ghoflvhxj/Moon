@@ -2,6 +2,7 @@
 #include "RenderPass.h"
 
 #include "MainGameSetting.h"
+#include "Renderer.h"
 
 // Graphic
 #include "VertexBuffer.h"
@@ -22,7 +23,7 @@
 
 #include "Texture.h"
 
-RenderPass::RenderPass()
+MRenderPass::MRenderPass()
 	: _pOldRenderTargetView{ nullptr }
 	, _pOldDepthStencilView{ nullptr }
 	, _vertexShader{ nullptr }
@@ -34,21 +35,41 @@ RenderPass::RenderPass()
 {
 }
 
-RenderPass::~RenderPass()
+MRenderPass::~MRenderPass()
 {
 }
 
-void RenderPass::Begin()
+void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
+{
+    Begin();
+
+    for (auto& PrimitiveData : PrimitiveDatList)
+    {
+        if (IsValidPrimitive(PrimitiveData) == false)
+        {
+            continue;
+        }
+
+        UpdateTickConstantBuffer(PrimitiveData);
+        UpdateObjectConstantBuffer(PrimitiveData);
+        DrawPrimitive(PrimitiveData);
+    }
+
+    End();
+}
+
+void MRenderPass::Begin()
 {
 	// 기존 정보 저장
 	g_pGraphicDevice->getContext()->OMGetRenderTargets(1, &_pOldRenderTargetView, &_pOldDepthStencilView);
 
 	if (bRenderTarget)
 	{
-		std::vector<ID3D11RenderTargetView*> RowRenderTargets;
+		std::vector<ID3D11RenderTargetView*> RawRenderTargets;
+        RawRenderTargets.reserve(RenderTargetViewData.size());
 		for (const FViewBindData ViewBindData : RenderTargetViewData)
 		{
-			RowRenderTargets.push_back(ViewBindData.ReourceView->AsRenderTargetView());
+			RawRenderTargets.push_back(ViewBindData.ReourceView->AsRenderTargetView());
 
 			if (true == bClearTargets)
 			{
@@ -57,7 +78,9 @@ void RenderPass::Begin()
 			}
 		}
 
-		g_pGraphicDevice->getContext()->OMSetRenderTargets(RowRenderTargets.size(), RowRenderTargets.data(), UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
+		g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RawRenderTargets.size()), 
+            RawRenderTargets.data(), 
+            UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
 	}
 
 
@@ -77,32 +100,18 @@ void RenderPass::Begin()
 	}
 }
 
-void RenderPass::End()
+void MRenderPass::End()
 {
+    // 쉐이더 리소스 뷰 해제
     uint32 ResorceViewNum = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
 	std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
 	g_pGraphicDevice->getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
 
+    // 렌더 타겟 해제와 기존 정보 복구
 	uint32 RenderTargetNum = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
 	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(RenderTargetNum, nullptr);
 	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
 	g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), _pOldDepthStencilView);
-
-	//// 쉐이더 리소스 뷰 해제
-	//for (const FResourceViewBindData& ResourceViewBindData : _resourceViewList)
-	//{
-	//	ID3D11ShaderResourceView *pNullShaderResouceView = nullptr;
-	//	g_pGraphicDevice->getContext()->PSSetShaderResources(ResourceViewBindData.Index, 1, &pNullShaderResouceView);
-	//}
-
-	//// 렌더 타겟 해제와 기존 정보 복구
-	//uint32 renderTargetCount = _renderTargetList.size();
-	//if (renderTargetCount> 0)
-	//{
-	//	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(renderTargetCount, nullptr);
-	//	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
-	//	g_pGraphicDevice->getContext()->OMSetRenderTargets(renderTargetCount, restoreRenderTargetViewArray.data(), _pOldDepthStencilView);
-	//}
 
 	D3D11_VIEWPORT Viewport;
 	Viewport.Width = g_pSetting->getResolutionWidth<FLOAT>();
@@ -117,30 +126,15 @@ void RenderPass::End()
 	SafeRelease(_pOldDepthStencilView);
 }
 
-void RenderPass::Render(const std::vector<FPrimitiveData>& PrimitiveDatList)
+bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-	for (auto& PrimitiveData : PrimitiveDatList)
-	{
-		if (IsValidPrimitive(PrimitiveData) == false)
-        {
-            continue;
-		}
-
-        UpdateTickConstantBuffer(PrimitiveData);
-        UpdateObjectConstantBuffer(PrimitiveData);
-        DrawPrimitive(PrimitiveData);
-	}
-}
-
-bool RenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
-{
-    const std::shared_ptr<PrimitiveComponent>& Primitive = PrimitiveData._pPrimitive.lock();
+    const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
     if (Primitive == nullptr)
     {
         return false;
     }
 
-    std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
+    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
     if (Material == nullptr)
     {
         return false;
@@ -149,9 +143,9 @@ bool RenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
     return true;
 }
 
-void RenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
+void MRenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
+    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
 
     //------------------------------------------------------------------------------------------------------------------
     // 버텍스 쉐이더 CBuffer
@@ -162,10 +156,10 @@ void RenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
     Material->getVertexShader()->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
 }
 
-void RenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
+void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
-	const std::shared_ptr<PrimitiveComponent>& Primitive = PrimitiveData._pPrimitive.lock();
-    std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
+	const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
+    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 버텍스쉐이더 ConstantBuffer
@@ -189,7 +183,7 @@ void RenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 	Material->getPixelShader()->SetValue(TEXT("bAlphaMask"), bAlphaMask);
 }
 
-void RenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
+void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
 {
     HandleInputAssemblerStage(PrimitiveData);
     HandleVertexShaderStage(PrimitiveData);
@@ -201,7 +195,7 @@ void RenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
     g_pGraphicDevice->getContext()->Draw(PrimitiveData.VertexBuffer->getVertexCount(), 0);
 }
 
-void RenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
 {
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
@@ -215,18 +209,18 @@ void RenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
         //PrimitiveData._pIndexBuffer->setBufferToDevice();
     }
 
-    const std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
+    const std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
      g_pGraphicDevice->getContext()->IASetPrimitiveTopology(Material->getTopology());
 }
 
-void RenderPass::HandleVertexShaderStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandleVertexShaderStage(const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MShader>& VertexShader = _vertexShader != nullptr ? _vertexShader : PrimitiveData._pMaterial.lock()->getVertexShader();
+    std::shared_ptr<MShader>& VertexShader = _vertexShader != nullptr ? _vertexShader : PrimitiveData.Material.lock()->getVertexShader();
     VertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
     VertexShader->Apply();
 }
 
-void RenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
 {
     std::shared_ptr<MShader>& GeometryShader = _geometryShader != nullptr ? _geometryShader : nullptr;
     if (GeometryShader == nullptr)
@@ -240,9 +234,9 @@ void RenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
     }
 }
 
-void RenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
+    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
 
     std::shared_ptr<MShader>& PixelShader = _pixelShader != nullptr ? _pixelShader : Material->getPixelShader();
     PixelShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
@@ -256,21 +250,21 @@ void RenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
     }
 }
 
-void RenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
 {
-    const std::shared_ptr<MMaterial>& Material = PrimitiveData._pMaterial.lock();
+    const std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
 
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Material->getFillMode(), Material->getCullMode()));
 }
 
-void RenderPass::HandleOuputMergeStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandleOuputMergeStage(const FPrimitiveData& PrimitiveData)
 {
     // DepthStencilState
     g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Enable), 1);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 }
 
-void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
+void MRenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
 {
 	releaseShader();
 	std::shared_ptr<VertexShader> vertexShader = nullptr;
@@ -294,7 +288,7 @@ void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *p
 	_bShaderSet = true;
 }
 
-void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName)
+void MRenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName)
 {
 	setShader(vertexShaderFileName, pixelShaderFileName);
 
@@ -306,12 +300,12 @@ void RenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *p
 	}
 }
 
-const bool RenderPass::isShaderSet() const
+const bool MRenderPass::isShaderSet() const
 {
 	return _bShaderSet;
 }
 
-void RenderPass::releaseShader()
+void MRenderPass::releaseShader()
 {
 	_vertexShader = nullptr;
 	_pixelShader = nullptr;
@@ -320,12 +314,12 @@ void RenderPass::releaseShader()
 	_pixelShaderFileName.clear();
 }
 
-void RenderPass::SetClearTargets(const bool bClear)
+void MRenderPass::SetClearTargets(const bool bClear)
 {
 	bClearTargets = bClear;
 }
 
-void RenderPass::SetUseOwningDepthStencilBuffer(const ERenderTarget bUse)
+void MRenderPass::SetUseOwningDepthStencilBuffer(const ERenderTarget bUse)
 {
 	UsedDepthStencilBuffer = bUse;
 }

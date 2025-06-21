@@ -43,7 +43,7 @@ PixelOut_LightPass main(PixelIn pIn)
 	float intensity = g_lightColor.w;
 
 	//-------------------------------------------------------------------------------------------------
-    float3 ambient = float3(0.5f, 0.5f, 0.5f);
+    float3 ambient = float3(0.2f, 0.2f, 0.2f);
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
     float Dot = saturate(dot(normalInWorld, -direction)); //	float으로 해도 되는데 편할려고
     pOut.lightDiffuse.xyz = color * Dot * intensity;

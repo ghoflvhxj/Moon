@@ -14,19 +14,20 @@ struct FViewBindData
 	std::shared_ptr<RenderTarget> ReourceView;
 };
 
-class ENGINE_DLL RenderPass abstract
+class ENGINE_DLL MRenderPass abstract
 {
 public:
 	static const int RT_COUNT = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
 
 public:
-	explicit RenderPass();
-	virtual ~RenderPass();
+	explicit MRenderPass();
+	virtual ~MRenderPass();
 
 public:
+    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList);
+
 	virtual void Begin();
 	virtual void End();
-	virtual void Render(const std::vector<FPrimitiveData>& PrimitiveDatList);
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const;
     virtual void UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData);
 	virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData);

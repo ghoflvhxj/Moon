@@ -24,8 +24,4 @@ cbuffer CBuffer_PerTick : register(b1)
     float4 lightPos[3];
     row_major matrix lightViewProjMatrix[3];
     float4 cascadeDistance;
-    
-    // 포인트 라이트
-    //float4 PointLightPos[1];
-    //row_major matrix PointLightViewProj[6];
 };

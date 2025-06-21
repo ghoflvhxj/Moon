@@ -41,25 +41,6 @@ PixelOut_GeometryPass main(PixelIn pIn)
 		pOut.specular = float4(specular, 1.f);
 	}
 	
-    // 포인트 라이트 그림자
-    //for (int i = 0; i < 6; ++i)
-    //{
-    //    float4 PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.f), PointLightViewProj[i]);
-    //    float4 PixelNDC = PixelPosInLightViewProj / PixelPosInLightViewProj.w;
-        
-    //    if (-1.f <= PixelNDC.x && PixelNDC.x <= 1.f && -1.f <= PixelNDC.y && PixelNDC.y <= 1.f && 0 <= PixelNDC.z && PixelNDC.z <= 1)
-    //    {
-    //        float ShadowDepth = g_PointLightShadowDepth.Sample(g_Sampler, normalize(pIn.worldPos - PointLightPos[0].xyz)).x;
-    //        //pOut.color.xyz = ShadowDepth;
-    //        if (ShadowDepth < PixelNDC.z - 0.01f)
-    //        {
-    //            pOut.color.xyz *= 0.f;
-    //        }
-            
-    //        break;
-    //    }
-    //}
-        
     // 테스트 를 위한 값 초기화
     //pOut.color = float4(PixelPosInLightViewProj.z, shadowFactor, 0.f, 1.f);
     //PixelPosInLightViewProj = mul(float4(pIn.worldPos, 1.0f), lightViewProjMatrix[cascadeIndex]);

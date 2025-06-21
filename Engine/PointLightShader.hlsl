@@ -6,6 +6,8 @@ cbuffer PixelShaderConstantBuffer : register (b2)
 	float4 g_lightDirection;
 	float4 g_lightColor;		// w = Power
     
+    int PointLightIndex;
+    
 	row_major matrix g_inverseCameraViewMatrix;
 	row_major matrix g_inverseProjectiveMatrix;
 };
@@ -38,7 +40,7 @@ PixelOut_LightPass main(PixelIn pIn)
 
 	//-------------------------------------------------------------------------------------------------
     // Diffuse
-    float3 ambient = float3(1.f, 1.f, 1.f);
+    float3 ambient = float3(0.3f, 0.3f, 0.3f);
     float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
     float Dot = saturate(dot(normalInWorld, direction));
     //pOut.lightDiffuse.xyz = color * (Dot * (1.f - 0.5f) + 0.5f) * intensity * attenuation;
@@ -68,12 +70,12 @@ PixelOut_LightPass main(PixelIn pIn)
         for (int y = -temp; y <= temp; ++y)
         {
             // distance가 ShadowMap보다 큰가?
-            ShadowFactor +=g_PointLightShadowDepth.SampleCmpLevelZero(g_SamplerGreater, normalize(BaseDir + float3(x / 2048.f, y / 2048.f, 0.f)), distance - 0.005f).x;
+            ShadowFactor += T_PointLightDepth.SampleCmpLevelZero(g_SamplerGreater, float4(normalize(BaseDir + float3(x / 2048.f, y / 2048.f, 0.f)), PointLightIndex), distance - 0.005f).x;
         }
     }
     ShadowFactor /= sampleCount * sampleCount;
 
-    pOut.lightDiffuse.xyz = ambient + (1.f - ShadowFactor) * pOut.lightDiffuse.xyz;
+    pOut.lightDiffuse.xyz = (1.f - ShadowFactor) * pOut.lightDiffuse.xyz;
     pOut.lightDiffuse.xyz *= Dot * attenuation;
     
 	return pOut;

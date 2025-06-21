@@ -66,6 +66,7 @@ Renderer::Renderer() noexcept
 
 	_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
 	RenderPasses.reserve(CastValue<size_t>(ERenderPass::Count));
+
 	initialize();
 }
 
@@ -80,8 +81,6 @@ void Renderer::Release()
 	RenderPasses.clear();
 	ViewMeshComponent.reset();
 
-	CachedPrimitiveComponents.clear();
-	RenderablePrimitiveComponents.clear();
 	ForwardPrimitiveDataMap.clear();
 	DeferredPrimitiveDataMap.clear();
 	VertexBufferMap.clear();
@@ -113,10 +112,12 @@ void Renderer::initialize() noexcept
 		break;
         case ERenderTarget::PointShadowDepth:
         {
+            static constexpr uint32 MaxPointLightNum = 10;
             RenderTargetInfo = FRenderTagetInfo::GetCube();
             RenderTargetInfo.Width = 1024 * 2;
             RenderTargetInfo.Height = 1024 * 2;
             RenderTargetInfo.Type = ERenderTargetType::Depth;
+            RenderTargetInfo.TextrueNum *= MaxPointLightNum;
         }
 		break;
         case ERenderTarget::Depth:
@@ -223,7 +224,7 @@ void Renderer::initialize() noexcept
 	ASSERT_MSG(EnumToIndex(ERenderPass::Count) == static_cast<uint32>(RenderPasses.size()), "ERenderPass::Count와 RenderPasses의 개수가 맞지 않음.");
 }
 
-void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComponent)
+void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent>& InPrimitiveComponent)
 {
 	if (InPrimitiveComponent == nullptr)
 	{
@@ -235,8 +236,6 @@ void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComp
 	{
 		return;
 	}
-
-	CachedPrimitiveComponents.push_back(InPrimitiveComponent);
 
 	bool bMakeBuffer = false;
 	for (int i=0; i<PrimitiveDataList.size(); ++i)
@@ -282,17 +281,7 @@ void Renderer::AddPrimitive(std::shared_ptr<PrimitiveComponent>& InPrimitiveComp
 			}
 		}
 
-        switch (PrimitiveData._primitiveType)
-        {
-        case EPrimitiveType::DirectionalLight:
-            DirectionalLightPrimitive.push_back(PrimitiveData);
-            break;
-        case EPrimitiveType::PointLight:
-            PointLightPrimitives.push_back(PrimitiveData);
-            break;
-        default:
-            break;
-        }
+        Primitives[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
 	}
 }
 
@@ -315,9 +304,10 @@ void Renderer::addRenderTargetForDebug(const std::wstring name)
 void Renderer::Render()
 {
     // 디렉셔널 라이트 데이터 갱신
+    auto DirectionalLightPrimitive = GetPrimitives(EPrimitiveType::DirectionalLight);
     if (DirectionalLightPrimitive.size() > 0)
     {
-        const std::shared_ptr<MLightComponent>& InLightComponent = std::static_pointer_cast<MLightComponent>(DirectionalLightPrimitive[0]._pPrimitive.lock());
+        const std::shared_ptr<MLightComponent>& InLightComponent = std::static_pointer_cast<MLightComponent>(DirectionalLightPrimitive[0].PrimitiveComponent.lock());
 
         float tanHalfVertical = tan(XMConvertToRadians(g_pSetting->getFov() / 2.f));
         float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();
@@ -405,26 +395,6 @@ void Renderer::Render()
         }
     }
 
-    // 포인트 라이트 데이터 갱신
-    for(auto& PointLightPrimitive : PointLightPrimitives)
-    {
-        const std::shared_ptr<MLightComponent>& LightComponent = std::static_pointer_cast<MLightComponent>(PointLightPrimitive._pPrimitive.lock());
-
-        XMVECTOR Position = XMLoadFloat3(&LightComponent->getTranslation());
-        XMStoreFloat3(&PointLightPosition[0], Position);
-
-        XMVECTOR Up = XMLoadFloat3(&VEC3UP);
-
-        XMMATRIX Proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.f), 1.f, 0.1f, 1000.f);
-
-        XMStoreFloat4x4(&PointLightViewProj[0], XMMatrixLookAtLH(Position, Position + XMVectorSet(1.f, 0.f, 0.f, 0.f), Up) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[1], XMMatrixLookAtLH(Position, Position + XMVectorSet(-1.f, 0.f, 0.f, 0.f), Up) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[2], XMMatrixLookAtLH(Position, Position + XMVectorSet(0.f, 1.f, 0.f, 0.f), XMVectorSet(0.f, 0.f, 1.f, 1.f)) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[3], XMMatrixLookAtLH(Position, Position + XMVectorSet(0.f, -1.f, 0.f, 0.f), XMVectorSet(0.f, 0.f, 1.f, 1.f)) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[4], XMMatrixLookAtLH(Position, Position + XMVectorSet(0.f, 0.f, 1.f, 0.f), Up) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[5], XMMatrixLookAtLH(Position, Position + XMVectorSet(0.f, 0.f, -1.f, 0.f), Up) * Proj);
-    }
-
     for (uint32 index = 0; index < CastValue<uint32>(ShaderType::Count); ++index)
     {
         auto& Shaders = ShaderManager->GetShaders(CastValue<ShaderType>(index));
@@ -439,37 +409,25 @@ void Renderer::Render()
 	RenderScene();
 	RenderText();
 
-    DirectionalLightPrimitive.clear();
-    PointLightPrimitives.clear();
+    g_pMainGame->render();
+
+    // 전부 삭제하는 것이 아니라 삭제된 것만 제거 되도록 변경하기
+    ForwardPrimitiveDataMap.clear();
+    //DeferredPrimitiveDataMap.clear(); -> 버퍼가 한번 생성되면, 재추가 되지는 않아서 비우지 않아도 됨
+    RenderablePrimitiveData.clear();
+    Primitives.clear();
 }
 
 void Renderer::RenderScene()
 {
-	g_pGraphicDevice->Begin();
-
-	TotalPrimitiveNum = CastValue<uint32>(CachedPrimitiveComponents.size());
+	TotalPrimitiveNum = CastValue<uint32>(DeferredPrimitiveDataMap.size() + ForwardPrimitiveDataMap.size());
 	FrustumCulling();
-
-    // 렌더링 할 Prmitive 선별
-	std::vector<FPrimitiveData> RenderablePrimitiveData;
-	for (auto& Component : RenderablePrimitiveComponents)
-	{
-		uint32 ID = Component.lock()->GetPrimitiveID();
-		if (DeferredPrimitiveDataMap.find(ID) == DeferredPrimitiveDataMap.end())
-		{
-            continue;
-		}
-
-		RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), DeferredPrimitiveDataMap[ID].begin(), DeferredPrimitiveDataMap[ID].end());
-	}
 
 	// 기본 패스
 	uint32 CombinePass = EnumToIndex(ERenderPass::Combine);
 	for (uint32 PassIndex = 0; PassIndex < CombinePass; ++PassIndex)
 	{
-		RenderPasses[PassIndex]->Begin();
-		RenderPasses[PassIndex]->Render(RenderablePrimitiveData);
-		RenderPasses[PassIndex]->End();
+        RenderPasses[PassIndex]->RenderPass(RenderablePrimitiveData);
 	}
 
 	// 혼합 패스
@@ -485,12 +443,7 @@ void Renderer::RenderScene()
 		ViewPrimitiveData[0].VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer);
 	}
 
-	RenderPasses[CombinePass]->Begin();
-	RenderPasses[CombinePass]->Render(ViewPrimitiveData);
-	RenderPasses[CombinePass]->End();
-
-	// 포스트프로세스 패스
-
+	RenderPasses[CombinePass]->RenderPass(ViewPrimitiveData);
 
 	// 렌더 타겟
 #ifdef _DEBUG
@@ -502,11 +455,6 @@ void Renderer::RenderScene()
 	//	}
 	//}
 #endif
-
-	g_pMainGame->render();
-	CachedPrimitiveComponents.clear();
-
-	g_pGraphicDevice->End();
 }
 
 void Renderer::RenderText()
@@ -574,31 +522,25 @@ void Renderer::FrustumCulling()
 	Planes[5] = XMVectorSet(a, b, c, d);
 	Planes[5] = XMPlaneNormalize(Planes[5]);
 
-	std::vector<std::weak_ptr<PrimitiveComponent>> ShownPrimitiveComponents;
-	ShownPrimitiveComponents.reserve(CachedPrimitiveComponents.size());
+    //RenderablePrimitiveComponents.clear();
 
-	for (auto& WeakPrimitiveComponent : CachedPrimitiveComponents)
-	{
-		std::shared_ptr<PrimitiveComponent>& SharedPrimitiveComponent = WeakPrimitiveComponent.lock();
+    for (auto& Pair : DeferredPrimitiveDataMap)
+    {
+        const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = Pair.second[0].PrimitiveComponent.lock();
 
-		std::shared_ptr<BoundingBox> boundingBox = nullptr;
-		if (SharedPrimitiveComponent->GetBoundingBox(boundingBox) == false)
-		{
-			ShownPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
-			continue;
-		}
+        std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
+        // 바운딩 박스가 없으면 일단 무조건 렌더링
+        if (PrimitiveComponent->GetBoundingBox(BoundingBox))
+        {
+            // 컬링
+            if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
+            {
+                continue;
+            }
+        }
 
-		if (boundingBox->cullSphere(Planes, SharedPrimitiveComponent->getWorldTranslation(), boundingBox->getLength(SharedPrimitiveComponent->getScale())/2.f))
-		{
-			ShownPrimitiveComponents.emplace_back(SharedPrimitiveComponent);
-		}
-	}
-
-    ShownPrimitiveNum = CastValue<uint32>(ShownPrimitiveComponents.size());
-    CulledPrimitiveNum = TotalPrimitiveNum - ShownPrimitiveNum;
-
-	RenderablePrimitiveComponents.clear();
-	RenderablePrimitiveComponents = std::move(ShownPrimitiveComponents);
+        RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), Pair.second.begin(), Pair.second.end());
+    }
 }
 
 void Renderer::UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader)
@@ -616,7 +558,7 @@ void Renderer::UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader)
     Shader->SetValue(TEXT("lightPos"), LightPosition);
     Shader->SetValue(TEXT("lightViewProjMatrix"), LightViewProj);
 
-    Shader->SetValue(TEXT("PointLightPos"), PointLightPosition);
+    //Shader->SetValue(TEXT("PointLightPos"), PointLightPosition);
     Shader->SetValue(TEXT("PointLightViewProj"), PointLightViewProj);
 }
 

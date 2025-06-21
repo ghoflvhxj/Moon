@@ -49,7 +49,7 @@ Texture2D g_Specular			                : register(t3);
 Texture2D g_LightDiffuse		                : register(t4);
 Texture2D g_LightSpecular		                : register(t5);
 Texture2DArray g_ShadowDepth	                : register(t6);
-TextureCube<float> g_PointLightShadowDepth      : register(t7); 
+TextureCubeArray T_PointLightDepth              : register(t7);
 Texture2D T_Collision                           : register(t8);
 Texture2D T_PointLightDiffuse                   : register(t9); 
 

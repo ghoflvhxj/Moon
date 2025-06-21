@@ -27,16 +27,27 @@ private:
 private:
 	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
 
-	// 렌더할 Primitive 추가
 public:
-	void AddPrimitive(std::shared_ptr<PrimitiveComponent> &pComponent);
-	std::map<uint32, std::vector<FPrimitiveData>>& GetDeferredPrimitiveData() { return DeferredPrimitiveDataMap; }
+	// 렌더할 Primitive 추가
+	void AddPrimitive(std::shared_ptr<MPrimitiveComponent> &pComponent);
 protected:
-	std::vector<std::weak_ptr<PrimitiveComponent>> CachedPrimitiveComponents;
-	std::vector<std::weak_ptr<PrimitiveComponent>> RenderablePrimitiveComponents;
+    // 포워드 렌더링을 위한 PrimitiveID - FPrimitiveData 쌍을 저장함
 	std::map<uint32, std::vector<FPrimitiveData>> ForwardPrimitiveDataMap;
+    // 디퍼드 렌더링을 위한 PrimitiveID - FPrimitiveData 쌍을 저장함
 	std::map<uint32, std::vector<FPrimitiveData>> DeferredPrimitiveDataMap;
+    // PrimitiveID - 버텍스 버퍼 쌍을 저장함
 	std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBufferMap;
+
+public:
+    const std::vector<FPrimitiveData>& GetPrimitives(EPrimitiveType InPrimitiveType) { return Primitives[InPrimitiveType]; }
+    // PrimitiveType - PrimitiveData 쌍을 저장함
+    std::map<EPrimitiveType, std::vector<FPrimitiveData>> Primitives;
+
+private:
+    void FrustumCulling();
+protected:
+    // 컬링 후 남은 PrimitiveData
+    std::vector<FPrimitiveData> RenderablePrimitiveData;
 
 	// 렌더 타겟
 public:
@@ -50,14 +61,13 @@ private:
 
 	// 렌더 패스
 private:
-	std::vector<std::shared_ptr<RenderPass>> RenderPasses;
+	std::vector<std::shared_ptr<MRenderPass>> RenderPasses;
 
 public:
 	void Render();
 	void RenderScene();
 	void RenderText();
 private:
-	void FrustumCulling();
 	void UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader);
     void UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader);
 
@@ -81,6 +91,9 @@ private:
 public:
     std::vector<FPrimitiveData> PointLightPrimitives;
     std::vector<FPrimitiveData> DirectionalLightPrimitive;
+    std::vector<FPrimitiveData> MeshPrimitives;
+
+
 protected:
     std::vector<float> _cascadeDistance;
     std::vector<Vec3> LightPosition;
