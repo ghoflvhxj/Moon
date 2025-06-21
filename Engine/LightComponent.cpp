@@ -8,7 +8,7 @@
 using namespace DirectX;
 
 MLightComponent::MLightComponent(void)
-	: PrimitiveComponent()
+	: MPrimitiveComponent()
     , Direction     {VEC3ZERO}
 	, _color		{ 1.f, 1.f, 1.f }
 	, _intensity	{ 1.f }
@@ -32,17 +32,17 @@ MLightComponent::~MLightComponent(void)
 
 void MLightComponent::Update(const Time deltaTime)
 {
-    PrimitiveComponent::Update(deltaTime);
+    MPrimitiveComponent::Update(deltaTime);
 
     Direction = GetForward();
 }
 
 const bool MLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
-	FPrimitiveData primitiveData = {};
-	primitiveData._pPrimitive		= shared_from_this();
-	primitiveData.MeshData          = _pStaticMesh->GetMeshData(0);
-    primitiveData._pMaterial        = getMesh()->getMaterials()[0];
+	FPrimitiveData primitiveData        = {};
+	primitiveData.PrimitiveComponent	= shared_from_this();
+	primitiveData.MeshData              = _pStaticMesh->GetMeshData(0);
+    primitiveData.Material              = getMesh()->getMaterials()[0];
 
 	primitiveDataList.emplace_back(primitiveData);
 

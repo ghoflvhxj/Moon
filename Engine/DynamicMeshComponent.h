@@ -30,7 +30,7 @@ public:
 	std::shared_ptr<Skeleton> _pSkeleton = nullptr;
 };
 
-class ENGINE_DLL DynamicMeshComponent : public PrimitiveComponent
+class ENGINE_DLL DynamicMeshComponent : public MPrimitiveComponent
 {
 public:
 	explicit DynamicMeshComponent();

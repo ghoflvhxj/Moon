@@ -52,10 +52,11 @@ const bool MainGame::Loop()
 	Tick(_deltaTime);
 	Update(_deltaTime);
 
-	if (g_pRenderer)
+	if (g_pRenderer && g_pGraphicDevice)
 	{
-        //g_pRenderer->PreRender();
+        g_pGraphicDevice->Begin();
 		g_pRenderer->Render();
+        g_pGraphicDevice->End();
 	}
 
 	if (g_pPhysics)

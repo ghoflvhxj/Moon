@@ -6,7 +6,7 @@ class Window;
 class MTimerManager;
 class FrameManager;
 
-class MeshComponent;
+class MMeshComponent;
 
 class Actor;
 class MCamera;

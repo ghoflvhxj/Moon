@@ -64,9 +64,9 @@ public:
 	uint32 TotalVertexNum = 0;
 
 public:
-	std::shared_ptr<BoundingBox> GetBoundingBox();
+	std::shared_ptr<MBoundingBox> GetBoundingBox();
 private:
-	std::shared_ptr<BoundingBox> _pBoundingBox;
+	std::shared_ptr<MBoundingBox> _pBoundingBox;
 
 public:
 	std::vector<std::shared_ptr<MVertexBuffer>> getVertexBuffers();
@@ -81,7 +81,7 @@ private:
 	Vec3 CenterPos;
 };
 
-class ENGINE_DLL StaticMeshComponent : public PrimitiveComponent
+class ENGINE_DLL StaticMeshComponent : public MPrimitiveComponent
 {
 public:
 	using SceneComponent::setTranslation;
@@ -96,7 +96,7 @@ public:
 public:
 	virtual void Update(const Time deltaTime) override;
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
-	virtual const bool GetBoundingBox(std::shared_ptr<BoundingBox> &boundingBox) override;
+	virtual const bool GetBoundingBox(std::shared_ptr<MBoundingBox> &boundingBox) override;
 	virtual void setTranslation(const Vec3 &translation) override;
 	virtual void setScale(const Vec3 &scale) override;
 

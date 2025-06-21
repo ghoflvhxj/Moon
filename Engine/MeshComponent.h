@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __MESH_COMPONENT_H__
 
 #include "Vertex.h"
@@ -8,13 +8,13 @@
 class MTexture;
 class MMaterial;
 
-class ENGINE_DLL MeshComponent abstract : public PrimitiveComponent
+class ENGINE_DLL MMeshComponent abstract : public MPrimitiveComponent
 {
 public:
-	explicit MeshComponent();
-	virtual ~MeshComponent();
+	explicit MMeshComponent();
+	virtual ~MMeshComponent();
 
-// »èÁ¦ ¿¹Á¤
+// ì‚­ì œ ì˜ˆì •
 //private:
 //	void initializeMeshInformation();
 //private:

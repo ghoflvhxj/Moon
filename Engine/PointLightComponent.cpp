@@ -22,7 +22,7 @@ PointLightComponent::~PointLightComponent(void)
 
 void PointLightComponent::Update(const Time deltaTime)
 {
-	PrimitiveComponent::Update(deltaTime);
+	MPrimitiveComponent::Update(deltaTime);
 
 	Vec3 trans = { 0.f, 0.f, 1.f };
 
@@ -43,7 +43,7 @@ void PointLightComponent::Update(const Time deltaTime)
 const bool PointLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
 	MLightComponent::GetPrimitiveData(primitiveDataList);
-    primitiveDataList[0]._primitiveType = EPrimitiveType::PointLight;
+    primitiveDataList[0].PrimitiveType = EPrimitiveType::PointLight;
 
 	return true;
 }

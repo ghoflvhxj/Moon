@@ -49,7 +49,7 @@ const bool DirectionalLightComponent::GetPrimitiveData(std::vector<FPrimitiveDat
 {
 	MLightComponent::GetPrimitiveData(primitiveDataList);
 
-    primitiveDataList[0]._primitiveType = EPrimitiveType::DirectionalLight;
+    primitiveDataList[0].PrimitiveType = EPrimitiveType::DirectionalLight;
 
 	return true;
 }

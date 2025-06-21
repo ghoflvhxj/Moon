@@ -104,7 +104,7 @@ void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& Fi
 	// 바운딩 박스
     Vec3 Min, Max;
     FbxLoader.getBoundingBoxInfo(Min, Max);
-    _pBoundingBox = std::make_shared<BoundingBox>(Min, Max);
+    _pBoundingBox = std::make_shared<MBoundingBox>(Min, Max);
 
     // 바운딩 스피어
     float Radius = XMVectorGetX(XMVector3Length(XMLoadFloat3(&Min) - XMLoadFloat3(&Max)));
@@ -152,7 +152,7 @@ const uint32 StaticMesh::getGeometryCount() const
 	return GeometryNum;
 }
 
-std::shared_ptr<BoundingBox> StaticMesh::GetBoundingBox()
+std::shared_ptr<MBoundingBox> StaticMesh::GetBoundingBox()
 {
 	return _pBoundingBox;
 }
@@ -173,13 +173,13 @@ const Vec3& StaticMesh::GetCenterPos() const
 }
 
 StaticMeshComponent::StaticMeshComponent()
-	: PrimitiveComponent()
+	: MPrimitiveComponent()
 {
 
 }
 
 StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath)
-	: PrimitiveComponent()
+	: MPrimitiveComponent()
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
 	_pStaticMesh->LoadFromFBX(FilePath);
@@ -230,7 +230,7 @@ void StaticMeshComponent::Update(const Time deltaTime)
 		setTranslation(Vec3{ PhysXTransform.p.x, PhysXTransform.p.y, PhysXTransform.p.z });
 	}
 
-	PrimitiveComponent::Update(deltaTime);
+	MPrimitiveComponent::Update(deltaTime);
 }
 
 const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &PrimitiveDataList)
@@ -246,22 +246,22 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
 		FPrimitiveData PrimitiveData;
-		PrimitiveData._pPrimitive = shared_from_this();
-		PrimitiveData._pMaterial = _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
-		PrimitiveData._primitiveType = EPrimitiveType::Mesh;
+		PrimitiveData.PrimitiveComponent = shared_from_this();
+		PrimitiveData.Material = _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
+		PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
 		
 		PrimitiveDataList.emplace_back(PrimitiveData);
 	}
 
 	// BoudingBox
-	std::shared_ptr<BoundingBox> &boundingBox = _pStaticMesh->GetBoundingBox();
+	std::shared_ptr<MBoundingBox> &boundingBox = _pStaticMesh->GetBoundingBox();
 	if (boundingBox && _bDrawBoundingBox)
 	{
 		FPrimitiveData PrimitiveData = {};
-		PrimitiveData._pPrimitive = shared_from_this();
-		PrimitiveData._pMaterial = boundingBox->getMaterial();
-		PrimitiveData._primitiveType = EPrimitiveType::Collision;
+		PrimitiveData.PrimitiveComponent = shared_from_this();
+		PrimitiveData.Material = boundingBox->getMaterial();
+		PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
         PrimitiveData.MeshData = boundingBox->GetMeshData();
 
 		PrimitiveDataList.emplace_back(PrimitiveData);
@@ -270,7 +270,7 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	return true;
 }
 
-const bool StaticMeshComponent::GetBoundingBox(std::shared_ptr<BoundingBox> &boundingBox)
+const bool StaticMeshComponent::GetBoundingBox(std::shared_ptr<MBoundingBox> &boundingBox)
 {
 	if (nullptr == _pStaticMesh)
 	{

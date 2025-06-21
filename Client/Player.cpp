@@ -22,7 +22,7 @@
 #include "rapidjson/prettywriter.h"
 
 #define UsePointLight 1
-#define UseRandomPointLight 0
+#define UseRandomPointLight 1
 #define UseDirectionalLight 1
 #define UseDynamicMesh 1
 #define UseSkySphere 1
@@ -63,17 +63,16 @@ void Player::initialize()
     _pLightComponent = std::make_shared<PointLightComponent>();
     _pLightComponent->setRange(10.f);
     _pLightComponent->setTranslation(0.f, 0.f, 0.f);
-    //_pLightComponent->setIntensity(10.f);
     addComponent(TEXT("PointLight"), _pLightComponent);
 #endif
 
 #if UseDynamicMesh == 1
-	_pDynamicMeshComponent = std::make_shared<DynamicMeshComponent>(TEXT("2B/2b.fbx"));
-	_pDynamicMeshComponent->setTranslation(0.f, 0.f, 3.f);
-	addComponent(TEXT("DynamicMesh"), _pDynamicMeshComponent);
-	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
-	_pDynamicMeshComponent->getDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
-    _pDynamicMeshComponent->setDrawingBoundingBox(true);
+	CharacterMeshComponent = std::make_shared<DynamicMeshComponent>(TEXT("2B/2b.fbx"));
+	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
+	addComponent(TEXT("DynamicMesh"), CharacterMeshComponent);
+	CharacterMeshComponent->getDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
+	CharacterMeshComponent->getDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
+    CharacterMeshComponent->setDrawingBoundingBox(true);
 #endif
 
 #if UseSkySphere == 1
@@ -96,12 +95,13 @@ void Player::initialize()
 	std::uniform_int_distribution<int> colorDis(0, 255);
 	std::uniform_int_distribution<int> transDis(0, 10);
 
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < 1; ++i)
 	{
 		std::shared_ptr<PointLightComponent> pLight = std::make_shared<PointLightComponent>();
 		pLight->setTranslation(Vec3(transDis(gen) / 1.f, 1.f, transDis(gen) / 1.f));
 		pLight->setColor(Vec3(colorDis(gen) / 255.f, colorDis(gen) / 255.f, colorDis(gen) / 255.f));
-		pLight->setRange(1.f);
+		pLight->setRange(10.f);
+        //pLight->setIntensity(3.f);
 		_pLightComponentList.push_back(pLight);
 
 		std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
@@ -176,7 +176,7 @@ void Player::tick(const Time deltaTime)
 #if UseDynamicMesh == 1
 	if (InputManager::keyPress(DIK_E))
 	{
-		_pDynamicMeshComponent->playAnimation(0, deltaTime);
+		CharacterMeshComponent->playAnimation(0, deltaTime);
 	}
 #endif
 
@@ -184,10 +184,10 @@ void Player::tick(const Time deltaTime)
 #if UsePointLight == 1
     static float DeltaTime = 0.f;
     DeltaTime += deltaTime;
-    _pLightComponent->setTranslation(std::cosf(DeltaTime) * 5.f, std::sinf(DeltaTime), std::sinf(DeltaTime) * 5.f);
+    _pLightComponent->setTranslation(std::cosf(0.f) * 5.f, 2.f, std::sinf(0.f) * 5.f);
 #endif
 
-#if RandomPointLight == 1
+#if UseRandomPointLight == 1
 	if (InputManager::keyPress(DIK_P))
 	{
 		_pLightComponentList[0]->setTranslation(0.1f, 2.f, 4.f);
@@ -207,6 +207,8 @@ void Player::tick(const Time deltaTime)
 			trans.z += moveDis(gen) * deltaTime;
 
 			_pLightComponentList[i]->setTranslation(trans);
+
+            _pLightComponentList[i]->setTranslation(std::cosf(DeltaTime + 2.f) * 5.f, 2.f, std::sinf(DeltaTime + 2.f) * 5.f);
 		}
 	}
 #endif
@@ -227,13 +229,13 @@ void Player::JsonTest(bool bPretty)
 	Doc.SetObject();
 
 	Value MaterialValue(kArrayType);
-	const MaterialList& Materials = _pDynamicMeshComponent->getDynamicMesh()->getMaterials();
+	const MaterialList& Materials = CharacterMeshComponent->getDynamicMesh()->getMaterials();
 	for (const std::shared_ptr<MMaterial>& Mat : Materials)
 	{
 		//Mat->
 	}
 
-	uint32 MeshNum = _pDynamicMeshComponent->getDynamicMesh()->GetMeshNum();
+	uint32 MeshNum = CharacterMeshComponent->getDynamicMesh()->GetMeshNum();
 	for (int i = 0; i < MeshNum; ++i)
 	{
 		Value Mesh(kObjectType);
@@ -241,7 +243,7 @@ void Player::JsonTest(bool bPretty)
 		Value TexValue(kArrayType);
 		Value NormalValue(kArrayType);
 
-		for (const Vertex& Vtx : _pDynamicMeshComponent->getDynamicMesh()->GetMeshData(i)->Vertices)
+		for (const Vertex& Vtx : CharacterMeshComponent->getDynamicMesh()->GetMeshData(i)->Vertices)
 		{
 			PosValue.PushBack(Vtx.Pos.x, Doc.GetAllocator());
 			PosValue.PushBack(Vtx.Pos.y, Doc.GetAllocator());
@@ -259,11 +261,11 @@ void Player::JsonTest(bool bPretty)
 		Mesh.AddMember("Tex", TexValue, Doc.GetAllocator());
 		Mesh.AddMember("Normal", NormalValue, Doc.GetAllocator());
 
-		uint32 MaterialNum = _pDynamicMeshComponent->getDynamicMesh()->GetMaterialNum();
+		uint32 MaterialNum = CharacterMeshComponent->getDynamicMesh()->GetMaterialNum();
 		Value MaterialIndices(kArrayType);
 		for (int j = 0; j < MaterialNum; ++j)
 		{
-			_pDynamicMeshComponent->getDynamicMesh()->getGeometryLinkMaterialIndex();
+			CharacterMeshComponent->getDynamicMesh()->getGeometryLinkMaterialIndex();
 		}
 		//Mesh.AddMember("Material", );
 

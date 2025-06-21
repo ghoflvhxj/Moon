@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "SphereComponent.h"
 
 #include "MainGame.h"
@@ -42,7 +42,7 @@ void SphereComponent::Update(const Time deltaTime)
 		setRotation(Vec3(Rotation.x, Rotation.y, Rotation.z));
 	}
 
-	PrimitiveComponent::Update(deltaTime);
+	MPrimitiveComponent::Update(deltaTime);
 }
 
 void SphereComponent::AddForce(const Vec3& Force)

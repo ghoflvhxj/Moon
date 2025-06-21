@@ -2,7 +2,7 @@
 
 #include "MainGame.h"
 
-class MeshComponent;
+class MMeshComponent;
 class TerrainComponent;
 class SphereComponent;
 class MCamera;

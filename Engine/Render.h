@@ -9,12 +9,12 @@
 								bool Is##name() { return b##name; }
 
 // 프레임워크
-class PrimitiveComponent;
+class MPrimitiveComponent;
 class MTexture;
 
 // 렌더
 class RenderTarget;
-class RenderPass;
+class MRenderPass;
 
 using RenderTargets = std::vector<std::shared_ptr<RenderTarget>>;
 
@@ -76,8 +76,10 @@ enum class EPrimitiveType
 	Count
 };
 
+//std::vector<EPrimitiveType> EPrimitiveTypes = { EPrimitiveType::Mesh, EPrimitiveType::Sky, EPrimitiveType::DirectionalLight, EPrimitiveType::PointLight, EPrimitiveType::Collision };
+
 struct FMeshData;
-class PrimitiveComponent;
+class MPrimitiveComponent;
 class MIndexBuffer;
 class MVertexBuffer;
 class MMaterial;
@@ -86,12 +88,18 @@ class MShader;
 struct FPrimitiveData
 {
     FPrimitiveData()
-        : _primitiveType(EPrimitiveType::Count), _jointCount(0), _matrices(nullptr) 
+        : PrimitiveType(EPrimitiveType::Count), _jointCount(0), _matrices(nullptr) 
     {}
 
-	std::weak_ptr<PrimitiveComponent>			_pPrimitive;
-	std::weak_ptr<MMaterial>					_pMaterial;
-	EPrimitiveType _primitiveType;
+    template <class T>
+    const std::shared_ptr<T> GetPrimitiveComponent() const
+    {
+        return std::static_pointer_cast<T>(PrimitiveComponent.lock());
+    }
+
+	std::weak_ptr<MPrimitiveComponent>			PrimitiveComponent;
+	std::weak_ptr<MMaterial>					Material;
+	EPrimitiveType PrimitiveType;
 
 	// 메시가 채우는 데이터
 	std::weak_ptr<FMeshData>					MeshData;

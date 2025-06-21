@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef __SKY_COMPONENT_H__
 
 #include "PrimitiveComponent.h"
@@ -6,7 +6,7 @@
 struct FPrimitiveData;
 class StaticMesh;
 class MMaterial;
-class ENGINE_DLL SkyComponent : public PrimitiveComponent
+class ENGINE_DLL SkyComponent : public MPrimitiveComponent
 {
 public:
 	explicit SkyComponent();

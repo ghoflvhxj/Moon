@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "SkyComponent.h"
 
 #include "ShaderManager.h"
@@ -11,7 +11,7 @@
 using namespace DirectX;
 
 SkyComponent::SkyComponent()
-	: PrimitiveComponent()
+	: MPrimitiveComponent()
 	, _baseColor{ 1.f, 1.f, 1.f }
 {
 	_pSkyMesh = std::make_shared<StaticMesh>();
@@ -37,10 +37,10 @@ const bool SkyComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitive
 	}
 
 	FPrimitiveData primitiveData = {};
-	primitiveData._pPrimitive = shared_from_this();
+	primitiveData.PrimitiveComponent = shared_from_this();
 	primitiveData.MeshData = _pSkyMesh->GetMeshData(0);
-	primitiveData._pMaterial = _pSkyMesh->getMaterials()[0];
-	primitiveData._primitiveType = EPrimitiveType::Sky;
+	primitiveData.Material = _pSkyMesh->getMaterials()[0];
+	primitiveData.PrimitiveType = EPrimitiveType::Sky;
 	primitiveDataList.emplace_back(primitiveData);
 
 	return true;

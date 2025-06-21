@@ -12,18 +12,18 @@
 #include "MainGame.h"
 #include "MainGameSetting.h"
 
-MeshComponent::MeshComponent()
-	: PrimitiveComponent()
+MMeshComponent::MMeshComponent()
+	: MPrimitiveComponent()
 	, _textureList(5, nullptr)
 {
 	//initializeMeshInformation();
 }
 
-MeshComponent::~MeshComponent()
+MMeshComponent::~MMeshComponent()
 {
 }
 
-const bool MeshComponent::addTexture(std::shared_ptr<MTexture> pTexture)
+const bool MMeshComponent::addTexture(std::shared_ptr<MTexture> pTexture)
 {
 	if (_textureList.size() == _textureList.capacity())
 		return false;
@@ -32,17 +32,17 @@ const bool MeshComponent::addTexture(std::shared_ptr<MTexture> pTexture)
 	return true;
 }
 
-void MeshComponent::setMaterial(std::shared_ptr<MMaterial> pMaterial)
+void MMeshComponent::setMaterial(std::shared_ptr<MMaterial> pMaterial)
 {
 	_pMaterial = pMaterial;
 }
 
-std::shared_ptr<MMaterial>& MeshComponent::getMaterial()
+std::shared_ptr<MMaterial>& MMeshComponent::getMaterial()
 {
 	return _pMaterial;
 }
 
-void MeshComponent::setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture)
+void MMeshComponent::setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture)
 {
 	_textureList[EnumToIndex(textureType)] = pTexture;
 
@@ -50,7 +50,7 @@ void MeshComponent::setTexture(const ETextureType textureType, std::shared_ptr<M
 	_pMaterial->setTextures(_textureList);
 }
 
-std::shared_ptr<MTexture> &MeshComponent::getTexture(const ETextureType textureType)
+std::shared_ptr<MTexture> &MMeshComponent::getTexture(const ETextureType textureType)
 {
 	return _textureList[EnumToIndex(textureType)];
 }

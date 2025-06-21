@@ -3,7 +3,7 @@
 
 #include "RenderPass.h"
 
-class CombinePass : public RenderPass
+class CombinePass : public MRenderPass
 {
 public:
 	explicit CombinePass();
@@ -19,7 +19,7 @@ private:
     virtual void HandleOuputMergeStage(const FPrimitiveData& PrimitiveData) override;
 };
 
-class GeometryPass : public RenderPass
+class GeometryPass : public MRenderPass
 {
 public:
 	explicit GeometryPass() = default;
@@ -29,7 +29,7 @@ public:
 	virtual bool IsValidPrimitive(const FPrimitiveData &primitiveData) const override;
 };
 
-class DirectionalShadowDepthPass : public RenderPass
+class DirectionalShadowDepthPass : public MRenderPass
 {
 public:
 	explicit DirectionalShadowDepthPass();
@@ -46,19 +46,20 @@ protected:
     //std::vector<Mat4> LightViewProj;
 };
 
-class PointShadowDepthPass : public RenderPass
+class PointShadowDepthPass : public MRenderPass
 {
 public:
 	explicit PointShadowDepthPass();
 	virtual ~PointShadowDepthPass() = default;
 
 private:
+    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
     virtual void UpdateObjectConstantBuffer(const FPrimitiveData& primitiveData) override;
 };
 
-class DirectionalLightPass : public RenderPass
+class DirectionalLightPass : public MRenderPass
 {
 public:
 	explicit DirectionalLightPass() = default;
@@ -73,7 +74,7 @@ protected:
     virtual void HandleOuputMergeStage(const FPrimitiveData& primitiveData) override;
 };
 
-class PointLightPass : public RenderPass
+class PointLightPass : public MRenderPass
 {
 public:
     explicit PointLightPass();
@@ -92,7 +93,7 @@ protected:
     uint32 PointLightIndex = 0;
 };
 
-class SkyPass : public RenderPass
+class SkyPass : public MRenderPass
 {
 public:
 	explicit SkyPass() = default;
@@ -105,7 +106,7 @@ protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
 };
 
-class CollisionPass : public RenderPass
+class CollisionPass : public MRenderPass
 {
 public:
     explicit CollisionPass() = default;

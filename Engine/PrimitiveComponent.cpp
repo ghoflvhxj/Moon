@@ -17,7 +17,7 @@
 
 using namespace DirectX;
 
-BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
+MBoundingBox::MBoundingBox(const Vec3 &min, const Vec3 &max)
 	: _min(min)
 	, _max(max)
 {
@@ -81,18 +81,18 @@ BoundingBox::BoundingBox(const Vec3 &min, const Vec3 &max)
     MeshData->Indices = _indices;
 }
 
-std::shared_ptr<MVertexBuffer> BoundingBox::getVertexBuffer()
+std::shared_ptr<MVertexBuffer> MBoundingBox::getVertexBuffer()
 {
 	return _pVertexBuffer;
 }
 
-std::shared_ptr<MMaterial> BoundingBox::getMaterial()
+std::shared_ptr<MMaterial> MBoundingBox::getMaterial()
 {
 	return _pMaterial;
 }
 
 
-const bool BoundingBox::cull(const std::vector<XMVECTOR> palnes, const Vec3 &position)
+const bool MBoundingBox::cull(const std::vector<XMVECTOR> palnes, const Vec3 &position)
 {
 	for (auto &palne : palnes)
 	{
@@ -107,7 +107,7 @@ const bool BoundingBox::cull(const std::vector<XMVECTOR> palnes, const Vec3 &pos
 	return true;
 }
 
-const bool BoundingBox::cullSphere(const std::vector<XMVECTOR> palnes, const Vec3 &position, const float radius)
+const bool MBoundingBox::cullSphere(const std::vector<XMVECTOR> palnes, const Vec3 &position, const float radius)
 {
 	for (auto &palne : palnes)
 	{
@@ -122,54 +122,54 @@ const bool BoundingBox::cullSphere(const std::vector<XMVECTOR> palnes, const Vec
 	return true;
 }
 
-const float BoundingBox::getLength(const Vec3 &scale /*= { 1.f, 1.f, 1.f }*/) const
+const float MBoundingBox::GetLength(const Vec3 &scale /*= { 1.f, 1.f, 1.f }*/) const
 {
 	XMFLOAT3 length;
-	XMStoreFloat3(&length, XMVector3Length(XMLoadFloat3(&scale) * XMVectorSet(_max.x - _min.x, _max.x - _min.x, _max.x - _min.x, 0.f)));
+	XMStoreFloat3(&length, XMVector3Length(XMLoadFloat3(&scale) * (XMLoadFloat3(&_max) - XMLoadFloat3(&_min))));
 
 	return length.x;
 }
 
-uint32 PrimitiveComponent::PrimitiveCounter = 0;
+uint32 MPrimitiveComponent::PrimitiveCounter = 0;
 
-PrimitiveComponent::PrimitiveComponent()
+MPrimitiveComponent::MPrimitiveComponent()
 	:_eRenderMdoe{ RenderMode::Perspective }
 	, PrimitiveID{ PrimitiveCounter++ }
 {
 }
 
-PrimitiveComponent::~PrimitiveComponent()
+MPrimitiveComponent::~MPrimitiveComponent()
 {
 }
 
-void PrimitiveComponent::Update(const Time deltaTime)
+void MPrimitiveComponent::Update(const Time deltaTime)
 {
 	SceneComponent::Update(deltaTime);
 
 	g_pRenderer->AddPrimitive(shared_from_this());
 }
 
-const bool PrimitiveComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
+const bool MPrimitiveComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
 	return false;
 }
 
-const bool PrimitiveComponent::GetBoundingBox(std::shared_ptr<BoundingBox> &boundingBox)
+const bool MPrimitiveComponent::GetBoundingBox(std::shared_ptr<MBoundingBox> &boundingBox)
 {
 	return false;
 }
 
-void PrimitiveComponent::setRenderMode(const RenderMode renderMode)
+void MPrimitiveComponent::setRenderMode(const RenderMode renderMode)
 {
 	_eRenderMdoe = renderMode;
 }
 
-const PrimitiveComponent::RenderMode PrimitiveComponent::getRenderMdoe() const
+const MPrimitiveComponent::RenderMode MPrimitiveComponent::getRenderMdoe() const
 {
 	return _eRenderMdoe;
 }
 
-void PrimitiveComponent::SetRendering(bool bNewRendering)
+void MPrimitiveComponent::SetRendering(bool bNewRendering)
 {
 	if (bNewRendering == bRendering)
 	{
@@ -179,12 +179,12 @@ void PrimitiveComponent::SetRendering(bool bNewRendering)
 	bRendering = bNewRendering;
 }
 
-void PrimitiveComponent::setDrawingBoundingBox(const bool bDraw)
+void MPrimitiveComponent::setDrawingBoundingBox(const bool bDraw)
 {
     _bDrawBoundingBox = bDraw;
 }
 
-const bool PrimitiveComponent::IsDrawingBoundingBox() const
+const bool MPrimitiveComponent::IsDrawingBoundingBox() const
 {
     return _bDrawBoundingBox;
 }

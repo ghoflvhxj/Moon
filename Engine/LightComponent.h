@@ -6,7 +6,7 @@
 struct FPrimitiveData;
 class StaticMesh;
 
-class ENGINE_DLL MLightComponent : public PrimitiveComponent
+class ENGINE_DLL MLightComponent : public MPrimitiveComponent
 {
 public:
 	explicit MLightComponent(void);

@@ -12,7 +12,7 @@ class MConstantBuffer;
 
 class MMaterial;
 
-class ENGINE_DLL TerrainComponent : public PrimitiveComponent
+class ENGINE_DLL TerrainComponent : public MPrimitiveComponent
 {
 public:
 	using TileNum		= uint32;

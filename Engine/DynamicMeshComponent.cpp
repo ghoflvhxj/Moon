@@ -102,13 +102,13 @@ std::vector<FJoint>& DynamicMesh::getJoints()
 }
 
 DynamicMeshComponent::DynamicMeshComponent()
-	: PrimitiveComponent()
+	: MPrimitiveComponent()
 {
 
 }
 
 DynamicMeshComponent::DynamicMeshComponent(const std::wstring& FilePath)
-	: PrimitiveComponent()
+	: MPrimitiveComponent()
 {
 	Mesh = std::make_shared<DynamicMesh>();
 	Mesh->LoadFromFBX(FilePath);
@@ -135,9 +135,9 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
 		FPrimitiveData primitive = {};
-		primitive._pPrimitive = shared_from_this();
-		primitive._pMaterial = Mesh->getMaterials()[Mesh->getGeometryLinkMaterialIndex()[geometryIndex]];
-		primitive._primitiveType = EPrimitiveType::Mesh;
+		primitive.PrimitiveComponent = shared_from_this();
+		primitive.Material = Mesh->getMaterials()[Mesh->getGeometryLinkMaterialIndex()[geometryIndex]];
+		primitive.PrimitiveType = EPrimitiveType::Mesh;
 		primitive.MeshData = Mesh->GetMeshData(geometryIndex);
 
 		for (int32 jointIndex = 0; jointIndex < CastValue<int32>(jointCount); ++jointIndex)
@@ -217,13 +217,13 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		//primitiveDataList.emplace_back(primitive);
 	}
 
-    std::shared_ptr<BoundingBox>& BoundingBox = Mesh->GetBoundingBox();
+    std::shared_ptr<MBoundingBox>& BoundingBox = Mesh->GetBoundingBox();
     if (BoundingBox && _bDrawBoundingBox)
     {
         FPrimitiveData PrimitiveData = {};
-        PrimitiveData._pPrimitive = shared_from_this();
-        PrimitiveData._pMaterial = BoundingBox->getMaterial();
-        PrimitiveData._primitiveType = EPrimitiveType::Collision;
+        PrimitiveData.PrimitiveComponent = shared_from_this();
+        PrimitiveData.Material = BoundingBox->getMaterial();
+        PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
         PrimitiveData.MeshData = BoundingBox->GetMeshData();
 
         PrimitiveDataList.emplace_back(PrimitiveData);

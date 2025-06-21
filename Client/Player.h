@@ -3,7 +3,7 @@
 
 #include "Actor.h"
 
-class MeshComponent;
+class MMeshComponent;
 class StaticMeshComponent;
 class DynamicMeshComponent;
 class TerrainComponent;
@@ -32,7 +32,7 @@ private:
 	std::shared_ptr<StaticMeshComponent>	_pMeshComponent;
 	std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent;
 	std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent2;
-	std::shared_ptr<DynamicMeshComponent>	_pDynamicMeshComponent;
+	std::shared_ptr<DynamicMeshComponent>	CharacterMeshComponent;
 	std::shared_ptr<SkyComponent>			_pSkyComponent;
 	std::shared_ptr<MTexture>		GroundTexture;
 	std::shared_ptr<PointLightComponent>	_pLightComponent;

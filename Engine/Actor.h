@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 #ifndef __ACTOR_H__
 
 class Component;
 class SceneComponent;
-class PrimitiveComponent;
+class MPrimitiveComponent;
 class MainGame;
 
 class ENGINE_DLL Actor : public std::enable_shared_from_this<Actor>

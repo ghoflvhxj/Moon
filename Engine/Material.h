@@ -13,7 +13,7 @@ class VertexShader;
 class PixelShader;
 
 class MTexture;
-class PrimitiveComponent;
+class MPrimitiveComponent;
 class DynamicMeshComponent;
 
 struct FShaderVariable;
