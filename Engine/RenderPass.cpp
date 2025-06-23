@@ -83,7 +83,6 @@ void MRenderPass::Begin()
             UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
 	}
 
-
 	if (RenderTargetViewData.size() > 0)
 	{
 		uint32 Width = 0, Height = 0;

@@ -132,6 +132,11 @@ private:
 	physx::PxRigidDynamic*	PhysXRigidDynamic = nullptr;
 	physx::PxShape*			PhysXShape = nullptr;
     physx::PxMaterial*      PhysxMaterial = nullptr;
+    
+    // 피직스 렌더링을 위한 임시 메터리얼.
+    std::shared_ptr<MMaterial> MaterialForPhysX = nullptr;
+    // 피직스 렌더링을 위한 임시 메시데이터
+    std::shared_ptr<FMeshData> MeshDataForPhysX = nullptr;
 };
 
 #define __STATIC_MESH_COMPONENT_H__

@@ -1,7 +1,8 @@
 ﻿#pragma once
 
 #include "NvidiaPhysX/PxPhysicsAPI.h"
-
+#include "NvidiaPhysX/extensions/PxDefaultErrorCallback.h"
+#include "NvidiaPhysX/extensions/PxDefaultAllocator.h"
 using namespace physx;
 
 class ENGINE_DLL PhysXX
@@ -19,7 +20,7 @@ public:
 	PxDefaultCpuDispatcher* CpuDispatcher = nullptr;
 	PxScene* Scene = nullptr;
 	PxMaterial* Material = nullptr;
-	PxCooking* Cooking = nullptr;
+	//PxCooking* Cooking = nullptr;
 
 	PxRigidStatic* Plane = nullptr;
 

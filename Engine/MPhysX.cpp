@@ -1,5 +1,7 @@
 ﻿#include "Include.h"
 #include "MPhysX.h"
+#include "NvidiaPhysX/extensions/PxDefaultCpuDispatcher.h"
+
 
 #define PVD_HOST "127.0.0.1"
 
@@ -17,10 +19,6 @@ PhysXX::PhysXX()
 
 	// 피직스
 	Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, PxTolerancesScale(), true, VisualDebugger);
-
-	// 쿠킹
-	Cooking = PxCreateCooking(PX_PHYSICS_VERSION, *Foundation, PxCookingParams(Physics->getTolerancesScale()));
-
 
 	PxSceneDesc SceneDesc = { Physics->getTolerancesScale() };
 	SceneDesc.gravity = { 0.f, -9.8f, 0.f };
@@ -49,7 +47,6 @@ void PhysXX::Release()
     Scene->release();
     CpuDispatcher->release();
 
-    Cooking->release();
     Physics->release();
     VisualDebugger->release();
     Transport->release();
@@ -81,20 +78,13 @@ bool PhysXX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** Conv
 	ConvexDesc.points.data = reinterpret_cast<const PxVec3*>(&Vertices[0]);
 	ConvexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
 
-//#ifdef _DEBUG
-//	// mesh should be validated before cooking without the mesh cleaning
-//	bool res = Cooking->validateConvexMesh(ConvexDesc);
-//	PX_ASSERT(res);
-//#endif
-//
-//	*ConvexMesh = Cooking->createConvexMesh(ConvexDesc, Physics->getPhysicsInsertionCallback());
+    PxDefaultMemoryOutputStream buf;
+    PxTolerancesScale ToleranceScale;
+    PxCookingParams CookingParams(ToleranceScale);
+    PxCookConvexMesh(CookingParams, ConvexDesc, buf);
 
-	PxDefaultMemoryOutputStream buf;
-	if (!Cooking->cookConvexMesh(ConvexDesc, buf))
-		return false;
-
-	PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
-	*ConvexMesh = Physics->createConvexMesh(input);
+    PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+    *ConvexMesh = Physics->createConvexMesh(input);
 
 	return true;
 }

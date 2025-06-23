@@ -20,6 +20,7 @@
 
 #include <DirectXMath.h>
 using namespace DirectX;
+using namespace physx;
 
 #undef min
 #undef max
@@ -251,7 +252,7 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
 		
-		PrimitiveDataList.emplace_back(PrimitiveData);
+		PrimitiveDataList.push_back(PrimitiveData);
 	}
 
 	// BoudingBox
@@ -264,8 +265,47 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
         PrimitiveData.MeshData = boundingBox->GetMeshData();
 
-		PrimitiveDataList.emplace_back(PrimitiveData);
+		PrimitiveDataList.push_back(PrimitiveData);
 	}
+
+    // 피직스
+    if (GetPhysXRigidActor())
+    {
+        PxGeometryHolder GeometryHolder(GetPhysXShape()->getGeometry());
+        PxConvexMeshGeometry Geometry = GeometryHolder.convexMesh();
+           
+        if (MaterialForPhysX == nullptr)
+        {
+            MaterialForPhysX = std::make_shared<MMaterial>();
+            MaterialForPhysX->setShader(TEXT("VertexShader.cso"), TEXT("PixelShader.cso"));
+            MaterialForPhysX->setFillMode(Graphic::FillMode::WireFrame);
+            MaterialForPhysX->setCullMode(Graphic::CullMode::None);
+        }
+
+        if (MeshDataForPhysX == nullptr)
+        {
+            MeshDataForPhysX = std::make_shared<FMeshData>();
+
+            for (int i = 0; i < Geometry.convexMesh->getNbVertices(); ++i)
+            {
+                const PxVec3& Position = Geometry.convexMesh->getVertices()[i];
+                Vertex Vtx;
+                Vtx.Pos.x = Position.x;
+                Vtx.Pos.y = Position.y;
+                Vtx.Pos.z = Position.z;
+                MeshDataForPhysX->Vertices.push_back(Vtx);
+                
+            }
+        }
+
+        FPrimitiveData PrimitiveData = {};
+        PrimitiveData.PrimitiveComponent = shared_from_this();
+        PrimitiveData.Material = MaterialForPhysX;
+        PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
+        PrimitiveData.MeshData = MeshDataForPhysX;
+
+        PrimitiveDataList.push_back(PrimitiveData);
+    }
 
 	return true;
 }
