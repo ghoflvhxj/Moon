@@ -77,4 +77,7 @@ public:
 	const Mat4& getMainCameraOrthographicProjectionMatrix() const;
 private:
 	std::shared_ptr<MCamera> _pMainCamera;
+
+public:
+    void Pick();
 };

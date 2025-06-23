@@ -16,12 +16,14 @@
 // Renderer
 #include "Renderer.h"
 
-// Framework
 #include "MainGameSetting.h"
 #include "Camera.h"
 #include "MeshComponent.h"
+#include "StaticMeshComponent.h"
 
 #include "MPhysX.h"
+
+using namespace DirectX;
 
 MainGame::MainGame()
 	: _deltaTime{ 0.f }
@@ -146,4 +148,74 @@ const Mat4& MainGame::getMainCameraProjectioinMatrix() const
 const Mat4& MainGame::getMainCameraOrthographicProjectionMatrix() const
 {
 	return (nullptr == _pMainCamera) ? IDENTITYMATRIX : _pMainCamera->getOrthographicProjectionMatrix();
+}
+
+void MainGame::Pick()
+{
+    //Vec2 GetMousePosition()
+    POINT MousePos;
+    GetCursorPos(&MousePos);
+    ScreenToClient(g_hWnd, &MousePos);
+    std::cout << "Screen: " << MousePos.x << ", " << MousePos.y << std::endl;
+
+    // 스크린 -> NDC
+    UINT Width = g_pSetting->getResolutionWidth<UINT>();
+    UINT Height = g_pSetting->getResolutionHeight<UINT>();
+    Vec3 NearNdc, FarNdc;
+    NearNdc.x = FarNdc.x = MousePos.x / (Width / 2.f) - 1.f;
+    NearNdc.y = FarNdc.y = MousePos.y / -(Height / 2.f) + 1.f;
+    NearNdc.z = 0.f;
+    FarNdc.z = 1.f;
+
+    // NearNDC -> NDC -> 뷰 -> 월드
+    XMVECTOR NearViewPos = XMVector3TransformCoord(XMLoadFloat3(&NearNdc), XMLoadFloat4x4(&getMainCamera()->getInverseProjectionMatrix()));
+    XMVECTOR NearWorldPos = XMVector3TransformCoord(NearViewPos, XMLoadFloat4x4(&getMainCamera()->getInvesrViewMatrix()));
+
+    XMVECTOR FarViewPos = XMVector3TransformCoord(XMLoadFloat3(&FarNdc), XMLoadFloat4x4(&getMainCamera()->getInverseProjectionMatrix()));
+    XMVECTOR FarWorldPos = XMVector3TransformCoord(FarViewPos, XMLoadFloat4x4(&getMainCamera()->getInvesrViewMatrix()));
+
+    Vec3 RayDirection; 
+    Vec3 RayStart;
+    XMStoreFloat3(&RayDirection, XMVector3Normalize(FarWorldPos - NearWorldPos));
+    XMStoreFloat3(&RayStart, NearWorldPos);
+
+    const auto& MeshPrimitives = g_pRenderer->GetRenderablePrimitiveData();
+    for (auto& PrimitiveData : MeshPrimitives)
+    {
+        if (PrimitiveData.PrimitiveType != EPrimitiveType::Mesh)
+        {
+            continue;
+        }
+
+        XMMATRIX InverseWorldMat = XMLoadFloat4x4(&PrimitiveData.PrimitiveComponent.lock()->GetInverseWorldMatrix());
+        XMVECTOR Start = XMVector3TransformCoord(NearWorldPos, InverseWorldMat);
+        XMVECTOR End = XMVector3TransformCoord(FarWorldPos, InverseWorldMat);
+        XMVECTOR Dir = XMVector3Normalize(End - Start);
+
+        const auto& Vertices = PrimitiveData.MeshData.lock()->Vertices;
+        const auto& Indices = PrimitiveData.MeshData.lock()->Indices;
+        uint32 Loop = Indices.size() / 3;
+        for (int i = 0; i < Loop; ++i)
+        {
+            float Distance = 0.f;
+            if (TriangleTests::Intersects(Start, Dir, XMLoadFloat3(&Vertices[Indices[i * 3 + 0]].Pos), XMLoadFloat3(&Vertices[Indices[i * 3 + 1]].Pos), XMLoadFloat3(&Vertices[Indices[i * 3 + 2]].Pos), Distance))
+            {
+                std::cout << "Intersect!" << std::endl;
+                return;
+            }
+
+            //XMVECTOR Plane = XMPlaneFromPoints();
+            //XMVECTOR Result = XMPlaneIntersectLine(Plane, Start, End);
+
+            //if (XMVector3IsNaN(Result) == false)
+            //{
+            //    XMVECTOR DirToResult = Result - Start;
+            //    if (XMVectorGetX(XMVector3Dot(DirToResult, Dir)) > 0.f)
+            //    {
+            //        std::cout << "Intersect!" << std::endl;
+            //        return;
+            //    }
+            //}
+        }
+    }
 }

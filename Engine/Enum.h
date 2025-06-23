@@ -34,9 +34,9 @@ namespace Graphic
 {
 	enum class FillMode
 	{
-		WireFrame
-		, Solid
-		, Count
+		WireFrame,
+	    Solid,
+	    Count,
 	};
 
 	enum class CullMode

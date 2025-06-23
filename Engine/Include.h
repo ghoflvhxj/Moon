@@ -1,6 +1,4 @@
-#pragma once
-#ifndef __INCLUDE_H__
-
+ï»¿#pragma once    
 #pragma warning(disable : 4251)
 
 #include <iostream>
@@ -24,14 +22,15 @@ class __declspec(dllexport) std::exception;
 // Window Platform
 #ifdef _WIN64
 	#include <sdkddkver.h>
-	#include <afx.h> //mfcÁ¦°ÅÇÏ±â
+	#include <afx.h>        //mfcì œê±°í•˜ê¸°
 	#include <Windows.h>
-	#include <Shlwapi.h>	// ¹®ÀÚ¿­ Ã³¸®¿ë
+	#include <Shlwapi.h>	// ë¬¸ìì—´ ì²˜ë¦¬ìš©
 
 
 	// DirectX
 	#include <d3d11.h>
 	#include <d3dcompiler.h>
+    #include <DirectXCollision.h>
 	#include <Xinput.h>
 
 	#define DIRECTINPUT_VERSION 0x0800
@@ -44,6 +43,3 @@ class __declspec(dllexport) std::exception;
 #include "Extern.h"
 #include "Macro.h"
 #include "Function.h"
-
-#define __INCLUDE_H__
-#endif
