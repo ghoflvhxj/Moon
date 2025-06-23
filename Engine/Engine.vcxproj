@@ -316,12 +316,12 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>ENGINE;FBXSDK_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Source;$(ProjectDir)Source\ThirdParty;$(ProjectDir)Source\ThirdParty\FBXSDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Source;$(ProjectDir)Source\ThirdParty;$(ProjectDir)Source\ThirdParty\FBXSDK;$(ProjectDir)Source\ThirdParty\NvidiaPhysX;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dinput8.lib;uuid.lib;dxguid.lib;%(AdditionalDependencies);d3d11.lib;d3dCompiler.lib;DirectXTK.lib;libfbxsdk.lib;PhysXFoundation_64.lib;PhysXCommon_64.lib;PhysXExtensions_static_64.lib;PhysX_64.lib;PhysXPvdSDK_static_64.lib;PhysXCooking_64.lib</AdditionalDependencies>
+      <AdditionalDependencies>dinput8.lib;uuid.lib;dxguid.lib;%(AdditionalDependencies);d3d11.lib;d3dCompiler.lib;DirectXTK.lib;libfbxsdk.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(SolutionDir)\Libraries\Debug\</AdditionalLibraryDirectories>
     </Link>
