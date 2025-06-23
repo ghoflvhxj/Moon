@@ -45,6 +45,8 @@ public:
 
 private:
     void FrustumCulling();
+public:
+    const std::vector<FPrimitiveData>& GetRenderablePrimitiveData() const { return RenderablePrimitiveData; }
 protected:
     // 컬링 후 남은 PrimitiveData
     std::vector<FPrimitiveData> RenderablePrimitiveData;
@@ -87,20 +89,10 @@ private:
 	// 한 프레임 동안에 ConstantBuffer가 변경되었는지 여부를 판단하기 위한 변수
 	bool _bDirtyConstant;
 
-
-public:
-    std::vector<FPrimitiveData> PointLightPrimitives;
-    std::vector<FPrimitiveData> DirectionalLightPrimitive;
-    std::vector<FPrimitiveData> MeshPrimitives;
-
-
 protected:
     std::vector<float> _cascadeDistance;
     std::vector<Vec3> LightPosition;
     std::vector<Mat4> LightViewProj;
-
-    std::vector<Vec3> PointLightPosition;
-    std::vector<Mat4> PointLightViewProj;
 
 public:
 	RENDERER_OPTION(DrawCollision)

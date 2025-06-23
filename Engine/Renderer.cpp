@@ -56,8 +56,6 @@ Renderer::Renderer() noexcept
 	, _cascadeDistance(4, 0.f)
     , LightPosition(3, VEC3ZERO)
     , LightViewProj(3, IDENTITYMATRIX)
-    , PointLightViewProj(6)
-    , PointLightPosition(1)
 {
 	_cascadeDistance[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
 	_cascadeDistance[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
@@ -80,6 +78,9 @@ void Renderer::Release()
 	_renderTargets.clear();
 	RenderPasses.clear();
 	ViewMeshComponent.reset();
+
+    RenderablePrimitiveData.clear();
+    Primitives.clear();
 
 	ForwardPrimitiveDataMap.clear();
 	DeferredPrimitiveDataMap.clear();
@@ -412,9 +413,7 @@ void Renderer::Render()
     g_pMainGame->render();
 
     // 전부 삭제하는 것이 아니라 삭제된 것만 제거 되도록 변경하기
-    ForwardPrimitiveDataMap.clear();
     //DeferredPrimitiveDataMap.clear(); -> 버퍼가 한번 생성되면, 재추가 되지는 않아서 비우지 않아도 됨
-    RenderablePrimitiveData.clear();
     Primitives.clear();
 }
 
@@ -464,6 +463,8 @@ void Renderer::RenderText()
 
 void Renderer::FrustumCulling()
 {
+    RenderablePrimitiveData.clear();
+
     const std::shared_ptr<MCamera>& Camera = g_pMainGame->getMainCamera();
 
 	XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&g_pMainGame->getMainCameraProjectioinMatrix()));
@@ -523,9 +524,14 @@ void Renderer::FrustumCulling()
 	Planes[5] = XMPlaneNormalize(Planes[5]);
 
     //RenderablePrimitiveComponents.clear();
+    TotalPrimitiveNum = 0;
+    CulledPrimitiveNum = 0;
+    ShownPrimitiveNum = 0;
 
     for (auto& Pair : DeferredPrimitiveDataMap)
     {
+        TotalPrimitiveNum += Pair.second.size();
+
         const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = Pair.second[0].PrimitiveComponent.lock();
 
         std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
@@ -535,11 +541,13 @@ void Renderer::FrustumCulling()
             // 컬링
             if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
             {
+                CulledPrimitiveNum += Pair.second.size();
                 continue;
             }
         }
 
         RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), Pair.second.begin(), Pair.second.end());
+        ShownPrimitiveNum += Pair.second.size();
     }
 }
 
@@ -557,9 +565,6 @@ void Renderer::UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader)
     Shader->SetValue(TEXT("cascadeDistance"), _cascadeDistance);
     Shader->SetValue(TEXT("lightPos"), LightPosition);
     Shader->SetValue(TEXT("lightViewProjMatrix"), LightViewProj);
-
-    //Shader->SetValue(TEXT("PointLightPos"), PointLightPosition);
-    Shader->SetValue(TEXT("PointLightViewProj"), PointLightViewProj);
 }
 
 void Renderer::toggleRenderTarget()
