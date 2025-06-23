@@ -38,6 +38,7 @@ public:
 	virtual ~DynamicMeshComponent();
 
 public:
+    virtual void Update(const Time deltaTime);
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList) override;
 
 public:
@@ -46,6 +47,12 @@ private:
 	uint32 _currentAinmClipIndex = 0;
 	float _currentPlayTime = 0.f;
 	Mat4 _matrices[200];
+
+public:
+    void SetAnimPlaying(bool bPlaying) { bAnimPlaying = bPlaying; }
+    bool IsAnimPlaying() const { return bAnimPlaying; }
+protected:
+    bool bAnimPlaying = true;
 
 public:
 	virtual std::shared_ptr<DynamicMesh>& getDynamicMesh();

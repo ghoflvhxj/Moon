@@ -25,7 +25,7 @@
 #define UseRandomPointLight 1
 #define UseDirectionalLight 1
 #define UseDynamicMesh 1
-#define UseSkySphere 1
+#define UseSkySphere 0
 #define UseGround 1
 
 using namespace DirectX;
@@ -72,7 +72,10 @@ void Player::initialize()
 	addComponent(TEXT("DynamicMesh"), CharacterMeshComponent);
 	CharacterMeshComponent->getDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
 	CharacterMeshComponent->getDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
+    // 2 = 치마
+
     CharacterMeshComponent->setDrawingBoundingBox(true);
+    CharacterMeshComponent->SetAnimPlaying(false);
 #endif
 
 #if UseSkySphere == 1

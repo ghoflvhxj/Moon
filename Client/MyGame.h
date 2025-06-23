@@ -26,9 +26,6 @@ public:
 	virtual void render() override;
 
 private:
-	void controlCamera(const Time deltaTime);
-
-private:
 	std::shared_ptr<Actor> MyActor;
 	std::shared_ptr<SphereComponent> a;
 

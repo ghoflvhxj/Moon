@@ -118,6 +118,16 @@ DynamicMeshComponent::~DynamicMeshComponent()
 {
 }
 
+void DynamicMeshComponent::Update(const Time deltaTime)
+{
+    MPrimitiveComponent::Update(deltaTime);
+
+    if (IsAnimPlaying())
+    {
+        playAnimation(0, deltaTime);
+    }
+}
+
 const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & PrimitiveDataList)
 {
 	if (nullptr == Mesh)

@@ -13,6 +13,8 @@
 #include "StaticMeshComponent.h"
 #include "Camera.h"
 #include "Player.h"
+#include "DirectInput.h"
+#include "DynamicMeshComponent.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -78,35 +80,23 @@ void MyGame::intializeImGui()
 	ImGui::StyleColorsDark();
 	ImGui_ImplWin32_Init(g_hWnd);
 	ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
+
+    io.Fonts->AddFontFromFileTTF("Resources/Fonts/NanumSquareRoundR.ttf", 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
 }
 
 void MyGame::Tick(const Time deltaTime)
 {
-	controlCamera(deltaTime);
-
-	//_pTerrainComponent->Update(deltaTime);
-	//_pPlayer->rideTerrain(_pTerrainComponent);
-
-	if (MyActor && bButtonPressed)
-	{
-		//_pStaticMeshComponent->Temp(Force);
-		//a->AddForce(Vec3(0.f, Force, 0.f));
-	}
+    if (InputManager::mouseDown(MOUSEBUTTON::LB))
+    {
+        Pick();
+    }
 }
 
 void MyGame::render()
 {
-	//std::shared_ptr<LightComponent> p = std::static_pointer_cast<LightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
-
-	//Vec3 pos = p->getTranslation();
-	//ImGui::SliderFloat("posX", &pos.x, -10.f, 10.f);
-	//ImGui::SliderFloat("posY", &pos.y, -10.f, 10.f);
-	//ImGui::SliderFloat("posZ", &pos.z, -10.f, 10.f);
-	//p->setTranslation(pos);
-
     std::shared_ptr<MLightComponent> DirectionalLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
     std::shared_ptr<MLightComponent> PointLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
-
+    std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(TEXT("DynamicMesh")));
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -166,67 +156,13 @@ void MyGame::render()
 		_pPlayer->JsonTest(true);
 	}
 
+    if (DynamicMeshComp && ImGui::Button(DynamicMeshComp->IsAnimPlaying() ? "PauseAnim" : "PlayAnim"))
+    {
+        DynamicMeshComp->SetAnimPlaying(!DynamicMeshComp->IsAnimPlaying());
+    }
+
 	ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-}
-
-void MyGame::controlCamera(const Time deltaTime)
-{
-    //auto pComponent = getMainCamera()->getComponent(TEXT("RootComponent"));
-    //if (nullptr == pComponent)
-    //    return;
-
-    //Vec3 trans = pComponent->getTranslation();
-    //Vec3 look = pComponent->GetForward();
-    //Vec3 right = pComponent->getRight();
-    //float speed = _cameraSpeedScale * 1.f * deltaTime;
-
-    //if (InputManager::keyPress(DIK_LSHIFT))
-    //{
-    //    speed *= 5.f;
-    //}
-
-    //if (InputManager::keyPress(DIK_W))
-    //{
-    //    trans.x += look.x * speed;
-    //    trans.y += look.y * speed;
-    //    trans.z += look.z * speed;
-    //}
-    //else if (InputManager::keyPress(DIK_S))
-    //{
-    //    trans.x -= look.x * speed;
-    //    trans.y -= look.y * speed;
-    //    trans.z -= look.z * speed;
-    //}
-    //else if (InputManager::keyPress(DIK_D))
-    //{
-    //    trans.x += right.x * speed;
-    //    trans.y += right.y * speed;
-    //    trans.z += right.z * speed;
-    //}
-    //else if (InputManager::keyPress(DIK_A))
-    //{
-    //    trans.x -= right.x * speed;
-    //    trans.y -= right.y * speed;
-    //    trans.z -= right.z * speed;
-    //}
-
-    //_cameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
-    //_cameraSpeedScale = _cameraSpeedScale >= 1.f ? _cameraSpeedScale : 1.f;
-
-    //pComponent->setTranslation(trans);
-
-    //if (InputManager::mousePress(MOUSEBUTTON::RB))
-    //{
-    //    Vec3 rot = pComponent->getRotation();
-
-    //    float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
-    //    float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
-
-    //    rot.x = rot.x + (((rot.x + mouseY) - rot.x) * 0.005f);
-    //    rot.y = rot.y + (((rot.y + mouseX) - rot.y) * 0.005f);
-    //    pComponent->setRotation(rot);
-    //}
 }
