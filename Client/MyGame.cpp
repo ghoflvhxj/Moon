@@ -30,7 +30,6 @@ MyGame::MyGame()
 	, _pTerrainComponent{ nullptr }
 	, _pPlayer{ nullptr }
 {
-	initialize();
 	intializeImGui();
 }
 
