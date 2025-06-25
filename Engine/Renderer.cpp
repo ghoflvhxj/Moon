@@ -89,7 +89,9 @@ void Renderer::Release()
 
 void Renderer::initialize() noexcept
 {
-	ViewMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Plane.fbx"), false);
+	ViewMeshComponent = std::make_shared<StaticMeshComponent>();
+    ViewMeshComponent->SetPhysics(false);
+    ViewMeshComponent->SetMesh(TEXT("Base/Plane.fbx"));
 	ViewMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	ViewMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
     ViewMeshComponent->getStaticMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
@@ -530,7 +532,7 @@ void Renderer::FrustumCulling()
 
     for (auto& Pair : DeferredPrimitiveDataMap)
     {
-        TotalPrimitiveNum += Pair.second.size();
+        TotalPrimitiveNum += static_cast<uint32>(Pair.second.size());
 
         const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = Pair.second[0].PrimitiveComponent.lock();
 
@@ -541,13 +543,13 @@ void Renderer::FrustumCulling()
             // 컬링
             if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
             {
-                CulledPrimitiveNum += Pair.second.size();
+                CulledPrimitiveNum += static_cast<uint32>(Pair.second.size());
                 continue;
             }
         }
 
         RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), Pair.second.begin(), Pair.second.end());
-        ShownPrimitiveNum += Pair.second.size();
+        ShownPrimitiveNum += static_cast<uint32>(Pair.second.size());
     }
 }
 
