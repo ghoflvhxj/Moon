@@ -22,11 +22,13 @@ private:
 
 protected:
 	virtual void Tick(const Time deltaTime) override;
-public:
+    virtual void PostUpdate(const Time deltaTime) override;
+
 	virtual void render() override;
 
 private:
 	std::shared_ptr<Actor> MyActor;
+    std::shared_ptr<MStaticMeshActor> ClothActor;
 	std::shared_ptr<SphereComponent> a;
 
 private:

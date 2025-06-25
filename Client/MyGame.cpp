@@ -44,17 +44,19 @@ const bool MyGame::initialize()
 
 	_pPlayer = std::make_shared<Player>();
 	addActor(_pPlayer);
+    ClothActor = CreateActor<MStaticMeshActor>(this);
+    ClothActor->GetStaticMeshCompoent()->SetPhysics(false);
+    ClothActor->SetStaticMesh(TEXT("Untitled.fbx"));
+    ClothActor->GetStaticMeshCompoent()->setTranslation(0.f, 3.f, 0.f);
+    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setShader(TEXT("SimpleVertexShader.cso"), TEXT("TexPixelShader.cso"));
+    ClothActor->GetStaticMeshCompoent()->SetSimpleLayout();
 
-	MyActor = std::make_shared<Actor>();
-	//a = std::make_shared<SphereComponent>();
-	//MyActor->addComponent(TEXT("Root"), a);
-	Lantern = std::make_shared<StaticMeshComponent>(TEXT("Lantern/Lantern.fbx"), true, false);
-	Lantern->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	Lantern->setTranslation(0.f, 0.f, 0.f);
-	Lantern->setDrawingBoundingBox(true);
-	MyActor->addComponent(TEXT("test"), Lantern);
-	//a->AddChildComponent(_pStaticMeshComponent);
-	addActor(MyActor);
+    std::shared_ptr<MTexture> Texture = nullptr;
+    if (g_ResourceManager->Load<MTexture>(TEXT("Resources/Texture/Player.jpeg"), Texture))
+    {
+        ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, Texture);
+        ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setCullMode(Graphic::CullMode::None);
+    }
 
 	//_pTerrainComponent = std::make_shared<TerrainComponent>(100, 100);
 	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Diffuse), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_albedo.jpg")));
@@ -90,6 +92,11 @@ void MyGame::Tick(const Time deltaTime)
     {
         Pick();
     }
+}
+
+void MyGame::PostUpdate(const Time deltaTime)
+{
+    ClothActor->GetStaticMeshCompoent()->UpdateClothing();
 }
 
 void MyGame::render()
@@ -159,6 +166,11 @@ void MyGame::render()
     if (DynamicMeshComp && ImGui::Button(DynamicMeshComp->IsAnimPlaying() ? "PauseAnim" : "PlayAnim"))
     {
         DynamicMeshComp->SetAnimPlaying(!DynamicMeshComp->IsAnimPlaying());
+    }
+
+    if(ClothActor && ImGui::Button("Cloth"))
+    {
+        ClothActor->GetStaticMeshCompoent()->Clothing();
     }
 
 	ImGui::End();
