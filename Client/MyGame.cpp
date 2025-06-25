@@ -15,6 +15,9 @@
 #include "Player.h"
 #include "DirectInput.h"
 #include "DynamicMeshComponent.h"
+#include "GameFramework/StaticMeshActor/StaticMeshActor.h"
+#include "Core/ResourceManager.h"
+#include "Material.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -27,7 +30,6 @@ MyGame::MyGame()
 	, _pTerrainComponent{ nullptr }
 	, _pPlayer{ nullptr }
 {
-	initialize();
 	intializeImGui();
 }
 
@@ -40,10 +42,18 @@ MyGame::~MyGame()
 
 const bool MyGame::initialize()
 {
+    MainGame::initialize();
+
 	getMainCamera()->setLookMode(MCamera::LookMode::To);
 
-	_pPlayer = std::make_shared<Player>();
-	addActor(_pPlayer);
+	_pPlayer = CreateActor<Player>(this);
+
+    LanternActor = CreateActor<MStaticMeshActor>(this);
+    LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));;
+    LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+    LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 0.f, 0.f);
+    LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
+
     ClothActor = CreateActor<MStaticMeshActor>(this);
     ClothActor->GetStaticMeshCompoent()->SetPhysics(false);
     ClothActor->SetStaticMesh(TEXT("Untitled.fbx"));
@@ -131,7 +141,7 @@ void MyGame::render()
         ImGui::SliderFloat("PosY", &Pos.y, -10, 10);
         ImGui::SliderFloat("PosZ", &Pos.z, -10, 10);
         PointLight->setTranslation(Pos);
-        Lantern->setTranslation(Pos.x, Pos.y - 1.f, Pos.z);
+        LanternActor->GetStaticMeshCompoent()->setTranslation(Pos.x, Pos.y - 1.f, Pos.z);
     }
 
 	if (ImGui::CollapsingHeader("Actor"))
@@ -139,18 +149,18 @@ void MyGame::render()
 		ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
 		if (ImGui::Button("AddForce"))
 		{
-			Lantern->Temp(Force);
+            LanternActor->GetStaticMeshCompoent()->Temp(Force);
 		}
 
 		if (ImGui::Button("ResetPos"))
 		{
-			Lantern->setTranslation(0.f, 5.f, 0.f);
+            LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 5.f, 0.f);
 		}
 
 		ImGui::Checkbox("DisableCollision", &bStaticCollision);
-		if (Lantern)
+		if (LanternActor)
 		{
-			Lantern->SetStaticCollision(bStaticCollision);
+            LanternActor->GetStaticMeshCompoent()->SetStaticCollision(bStaticCollision);
 		}
 	}
 

@@ -103,7 +103,7 @@ float PixelCascadeSahdow(int cascadeIndex, float4 PixelPosInLightViewProj)
 
     if (Depth < 1.f)
     {
-        int sampleCount = 5;
+        int sampleCount = 3;
         int temp = sampleCount / 2;
         int Counter = 0;
         

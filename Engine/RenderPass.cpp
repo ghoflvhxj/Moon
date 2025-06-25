@@ -193,7 +193,15 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
     HandleRasterizerStage(PrimitiveData);
     HandleOuputMergeStage(PrimitiveData);
 
-    g_pGraphicDevice->getContext()->Draw(PrimitiveData.VertexBuffer->getVertexCount(), 0);
+
+    if (PrimitiveData.IndexBuffer != nullptr)
+    {
+        g_pGraphicDevice->getContext()->DrawIndexed(PrimitiveData.IndexBuffer->getIndexCount(), 0, 0);
+    }
+    else
+    {
+        g_pGraphicDevice->getContext()->Draw(PrimitiveData.VertexBuffer->getVertexCount(), 0);
+    }
 }
 
 void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
@@ -218,13 +226,13 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
     }
 
     // IA에 인덱스 버퍼 설정
-    if (nullptr != PrimitiveData.IndexBuffer)
+    if (PrimitiveData.IndexBuffer != nullptr)
     {
-        //PrimitiveData._pIndexBuffer->setBufferToDevice();
+        PrimitiveData.IndexBuffer->setBufferToDevice(0);
     }
 
     const std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-     g_pGraphicDevice->getContext()->IASetPrimitiveTopology(Material->getTopology());
+    g_pGraphicDevice->getContext()->IASetPrimitiveTopology(Material->getTopology());
 }
 
 void MRenderPass::HandleVertexShaderStage(const FPrimitiveData& PrimitiveData)

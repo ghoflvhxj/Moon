@@ -390,30 +390,49 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 	int polygonCount = FBXMesh->GetPolygonCount();
 	int vertexCounter = 0;								// 맵핑 모드가 eByPolygonVertex일 경우 사용함
 	int vertexCount = polygonCount * 3;
-	_verticesList[meshIndex].resize(polygonCount * 3);	// 중첩된 버텍스를 허용하지 않기 때문에 인덱스의 수와 같아짐...
-	_indicesList[meshIndex].reserve(polygonCount * 3);
+    
+    VertexList& MeshVertices = _verticesList[meshIndex];
+    IndexList& MeshIndices = _indicesList[meshIndex];
+
+    //MeshVertices.resize(FBXMesh->GetControlPointsCount());
+    //MeshIndices.resize(polygonCount * 3);
 
 	TotalVertexNum += vertexCount;
 
 	linkMaterial(pNode);
 
+    // 버텍스 키 - 인덱스 쌍
+    std::unordered_map<FVertexKey, int> Loaded;
+
 	for (int i = 0; i < polygonCount; ++i)
 	{
 		for (int j = 0; j < 3; ++j)
 		{
+            int vertexIndex = 3 * i + j;
 			int controlPointIndex = FBXMesh->GetPolygonVertex(i, j);
-			int vertexIndex = (3 * i) + j;
+            
+            // 한 컨트롤 포인트에는 여러 정점이 있을 수 있고...
+            // 그 중에는 UV, NORMAL 등이 다른 경우가 있으니, 다른 점으로 나눠야 함.
+            Vertex NewVertex;
+            FVertexKey VertexKey;
+            VertexKey.ControlPointIndex = controlPointIndex;
+			loadPosition(NewVertex, controlPointIndex);
+			loadUV(NewVertex, controlPointIndex, vertexIndex, VertexKey);
+			loadNormal(NewVertex, controlPointIndex, vertexIndex, VertexKey);
+			loadTangent(NewVertex, controlPointIndex, vertexIndex, VertexKey);
+			loadBinormal(NewVertex, controlPointIndex, vertexIndex, VertexKey);
 
-			loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
-			loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-			loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-			loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-			loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-			_indicesList[meshIndex].push_back((3 * i) + j); // 수정해야 함
-			
-			_indexMap[meshIndex][controlPointIndex].emplace_back(vertexIndex);
+            // 등록안된 정점이면 정점으로 추가해줌
+            if (Loaded.find(VertexKey) == Loaded.end())
+            {
+                Loaded[VertexKey] = vertexCounter;
+                MeshVertices.push_back(NewVertex);
+                _indexMap[meshIndex][controlPointIndex].push_back(vertexCounter);
+                ++vertexCounter;
+            }
 
-			++vertexCounter;
+            // 정점의 인덱스를 설정해 줌.
+            MeshIndices.push_back(Loaded[VertexKey]);
 		}
 	}
 }
@@ -458,276 +477,216 @@ void MFBXLoader::loadPosition(Vertex &vertex, const int controlPointIndex)
 	MaxPosition.z = std::max(MaxPosition.z, vertex.Pos.z);
 }
 
-void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
+void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey)
 {
 	FbxGeometryElementUV *uv = FBXMesh->GetElementUV(0);
-	switch (uv->GetMappingMode())
-	{
-	case FbxLayerElement::EMappingMode::eByControlPoint:
-	{
-		switch (uv->GetReferenceMode())
-		{
-		case FbxLayerElement::EReferenceMode::eDirect:
-		{
-			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[0]);
-			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(controlPointIndex).mData[1]);
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndex:
-		{
 
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndexToDirect:
-		{
-			int index = uv->GetIndexArray().GetAt(controlPointIndex);
-			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
-			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[1]);
-		}
-		break;
-		default:
-		{
-			DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
-		}
-		break;
-		}
-	}
-	break;
+    int ArrayIndex = 0;
+    switch (uv->GetMappingMode())
+    {
+    case FbxLayerElement::EMappingMode::eByControlPoint:    // 컨트롤 포인트 것을 사용
+        ArrayIndex = controlPointIndex;
+        break;
 
-	case FbxLayerElement::EMappingMode::eByPolygonVertex:
-	{
-		switch (uv->GetReferenceMode())
-		{
-		case FbxLayerElement::EReferenceMode::eDirect:
-		{
-			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(vertexCounter).mData[0]);
-			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(vertexCounter).mData[1]);
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndex:
-		{
+    case FbxLayerElement::EMappingMode::eByPolygonVertex:   // 폴리곤의 버텍스 인덱스를 이용
+        ArrayIndex = vertexCounter;
+        break;
 
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndexToDirect:
-		{
-			int index = uv->GetIndexArray().GetAt(vertexCounter);
-			vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
-			vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[1]);
-		}
-		break;
-		}
-	}
-	break;
+    default:
+        DEV_ASSERT_MSG("지원하지 않는 UV MappingMode");
+        return;
+    }
 
-	}
+    switch (uv->GetReferenceMode())
+    {
+        case FbxLayerElement::EReferenceMode::eDirect:
+        {
+            VertexKey.UVIndex = ArrayIndex;
+            vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(ArrayIndex).mData[0]);
+            vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(ArrayIndex).mData[1]);
+        }
+        break;
+        case FbxLayerElement::EReferenceMode::eIndex:
+        {
+
+        }
+        break;
+        case FbxLayerElement::EReferenceMode::eIndexToDirect:
+        {
+            int index = uv->GetIndexArray().GetAt(ArrayIndex);
+            VertexKey.UVIndex = index;
+            vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
+            vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[1]);
+        }
+        break;
+        default:
+        {
+            DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
+        }
+        break;
+    }
 }
 
-void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
+void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey)
 {
 	FbxGeometryElementNormal *element = FBXMesh->GetElementNormal(0);
-	switch (element->GetMappingMode())
-	{
-	case FbxLayerElement::EMappingMode::eByControlPoint:
-	{
-		switch (element->GetReferenceMode())
-		{
-		case FbxLayerElement::EReferenceMode::eDirect:
-		{
-			vertex.Normal.x = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[0]);
-			vertex.Normal.y = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[1]);
-			vertex.Normal.z = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[2]);
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndex:
-		{
 
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndexToDirect:
-		{
-			int index = element->GetIndexArray().GetAt(controlPointIndex);
-			vertex.Normal.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-			vertex.Normal.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-			vertex.Normal.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
-		}
-		break;
-		default:
-		{
-			DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
-		}
-		break;
-		}
-	}
-	break;
+    int ArrayIndex = 0;
+    switch (element->GetMappingMode())
+    {
+    case FbxLayerElement::EMappingMode::eByControlPoint:    // 컨트롤 포인트 것을 사용
+        ArrayIndex = controlPointIndex;
+        break;
 
-	case FbxLayerElement::EMappingMode::eByPolygonVertex:
-	{
-		switch (element->GetReferenceMode())
-		{
-		case FbxLayerElement::EReferenceMode::eDirect:
-		{
-			vertex.Normal.x = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[0]);
-			vertex.Normal.y = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[1]);
-			vertex.Normal.z = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[2]);
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndex:
-		{
+    case FbxLayerElement::EMappingMode::eByPolygonVertex:   // 폴리곤의 버텍스 인덱스를 이용
+        ArrayIndex = vertexCounter;
+        break;
 
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndexToDirect:
-		{
-			int index = element->GetIndexArray().GetAt(vertexCounter);
-			vertex.Normal.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-			vertex.Normal.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-			vertex.Normal.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
-		}
-		break;
-		}
-	}
-	break;
+    default:
+        DEV_ASSERT_MSG("지원하지 않는 UV MappingMode");
+        return;
+    }
 
-	}
+    switch (element->GetReferenceMode())
+    {
+        case FbxLayerElement::EReferenceMode::eDirect:
+        {
+            //VertexKey.NormalIndex = ArrayIndex;
+            vertex.Normal.x = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
+            vertex.Normal.y = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
+            vertex.Normal.z = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
+        }
+        break;
+        case FbxLayerElement::EReferenceMode::eIndex:
+        {
+
+        }
+        break;
+        case FbxLayerElement::EReferenceMode::eIndexToDirect:
+        {
+            int index = element->GetIndexArray().GetAt(ArrayIndex);
+            //VertexKey.NormalIndex = index;
+            vertex.Normal.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
+            vertex.Normal.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
+            vertex.Normal.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
+        }
+        break;
+        default:
+        {
+            DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
+        }
+        break;
+    }
 }
 
-void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
+void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey)
 {
 	FbxGeometryElementTangent *element = FBXMesh->GetElementTangent(0);
-	switch (element->GetMappingMode())
-	{
-	case FbxLayerElement::EMappingMode::eByControlPoint:
-	{
-		switch (element->GetReferenceMode())
-		{
-		case FbxLayerElement::EReferenceMode::eDirect:
-		{
-			vertex.Tangent.x = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[0]);
-			vertex.Tangent.y = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[1]);
-			vertex.Tangent.z = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[2]);
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndex:
-		{
 
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndexToDirect:
-		{
-			int index = element->GetIndexArray().GetAt(controlPointIndex);
-			vertex.Tangent.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-			vertex.Tangent.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-			vertex.Tangent.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
-		}
-		break;
-		default:
-		{
-			DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
-		}
-		break;
-		}
-	}
-	break;
+    if (element == nullptr)
+    {
+        return;
+    }
 
-	case FbxLayerElement::EMappingMode::eByPolygonVertex:
-	{
-		switch (element->GetReferenceMode())
-		{
-		case FbxLayerElement::EReferenceMode::eDirect:
-		{
-			vertex.Tangent.x = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[0]);
-			vertex.Tangent.y = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[1]);
-			vertex.Tangent.z = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[2]);
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndex:
-		{
+    int ArrayIndex = 0;
+    switch (element->GetMappingMode())
+    {
+        case FbxLayerElement::EMappingMode::eByControlPoint:    // 컨트롤 포인트 것을 사용
+            ArrayIndex = controlPointIndex;
+        break;
+        case FbxLayerElement::EMappingMode::eByPolygonVertex:   // 폴리곤의 버텍스 인덱스를 이용
+            ArrayIndex = vertexCounter;
+         break;
+        default:
+            DEV_ASSERT_MSG("지원하지 않는 UV MappingMode");
+         return;
+    }
 
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndexToDirect:
-		{
-			int index = element->GetIndexArray().GetAt(vertexCounter);
-			vertex.Tangent.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-			vertex.Tangent.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-			vertex.Tangent.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
-		}
-		break;
-		}
-	}
-	break;
+    switch (element->GetReferenceMode())
+    {
+        case FbxLayerElement::EReferenceMode::eDirect:
+        {
+            //VertexKey.TangentIndex = ArrayIndex;
+            vertex.Tangent.x = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
+            vertex.Tangent.y = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
+            vertex.Tangent.z = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
+        }
+        break;
+        case FbxLayerElement::EReferenceMode::eIndex:
+        {
 
-	}
+        }
+        break;
+        case FbxLayerElement::EReferenceMode::eIndexToDirect:
+        {
+            int index = element->GetIndexArray().GetAt(ArrayIndex);
+            //VertexKey.TangentIndex = index;
+            vertex.Tangent.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
+            vertex.Tangent.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
+            vertex.Tangent.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
+        }
+        break;
+        default:
+        {
+            DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
+        }
+        break;
+    }
 }
 
-void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
+void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey)
 {
 	FbxGeometryElementBinormal *element = FBXMesh->GetElementBinormal(0);
-	switch (element->GetMappingMode())
-	{
-	case FbxLayerElement::EMappingMode::eByControlPoint:
-	{
-		switch (element->GetReferenceMode())
-		{
-		case FbxLayerElement::EReferenceMode::eDirect:
-		{
-			vertex.Binormal.x = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[0]);
-			vertex.Binormal.y = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[1]);
-			vertex.Binormal.z = ToFloat(element->GetDirectArray().GetAt(controlPointIndex).mData[2]);
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndex:
-		{
 
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndexToDirect:
-		{
-			int index = element->GetIndexArray().GetAt(controlPointIndex);
-			vertex.Binormal.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-			vertex.Binormal.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-			vertex.Binormal.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
-		}
-		break;
-		default:
-		{
-			DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
-		}
-		break;
-		}
-	}
-	break;
+    if (element == nullptr)
+    {
+        return;
+    }
 
-	case FbxLayerElement::EMappingMode::eByPolygonVertex:
-	{
-		switch (element->GetReferenceMode())
-		{
-		case FbxLayerElement::EReferenceMode::eDirect:
-		{
-			vertex.Binormal.x = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[0]);
-			vertex.Binormal.y = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[1]);
-			vertex.Binormal.z = ToFloat(element->GetDirectArray().GetAt(vertexCounter).mData[2]);
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndex:
-		{
+    int ArrayIndex = 0;
+    switch (element->GetMappingMode())
+    {
+    case FbxLayerElement::EMappingMode::eByControlPoint:    // 컨트롤 포인트 것을 사용
+        ArrayIndex = controlPointIndex;
+        break;
+    case FbxLayerElement::EMappingMode::eByPolygonVertex:   // 폴리곤의 버텍스 인덱스를 이용
+        ArrayIndex = vertexCounter;
+        break;
+    default:
+        DEV_ASSERT_MSG("지원하지 않는 UV MappingMode");
+        return;
+    }
 
-		}
-		break;
-		case FbxLayerElement::EReferenceMode::eIndexToDirect:
-		{
-			int index = element->GetIndexArray().GetAt(vertexCounter);
-			vertex.Binormal.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-			vertex.Binormal.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-			vertex.Binormal.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
-		}
-		break;
-		}
-	}
-	break;
+    switch (element->GetReferenceMode())
+    {
+        case FbxLayerElement::EReferenceMode::eDirect:
+        {
+            //VertexKey.BiNormalIndex = ArrayIndex;
+            vertex.Binormal.x = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
+            vertex.Binormal.y = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
+            vertex.Binormal.z = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
+        }
+        break;
+        case FbxLayerElement::EReferenceMode::eIndex:
+        {
 
-	}
+        }
+        break;
+        case FbxLayerElement::EReferenceMode::eIndexToDirect:
+        {
+            int index = element->GetIndexArray().GetAt(ArrayIndex);
+            //VertexKey.BiNormalIndex = index;
+            vertex.Binormal.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
+            vertex.Binormal.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
+            vertex.Binormal.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
+        }
+        break;
+        default:
+        {
+            DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
+        }
+        break;
+    }
 }
 
 void MFBXLoader::loadAnimation()

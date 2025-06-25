@@ -86,7 +86,7 @@ PointShadowDepthPass::PointShadowDepthPass()
 
 void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 {
-    MRenderPass::Begin();
+    Begin();
 
     auto& PointLightPrimitives = g_pRenderer->GetPrimitives(EPrimitiveType::PointLight);
     auto& MeshPrimitives = g_pRenderer->GetPrimitives(EPrimitiveType::Mesh);
@@ -122,7 +122,7 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
         }
     }
 
-    MRenderPass::End();
+    End();
 }
 
 void PointShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)

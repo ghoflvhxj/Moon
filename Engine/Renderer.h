@@ -36,7 +36,8 @@ protected:
     // 디퍼드 렌더링을 위한 PrimitiveID - FPrimitiveData 쌍을 저장함
 	std::map<uint32, std::vector<FPrimitiveData>> DeferredPrimitiveDataMap;
     // PrimitiveID - 버텍스 버퍼 쌍을 저장함
-	std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBufferMap;
+    std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBufferMap;
+    std::map<uint32, std::vector<std::shared_ptr<MIndexBuffer>>> IndexBufferMap;
 
     //임시
 public:

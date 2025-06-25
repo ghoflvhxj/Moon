@@ -21,7 +21,7 @@ template <class T>
 const bool createMainGame(std::shared_ptr<T> &pGame)
 {
 	std::shared_ptr<T> pMainGame = std::make_shared<T>();
-	pMainGame->MainGame::initialize();
+	pMainGame->initialize();
 	pGame = pMainGame;
 
 	return true;

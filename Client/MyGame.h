@@ -9,6 +9,7 @@ class MCamera;
 class Actor;
 class Player;
 class StaticMeshComponent;
+class MStaticMeshActor;
 
 class MyGame : public MainGame
 {
@@ -27,9 +28,8 @@ protected:
 	virtual void render() override;
 
 private:
-	std::shared_ptr<Actor> MyActor;
+    std::shared_ptr<MStaticMeshActor> LanternActor;
     std::shared_ptr<MStaticMeshActor> ClothActor;
-	std::shared_ptr<SphereComponent> a;
 
 private:
 	std::shared_ptr<Player> _pPlayer;
@@ -43,5 +43,4 @@ private:
 	bool bButtonPressed = false;
 	bool bStaticCollision = true;
 	float Force = 0.f;
-	std::shared_ptr<StaticMeshComponent> Lantern;
 };

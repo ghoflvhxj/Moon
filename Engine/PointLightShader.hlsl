@@ -58,7 +58,7 @@ PixelOut_LightPass main(PixelIn pIn)
     //--------------------------------------------------------------------------------------------------
     // 그림자
     float ShadowFactor = 0.f;
-    int sampleCount = 5;
+    int sampleCount = 3;
     int temp = sampleCount / 2;
     int Counter = 0;
 

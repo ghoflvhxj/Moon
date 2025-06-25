@@ -17,7 +17,7 @@ VertexOut main(VertexIn vIn)
 
     if (animated)
     {
-        boneTransform *= 0.f;
+        boneTransform = (matrix)0;
         for (int i = 0; i < 4; ++i)
         {
             boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);

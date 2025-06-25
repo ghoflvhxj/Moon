@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __FBXLOADER_H__
 
 #include "FBXSDK/fbxsdk.h"
@@ -20,26 +20,26 @@ public:
 	ThreadPool(size_t num_threads);
 	~ThreadPool();
 
-	// job À» Ãß°¡ÇÑ´Ù.
+	// job ì„ ì¶”ê°€í•œë‹¤.
 	template <class F, class... Args>
 	std::future<std::invoke_result_t<F, Args...>> EnqueueJob(
 		F&& f, Args&&... args);
 
 private:
-	// ÃÑ Worker ¾²·¹µåÀÇ °³¼ö.
+	// ì´ Worker ì“°ë ˆë“œì˜ ê°œìˆ˜.
 	size_t num_threads_;
-	// Worker ¾²·¹µå¸¦ º¸°üÇÏ´Â º¤ÅÍ.
+	// Worker ì“°ë ˆë“œë¥¼ ë³´ê´€í•˜ëŠ” ë²¡í„°.
 	std::vector<std::thread> worker_threads_;
-	// ÇÒÀÏµéÀ» º¸°üÇÏ´Â job Å¥.
+	// í• ì¼ë“¤ì„ ë³´ê´€í•˜ëŠ” job í.
 	std::queue<std::function<void()>> jobs_;
-	// À§ÀÇ job Å¥¸¦ À§ÇÑ cv ¿Í m.
+	// ìœ„ì˜ job íë¥¼ ìœ„í•œ cv ì™€ m.
 	std::condition_variable cv_job_q_;
 	std::mutex m_job_q_;
 
-	// ¸ğµç ¾²·¹µå Á¾·á
+	// ëª¨ë“  ì“°ë ˆë“œ ì¢…ë£Œ
 	bool stop_all;
 
-	// Worker ¾²·¹µå
+	// Worker ì“°ë ˆë“œ
 	void WorkerThread();
 };
 
@@ -47,7 +47,7 @@ template <class F, class... Args>
 std::future<std::invoke_result_t<F, Args...>> ThreadPool::EnqueueJob(
 	F&& f, Args&&... args) {
 	if (stop_all) {
-		throw std::runtime_error("ThreadPool »ç¿ë ÁßÁöµÊ");
+		throw std::runtime_error("ThreadPool ì‚¬ìš© ì¤‘ì§€ë¨");
 	}
 
 	using return_type = std::invoke_result_t<F, Args...>;
@@ -84,6 +84,52 @@ public:
 	std::chrono::system_clock::time_point _start;
 };
 
+struct FVertexKey
+{
+    FVertexKey() = default;
+    FVertexKey(const FVertexKey& Rhs) = default;
+    FVertexKey(int a0, int a, int b, int c, int d)
+        : ControlPointIndex(a0), UVIndex(a), NormalIndex(b), TangentIndex(c), BiNormalIndex(d)
+    {
+
+    }
+    FVertexKey(FVertexKey&& Rhs) = default;
+
+    int ControlPointIndex = -1;
+    int UVIndex = -1;
+    int NormalIndex = -1;
+    int TangentIndex = -1;
+    int BiNormalIndex = -1;
+
+    bool operator==(const FVertexKey& Rhs) const
+    {
+        return ControlPointIndex == Rhs.ControlPointIndex && UVIndex == Rhs.UVIndex && NormalIndex == Rhs.NormalIndex && TangentIndex == Rhs.TangentIndex && BiNormalIndex == Rhs.BiNormalIndex;
+    }
+};
+
+namespace std
+{
+    template<>
+    struct hash<FVertexKey>
+    {
+        size_t operator()(const FVertexKey& Data) const
+        {
+            size_t h0 = std::hash<int>{}(Data.ControlPointIndex);
+            size_t h1 = std::hash<int>{}(Data.UVIndex);
+            size_t h2 = std::hash<int>{}(Data.NormalIndex);
+            size_t h3 = std::hash<int>{}(Data.TangentIndex);
+            size_t h4 = std::hash<int>{}(Data.BiNormalIndex);
+
+            size_t h = h0;
+            h ^= h1 + 0x9e3779b9 + (h << 6) + (h >> 2);
+            h ^= h2 + 0x9e3779b9 + (h << 6) + (h >> 2);
+            h ^= h3 + 0x9e3779b9 + (h << 6) + (h >> 2);
+            h ^= h4 + 0x9e3779b9 + (h << 6) + (h >> 2);
+
+            return h;
+        }
+    };
+}
 
 class MTexture;
 
@@ -117,7 +163,7 @@ private:
 	fbxsdk::FbxScene				*_pScene = nullptr;
 
 public:
-	// ¾Ö´Ï¸ŞÀÌ¼Ç °ü·Ã µ¥ÀÌÅÍ
+	// ì• ë‹ˆë©”ì´ì…˜ ê´€ë ¨ ë°ì´í„°
 	fbxsdk::FbxSkeleton				*_pSkeleton = nullptr;
 	fbxsdk::FbxAnimStack			*_pAnimStack = nullptr;
 	std::vector<FJoint>				_jointList;
@@ -129,10 +175,10 @@ private:
 private:
 	void parseMeshNode(fbxsdk::FbxNode *pNode, const uint32 meshIndex);
 	void loadPosition(Vertex &vertex, const int controlPointIndex);
-	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
-	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
-	void loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
-	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
+	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
+	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
+	void loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
+	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
 	void loadAnimation();
 private:
 	void loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName);
@@ -156,14 +202,15 @@ public:
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
+    // ControlPointì— í•´ë‹¹í•˜ëŠ” ì •ì ë“¤ì˜ ì¸ë±ìŠ¤ ì €ì¥
 	std::vector<std::map<int, std::vector<int>>> _indexMap;
 	
 	std::vector<TextureList>	_texturesList;
 
-	//// »ç¿ëµÈ ÅØ½ºÃÄ
+	//// ì‚¬ìš©ëœ í…ìŠ¤ì³
 	//std::vector<MTexture> _texturesList;
 
-	//// ¸ÅÅÍ¸®¾ó - ÅØ½ºÃ³ ÀÎµ¦½º ¹ÙÀÎµù
+	//// ë§¤í„°ë¦¬ì–¼ - í…ìŠ¤ì²˜ ì¸ë±ìŠ¤ ë°”ì¸ë”©
 	//std::vector<uint32, std::vector<uint32>> MaterialTextureIndicesMap;
 
 	std::vector<uint32>			_linkList;
@@ -172,7 +219,7 @@ private:
 public:
 	void getBoundingBoxInfo(Vec3 &min, Vec3 &max) { min = MinPosition, max = MaxPosition; }
 private:
-	// ¹Ù¿îµù ¹Ú½º¿ë
+	// ë°”ìš´ë”© ë°•ìŠ¤ìš©
 	Vec3 MinPosition;
 	Vec3 MaxPosition;
 

@@ -53,6 +53,13 @@ const bool MainGame::Loop()
 
 	Tick(_deltaTime);
 	Update(_deltaTime);
+    
+    if (g_pPhysics)
+    {
+        g_pPhysics->Update(_deltaTime);
+    }
+
+    PostUpdate(_deltaTime);
 
 	if (g_pRenderer && g_pGraphicDevice)
 	{
@@ -61,12 +68,7 @@ const bool MainGame::Loop()
         g_pGraphicDevice->End();
 	}
 
-	if (g_pPhysics)
-	{
-		g_pPhysics->Update(_deltaTime);
-	}
-
-	_deltaTime = 0.f;
+    _deltaTime = 0.f;
 
 	return true;
 }
