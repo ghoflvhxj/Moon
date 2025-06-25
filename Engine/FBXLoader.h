@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #ifndef __FBXLOADER_H__
 
 #include "FBXSDK/fbxsdk.h"
@@ -20,26 +20,26 @@ public:
 	ThreadPool(size_t num_threads);
 	~ThreadPool();
 
-	// job À» Ãß°¡ÇÑ´Ù.
+	// job ì„ ì¶”ê°€í•œë‹¤.
 	template <class F, class... Args>
 	std::future<std::invoke_result_t<F, Args...>> EnqueueJob(
 		F&& f, Args&&... args);
 
 private:
-	// ÃÑ Worker ¾²·¹µåÀÇ °³¼ö.
+	// ì´ Worker ì“°ë ˆë“œì˜ ê°œìˆ˜.
 	size_t num_threads_;
-	// Worker ¾²·¹µå¸¦ º¸°üÇÏ´Â º¤ÅÍ.
+	// Worker ì“°ë ˆë“œë¥¼ ë³´ê´€í•˜ëŠ” ë²¡í„°.
 	std::vector<std::thread> worker_threads_;
-	// ÇÒÀÏµéÀ» º¸°üÇÏ´Â job Å¥.
+	// í• ì¼ë“¤ì„ ë³´ê´€í•˜ëŠ” job í.
 	std::queue<std::function<void()>> jobs_;
-	// À§ÀÇ job Å¥¸¦ À§ÇÑ cv ¿Í m.
+	// ìœ„ì˜ job íë¥¼ ìœ„í•œ cv ì™€ m.
 	std::condition_variable cv_job_q_;
 	std::mutex m_job_q_;
 
-	// ¸ğµç ¾²·¹µå Á¾·á
+	// ëª¨ë“  ì“°ë ˆë“œ ì¢…ë£Œ
 	bool stop_all;
 
-	// Worker ¾²·¹µå
+	// Worker ì“°ë ˆë“œ
 	void WorkerThread();
 };
 
@@ -47,7 +47,7 @@ template <class F, class... Args>
 std::future<std::invoke_result_t<F, Args...>> ThreadPool::EnqueueJob(
 	F&& f, Args&&... args) {
 	if (stop_all) {
-		throw std::runtime_error("ThreadPool »ç¿ë ÁßÁöµÊ");
+		throw std::runtime_error("ThreadPool ì‚¬ìš© ì¤‘ì§€ë¨");
 	}
 
 	using return_type = std::invoke_result_t<F, Args...>;
@@ -117,7 +117,7 @@ private:
 	fbxsdk::FbxScene				*_pScene = nullptr;
 
 public:
-	// ¾Ö´Ï¸ŞÀÌ¼Ç °ü·Ã µ¥ÀÌÅÍ
+	// ì• ë‹ˆë©”ì´ì…˜ ê´€ë ¨ ë°ì´í„°
 	fbxsdk::FbxSkeleton				*_pSkeleton = nullptr;
 	fbxsdk::FbxAnimStack			*_pAnimStack = nullptr;
 	std::vector<FJoint>				_jointList;
@@ -156,14 +156,14 @@ public:
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
-	std::vector<std::map<int, std::vector<int>>> _indexMap;
+	std::vector<std::map<int, int>> _indexMap;
 	
 	std::vector<TextureList>	_texturesList;
 
-	//// »ç¿ëµÈ ÅØ½ºÃÄ
+	//// ì‚¬ìš©ëœ í…ìŠ¤ì³
 	//std::vector<MTexture> _texturesList;
 
-	//// ¸ÅÅÍ¸®¾ó - ÅØ½ºÃ³ ÀÎµ¦½º ¹ÙÀÎµù
+	//// ë§¤í„°ë¦¬ì–¼ - í…ìŠ¤ì²˜ ì¸ë±ìŠ¤ ë°”ì¸ë”©
 	//std::vector<uint32, std::vector<uint32>> MaterialTextureIndicesMap;
 
 	std::vector<uint32>			_linkList;
@@ -172,7 +172,7 @@ private:
 public:
 	void getBoundingBoxInfo(Vec3 &min, Vec3 &max) { min = MinPosition, max = MaxPosition; }
 private:
-	// ¹Ù¿îµù ¹Ú½º¿ë
+	// ë°”ìš´ë”© ë°•ìŠ¤ìš©
 	Vec3 MinPosition;
 	Vec3 MaxPosition;
 

@@ -146,7 +146,9 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 						int controlPointIndex = pCluster->GetControlPointIndices()[j];
 
 						// 컨트롤 포인트가 공유되는 버텍스들의 인덱스를 가져옴
-						std::vector<int>& vertexIndices = _indexMap[meshIndex][controlPointIndex];
+						//std::vector<int>& vertexIndices = _indexMap[meshIndex][controlPointIndex];
+                        std::vector<int> vertexIndices;
+                        vertexIndices.push_back(_indexMap[meshIndex][controlPointIndex]);
 						for (int vertexIndex : vertexIndices)
 						{
 							if (_verticesList[meshIndex][vertexIndex].BlendIndex[0] == 0)
@@ -397,6 +399,8 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 
 	linkMaterial(pNode);
 
+    //FBXMesh->GetPolygonVertices();
+    std::set<int> Loaded;
 	for (int i = 0; i < polygonCount; ++i)
 	{
 		for (int j = 0; j < 3; ++j)
@@ -404,14 +408,21 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 			int controlPointIndex = FBXMesh->GetPolygonVertex(i, j);
 			int vertexIndex = (3 * i) + j;
 
+            _indicesList[meshIndex].push_back(controlPointIndex); // 수정해야 함
+            _indexMap[meshIndex][controlPointIndex] = vertexIndex;
+
+            if (Loaded.find(controlPointIndex) != Loaded.end())
+            {
+                continue;
+            }
+
+            Loaded.emplace(controlPointIndex);
+
 			loadPosition(_verticesList[meshIndex][vertexIndex], controlPointIndex);
 			loadUV(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
 			loadNormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
 			loadTangent(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
 			loadBinormal(_verticesList[meshIndex][vertexIndex], controlPointIndex, vertexCounter);
-			_indicesList[meshIndex].push_back((3 * i) + j); // 수정해야 함
-			
-			_indexMap[meshIndex][controlPointIndex].emplace_back(vertexIndex);
 
 			++vertexCounter;
 		}
@@ -595,6 +606,12 @@ void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const i
 void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
 {
 	FbxGeometryElementTangent *element = FBXMesh->GetElementTangent(0);
+
+    if (element == nullptr)
+    {
+        return;
+    }
+
 	switch (element->GetMappingMode())
 	{
 	case FbxLayerElement::EMappingMode::eByControlPoint:
@@ -664,6 +681,12 @@ void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const 
 void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter)
 {
 	FbxGeometryElementBinormal *element = FBXMesh->GetElementBinormal(0);
+
+    if (element == nullptr)
+    {
+        return;
+    }
+
 	switch (element->GetMappingMode())
 	{
 	case FbxLayerElement::EMappingMode::eByControlPoint:
