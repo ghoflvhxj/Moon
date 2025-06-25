@@ -22,52 +22,52 @@ MBoundingBox::MBoundingBox(const Vec3 &min, const Vec3 &max)
 	, _max(max)
 {
 	// 정면
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
+	_vertices.push_back({ Vec4{ _min.x, _min.y, _min.z, 1.f } });
+	_vertices.push_back({ Vec4{ _min.x, _max.y, _min.z, 1.f } });
+	_vertices.push_back({ Vec4{ _max.x, _max.y, _min.z, 1.f } });
+	_vertices.push_back({ Vec4{ _min.x, _min.y, _min.z, 1.f } });
+	_vertices.push_back({ Vec4{ _max.x, _max.y, _min.z, 1.f } });
+	_vertices.push_back({ Vec4{ _max.x, _min.y, _min.z, 1.f } });
 
 	// 왼쪽면
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
+    _vertices.push_back({ Vec4{ _min.x, _min.y, _min.z, 1.f } });
+    _vertices.push_back({ Vec4{ _min.x, _min.y, _max.z, 1.f } });
+    _vertices.push_back({ Vec4{ _min.x, _max.y, _min.z, 1.f } });
+    _vertices.push_back({ Vec4{ _min.x, _max.y, _max.z, 1.f } });
+    _vertices.push_back({ Vec4{ _min.x, _min.y, _min.z, 1.f } });
+    _vertices.push_back({ Vec4{ _min.x, _min.y, _max.z, 1.f } });
 
 	// 아랫면
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
+    _vertices.push_back({ Vec4{ _min.x, _min.y, _min.z, 1.f } });
+    _vertices.push_back({ Vec4{ _min.x, _min.y, _max.z, 1.f } });
+    _vertices.push_back({ Vec4{ _max.x, _min.y, _max.z, 1.f } });
+    _vertices.push_back({ Vec4{ _min.x, _min.y, _min.z, 1.f } });
+    _vertices.push_back({ Vec4{ _max.x, _min.y, _max.z, 1.f } });
+    _vertices.push_back({ Vec4{ _max.x, _min.y, _min.z, 1.f } });
 
 	// 오른쪽면
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
+    _vertices.push_back({ Vec4{ _max.x, _max.y, _max.z, 1.f } });
+    _vertices.push_back({ Vec4{ _max.x, _min.y, _max.z, 1.f } });
+    _vertices.push_back({ Vec4{ _max.x, _min.y, _min.z, 1.f } });
+    _vertices.push_back({ Vec4{ _max.x, _max.y, _max.z, 1.f } });
+    _vertices.push_back({ Vec4{ _max.x, _min.y, _min.z, 1.f } });
+    _vertices.push_back({ Vec4{ _max.x, _max.y, _min.z, 1.f } });
 
 	// 윗면
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _min.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
+	_vertices.push_back({ Vec4{ _max.x, _max.y, _max.z, 1.f } });
+	_vertices.push_back({ Vec4{ _max.x, _max.y, _min.z, 1.f } });
+	_vertices.push_back({ Vec4{ _min.x, _max.y, _min.z, 1.f } });
+	_vertices.push_back({ Vec4{ _max.x, _max.y, _max.z, 1.f } });
+	_vertices.push_back({ Vec4{ _min.x, _max.y, _min.z, 1.f } });
+	_vertices.push_back({ Vec4{ _min.x, _max.y, _max.z, 1.f } });
 
 	// 뒷면
-	_vertices.push_back({ Vec3{ _max.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _max.x, _min.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _max.y, _max.z } });
-	_vertices.push_back({ Vec3{ _min.x, _min.y, _max.z } });
+	_vertices.push_back({ Vec4{ _max.x, _max.y, _max.z, 1.f } });
+	_vertices.push_back({ Vec4{ _min.x, _max.y, _max.z, 1.f } });
+	_vertices.push_back({ Vec4{ _max.x, _min.y, _max.z, 1.f } });
+	_vertices.push_back({ Vec4{ _max.x, _min.y, _max.z, 1.f } });
+	_vertices.push_back({ Vec4{ _min.x, _max.y, _max.z, 1.f } });
+	_vertices.push_back({ Vec4{ _min.x, _min.y, _max.z, 1.f } });
 
 	//_pVertexBuffer = std::make_shared<MVertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
 

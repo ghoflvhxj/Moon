@@ -20,19 +20,19 @@ VertexOut main(VertexIn vIn)
 	
     VertexOut vOut;
 
-    // °øÅë ¿¬»ê Ä³½Ì
+    // ê³µí†µ ì—°ì‚° ìºì‹±
     matrix worldView = mul(worldMatrix, viewMatrix);
     matrix worldViewProj = mul(worldView, projectionMatrix);
     //float4 localPos = float4(vIn.pos, 1.f);
     //matrix boneTransform = keyFrameMatrices[vIn.blendIndex[0]];
-    float4 animatedPos = mul(float4(vIn.pos, 1.f), keyFrameMatrices[vIn.blendIndex[0]]);
+    float4 animatedPos = mul(float4(vIn.pos.xyz, 1.f), keyFrameMatrices[vIn.blendIndex[0]]);
     
-    // º¯È¯µÈ ÁÂÇ¥ °è»ê
+    // ë³€í™˜ëœ ì¢Œí‘œ ê³„ì‚°
     vOut.pos = mul(animatedPos, worldViewProj);
     vOut.worldPos = mul(animatedPos, worldMatrix).xyz;
     vOut.Clip = float2(0.f, 0.f);
 
-    // ¹ı¼±, ÅºÁ¨Æ®, ¹ÙÀÌ³ë¸Ö °è»ê
+    // ë²•ì„ , íƒ„ì  íŠ¸, ë°”ì´ë…¸ë©€ ê³„ì‚°
     float4 normal = float4(vIn.normal, 0.f);
     float4 tangent = float4(vIn.tangent, 0.f);
     float4 binormal = float4(vIn.binormal, 0.f);
@@ -41,7 +41,7 @@ VertexOut main(VertexIn vIn)
     vOut.tangent = mul(tangent, worldView).xyz;
     vOut.binormal = mul(binormal, worldView).xyz;
 
-    // ÅØ½ºÃ³ ÁÂÇ¥ Àü´Ş
+    // í…ìŠ¤ì²˜ ì¢Œí‘œ ì „ë‹¬
     vOut.uv = vIn.uv;
 
     return vOut;

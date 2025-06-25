@@ -2,7 +2,7 @@
 
 struct VertexIn
 {
-	float3 pos				: POSITION0;
+	float4 pos				: POSITION0;
 	float4 color			: COLOR0;
 	float2 uv				: TEXCOORD0;
 	float3 normal			: NORMAL0;

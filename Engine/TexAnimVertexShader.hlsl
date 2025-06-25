@@ -24,7 +24,7 @@ VertexOut main(VertexIn vIn)
         }
     }
 	
-	float3 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);
+	float3 animatedPos = mul(float4(vIn.pos.xyz, 1.f), boneTransform);
     vOut.pos = mul(float4(animatedPos, 1.f), worldViewProj);
     vOut.worldPos = mul(float4(animatedPos, 1.f), worldMatrix).xyz;
 	vOut.uv			= vIn.uv;

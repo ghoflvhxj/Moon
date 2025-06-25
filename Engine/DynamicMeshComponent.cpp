@@ -45,7 +45,7 @@ Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 	for (uint32 i = 0; i < 199; ++i)
 	{
 		auto &trans = dynamicMesh->getJoints()[i]._position;
-		_vertices.push_back({ Vec3{ trans.x, trans.y, trans.z } });
+		_vertices.push_back({ Vec4{ trans.x, trans.y, trans.z, 1.f } });
 		_vertices.back().BlendIndex[0] = i;
 		_vertices.back().BlendWeight.x = 1.f;
 
@@ -53,13 +53,13 @@ Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 		if (parentIndex != -1)
 		{
 			auto &parentTrans = dynamicMesh->getJoints()[parentIndex]._position;
-			_vertices.push_back({ Vec3{ parentTrans.x, parentTrans.y, parentTrans.z } });
+			_vertices.push_back({ Vec4{ parentTrans.x, parentTrans.y, parentTrans.z, 1.f } });
 			_vertices.back().BlendIndex[0] = parentIndex;
 			_vertices.back().BlendWeight.x = 1.f;
 		}
 		else
 		{
-			_vertices.push_back({ Vec3{ trans.x, trans.y, trans.z } });
+			_vertices.push_back({ Vec4{ trans.x, trans.y, trans.z, 1.f } });
 		}
 	}
 

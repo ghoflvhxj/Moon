@@ -200,7 +200,7 @@ void MainGame::Pick()
         for (int i = 0; i < Loop; ++i)
         {
             float Distance = 0.f;
-            if (TriangleTests::Intersects(Start, Dir, XMLoadFloat3(&Vertices[Indices[i * 3 + 0]].Pos), XMLoadFloat3(&Vertices[Indices[i * 3 + 1]].Pos), XMLoadFloat3(&Vertices[Indices[i * 3 + 2]].Pos), Distance))
+            if (TriangleTests::Intersects(Start, Dir, XMLoadFloat4(&Vertices[Indices[i * 3 + 0]].Pos), XMLoadFloat4(&Vertices[Indices[i * 3 + 1]].Pos), XMLoadFloat4(&Vertices[Indices[i * 3 + 2]].Pos), Distance))
             {
                 std::cout << "Intersect!" << std::endl;
                 return;

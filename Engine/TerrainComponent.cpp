@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "TerrainComponent.h"
 
 #include "GraphicDevice.h"
@@ -46,13 +46,13 @@ void TerrainComponent::initializeMeshInfromation()
 	uint32 vertexNumY = _tileNumY + 1;
 	uint32 triNum = 2 * (vertexNumX - 1) * (vertexNumY - 1);
 
-	// ¹öÅØ½º
+	// ë²„í…ìŠ¤
 	_vertexList.reserve(vertexNumX * vertexNumY);
 	for (uint32 i = 0; i < vertexNumY; ++i)
 	{
 		for (uint32 j = 0; j < vertexNumX; ++j)
 		{
-			Vec3 pos = { j * _interval, 0.f , i * _interval };
+			Vec4 pos = { j * _interval, 0.f , i * _interval, 1.f };
 			Vec2 uv = { 1.f * j, 1.f * (_tileNumY - i) };
 			Vec3 normal = { 0.f, 1.f, 0.f };
 			Vec3 tangent = { 1.f, 0.f, 0.f };
@@ -61,7 +61,7 @@ void TerrainComponent::initializeMeshInfromation()
 		}
 	}
 
-	// ÀÎµ¦½º
+	// ì¸ë±ìŠ¤
 	_indexList.reserve(3 * triNum);
 	for (TileNum i = 0; i < _tileNumY; ++i)
 	{
@@ -81,7 +81,7 @@ void TerrainComponent::initializeMeshInfromation()
 
 	_pMaterial = std::make_shared<MMaterial>();
 	_pMaterial->setTextures(_textureList);
-	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // Åø¿¡¼­ ¼³Á¤ÇÑ ½¦ÀÌ´õ¸¦ ÀĞ¾î¾ß ÇÏ´Âµ¥, Áö±İÀº ¾øÀ¸´Ï±î ±×³É ÀÓ½Ã·Î ¶«»§
+	_pMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso")); // íˆ´ì—ì„œ ì„¤ì •í•œ ì‰ì´ë”ë¥¼ ì½ì–´ì•¼ í•˜ëŠ”ë°, ì§€ê¸ˆì€ ì—†ìœ¼ë‹ˆê¹Œ ê·¸ëƒ¥ ì„ì‹œë¡œ ë•œë¹µ
 }
 
 //void TerrainComponent::render()
@@ -106,15 +106,15 @@ const TerrainComponent::TileInterval TerrainComponent::getTileInterval() const
 
 const bool TerrainComponent::Test(const Vec3 &pos, float *pY)
 {
-	// ÇöÀç À§Ä¡ÀÇ Å¸ÀÏ ±¸ÇÏ±â
+	// í˜„ì¬ ìœ„ì¹˜ì˜ íƒ€ì¼ êµ¬í•˜ê¸°
 	const TileNum tileX = static_cast<TileNum>(pos.x / _interval);
 	const TileNum tileY = static_cast<TileNum>(pos.z / _interval);
 	const uint32 index = tileX + (tileY * _tileNumX);
 
-	// ÇØ´ç Å¸ÀÏÀÇ ¹öÅØ½º ÀÎµ¦½º ±¸ÇÏ±â
+	// í•´ë‹¹ íƒ€ì¼ì˜ ë²„í…ìŠ¤ ì¸ë±ìŠ¤ êµ¬í•˜ê¸°
 	Index base = index * 6;
 
-	// Å¸ÀÏÀÇ ¾î´À »ï°¢Çü¿¡ ÀÖ´ÂÁö ±¸ÇÏ±â
+	// íƒ€ì¼ì˜ ì–´ëŠ ì‚¼ê°í˜•ì— ìˆëŠ”ì§€ êµ¬í•˜ê¸°
 	float xzRatio = pos.x - (int)pos.x / pos.z - (int)pos.z;
 	bool isRight = false;
 	if (xzRatio <= 1.f)
@@ -123,11 +123,11 @@ const bool TerrainComponent::Test(const Vec3 &pos, float *pY)
 		base += 3;
 	}
 
-	// Æò¸ÕÀÇ ¹æÁ¤½Ä ÀÌ¿ëÇØ¼­ y°ª ±¸ÇÏ±â
+	// í‰ë¨¼ì˜ ë°©ì •ì‹ ì´ìš©í•´ì„œ yê°’ êµ¬í•˜ê¸°
 	XMVECTOR points[3] = {
-		XMLoadFloat3(&_vertexList[_indexList[base + 0]].Pos),
-		XMLoadFloat3(&_vertexList[_indexList[base + 1]].Pos),
-		XMLoadFloat3(&_vertexList[_indexList[base + 2]].Pos),
+		XMLoadFloat4(&_vertexList[_indexList[base + 0]].Pos),
+		XMLoadFloat4(&_vertexList[_indexList[base + 1]].Pos),
+		XMLoadFloat4(&_vertexList[_indexList[base + 2]].Pos),
 	};
 	XMVECTOR plane = XMPlaneFromPoints(points[0], points[1], points[2]);
 	Vec4 p;
@@ -151,7 +151,7 @@ void TerrainComponent::setTexture(const uint32 index, std::shared_ptr<MTexture> 
 {
 	_textureList[index] = pTexture;
 
-	// ¸ÅÅÍ¸®¾ó¿¡ »õ·Î¿î ÅØ½ºÃÄ¸¦ ¹ÙÀÎµù ÇØÁÜ
+	// ë§¤í„°ë¦¬ì–¼ì— ìƒˆë¡œìš´ í…ìŠ¤ì³ë¥¼ ë°”ì¸ë”© í•´ì¤Œ
 	_pMaterial->setTextures(_textureList);
 }
 
