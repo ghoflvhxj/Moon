@@ -77,11 +77,11 @@ void MVertexBuffer::UpdateUsingCUDA(PxDeformableSurface* DeformableSurface, uint
     CUdeviceptr devPtr = reinterpret_cast<CUdeviceptr>(DeformableSurface->getPositionInvMassBufferD());
     cuMemcpyDtoH(hostBuf.data(), devPtr, sizeof(PxVec4) * VertexNum);
 
-    for (int i = 0; i < VertexNum; ++i)
-    {
-        std::cout << "Begin SimulatedPos: " << hostBuf[i].x << ", " << hostBuf[i].y << ", " << hostBuf[i].z << std::endl;
-    }
-    std::cout << "End SimulatedPos" << std::endl;
+    //for (int i = 0; i < VertexNum; ++i)
+    //{
+    //    std::cout << "Begin SimulatedPos: " << hostBuf[i].x << ", " << hostBuf[i].y << ", " << hostBuf[i].z << std::endl;
+    //}
+    //std::cout << "End SimulatedPos" << std::endl;
 
     CUstream stream = nullptr;
     cuStreamCreate(&stream, CU_STREAM_DEFAULT);

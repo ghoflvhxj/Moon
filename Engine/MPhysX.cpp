@@ -24,7 +24,7 @@ PhysXX::PhysXX()
     CudaContextManagerDesc.graphicsDevice = nullptr; // GPU사용하지 않음
     CudaContextManager = PxCreateCudaContextManager(*Foundation, CudaContextManagerDesc, PxGetProfilerCallback());
 
-	CpuDispatcher = PxDefaultCpuDispatcherCreate(1);
+	CpuDispatcher = PxDefaultCpuDispatcherCreate(4);
     PxSceneDesc SceneDesc = { Physics->getTolerancesScale() };
     SceneDesc.gravity = { 0.f, -9.8f, 0.f };
 	SceneDesc.cpuDispatcher = CpuDispatcher;
@@ -41,7 +41,7 @@ PhysXX::PhysXX()
 	//PxShape* PalneShape = Physics->createShape(PxPlaneGeometry(), *Material);
 	//Plane->attachShape(*PalneShape);
 	//Scene->addActor(*Plane);
-    PxPhysicsGpu* PhysxGpu = PxGetPhysicsGpu();
+    //PxPhysicsGpu* PhysxGpu = PxGetPhysicsGpu();
 }
 
 PhysXX::~PhysXX()

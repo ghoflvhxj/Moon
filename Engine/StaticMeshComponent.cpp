@@ -445,7 +445,7 @@ void StaticMeshComponent::Clothing()
     TriangleMeshDesc.triangles.stride = 3 * sizeof(PxU32);
     TriangleMeshDesc.triangles.count = static_cast<PxU32>(_pStaticMesh->GetMeshData(0)->Indices.size() / 3);
 
-    std::vector<PxU16> materialIndices(_pStaticMesh->GetAllVertexPosition().size(), 0);
+    std::vector<PxU16> materialIndices(999, 0);
     TriangleMeshDesc.materialIndices.stride = sizeof(PxU16);
     TriangleMeshDesc.materialIndices.count = static_cast<PxU32>(materialIndices.size());
     TriangleMeshDesc.materialIndices.data = materialIndices.data();
@@ -463,13 +463,27 @@ void StaticMeshComponent::Clothing()
         PxTriangleMesh* TriangleMesh = (*g_pPhysics)->createTriangleMesh(inStream);
 
         PxTriangleMeshGeometry TriangleMeshGeometry(TriangleMesh);
-        PxDeformableSurfaceMaterial* TriangleMeshMat = (*g_pPhysics)->createDeformableSurfaceMaterial(0.5f, 0.3f, 0.f);
+        PxDeformableSurfaceMaterial* TriangleMeshMat = (*g_pPhysics)->createDeformableSurfaceMaterial(1800.f, 0.49f, 0.9f, 0.5f, 0.5f, 0.9f, 0.5f);
         PxShape* TriangleMeshShape = (*g_pPhysics)->createShape(TriangleMeshGeometry, *TriangleMeshMat, true);
         TriangleMeshShape->setContactOffset(0.02f);
         TriangleMeshShape->setRestOffset(0.01f);
         DeformableSurface = (*g_pPhysics)->createDeformableSurface(*g_pPhysics->Scene->getCudaContextManager());
         DeformableSurface->attachShape(*TriangleMeshShape);
         VertexNum = TriangleMesh->getNbVertices();
+
+        CUdeviceptr devBuf = reinterpret_cast<CUdeviceptr>(DeformableSurface->getPositionInvMassBufferD());
+        std::vector<PxVec4> initBuf(VertexNum);
+        for (int i=0; i<VertexNum; ++i)
+        {
+            Vec4& t = Vertices[i];
+            initBuf[i].x = t.x;
+            initBuf[i].y = t.y;
+            initBuf[i].z = t.z;
+            initBuf[i].w = i == 0 ? 0.f : 5.f;
+        }
+
+        cuMemcpyHtoD(devBuf, initBuf.data(), sizeof(PxVec4) * VertexNum);
+        DeformableSurface->markDirty(PxDeformableSurfaceDataFlag::ePOSITION_INVMASS);
     }
     if (DeformableSurface)
     {
