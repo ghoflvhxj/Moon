@@ -25,7 +25,7 @@ std::unique_ptr<MShaderManager> ShaderManager		= nullptr;
 std::unique_ptr<Renderer> g_pRenderer				= nullptr;
 std::unique_ptr<MainGame> g_pMainGame				= nullptr;
 std::unique_ptr<PhysXX> g_pPhysics					= nullptr;
-std::unique_ptr<MResourceManager> g_ResourceManager	= nullptr;
+ENGINE_DLL std::unique_ptr<MResourceManager> g_ResourceManager	= nullptr;
 		
 
 const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow)
@@ -95,7 +95,7 @@ std::unique_ptr<MainGameSetting>& getSetting()
 
 const bool setGame(std::unique_ptr<MainGame>&& pGame)
 {
-	pGame->MainGame::initialize();
+	pGame->initialize();
 	g_pMainGame = std::move(pGame);
 
 	return true;

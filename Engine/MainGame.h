@@ -25,14 +25,15 @@ public:
 
 	//-------------------------------------------------------------------------
 public:
-	const bool initialize();
+	virtual const bool initialize();
 
 public:
 	const bool Loop();
 protected:
 	virtual void Tick(const Time deltaTime);
 private:
-	void Update(const Time deltaTime);
+    void Update(const Time deltaTime);
+    virtual void PostUpdate(const Time deltaTime) {}
 
 public:	
 	// 디버깅 할 때 쓰는 용도
