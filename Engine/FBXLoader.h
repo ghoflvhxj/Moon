@@ -202,7 +202,8 @@ public:
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
-	std::vector<std::map<int, int>> _indexMap;
+    // ControlPoint에 해당하는 정점들의 인덱스 저장
+	std::vector<std::map<int, std::vector<int>>> _indexMap;
 	
 	std::vector<TextureList>	_texturesList;
 

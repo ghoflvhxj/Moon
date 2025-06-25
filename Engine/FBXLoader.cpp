@@ -146,9 +146,7 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 						int controlPointIndex = pCluster->GetControlPointIndices()[j];
 
 						// 컨트롤 포인트가 공유되는 버텍스들의 인덱스를 가져옴
-						//std::vector<int>& vertexIndices = _indexMap[meshIndex][controlPointIndex];
-                        std::vector<int> vertexIndices;
-                        vertexIndices.push_back(_indexMap[meshIndex][controlPointIndex]);
+						std::vector<int>& vertexIndices = _indexMap[meshIndex][controlPointIndex];
 						for (int vertexIndex : vertexIndices)
 						{
 							if (_verticesList[meshIndex][vertexIndex].BlendIndex[0] == 0)
@@ -427,8 +425,10 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
             // 등록안된 정점이면 정점으로 추가해줌
             if (Loaded.find(VertexKey) == Loaded.end())
             {
-                Loaded[VertexKey] = vertexCounter++;
+                Loaded[VertexKey] = vertexCounter;
                 MeshVertices.push_back(NewVertex);
+                _indexMap[meshIndex][controlPointIndex].push_back(vertexCounter);
+                ++vertexCounter;
             }
 
             // 정점의 인덱스를 설정해 줌.
