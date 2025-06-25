@@ -101,6 +101,8 @@ void MRenderPass::Begin()
 
 void MRenderPass::End()
 {
+    g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->m_pInputLayout);
+
     // 쉐이더 리소스 뷰 해제
     uint32 ResorceViewNum = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
 	std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
@@ -200,7 +202,20 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
     UINT offset = 0;
 
     // IA에 버텍스 버퍼 설정
+    g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->m_pInputLayout);
     PrimitiveData.VertexBuffer->setBufferToDevice(stride, offset);
+
+    // 포인트 라이트 쉐도우 패스에서 메시를 렌더링 함.
+    // 피직스용은 버퍼에 들어있는 정점이 16사이즈인데, InputLayout이 일반 버텍스 사이즈로 112임
+    // 패스의 자체 쉐이더를 사용하기 때문에 아래 조건문은 타지 않음
+
+    // 피직스용
+    if(_vertexShader == nullptr && PrimitiveData.InputLayout != nullptr)
+    {
+        stride = sizeof(Graphic::VERTEX_SIMPLE);
+        g_pGraphicDevice->getContext()->IASetInputLayout(PrimitiveData.InputLayout);
+        PrimitiveData.VertexBuffer->setBufferToDevice(stride, offset);
+    }
 
     // IA에 인덱스 버퍼 설정
     if (nullptr != PrimitiveData.IndexBuffer)

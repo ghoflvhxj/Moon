@@ -4,6 +4,20 @@
 
 namespace Graphic
 {
+    struct VERTEX_SIMPLE
+    {
+        Vec4 Pos;
+        static void getDesc(std::vector<D3D11_INPUT_ELEMENT_DESC>& inputDescVector)
+        {
+            D3D11_INPUT_ELEMENT_DESC inputDesc[] = {
+                {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
+            };
+
+            inputDescVector.assign(std::begin(inputDesc), std::end(inputDesc));
+        }
+
+    };
+
 	struct VERTEX_COLOR
 	{
 		Vec3 Pos;

@@ -261,6 +261,19 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent>& InPrimitiveCom
 			uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
 			uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
 			const void* Buffer = MeshData->Vertices.data();
+
+            // 피직스 테스트용
+            std::vector<Vec4> PXVertices;
+            if (PrimitiveData.InputLayout != nullptr)
+            {
+                for (Vertex& Vtx : MeshData->Vertices)
+                {
+                    PXVertices.push_back({Vtx.Pos.x, Vtx.Pos.y, Vtx.Pos.z, 1.f});
+                }
+                VertexSize = sizeof(Graphic::VERTEX_SIMPLE);
+                Buffer = PXVertices.data();
+            }
+
 			VertexBufferMap[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer));
 		}
 

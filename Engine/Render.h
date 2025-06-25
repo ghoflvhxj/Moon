@@ -111,6 +111,8 @@ struct FPrimitiveData
 	// 다이나믹 메쉬용
 	Mat4* _matrices = nullptr;
 	uint32 _jointCount;
+
+    struct ID3D11InputLayout* InputLayout = nullptr;
 };
 
 #define __RENDER_H__

@@ -1,5 +1,11 @@
 ﻿#pragma once
-#ifndef __VERTEX_BUFFER_H__
+
+#include "cuda.h"
+
+namespace physx
+{
+    class PxDeformableSurface;
+}
 
 class MVertexBuffer final
 {
@@ -18,7 +24,9 @@ public:
 	const uint32 getVertexCount() const;
 private:
 	uint32 _vertexCount;
-};
+    uint32 VertexSize;
 
-#define __VERTEX_BUFFER_H__
-#endif
+public:
+    void UpdateUsingCUDA(physx::PxDeformableSurface* DeformableSurface, uint32 VertexNum);
+    CUgraphicsResource CudaResource;
+};

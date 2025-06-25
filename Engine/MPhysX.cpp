@@ -1,7 +1,7 @@
 ﻿#include "Include.h"
 #include "MPhysX.h"
 #include "NvidiaPhysX/extensions/PxDefaultCpuDispatcher.h"
-
+#include "NvidiaPhysX/gpu/PxGpu.h"
 
 #define PVD_HOST "127.0.0.1"
 
@@ -20,12 +20,18 @@ PhysXX::PhysXX()
 	// 피직스
 	Physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Foundation, PxTolerancesScale(), true, VisualDebugger);
 
-	PxSceneDesc SceneDesc = { Physics->getTolerancesScale() };
-	SceneDesc.gravity = { 0.f, -9.8f, 0.f };
+    PxCudaContextManagerDesc CudaContextManagerDesc;
+    CudaContextManagerDesc.graphicsDevice = nullptr; // GPU사용하지 않음
+    CudaContextManager = PxCreateCudaContextManager(*Foundation, CudaContextManagerDesc, PxGetProfilerCallback());
 
 	CpuDispatcher = PxDefaultCpuDispatcherCreate(1);
+    PxSceneDesc SceneDesc = { Physics->getTolerancesScale() };
+    SceneDesc.gravity = { 0.f, -9.8f, 0.f };
 	SceneDesc.cpuDispatcher = CpuDispatcher;
 	SceneDesc.filterShader = PxDefaultSimulationFilterShader;
+    SceneDesc.cudaContextManager = CudaContextManager;
+    SceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
+    SceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
 	Scene = Physics->createScene(SceneDesc);
 	Scene->getScenePvdClient()->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 
@@ -35,6 +41,7 @@ PhysXX::PhysXX()
 	//PxShape* PalneShape = Physics->createShape(PxPlaneGeometry(), *Material);
 	//Plane->attachShape(*PalneShape);
 	//Scene->addActor(*Plane);
+    PxPhysicsGpu* PhysxGpu = PxGetPhysicsGpu();
 }
 
 PhysXX::~PhysXX()
@@ -50,6 +57,7 @@ void PhysXX::Release()
     Physics->release();
     VisualDebugger->release();
     Transport->release();
+    CudaContextManager->release();
     Foundation->release();
 }
 
@@ -67,6 +75,7 @@ void PhysXX::Update(float deltaTime)
 
 	Scene->simulate(deltaTime);
 	Scene->fetchResults(true);
+    Scene->fetchResultsParticleSystem();
 }
 
 bool PhysXX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh)

@@ -252,6 +252,11 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
 		
+        if (bSimpleLayout)
+        {
+            PrimitiveData.InputLayout = g_pGraphicDevice->SimpleLayout;
+        }
+
 		PrimitiveDataList.push_back(PrimitiveData);
 	}
 
@@ -414,6 +419,67 @@ void StaticMeshComponent::SetGravity(bool bGravity)
 		PhysxRigidDynamic->setAngularVelocity(PxVec3(0.f, 0.f, 0.f));
 		PhysxRigidDynamic->wakeUp();
 	}
+}
+
+void StaticMeshComponent::Clothing()
+{
+    // Desc
+    PxTriangleMeshDesc TriangleMeshDesc;
+    std::vector<Vec4> Vertices;
+    for (Vec3 temp : _pStaticMesh->GetAllVertexPosition())
+    {
+        Vertices.push_back({ temp.x, temp.y, temp.z, 1.f });
+    }
+
+    TriangleMeshDesc.points.data = (void*)Vertices.data();
+    TriangleMeshDesc.points.stride = sizeof(PxVec4);
+    TriangleMeshDesc.points.count = static_cast<PxU32>(Vertices.size());
+
+    TriangleMeshDesc.triangles.data = (void*)_pStaticMesh->GetMeshData(0)->Indices.data();
+    TriangleMeshDesc.triangles.stride = 3 * sizeof(PxU32);
+    TriangleMeshDesc.triangles.count = static_cast<PxU32>(_pStaticMesh->GetMeshData(0)->Indices.size() / 3);
+
+    std::vector<PxU16> materialIndices(_pStaticMesh->GetAllVertexPosition().size(), 0);
+    TriangleMeshDesc.materialIndices.stride = sizeof(PxU16);
+    TriangleMeshDesc.materialIndices.count = static_cast<PxU32>(materialIndices.size());
+    TriangleMeshDesc.materialIndices.data = materialIndices.data();
+
+    PxTolerancesScale ToleranceScale;
+    PxCookingParams CookingParams(ToleranceScale);
+    CookingParams.meshPreprocessParams.raise(PxMeshPreprocessingFlag::eFORCE_32BIT_INDICES);
+    CookingParams.meshPreprocessParams.clear(PxMeshPreprocessingFlag::eENABLE_VERT_MAPPING);
+    CookingParams.buildGPUData = true;
+
+    PxDefaultMemoryOutputStream OutStream;
+    if (PxCookTriangleMesh(CookingParams, TriangleMeshDesc, OutStream))
+    {
+        PxDefaultMemoryInputData inStream(OutStream.getData(), OutStream.getSize());
+        PxTriangleMesh* TriangleMesh = (*g_pPhysics)->createTriangleMesh(inStream);
+
+        PxTriangleMeshGeometry TriangleMeshGeometry(TriangleMesh);
+        PxDeformableSurfaceMaterial* TriangleMeshMat = (*g_pPhysics)->createDeformableSurfaceMaterial(0.5f, 0.3f, 0.f);
+        PxShape* TriangleMeshShape = (*g_pPhysics)->createShape(TriangleMeshGeometry, *TriangleMeshMat, true);
+        TriangleMeshShape->setContactOffset(0.02f);
+        TriangleMeshShape->setRestOffset(0.01f);
+        DeformableSurface = (*g_pPhysics)->createDeformableSurface(*g_pPhysics->Scene->getCudaContextManager());
+        DeformableSurface->attachShape(*TriangleMeshShape);
+        VertexNum = TriangleMesh->getNbVertices();
+    }
+    if (DeformableSurface)
+    {
+        g_pPhysics->Scene->addActor(*DeformableSurface);
+    }
+}
+
+void StaticMeshComponent::UpdateClothing()
+{
+    if (DeformableSurface)
+    {
+        if (auto VB = g_pRenderer->GetVertexBuffer(PrimitiveID))
+        {
+            VB->UpdateUsingCUDA(DeformableSurface, VertexNum);
+        }
+    }
 }
 
 void StaticMeshComponent::SetStaticCollision(bool bNewStaticCollision, bool bForce)

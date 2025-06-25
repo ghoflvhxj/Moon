@@ -20,7 +20,7 @@ public:
 	PxDefaultCpuDispatcher* CpuDispatcher = nullptr;
 	PxScene* Scene = nullptr;
 	PxMaterial* Material = nullptr;
-	//PxCooking* Cooking = nullptr;
+    PxCudaContextManager* CudaContextManager = nullptr;
 
 	PxRigidStatic* Plane = nullptr;
 

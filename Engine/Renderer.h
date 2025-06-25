@@ -38,6 +38,12 @@ protected:
     // PrimitiveID - 버텍스 버퍼 쌍을 저장함
 	std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBufferMap;
 
+    //임시
+public:
+    std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId) {
+        return VertexBufferMap[InId][0];
+    }
+
 public:
     const std::vector<FPrimitiveData>& GetPrimitives(EPrimitiveType InPrimitiveType) { return Primitives[InPrimitiveType]; }
     // PrimitiveType - PrimitiveData 쌍을 저장함

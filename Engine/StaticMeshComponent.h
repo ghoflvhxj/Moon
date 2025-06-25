@@ -18,6 +18,7 @@ namespace physx
 	class PxRigidActor;
 	class PxShape;
     class PxMaterial;
+    class PxDeformableSurface;
 };
 
 struct FMeshData
@@ -113,6 +114,14 @@ public:
 	void Temp(float y);
 	void SetGravity(bool bGravity);
 
+    // 피직스 테스트용
+public:
+    void Clothing();
+    void UpdateClothing();
+    void SetSimpleLayout() { bSimpleLayout = true; }
+protected:
+    bool bSimpleLayout = false;
+
 public:
 	void SetStaticCollision(bool bNewCollision, bool bForce = false);
 	void SetMass(float NewMass);
@@ -132,6 +141,8 @@ private:
 	physx::PxRigidDynamic*	PhysXRigidDynamic = nullptr;
 	physx::PxShape*			PhysXShape = nullptr;
     physx::PxMaterial*      PhysxMaterial = nullptr;
+    physx::PxDeformableSurface* DeformableSurface = nullptr;
+    uint32 VertexNum = 0;
     
     // 피직스 렌더링을 위한 임시 메터리얼.
     std::shared_ptr<MMaterial> MaterialForPhysX = nullptr;

@@ -212,6 +212,7 @@
     </ClCompile>
     <ClCompile Include="Source\Core\ResourceManager.cpp" />
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
+    <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -418,6 +419,9 @@
     <ClInclude Include="Source\Core\ResourceLoader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Bone.hlsl" />
@@ -437,6 +441,7 @@
     <FxCompile Include="DirectionalLightShader.hlsl" />
     <FxCompile Include="ShadowDepthPointPS.hlsl" />
     <FxCompile Include="ShadowDepthPointGS.hlsl" />
+    <FxCompile Include="SimpleVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.hlsli" />

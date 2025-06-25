@@ -137,15 +137,29 @@ const bool GraphicDevice::initializeGrahpicDevice()
 
 const bool GraphicDevice::BuildInputLayout()
 {
-	std::vector<D3D11_INPUT_ELEMENT_DESC> inputDescList;
-	Vertex::getDesc(inputDescList);
+    // 디폴트 InputLayout
+    {
+        std::vector<D3D11_INPUT_ELEMENT_DESC> inputDescList;
+        Vertex::getDesc(inputDescList);
 
-    ID3DBlob *pBlob = ShaderManager->getVertexShaderBlob(TEXT("TexVertexShader.cso"));
-	
-	UINT elementCount = static_cast<UINT>(inputDescList.size());
-	FAILED_CHECK_THROW(m_pDevice->CreateInputLayout(&inputDescList[0], elementCount, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &m_pInputLayout));
+        ID3DBlob* pBlob = ShaderManager->getVertexShaderBlob(TEXT("TexVertexShader.cso"));
 
-	m_pImmediateContext->IASetInputLayout(m_pInputLayout);
+        UINT elementCount = static_cast<UINT>(inputDescList.size());
+        FAILED_CHECK_THROW(m_pDevice->CreateInputLayout(inputDescList.data(), elementCount, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &m_pInputLayout));
+
+        m_pImmediateContext->IASetInputLayout(m_pInputLayout);
+    }
+
+    {
+        std::vector<D3D11_INPUT_ELEMENT_DESC> inputDescList;
+        Graphic::VERTEX_SIMPLE::getDesc(inputDescList);
+
+        ID3DBlob* pBlob = ShaderManager->getVertexShaderBlob(TEXT("SimpleVertexShader.cso"));
+
+        UINT elementCount = static_cast<UINT>(inputDescList.size());
+        FAILED_CHECK_THROW(m_pDevice->CreateInputLayout(inputDescList.data(), elementCount, pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &SimpleLayout));
+    }
+
 
 	return true;
 }

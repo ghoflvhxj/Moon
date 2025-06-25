@@ -113,8 +113,12 @@ private:
 	ID3D11DepthStencilView *m_pDepthStencilView;
 	ID3D11Texture2D *m_pDepthStencilBuffer;
 	//---------------------------------------------
-private:
+public:
 	ID3D11InputLayout *m_pInputLayout;
+
+public:
+    // 피직스 테스트용
+    ID3D11InputLayout* SimpleLayout = nullptr;
 
 private:
 	D3D11_VIEWPORT _viewport;
