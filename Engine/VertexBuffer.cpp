@@ -73,20 +73,28 @@ void MVertexBuffer::UpdateUsingCUDA(PxDeformableSurface* DeformableSurface, uint
     // 버텍스버퍼에 DeformableSurface가 가진 정점들을 복사함
     PxVec4* SimulatedPos = DeformableSurface->getPositionInvMassBufferD();
 
+
     std::vector<PxVec4> hostBuf(VertexNum);
     CUdeviceptr devPtr = reinterpret_cast<CUdeviceptr>(DeformableSurface->getPositionInvMassBufferD());
-    cuMemcpyDtoH(hostBuf.data(), devPtr, sizeof(PxVec4) * VertexNum);
 
+    CUDA_MEMCPY2D copyDesc = {};
+    copyDesc.srcMemoryType = CU_MEMORYTYPE_DEVICE;
+    copyDesc.srcDevice = devPtr;
+    copyDesc.srcPitch = sizeof(PxVec4);          // 각 행(파티클) 당 16바이트
+    copyDesc.dstMemoryType = CU_MEMORYTYPE_DEVICE;
+    copyDesc.dstDevice = DevicePtr;
+    copyDesc.dstPitch = sizeof(Vertex);         // 버텍스 전체 stride, 예: 36바이트
+    copyDesc.WidthInBytes = sizeof(PxVec4);     // 복사할 너비(16바이트)
+    copyDesc.Height = _vertexCount;             // 행 수 = 파티클 수
+    cuMemcpy2DAsync(&copyDesc, cudaStreamDefault);
+
+    // 디버깅
     //for (int i = 0; i < VertexNum; ++i)
     //{
     //    std::cout << "Begin SimulatedPos: " << hostBuf[i].x << ", " << hostBuf[i].y << ", " << hostBuf[i].z << std::endl;
     //}
     //std::cout << "End SimulatedPos" << std::endl;
 
-    CUstream stream = nullptr;
-    cuStreamCreate(&stream, CU_STREAM_DEFAULT);
-    CUresult Result3 = cuMemcpyAsync(DevicePtr, reinterpret_cast<CUdeviceptr>(SimulatedPos), sizeof(PxVec4) * VertexNum, stream);
-    
     // CUDA 접근이 끝났으니 리소스 UnMap
-    CUresult Result4 = cuGraphicsUnmapResources(1, &CudaResource, stream);
+    CUresult Result4 = cuGraphicsUnmapResources(1, &CudaResource, cudaStreamDefault);
 }

@@ -58,8 +58,7 @@ const bool MyGame::initialize()
     ClothActor->GetStaticMeshCompoent()->SetPhysics(false);
     ClothActor->SetStaticMesh(TEXT("Untitled.fbx"));
     ClothActor->GetStaticMeshCompoent()->setTranslation(0.f, 3.f, 0.f);
-    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setShader(TEXT("SimpleVertexShader.cso"), TEXT("TexPixelShader.cso"));
-    ClothActor->GetStaticMeshCompoent()->SetSimpleLayout();
+    //ClothActor->GetStaticMeshCompoent()->setRotation(Vec3{ XMConvertToRadians(90.f), 0.f, 0.f });
 
     std::shared_ptr<MTexture> Texture = nullptr;
     if (g_ResourceManager->Load<MTexture>(TEXT("Resources/Texture/Player.jpeg"), Texture))
