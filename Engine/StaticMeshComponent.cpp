@@ -7,6 +7,7 @@
 #include "Material.h"
 
 #include "Render.h"
+#include "Renderer.h"
 
 #include "Texture.h"
 
@@ -17,6 +18,7 @@
 
 #include "MPhysX.h"
 #include "NvidiaPhysX/PxPhysicsAPI.h"
+
 
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -44,6 +46,7 @@ void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
 	}
 
 	// 중심점과 모든 버텍스 위치
+    TotalVertexNum = FbxLoader.GetTotalVertexNum();
 	AllVertexPosition.reserve(TotalVertexNum);
 	CenterPos = { 0.f, 0.f, 0.f };
 	for (auto& vertices : Vertices)
@@ -176,42 +179,20 @@ const Vec3& StaticMesh::GetCenterPos() const
 StaticMeshComponent::StaticMeshComponent()
 	: MPrimitiveComponent()
 {
-
+    _pStaticMesh = std::make_shared<StaticMesh>();
 }
 
 StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath)
 	: MPrimitiveComponent()
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->LoadFromFBX(FilePath);
+    SetMesh(FilePath);
 }
 
 StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath, bool bUsePhysX, bool bUseRigidStatic)
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->LoadFromFBX(FilePath);
-
-	if (g_pPhysics && bUsePhysX)
-	{
-        PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
-		g_pPhysics->CreateConvex(_pStaticMesh->GetAllVertexPosition(), &PhysXConvexMesh);
-		PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(PhysXConvexMesh);
-		PhysXShape = (*g_pPhysics)->createShape(Geometry, *PhysxMaterial);
-		PhysXRigidStatic = (*g_pPhysics)->createRigidStatic(PxTransform(PxVec3(0.f, 0.f, 0.f)));
-		PhysXRigidDynamic = (*g_pPhysics)->createRigidDynamic(PxTransform(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity)));
-
-		if (PhysXRigidDynamic)
-		{
-			PhysXRigidDynamic->setMass(Mass);
-			PhysXRigidDynamic->setAngularDamping(0.8f);
-		}
-
-		GetPhysXRigidActor()->attachShape(*PhysXShape);
-
-		SetStaticCollision(bStaticCollision, true);
-	}
-
-	bUseRigidStatic = bUseRigidStatic;
+    SetMesh(FilePath);
 }
 
 StaticMeshComponent::~StaticMeshComponent()
@@ -269,7 +250,7 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	}
 
     // 피직스
-    if (GetPhysXRigidActor())
+    if (GetPhysXRigidActor() && bDrawColliision)
     {
         PxGeometryHolder GeometryHolder(GetPhysXShape()->getGeometry());
         PxConvexMeshGeometry Geometry = GeometryHolder.convexMesh();
@@ -359,10 +340,10 @@ void StaticMeshComponent::setScale(const Vec3 &scale)
 			PhysXRigidDynamic->setCMassLocalPose(PxTransform(CenterPos.x, CenterPos.y, CenterPos.z));
 		}
 
-		PxRigidActor* PhysXRigidActor = GetPhysXRigidActor();
 
 		if (PxShape* PhysXShape = GetPhysXShape())
 		{
+		    PxRigidActor* PhysXRigidActor = GetPhysXRigidActor();
 			PhysXRigidActor->detachShape(*PhysXShape);
 
 			PxGeometryHolder holder = PhysXShape->getGeometry();
@@ -390,6 +371,31 @@ XMMATRIX StaticMeshComponent::GetRotationMatrix()
 	{
 		return SceneComponent::GetRotationMatrix();
 	}
+}
+
+void StaticMeshComponent::SetMesh(const std::wstring& Path)
+{
+    _pStaticMesh->LoadFromFBX(Path);
+
+    if (g_pPhysics && bPhysics)
+    {
+        PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
+        g_pPhysics->CreateConvex(_pStaticMesh->GetAllVertexPosition(), &PhysXConvexMesh);
+        PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(PhysXConvexMesh);
+        PhysXShape = (*g_pPhysics)->createShape(Geometry, *PhysxMaterial);
+        PhysXRigidStatic = (*g_pPhysics)->createRigidStatic(PxTransform(PxVec3(0.f, 0.f, 0.f)));
+        PhysXRigidDynamic = (*g_pPhysics)->createRigidDynamic(PxTransform(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity)));
+
+        if (PhysXRigidDynamic)
+        {
+            PhysXRigidDynamic->setMass(Mass);
+            PhysXRigidDynamic->setAngularDamping(0.8f);
+        }
+
+        GetPhysXRigidActor()->attachShape(*PhysXShape);
+
+        SetStaticCollision(bStaticCollision, true);
+    }
 }
 
 std::shared_ptr<StaticMesh>& StaticMeshComponent::getStaticMesh()

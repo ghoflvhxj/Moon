@@ -104,6 +104,7 @@ public:
 	virtual XMMATRIX GetRotationMatrix();
 
 public:
+    void SetMesh(const std::wstring& Path);
 	virtual std::shared_ptr<StaticMesh>& getStaticMesh();
 
 private:
@@ -119,6 +120,11 @@ public:
 private:
 	bool bStaticCollision = true;
 	float Mass = 1.f;
+
+public:
+    void SetPhysics(bool bInPhysics) { bPhysics = bInPhysics; }
+protected:
+    bool bPhysics = true;
 
 	// 피직스
 public:
