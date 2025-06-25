@@ -183,10 +183,10 @@ void Player::tick(const Time deltaTime)
 	}
 #endif
 
+    static float DeltaTime = 0.f;
+    DeltaTime += deltaTime / 2.f;
 
 #if UsePointLight == 1
-    static float DeltaTime = 0.f;
-    DeltaTime += deltaTime;
     _pLightComponent->setTranslation(std::cosf(0.f) * 5.f, 2.f, std::sinf(0.f) * 5.f);
 #endif
 
