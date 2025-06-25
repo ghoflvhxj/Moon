@@ -43,6 +43,8 @@ MyGame::~MyGame()
 
 const bool MyGame::initialize()
 {
+    MainGame::initialize();
+
 	getMainCamera()->setLookMode(MCamera::LookMode::To);
 
 	_pPlayer = CreateActor<Player>(this);

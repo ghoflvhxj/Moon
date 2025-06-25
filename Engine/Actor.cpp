@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "Actor.h"
 
 #include "MapUtility.h"
@@ -50,5 +50,3 @@ const bool Actor::addComponent(const wchar_t componentName[], std::shared_ptr<Sc
 {
 	return MapUtility::FindInsert(_components, componentName, pComponent);
 }
-
-

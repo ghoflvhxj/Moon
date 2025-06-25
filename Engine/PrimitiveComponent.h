@@ -85,4 +85,9 @@ public:
     const bool IsDrawingBoundingBox() const;
 public:
     bool _bDrawBoundingBox = false;
+
+public:
+    void SetDrawCollision(const bool bDraw) { bDrawColliision = bDraw; }
+protected:
+    bool bDrawColliision = false;
 };

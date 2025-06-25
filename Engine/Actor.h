@@ -1,5 +1,6 @@
 ﻿#pragma once
-#ifndef __ACTOR_H__
+
+#include "Include.h"
 
 class Component;
 class SceneComponent;
@@ -24,5 +25,16 @@ private:
 	std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>	_components;
 };
 
-#define __ACTOR_H__
-#endif
+template <class T>
+std::shared_ptr<T> CreateActor(MainGame* InGame)
+{
+    if (InGame == nullptr)
+    {
+        return nullptr;
+    }
+
+    std::shared_ptr<T> NewActor = std::make_shared<T>();
+    InGame->addActor(NewActor);
+
+    return NewActor;
+}
