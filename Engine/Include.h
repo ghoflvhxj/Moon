@@ -18,6 +18,7 @@ class __declspec(dllexport) std::exception;
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <unordered_set>
 
 // Window Platform
 #ifdef _WIN64

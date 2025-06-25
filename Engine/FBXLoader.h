@@ -84,6 +84,52 @@ public:
 	std::chrono::system_clock::time_point _start;
 };
 
+struct FVertexKey
+{
+    FVertexKey() = default;
+    FVertexKey(const FVertexKey& Rhs) = default;
+    FVertexKey(int a0, int a, int b, int c, int d)
+        : ControlPointIndex(a0), UVIndex(a), NormalIndex(b), TangentIndex(c), BiNormalIndex(d)
+    {
+
+    }
+    FVertexKey(FVertexKey&& Rhs) = default;
+
+    int ControlPointIndex = -1;
+    int UVIndex = -1;
+    int NormalIndex = -1;
+    int TangentIndex = -1;
+    int BiNormalIndex = -1;
+
+    bool operator==(const FVertexKey& Rhs) const
+    {
+        return ControlPointIndex == Rhs.ControlPointIndex && UVIndex == Rhs.UVIndex && NormalIndex == Rhs.NormalIndex && TangentIndex == Rhs.TangentIndex && BiNormalIndex == Rhs.BiNormalIndex;
+    }
+};
+
+namespace std
+{
+    template<>
+    struct hash<FVertexKey>
+    {
+        size_t operator()(const FVertexKey& Data) const
+        {
+            size_t h0 = std::hash<int>{}(Data.ControlPointIndex);
+            size_t h1 = std::hash<int>{}(Data.UVIndex);
+            size_t h2 = std::hash<int>{}(Data.NormalIndex);
+            size_t h3 = std::hash<int>{}(Data.TangentIndex);
+            size_t h4 = std::hash<int>{}(Data.BiNormalIndex);
+
+            size_t h = h0;
+            h ^= h1 + 0x9e3779b9 + (h << 6) + (h >> 2);
+            h ^= h2 + 0x9e3779b9 + (h << 6) + (h >> 2);
+            h ^= h3 + 0x9e3779b9 + (h << 6) + (h >> 2);
+            h ^= h4 + 0x9e3779b9 + (h << 6) + (h >> 2);
+
+            return h;
+        }
+    };
+}
 
 class MTexture;
 
@@ -129,10 +175,10 @@ private:
 private:
 	void parseMeshNode(fbxsdk::FbxNode *pNode, const uint32 meshIndex);
 	void loadPosition(Vertex &vertex, const int controlPointIndex);
-	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
-	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
-	void loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
-	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter);
+	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
+	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
+	void loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
+	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
 	void loadAnimation();
 private:
 	void loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName);

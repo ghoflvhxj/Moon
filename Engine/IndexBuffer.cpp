@@ -31,7 +31,7 @@ MIndexBuffer::~MIndexBuffer()
 	SafeRelease(_pBuffer);
 }
 
-void MIndexBuffer::setBufferToDevice(UINT &offset)
+void MIndexBuffer::setBufferToDevice(const UINT &offset)
 {
 	g_pGraphicDevice->getContext()->IASetIndexBuffer(_pBuffer, DXGI_FORMAT::DXGI_FORMAT_R32_UINT, offset);
 }

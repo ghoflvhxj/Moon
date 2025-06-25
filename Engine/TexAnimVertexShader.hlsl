@@ -17,11 +17,11 @@ VertexOut main(VertexIn vIn)
 
     if (animated)
     {
-        boneTransform *= 0.f;
-        for (int i = 0; i < 4; ++i)
-        {
-            boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);
-        }
+        //boneTransform *= 0.f;
+        //for (int i = 0; i < 4; ++i)
+        //{
+        //    boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);
+        //}
     }
 	
 	float3 animatedPos = mul(float4(vIn.pos, 1.f), boneTransform);

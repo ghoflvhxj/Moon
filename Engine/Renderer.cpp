@@ -262,14 +262,15 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent>& InPrimitiveCom
 			auto& MeshData = PrimitiveData.MeshData.lock();
 			uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
 			uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
-			const void* Buffer = MeshData->Vertices.data();
-			VertexBufferMap[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer));
+			VertexBufferMap[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData->Vertices.data()));
+
+            uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
+            uint32 IndexNum = CastValue<uint32>(MeshData->Indices.size());
+            IndexBufferMap[PrimitiveID].push_back(IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData->Indices.data()) : nullptr);
 		}
 
 		PrimitiveData.VertexBuffer = VertexBufferMap[PrimitiveID][i];
-
-		// 인덱스 버퍼 생성
-		// --
+        PrimitiveData.IndexBuffer = IndexBufferMap[PrimitiveID][i];
 
 		// 매터리얼 타입에 따라 어느 렌더링에 들어갈지 결정
 		if (bMakeBuffer)
@@ -438,10 +439,14 @@ void Renderer::RenderScene()
 	if (ViewPrimitiveData[0].VertexBuffer == nullptr)
 	{
 		auto& MeshData = ViewPrimitiveData[0].MeshData.lock();
+
 		uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
 		uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
-		const void* Buffer = MeshData->Vertices.data();
-		ViewPrimitiveData[0].VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer);
+		ViewPrimitiveData[0].VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData->Vertices.data());
+
+        uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
+        uint32 IndexNum = CastValue<uint32>(MeshData->Indices.size());
+        ViewPrimitiveData[0].IndexBuffer = std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData->Indices.data());
 	}
 
 	RenderPasses[CombinePass]->RenderPass(ViewPrimitiveData);

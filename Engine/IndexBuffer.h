@@ -8,7 +8,7 @@ public:
 	~MIndexBuffer();
 
 public:
-	void setBufferToDevice(UINT &offset);
+	void setBufferToDevice(const UINT &offset);
 public:
 	ID3D11Buffer *const getBuffer();
 private:
