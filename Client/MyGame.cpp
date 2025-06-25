@@ -15,6 +15,9 @@
 #include "Player.h"
 #include "DirectInput.h"
 #include "DynamicMeshComponent.h"
+#include "GameFramework/StaticMeshActor/StaticMeshActor.h"
+#include "Core/ResourceManager.h"
+#include "Material.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -42,19 +45,13 @@ const bool MyGame::initialize()
 {
 	getMainCamera()->setLookMode(MCamera::LookMode::To);
 
-	_pPlayer = std::make_shared<Player>();
-	addActor(_pPlayer);
+	_pPlayer = CreateActor<Player>(this);
 
-	MyActor = std::make_shared<Actor>();
-	//a = std::make_shared<SphereComponent>();
-	//MyActor->addComponent(TEXT("Root"), a);
-	Lantern = std::make_shared<StaticMeshComponent>(TEXT("Lantern/Lantern.fbx"), true, false);
-	Lantern->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-	Lantern->setTranslation(0.f, 0.f, 0.f);
-	Lantern->setDrawingBoundingBox(true);
-	MyActor->addComponent(TEXT("test"), Lantern);
-	//a->AddChildComponent(_pStaticMeshComponent);
-	addActor(MyActor);
+    LanternActor = CreateActor<MStaticMeshActor>(this);
+    LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));;
+    LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+    LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 0.f, 0.f);
+    LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
 
 	//_pTerrainComponent = std::make_shared<TerrainComponent>(100, 100);
 	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Diffuse), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_albedo.jpg")));

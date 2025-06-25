@@ -9,6 +9,7 @@ class MCamera;
 class Actor;
 class Player;
 class StaticMeshComponent;
+class MStaticMeshActor;
 
 class MyGame : public MainGame
 {
@@ -26,8 +27,7 @@ public:
 	virtual void render() override;
 
 private:
-	std::shared_ptr<Actor> MyActor;
-	std::shared_ptr<SphereComponent> a;
+    std::shared_ptr<MStaticMeshActor> LanternActor;
 
 private:
 	std::shared_ptr<Player> _pPlayer;
