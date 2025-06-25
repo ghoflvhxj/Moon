@@ -122,7 +122,7 @@ void MyGame::render()
         ImGui::SliderFloat("PosY", &Pos.y, -10, 10);
         ImGui::SliderFloat("PosZ", &Pos.z, -10, 10);
         PointLight->setTranslation(Pos);
-        Lantern->setTranslation(Pos.x, Pos.y - 1.f, Pos.z);
+        LanternActor->GetStaticMeshCompoent()->setTranslation(Pos.x, Pos.y - 1.f, Pos.z);
     }
 
 	if (ImGui::CollapsingHeader("Actor"))
@@ -130,18 +130,18 @@ void MyGame::render()
 		ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
 		if (ImGui::Button("AddForce"))
 		{
-			Lantern->Temp(Force);
+            LanternActor->GetStaticMeshCompoent()->Temp(Force);
 		}
 
 		if (ImGui::Button("ResetPos"))
 		{
-			Lantern->setTranslation(0.f, 5.f, 0.f);
+            LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 5.f, 0.f);
 		}
 
 		ImGui::Checkbox("DisableCollision", &bStaticCollision);
-		if (Lantern)
+		if (LanternActor)
 		{
-			Lantern->SetStaticCollision(bStaticCollision);
+            LanternActor->GetStaticMeshCompoent()->SetStaticCollision(bStaticCollision);
 		}
 	}
 
