@@ -5,7 +5,7 @@
 
 class MResourceLoader;
 
-class MResourceManager
+class ENGINE_DLL MResourceManager
 {
 public:
 	MResourceManager() = default;
