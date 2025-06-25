@@ -59,6 +59,7 @@
     <ClCompile Include="SkyComponent.cpp" />
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
     <ClCompile Include="Source\Core\ResourceManager.cpp" />
+    <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
     <ClCompile Include="SphereComponent.cpp" />
     <ClCompile Include="StaticMeshComponent.cpp" />
     <ClCompile Include="TerrainComponent.cpp" />
@@ -126,6 +127,7 @@
     <ClInclude Include="SkyComponent.h" />
     <ClInclude Include="Source\Core\ResourceLoader.h" />
     <ClInclude Include="Source\Core\ResourceManager.h" />
+    <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h" />
     <ClInclude Include="SphereComponent.h" />
     <ClInclude Include="StaticMeshComponent.h" />
     <ClInclude Include="stdafx.h" />
