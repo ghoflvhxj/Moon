@@ -90,10 +90,15 @@ bool PhysXX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** Conv
     PxDefaultMemoryOutputStream buf;
     PxTolerancesScale ToleranceScale;
     PxCookingParams CookingParams(ToleranceScale);
-    PxCookConvexMesh(CookingParams, ConvexDesc, buf);
+    CookingParams.buildGPUData = true;
+    if (PxCookConvexMesh(CookingParams, ConvexDesc, buf))
+    {
+        PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+        *ConvexMesh = Physics->createConvexMesh(input);
 
-    PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
-    *ConvexMesh = Physics->createConvexMesh(input);
+        return true;
+    }
 
-	return true;
+    return false;
+}
 }

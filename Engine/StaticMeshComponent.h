@@ -21,6 +21,12 @@ namespace physx
     class PxDeformableSurface;
 };
 
+enum class EPhysicsType
+{
+    Static,
+    Dynamic
+};
+
 struct FMeshData
 {
 	VertexList		Vertices;
@@ -100,6 +106,8 @@ public:
 	virtual const bool GetBoundingBox(std::shared_ptr<MBoundingBox> &boundingBox) override;
 	virtual void setTranslation(const Vec3 &translation) override;
 	virtual void setScale(const Vec3 &scale) override;
+    virtual Mat4& getWorldMatrix() override;
+    Mat4 DeformalMatrix;
 
 public:
 	virtual XMMATRIX GetRotationMatrix();
@@ -124,16 +132,24 @@ protected:
     bool bSimpleLayout = false;
 
 public:
-	void SetStaticCollision(bool bNewCollision, bool bForce = false);
 	void SetMass(float NewMass);
 private:
-	bool bStaticCollision = true;
 	float Mass = 1.f;
 
 public:
-    void SetPhysics(bool bInPhysics) { bPhysics = bInPhysics; }
+    void SetAngularVelocity(float x, float y, float z);
+    void SetVelocity(float x, float y, float z);
+
+public:
+    void SetPhysics(bool bInPhysics, bool bForce = false);
 protected:
     bool bPhysics = true;
+    bool bAddedToScene = false;
+
+public:
+    void SetPhysicsType(EPhysicsType InPhysicsType) { PhysicsType = InPhysicsType; }
+protected:
+    EPhysicsType PhysicsType = EPhysicsType::Static;
 
 	// 피직스
 public:

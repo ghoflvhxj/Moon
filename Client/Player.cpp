@@ -45,19 +45,19 @@ Player::~Player()
 void Player::initialize()
 {
 #if UseGround == 1
-	GroundTexture = std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg"));
 	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Box.fbx"), true, true);
-	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, GroundTexture);
+	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
+    _pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
 	_pMeshComponent->setScale(20.f, 1.f, 20.f);
 	_pMeshComponent->setTranslation(1.f, -3.f, 0.f);
-	//_pMeshComponent->SetGravity(true); // -> 머지?
 #endif
 
-	_pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>(TEXT("Table/Table.fbx"), true, true);
-	_pStaticMeshComponent2->setScale(Vec3{ 0.02f, 0.02f, 0.02f });
-	_pStaticMeshComponent2->setDrawingBoundingBox(true);
-	addComponent(TEXT("test2"), _pStaticMeshComponent2);
+    _pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>(TEXT("Table/Table.fbx"), true, true);
+    _pStaticMeshComponent2->setScale(Vec3{ 0.02f, 0.02f, 0.02f });
+    _pStaticMeshComponent2->setDrawingBoundingBox(true);
+    _pStaticMeshComponent2->SetDrawCollision(true);
+    addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
 #if UsePointLight == 1
     _pLightComponent = std::make_shared<PointLightComponent>();
