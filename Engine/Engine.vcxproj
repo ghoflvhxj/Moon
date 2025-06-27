@@ -57,6 +57,7 @@
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="SkyComponent.cpp" />
+    <ClCompile Include="Source\Core\Physics\Physics.cpp" />
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
     <ClCompile Include="Source\Core\ResourceManager.cpp" />
     <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
@@ -125,6 +126,7 @@
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SkyComponent.h" />
+    <ClInclude Include="Source\Core\Physics\Physics.h" />
     <ClInclude Include="Source\Core\ResourceLoader.h" />
     <ClInclude Include="Source\Core\ResourceManager.h" />
     <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h" />
