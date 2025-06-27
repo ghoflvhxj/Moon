@@ -1,7 +1,7 @@
 ﻿#pragma once
-#ifndef __STATIC_MESH_COMPONENT_H__
 #include "PrimitiveComponent.h"
 
+#include "Core/Physics/PhysicsEnum.h"
 #include "Vertex.h"
 
 class MVertexBuffer;
@@ -19,12 +19,6 @@ namespace physx
 	class PxShape;
     class PxMaterial;
     class PxDeformableSurface;
-};
-
-enum class EPhysicsType
-{
-    Static,
-    Dynamic
 };
 
 struct FMeshData
@@ -171,6 +165,3 @@ private:
     // 피직스 렌더링을 위한 임시 메시데이터
     std::shared_ptr<FMeshData> MeshDataForPhysX = nullptr;
 };
-
-#define __STATIC_MESH_COMPONENT_H__
-#endif
