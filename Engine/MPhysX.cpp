@@ -101,4 +101,3 @@ bool PhysXX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** Conv
 
     return false;
 }
-}
