@@ -34,7 +34,6 @@ private:
 	std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent2;
 	std::shared_ptr<DynamicMeshComponent>	CharacterMeshComponent;
 	std::shared_ptr<SkyComponent>			_pSkyComponent;
-	std::shared_ptr<MTexture>		GroundTexture;
 	std::shared_ptr<PointLightComponent>	_pLightComponent;
 	std::shared_ptr<DirectionalLightComponent>	_pLightComponent2;
 

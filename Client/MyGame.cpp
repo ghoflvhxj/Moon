@@ -49,23 +49,28 @@ const bool MyGame::initialize()
 	_pPlayer = CreateActor<Player>(this);
 
     LanternActor = CreateActor<MStaticMeshActor>(this);
+    LanternActor->GetStaticMeshCompoent()->SetPhysicsType(EPhysicsType::Dynamic);
     LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));;
     LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-    LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 0.f, 0.f);
-    LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
+    LanternActor->GetStaticMeshCompoent()->SetDrawCollision(true);
+    //LanternActor->GetStaticMeshCompoent()->setTranslation(5.f, 0.f, 0.f);
+    //LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
 
     ClothActor = CreateActor<MStaticMeshActor>(this);
     ClothActor->GetStaticMeshCompoent()->SetPhysics(false);
     ClothActor->SetStaticMesh(TEXT("Untitled.fbx"));
-    ClothActor->GetStaticMeshCompoent()->setTranslation(0.f, 3.f, 0.f);
-    //ClothActor->GetStaticMeshCompoent()->setRotation(Vec3{ XMConvertToRadians(90.f), 0.f, 0.f });
+    ClothActor->GetStaticMeshCompoent()->setTranslation(0.f, 6.f, 0.f);
 
-    std::shared_ptr<MTexture> Texture = nullptr;
-    if (g_ResourceManager->Load<MTexture>(TEXT("Resources/Texture/Player.jpeg"), Texture))
-    {
-        ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, Texture);
-        ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setCullMode(Graphic::CullMode::None);
-    }
+    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
+    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
+
+    //std::shared_ptr<MTexture> Texture = nullptr;
+    //if (g_ResourceManager->Load<MTexture>(TEXT("Resources/Texture/Player.jpeg"), Texture))
+    //{
+    //    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, Texture);
+    //    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setCullMode(Graphic::CullMode::None);
+    //    //ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setFillMode(Graphic::FillMode::WireFrame);
+    //}
 
 	//_pTerrainComponent = std::make_shared<TerrainComponent>(100, 100);
 	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Diffuse), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_albedo.jpg")));
@@ -143,24 +148,44 @@ void MyGame::render()
         LanternActor->GetStaticMeshCompoent()->setTranslation(Pos.x, Pos.y - 1.f, Pos.z);
     }
 
-	if (ImGui::CollapsingHeader("Actor"))
+	if (ImGui::CollapsingHeader("Actor") && LanternActor)
 	{
+        Vec3 Pos = LanternActor->GetStaticMeshCompoent()->getTranslation();
+        Vec3 NewPos = Pos;
+        ImGui::SliderFloat("PosX", &NewPos.x, -30, 30);
+        ImGui::SliderFloat("PosY", &NewPos.y, -30, 30);
+        ImGui::SliderFloat("PosZ", &NewPos.z, -30, 30);
+
+        auto IsNotEqual = [](float lhs, float rhs)->bool {
+            return std::fabsf(lhs - rhs) > 0.00001;
+        };
+
+        if (IsNotEqual(Pos.x, NewPos.x) || IsNotEqual(Pos.y, NewPos.y) || IsNotEqual(Pos.z, NewPos.z))
+        {
+            LanternActor->GetStaticMeshCompoent()->setTranslation(NewPos.x, NewPos.y, NewPos.z);
+        }
+
 		ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
 		if (ImGui::Button("AddForce"))
 		{
             LanternActor->GetStaticMeshCompoent()->Temp(Force);
 		}
 
+        if (ImGui::Button("ResetVelocity"))
+        {
+            LanternActor->GetStaticMeshCompoent()->SetVelocity(0.f, 0.f, 0.f);
+            LanternActor->GetStaticMeshCompoent()->SetAngularVelocity(0.f, 0.f, 0.f);
+        }
+
 		if (ImGui::Button("ResetPos"))
 		{
             LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 5.f, 0.f);
 		}
 
-		ImGui::Checkbox("DisableCollision", &bStaticCollision);
-		if (LanternActor)
-		{
-            LanternActor->GetStaticMeshCompoent()->SetStaticCollision(bStaticCollision);
-		}
+        if (ImGui::Checkbox("DisableCollision", &bStaticCollision))
+        {
+            LanternActor->GetStaticMeshCompoent()->SetPhysics(bStaticCollision);
+        }
 	}
 
 	if (ImGui::Button("SaveJson"))
