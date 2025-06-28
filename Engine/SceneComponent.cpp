@@ -85,9 +85,9 @@ void SceneComponent::OnUpdated()
 	bUpdated = false;
 }
 
-void SceneComponent::setScale(const Vec3 &scale)
+void SceneComponent::setScale(const Vec3& InScale)
 {
-	m_scale = scale;
+	m_scale = InScale;
 }
 
 void SceneComponent::setScale(const float scaleX, const float scaleY, const float scaleZ)

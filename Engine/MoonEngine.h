@@ -7,7 +7,7 @@ class Window;
 class MainGame;
 class GraphicDevice;
 class Renderer;
-class PhysXX;
+class MPhysX;
 
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow);
 ENGINE_DLL const bool EngineLoop();

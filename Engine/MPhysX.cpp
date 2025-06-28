@@ -3,13 +3,15 @@
 #include "NvidiaPhysX/extensions/PxDefaultCpuDispatcher.h"
 #include "NvidiaPhysX/gpu/PxGpu.h"
 
+// StaticMesh
+#include "StaticMeshComponent.h"
+
 #define PVD_HOST "127.0.0.1"
 
-PxDefaultErrorCallback PhysXX::g_DefaultErrorCallback;
-PxDefaultAllocator PhysXX::g_DefaultAllocator;
-
-PhysXX::PhysXX()
+MPhysX::MPhysX()
 {
+    static PxDefaultAllocator g_DefaultAllocator;
+    static PxDefaultErrorCallback g_DefaultErrorCallback;
 	Foundation = PxCreateFoundation(PX_PHYSICS_VERSION, g_DefaultAllocator, g_DefaultErrorCallback);
 
 	// 비주얼 디버거 연결을 위한 작업
@@ -34,23 +36,14 @@ PhysXX::PhysXX()
     SceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
 	Scene = Physics->createScene(SceneDesc);
 	Scene->getScenePvdClient()->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
-
-	Material = Physics->createMaterial(0.0f, 0.0f, 0.0f);
-
-	//Plane = PxCreatePlane(*Physics, PxPlane(0, 1, 0, 0), *Material);
-	//PxShape* PalneShape = Physics->createShape(PxPlaneGeometry(), *Material);
-	//Plane->attachShape(*PalneShape);
-	//Scene->addActor(*Plane);
-    //PxPhysicsGpu* PhysxGpu = PxGetPhysicsGpu();
 }
 
-PhysXX::~PhysXX()
+MPhysX::~MPhysX()
 {
 }
 
-void PhysXX::Release()
+void MPhysX::Release()
 {
-    Material->release();
     Scene->release();
     CpuDispatcher->release();
 
@@ -61,12 +54,12 @@ void PhysXX::Release()
     Foundation->release();
 }
 
-PxPhysics* PhysXX::operator->()
+PxPhysics* MPhysX::operator->()
 {
 	return Physics;
 }
 
-void PhysXX::Update(float deltaTime)
+void MPhysX::Update(float deltaTime)
 {
 	if (Scene == nullptr)
 	{
@@ -78,7 +71,7 @@ void PhysXX::Update(float deltaTime)
     Scene->fetchResultsParticleSystem();
 }
 
-bool PhysXX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh)
+bool MPhysX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh)
 {
 	PxConvexMeshDesc ConvexDesc = {};
 	ConvexDesc.setToDefault();
@@ -100,4 +93,180 @@ bool PhysXX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** Conv
     }
 
     return false;
+}
+
+bool MPhysX::AddPhysicsObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPhysicsType, std::unique_ptr<MPhysicsObject>& OutPhysicsObject)
+{
+    std::unique_ptr<MPhysXObject> NewObject = std::make_unique<MPhysXObject>(InMesh, InPhysicsType);
+
+    // ConvexMesh 있는 거 쓰고, 없으면 만듬 -> 작업 중
+    PxMaterial* PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
+    PxConvexMesh* ConvexMesh = nullptr;
+    CreateConvex(InMesh->GetAllVertexPosition(), &ConvexMesh);
+
+    // Shape 있는 거 쓰고, 없으면 만듬 -> 작업 중
+    PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(ConvexMesh);
+    PxShape* Shape = (*g_pPhysics)->createShape(Geometry, *PhysxMaterial, true);
+    NewObject->AttachShape(Shape);
+
+    if (NewObject->IsValid() == false)
+    {
+        return false;
+    }
+
+    OutPhysicsObject = std::move(NewObject);
+
+    return true;
+}
+
+MPhysXObject::MPhysXObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPhysicsType)
+    : MPhysicsObject(InMesh)
+{
+    switch (InPhysicsType)
+    {
+    case EPhysicsType::Static:
+        RigidStatic = (*g_pPhysics)->createRigidStatic(PxTransform(PxVec3(0.f, 0.f, 0.f)));
+        break;
+    case EPhysicsType::Dynamic:
+        RigidDynamic = (*g_pPhysics)->createRigidDynamic(PxTransform(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity)));
+        SetMass(1.f);   // DefaultMass
+        //PhysXRigidDynamic->setAngularDamping(1.f);
+        break;
+    }
+}
+
+void MPhysXObject::SetPhysics(bool bEnable)
+{
+    if (bEnable)
+    {
+        g_pPhysics->Scene->addActor(*GetRigidActor());
+    }
+    else
+    {
+        g_pPhysics->Scene->removeActor(*GetRigidActor());
+    }
+}
+
+void MPhysXObject::SetMass(float InMass)
+{
+    if (RigidDynamic)
+    {
+        RigidDynamic->setMass(InMass);
+    }
+}
+
+void MPhysXObject::SetPos(const Vec3& InPos)
+{
+    if (PxRigidActor* RigidActor = GetRigidActor())
+    {
+        PxTransform Transform = RigidActor->getGlobalPose();
+        Transform.p.x = InPos.x;
+        Transform.p.y = InPos.y;
+        Transform.p.z = InPos.z;
+        RigidActor->setGlobalPose(Transform);
+    }
+}
+
+void MPhysXObject::SetScale(const Vec3& InScale)
+{
+    if (Shape == nullptr)
+    {
+        return;
+    }
+
+    PxRigidActor* PhysXRigidActor = GetRigidActor();
+    PhysXRigidActor->detachShape(*Shape);
+
+    PxGeometryHolder holder = Shape->getGeometry();
+    holder.convexMesh().scale.scale = PxVec3(InScale.x, InScale.y, InScale.z);
+    Shape->setGeometry(holder.any());
+
+    PhysXRigidActor->attachShape(*Shape);
+
+    if (RigidDynamic)
+    {
+        if (std::shared_ptr<StaticMesh> Mesh = MeshCache.lock())
+        {
+            Vec3 CenterPos = Mesh->GetCenterPos();
+            CenterPos.x *= InScale.x;
+            CenterPos.y *= InScale.y;
+            CenterPos.z *= InScale.z;
+            RigidDynamic->setCMassLocalPose(PxTransform(CenterPos.x, CenterPos.y, CenterPos.z));
+        }
+    }
+}
+
+void MPhysXObject::SetGravity(bool bInGravity)
+{
+    if (RigidDynamic)
+    {
+        RigidDynamic->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, bInGravity);
+        RigidDynamic->setAngularVelocity(PxVec3(0.f, 0.f, 0.f));
+        RigidDynamic->wakeUp();
+    }
+}
+
+void MPhysXObject::AddForce(const Vec3& InForce)
+{
+    if (RigidDynamic)
+    {
+        RigidDynamic->addForce(PxVec3(InForce.x, InForce.y, InForce.z));
+    }
+}
+
+void MPhysXObject::SetVelocity(const Vec3& InVelocity)
+{
+    if (RigidDynamic)
+    {
+        RigidDynamic->setLinearVelocity(PxVec3(InVelocity.x, InVelocity.y, InVelocity.z));
+    }
+}
+
+void MPhysXObject::SetAngularVelocity(const Vec3& InVelocity)
+{
+    if (RigidDynamic)
+    {
+        RigidDynamic->setAngularVelocity(PxVec3(InVelocity.x, InVelocity.y, InVelocity.z));
+    }
+}
+
+Vec3 MPhysXObject::GetPhysicsPos()
+{
+    if (PxRigidActor* RigidActor = GetRigidActor())
+    {
+        PxTransform PhysXTransform = RigidActor->getGlobalPose();
+        return Vec3{ PhysXTransform.p.x, PhysXTransform.p.y, PhysXTransform.p.z };
+    }
+
+    return VEC3ZERO;
+}
+
+Vec4 MPhysXObject::GetPhysicsRotation()
+{
+    if (PxRigidActor* RigidActor = GetRigidActor())
+    {
+        PxTransform PhysXTransform = RigidActor->getGlobalPose();
+        return { PhysXTransform.q.x, PhysXTransform.q.y, PhysXTransform.q.z, PhysXTransform.q.w };
+    }
+
+    return VEC4ZERO;
+}
+
+void MPhysXObject::AttachShape(PxShape* InShape)
+{
+    if (PxRigidActor* RigidActor = GetRigidActor())
+    {
+        RigidActor->attachShape(*InShape);
+        Shape = InShape;
+    }
+}
+
+physx::PxRigidActor* MPhysXObject::GetRigidActor()
+{
+    if (RigidStatic)
+    {
+        return RigidStatic;
+    }
+
+    return RigidDynamic;
 }
