@@ -20,7 +20,7 @@ public:
 	virtual void OnUpdated();
 
 public:
-	virtual void setScale(const Vec3 &scale);
+	virtual void setScale(const Vec3& InScale);
 	void setScale(const float scaleX, const float scaleY, const float scaleZ);
 	const Vec3& getScale() const;
 private:

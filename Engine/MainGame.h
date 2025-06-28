@@ -11,7 +11,7 @@ class MMeshComponent;
 class Actor;
 class MCamera;
 
-class PhysXX;
+class MPhysX;
 
 class ENGINE_DLL MainGame : public std::enable_shared_from_this<MainGame>
 {

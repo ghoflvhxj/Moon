@@ -18,7 +18,7 @@ extern std::unique_ptr<class MShaderManager> ShaderManager;
 extern std::unique_ptr<class Renderer> g_pRenderer;
 extern std::unique_ptr<class MainGame> g_pMainGame;
 extern std::unique_ptr<class DirectInput> g_pDirectInput;
-extern std::unique_ptr<class PhysXX> g_pPhysics;
+extern std::unique_ptr<class MPhysX> g_pPhysics;
 extern ENGINE_DLL std::unique_ptr<class MResourceManager> g_ResourceManager;
 
 //#endif

@@ -99,7 +99,7 @@ public:
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 	virtual const bool GetBoundingBox(std::shared_ptr<MBoundingBox> &boundingBox) override;
 	virtual void setTranslation(const Vec3 &translation) override;
-	virtual void setScale(const Vec3 &scale) override;
+	virtual void setScale(const Vec3& InScale) override;
     virtual Mat4& getWorldMatrix() override;
     Mat4 DeformalMatrix;
 
@@ -127,10 +127,6 @@ protected:
 
 public:
 	void SetMass(float NewMass);
-private:
-	float Mass = 1.f;
-
-public:
     void SetAngularVelocity(float x, float y, float z);
     void SetVelocity(float x, float y, float z);
 
@@ -146,16 +142,8 @@ protected:
     EPhysicsType PhysicsType = EPhysicsType::Static;
 
 	// 피직스
-public:
-	physx::PxRigidActor*	GetPhysXRigidActor();
-	physx::PxRigidDynamic*	GetPhysXRigidDynamic();
-	physx::PxRigidStatic*	GetPhysXRigidStatic();
-	physx::PxShape*			GetPhysXShape();
 private:
 	physx::PxConvexMesh*	PhysXConvexMesh = nullptr;
-	physx::PxRigidStatic*	PhysXRigidStatic = nullptr;
-	physx::PxRigidDynamic*	PhysXRigidDynamic = nullptr;
-	physx::PxShape*			PhysXShape = nullptr;
     physx::PxMaterial*      PhysxMaterial = nullptr;
     physx::PxDeformableSurface* DeformableSurface = nullptr;
     uint32 VertexNum = 0;
@@ -164,4 +152,7 @@ private:
     std::shared_ptr<MMaterial> MaterialForPhysX = nullptr;
     // 피직스 렌더링을 위한 임시 메시데이터
     std::shared_ptr<FMeshData> MeshDataForPhysX = nullptr;
+
+protected:
+    std::unique_ptr<class MPhysicsObject> PhysicsObject;
 };
