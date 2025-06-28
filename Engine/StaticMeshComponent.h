@@ -70,13 +70,6 @@ private:
 	std::shared_ptr<MBoundingBox> _pBoundingBox;
 
 public:
-	std::vector<std::shared_ptr<MVertexBuffer>> getVertexBuffers();
-	std::shared_ptr<MIndexBuffer> getIndexBuffer();
-protected:
-	std::vector<std::shared_ptr<MVertexBuffer>> _pVertexBuffers;
-	std::shared_ptr<MIndexBuffer> _pIndexBuffer = nullptr;
-
-public:
 	const Vec3& GetCenterPos() const;
 private:
 	Vec3 CenterPos;

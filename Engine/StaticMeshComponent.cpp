@@ -90,21 +90,6 @@ void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& Fi
 		Materials.push_back(NewMaterial);
 	}
 
-	// 모든 버텍스를 모아 하나의 버텍스만 사용... 굳이?
-	//uint32 vertexCount = fbxLoader.getVertexCount();
-	//std::vector<Vertex> allVertex;
-	//allVertex.reserve(CastValue<size_t>(vertexCount));
-
-	//for (auto &vertices : _verticesList)
-	//{
-	//	allVertex.assign(vertices.begin(), vertices.end());
-	//}
-	//_pVertexBuffer = std::make_shared<VertexBuffer>(CastValue<uint32>(sizeof(Vertex)), vertexCount, allVertex.data());
-
-	// 인덱스 버퍼
-	//uint32 indexCount = CastValue<uint32>(_indicesList[0].size());
-	//_pIndexBuffer = std::make_shared<IndexBuffer>(sizeof(Index), indexCount, &_indicesList[0]);
-
 	// 바운딩 박스
     Vec3 Min, Max;
     FbxLoader.getBoundingBoxInfo(Min, Max);
@@ -159,16 +144,6 @@ const uint32 StaticMesh::getGeometryCount() const
 std::shared_ptr<MBoundingBox> StaticMesh::GetBoundingBox()
 {
 	return _pBoundingBox;
-}
-
-std::vector<std::shared_ptr<MVertexBuffer>> StaticMesh::getVertexBuffers()
-{
-	return _pVertexBuffers;
-}
-
-std::shared_ptr<MIndexBuffer> StaticMesh::getIndexBuffer()
-{
-	return _pIndexBuffer;
 }
 
 const Vec3& StaticMesh::GetCenterPos() const
@@ -229,10 +204,10 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
 		
-        if (bSimpleLayout)
-        {
-            PrimitiveData.InputLayout = g_pGraphicDevice->SimpleLayout;
-        }
+        //if (bSimpleLayout)
+        //{
+        //    PrimitiveData.InputLayout = g_pGraphicDevice->SimpleLayout;
+        //}
 
 		PrimitiveDataList.push_back(PrimitiveData);
 	}
