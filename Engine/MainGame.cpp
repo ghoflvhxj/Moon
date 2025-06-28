@@ -196,8 +196,8 @@ void MainGame::Pick()
 
         const auto& Vertices = PrimitiveData.MeshData.lock()->Vertices;
         const auto& Indices = PrimitiveData.MeshData.lock()->Indices;
-        uint32 Loop = Indices.size() / 3;
-        for (int i = 0; i < Loop; ++i)
+        uint32 Loop = GetSize(Indices) / 3;
+        for (uint32 i = 0; i < Loop; ++i)
         {
             float Distance = 0.f;
             if (TriangleTests::Intersects(Start, Dir, XMLoadFloat4(&Vertices[Indices[i * 3 + 0]].Pos), XMLoadFloat4(&Vertices[Indices[i * 3 + 1]].Pos), XMLoadFloat4(&Vertices[Indices[i * 3 + 2]].Pos), Distance))

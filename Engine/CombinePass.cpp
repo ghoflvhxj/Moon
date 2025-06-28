@@ -90,7 +90,7 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
 
     auto& PointLightPrimitives = g_pRenderer->GetPrimitives(EPrimitiveType::PointLight);
     auto& MeshPrimitives = g_pRenderer->GetPrimitives(EPrimitiveType::Mesh);
-    uint32 PointLightNum = PointLightPrimitives.size();
+    uint32 PointLightNum = GetSize(PointLightPrimitives);
 
     for (uint32 PointLightIndex = 0; PointLightIndex < PointLightNum; ++PointLightIndex)
     {

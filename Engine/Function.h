@@ -65,6 +65,12 @@ inline bool checkFlag(const uint32 value, const uint32 flag)
 	return value && flag;
 }
 
+template <class T>
+inline uint32 GetSize(const T& Container)
+{
+    return static_cast<uint32>(Container.size());
+}
+
 /* Com객체 릴리즈에 사용 */
 template <class T>
 inline void SafeRelease(T &p)
