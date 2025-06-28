@@ -79,8 +79,8 @@ inline void SafeRelease(T &p)
 	{
 		ULONG refCount = p->Release();
 #ifdef DEBUG
-		std::wstring DebugMessage = TEXT("SafeRelease : ") + std::to_wstring(refCount) + TEXT("\n");
-		OutputDebugStringW(DebugMessage.c_str());
+		//std::wstring DebugMessage = TEXT("SafeRelease : ") + std::to_wstring(refCount) + TEXT("\n");
+		//OutputDebugStringW(DebugMessage.c_str());
 #endif
 		p = nullptr;
 	}

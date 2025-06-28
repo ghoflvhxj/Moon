@@ -26,7 +26,8 @@ private:
 	void initialize() noexcept;
 private:
 	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
-
+    std::shared_ptr<MVertexBuffer> a;
+    std::shared_ptr<MIndexBuffer> b;
 public:
 	// 렌더할 Primitive 추가
 	void AddPrimitive(std::shared_ptr<MPrimitiveComponent> &pComponent);
@@ -35,14 +36,14 @@ protected:
 	std::map<uint32, std::vector<FPrimitiveData>> ForwardPrimitiveDataMap;
     // 디퍼드 렌더링을 위한 PrimitiveID - FPrimitiveData 쌍을 저장함
 	std::map<uint32, std::vector<FPrimitiveData>> DeferredPrimitiveDataMap;
-    // PrimitiveID - 버텍스 버퍼 쌍을 저장함
-    std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBufferMap;
-    std::map<uint32, std::vector<std::shared_ptr<MIndexBuffer>>> IndexBufferMap;
+    // PrimitiveID - 버텍스 버퍼 쌍을 저장함, ConstantBuffer는 쉐이더에서 하는데 모든 버퍼를 Renderer가 관리할지, Shader가 할지 
+    std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBuffers;
+    std::map<uint32, std::vector<std::shared_ptr<MIndexBuffer>>> IndexBuffers;
 
     //임시
 public:
     std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId) {
-        return VertexBufferMap[InId][0];
+        return VertexBuffers[InId][0];
     }
 
 public:
