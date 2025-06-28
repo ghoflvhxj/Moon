@@ -33,14 +33,12 @@ MVertexBuffer::MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, 
 
     // D3D11 리소스를 CUDA에 등록함
     CUresult Result = cuGraphicsD3D11RegisterResource(&CudaResource, _pBuffer, CU_GRAPHICS_REGISTER_FLAGS_NONE);
-
-    //CUdeviceptr DeviceClothPtr;
-////= DeformableSurface
-    int a = 0;
 }
 
 MVertexBuffer::~MVertexBuffer()
 {
+    cuGraphicsUnregisterResource(CudaResource);
+
 	SafeRelease(_pBuffer);
 }
 
