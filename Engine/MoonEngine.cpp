@@ -7,6 +7,7 @@
 #include "Renderer.h"
 #include "MainGame.h"
 #include "MPhysX.h"
+#include "Core/Physics/Jolt.h"
 
 #include "ShaderManager.h"
 #include "ShaderLoader.h"
@@ -24,7 +25,7 @@ std::unique_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
 std::unique_ptr<MShaderManager> ShaderManager		= nullptr;
 std::unique_ptr<Renderer> g_pRenderer				= nullptr;
 std::unique_ptr<MainGame> g_pMainGame				= nullptr;
-std::unique_ptr<MPhysX> g_pPhysics					= nullptr;
+std::unique_ptr<MPhysics> g_pPhysics				= nullptr;
 ENGINE_DLL std::unique_ptr<MResourceManager> g_ResourceManager	= nullptr;
 		
 
@@ -45,7 +46,8 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 	g_pGraphicDevice->BuildInputLayout();
 
-	g_pPhysics			= std::make_unique<MPhysX>();
+    //g_pPhysics = std::make_unique<MPhysX>();
+    g_pPhysics = std::make_unique<MJoltPhysics>();
 
 	g_pRenderer			= std::make_unique<Renderer>();
 
