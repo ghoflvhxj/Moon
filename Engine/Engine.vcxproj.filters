@@ -214,6 +214,7 @@
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
     <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
     <ClCompile Include="Source\Core\Physics\Physics.cpp" />
+    <ClCompile Include="Source\Core\Physics\Jolt.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -424,6 +425,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\Physics\Physics.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Physics\Jolt.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,7 +1,7 @@
-#pragma once
+Ôªø#pragma once
 #ifndef __MACRO_H__
 
-// ∞°∫Ø¿Œ¿⁄ ∏≈≈©∑Œ
+// Í∞ÄÎ≥ÄÏù∏Ïûê Îß§ÌÅ¨Î°ú
 //#define EXPAND (x) x
 //#define F(x, ...) X = x and VA_ARGS = __VA_ARGS__
 //#define G(...) EXPAND( F(__VA_ARGS__) )
@@ -15,7 +15,6 @@
 	#define ENGINE_DLL __declspec(dllimport)
 #endif
 
-#define ToFloat(x)	static_cast<float>(x)
 #define ToUint32(x) static_cast<uint32>(x)
 
 #define SAFE_ADDREF(x)		if( nullptr != x )											\
