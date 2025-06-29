@@ -463,9 +463,9 @@ void MFBXLoader::linkMaterial(FbxNode *pNode)
 
 void MFBXLoader::loadPosition(Vertex &vertex, const int controlPointIndex)
 {
-	vertex.Pos.x = ToFloat(FBXMesh->GetControlPointAt(controlPointIndex).mData[0]);
-	vertex.Pos.y = ToFloat(FBXMesh->GetControlPointAt(controlPointIndex).mData[1]);
-	vertex.Pos.z = ToFloat(FBXMesh->GetControlPointAt(controlPointIndex).mData[2]);
+	vertex.Pos.x = static_cast<float>(FBXMesh->GetControlPointAt(controlPointIndex).mData[0]);
+	vertex.Pos.y = static_cast<float>(FBXMesh->GetControlPointAt(controlPointIndex).mData[1]);
+	vertex.Pos.z = static_cast<float>(FBXMesh->GetControlPointAt(controlPointIndex).mData[2]);
 
 	// Min 위치 갱신
 	MinPosition.x = std::min(MinPosition.x, vertex.Pos.x);
@@ -502,8 +502,8 @@ void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int v
         case FbxLayerElement::EReferenceMode::eDirect:
         {
             VertexKey.UVIndex = ArrayIndex;
-            vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(ArrayIndex).mData[0]);
-            vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(ArrayIndex).mData[1]);
+            vertex.Tex0.x = static_cast<float>(uv->GetDirectArray().GetAt(ArrayIndex).mData[0]);
+            vertex.Tex0.y = 1.f - static_cast<float>(uv->GetDirectArray().GetAt(ArrayIndex).mData[1]);
         }
         break;
         case FbxLayerElement::EReferenceMode::eIndex:
@@ -515,8 +515,8 @@ void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int v
         {
             int index = uv->GetIndexArray().GetAt(ArrayIndex);
             VertexKey.UVIndex = index;
-            vertex.Tex0.x = ToFloat(uv->GetDirectArray().GetAt(index).mData[0]);
-            vertex.Tex0.y = 1.f - ToFloat(uv->GetDirectArray().GetAt(index).mData[1]);
+            vertex.Tex0.x = static_cast<float>(uv->GetDirectArray().GetAt(index).mData[0]);
+            vertex.Tex0.y = 1.f - static_cast<float>(uv->GetDirectArray().GetAt(index).mData[1]);
         }
         break;
         default:
@@ -552,9 +552,9 @@ void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const i
         case FbxLayerElement::EReferenceMode::eDirect:
         {
             //VertexKey.NormalIndex = ArrayIndex;
-            vertex.Normal.x = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
-            vertex.Normal.y = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
-            vertex.Normal.z = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
+            vertex.Normal.x = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
+            vertex.Normal.y = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
+            vertex.Normal.z = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
         }
         break;
         case FbxLayerElement::EReferenceMode::eIndex:
@@ -566,9 +566,9 @@ void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const i
         {
             int index = element->GetIndexArray().GetAt(ArrayIndex);
             //VertexKey.NormalIndex = index;
-            vertex.Normal.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-            vertex.Normal.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-            vertex.Normal.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
+            vertex.Normal.x = static_cast<float>(element->GetDirectArray().GetAt(index).mData[0]);
+            vertex.Normal.y = static_cast<float>(element->GetDirectArray().GetAt(index).mData[1]);
+            vertex.Normal.z = static_cast<float>(element->GetDirectArray().GetAt(index).mData[2]);
         }
         break;
         default:
@@ -607,9 +607,9 @@ void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const 
         case FbxLayerElement::EReferenceMode::eDirect:
         {
             //VertexKey.TangentIndex = ArrayIndex;
-            vertex.Tangent.x = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
-            vertex.Tangent.y = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
-            vertex.Tangent.z = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
+            vertex.Tangent.x = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
+            vertex.Tangent.y = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
+            vertex.Tangent.z = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
         }
         break;
         case FbxLayerElement::EReferenceMode::eIndex:
@@ -621,9 +621,9 @@ void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const 
         {
             int index = element->GetIndexArray().GetAt(ArrayIndex);
             //VertexKey.TangentIndex = index;
-            vertex.Tangent.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-            vertex.Tangent.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-            vertex.Tangent.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
+            vertex.Tangent.x = static_cast<float>(element->GetDirectArray().GetAt(index).mData[0]);
+            vertex.Tangent.y = static_cast<float>(element->GetDirectArray().GetAt(index).mData[1]);
+            vertex.Tangent.z = static_cast<float>(element->GetDirectArray().GetAt(index).mData[2]);
         }
         break;
         default:
@@ -662,9 +662,9 @@ void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const
         case FbxLayerElement::EReferenceMode::eDirect:
         {
             //VertexKey.BiNormalIndex = ArrayIndex;
-            vertex.Binormal.x = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
-            vertex.Binormal.y = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
-            vertex.Binormal.z = ToFloat(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
+            vertex.Binormal.x = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[0]);
+            vertex.Binormal.y = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[1]);
+            vertex.Binormal.z = static_cast<float>(element->GetDirectArray().GetAt(ArrayIndex).mData[2]);
         }
         break;
         case FbxLayerElement::EReferenceMode::eIndex:
@@ -676,9 +676,9 @@ void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const
         {
             int index = element->GetIndexArray().GetAt(ArrayIndex);
             //VertexKey.BiNormalIndex = index;
-            vertex.Binormal.x = ToFloat(element->GetDirectArray().GetAt(index).mData[0]);
-            vertex.Binormal.y = ToFloat(element->GetDirectArray().GetAt(index).mData[1]);
-            vertex.Binormal.z = ToFloat(element->GetDirectArray().GetAt(index).mData[2]);
+            vertex.Binormal.x = static_cast<float>(element->GetDirectArray().GetAt(index).mData[0]);
+            vertex.Binormal.y = static_cast<float>(element->GetDirectArray().GetAt(index).mData[1]);
+            vertex.Binormal.z = static_cast<float>(element->GetDirectArray().GetAt(index).mData[2]);
         }
         break;
         default:
