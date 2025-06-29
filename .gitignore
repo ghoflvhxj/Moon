@@ -7,3 +7,4 @@ Engine/x64/Debug
 .vs
 Client/Resources/Shader
 Libraries/Debug/Engine.lib
+Client/imgui.ini
