@@ -133,13 +133,18 @@ MPhysXObject::MPhysXObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPh
         //PhysXRigidDynamic->setAngularDamping(1.f);
         break;
     }
+
+    if (PxRigidActor* RigidActor = GetRigidActor())
+    {
+        GetScene()->addActor(*RigidActor);
+    }
 }
 
 bool MPhysXObject::IsSimulating()
 {
-    if (RigidDynamic)
+    if (PxRigidActor* RigidActor = GetRigidActor())
     {
-        //RigidDynamic->();
+        return RigidActor->getActorFlags().isSet(PxActorFlag::eDISABLE_SIMULATION) == false;
     }
 
     return false;
@@ -147,14 +152,13 @@ bool MPhysXObject::IsSimulating()
 
 void MPhysXObject::SetSimulate(bool bEnable)
 {
-    if (bEnable)
+    PxRigidActor* RigidActor = GetRigidActor();
+    if (RigidActor == nullptr)
     {
-        GetScene()->addActor(*GetRigidActor());
+        return;
     }
-    else
-    {
-        GetScene()->removeActor(*GetRigidActor());
-    }
+
+    RigidActor->setActorFlag(PxActorFlag::eDISABLE_SIMULATION, !bEnable);
 }
 
 void MPhysXObject::SetMass(float InMass)
