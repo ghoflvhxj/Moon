@@ -100,13 +100,13 @@ bool MPhysX::AddPhysicsObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType I
     std::unique_ptr<MPhysXObject> NewObject = std::make_unique<MPhysXObject>(InMesh, InPhysicsType);
 
     // ConvexMesh 있는 거 쓰고, 없으면 만듬 -> 작업 중
-    PxMaterial* PhysxMaterial = (*g_pPhysics)->createMaterial(0.5f, 0.5f, 0.f);
+    PxMaterial* PhysxMaterial = Physics->createMaterial(0.5f, 0.5f, 0.f);
     PxConvexMesh* ConvexMesh = nullptr;
     CreateConvex(InMesh->GetAllVertexPosition(), &ConvexMesh);
 
     // Shape 있는 거 쓰고, 없으면 만듬 -> 작업 중
     PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(ConvexMesh);
-    PxShape* Shape = (*g_pPhysics)->createShape(Geometry, *PhysxMaterial, true);
+    PxShape* Shape = Physics->createShape(Geometry, *PhysxMaterial, true);
     NewObject->AttachShape(Shape);
 
     if (NewObject->IsValid() == false)
@@ -125,25 +125,35 @@ MPhysXObject::MPhysXObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPh
     switch (InPhysicsType)
     {
     case EPhysicsType::Static:
-        RigidStatic = (*g_pPhysics)->createRigidStatic(PxTransform(PxVec3(0.f, 0.f, 0.f)));
+        RigidStatic = GetPhysX()->createRigidStatic(PxTransform(PxVec3(0.f, 0.f, 0.f)));
         break;
     case EPhysicsType::Dynamic:
-        RigidDynamic = (*g_pPhysics)->createRigidDynamic(PxTransform(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity)));
+        RigidDynamic = GetPhysX()->createRigidDynamic(PxTransform(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity)));
         SetMass(1.f);   // DefaultMass
         //PhysXRigidDynamic->setAngularDamping(1.f);
         break;
     }
 }
 
-void MPhysXObject::SetPhysics(bool bEnable)
+bool MPhysXObject::IsSimulating()
+{
+    if (RigidDynamic)
+    {
+        //RigidDynamic->();
+    }
+
+    return false;
+}
+
+void MPhysXObject::SetSimulate(bool bEnable)
 {
     if (bEnable)
     {
-        g_pPhysics->Scene->addActor(*GetRigidActor());
+        GetScene()->addActor(*GetRigidActor());
     }
     else
     {
-        g_pPhysics->Scene->removeActor(*GetRigidActor());
+        GetScene()->removeActor(*GetRigidActor());
     }
 }
 

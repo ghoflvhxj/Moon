@@ -12,22 +12,22 @@ SphereComponent::SphereComponent()
 	, PhysXShape{ nullptr }
 	, Radius{ 1.f }
 {
-	if (g_pPhysics == nullptr)
-	{
-		return;
-	}
+	//if (g_pPhysics == nullptr)
+	//{
+	//	return;
+	//}
 
-	if (g_pPhysics->Physics == nullptr)
-	{
-		return;
-	}
+	//if (g_pPhysics->Physics == nullptr)
+	//{
+	//	return;
+	//}
 
-	PhysXMaterial = (*g_pPhysics)->createMaterial(0.f, 0.f, 0.0f);
-	PhysXGeometry = &PxSphereGeometry(Radius);
-	PhysXActor = (*g_pPhysics)->createRigidDynamic(PxTransform(0.f, 3.f, 0.f));
-	PhysXShape = (*g_pPhysics)->createShape(*PhysXGeometry, *PhysXMaterial);
-	PhysXActor->attachShape(*PhysXShape);
-	g_pPhysics->Scene->addActor(*PhysXActor);
+	//PhysXMaterial = (*g_pPhysics)->createMaterial(0.f, 0.f, 0.0f);
+	//PhysXGeometry = &PxSphereGeometry(Radius);
+	//PhysXActor = (*g_pPhysics)->createRigidDynamic(PxTransform(0.f, 3.f, 0.f));
+	//PhysXShape = (*g_pPhysics)->createShape(*PhysXGeometry, *PhysXMaterial);
+	//PhysXActor->attachShape(*PhysXShape);
+	//g_pPhysics->Scene->addActor(*PhysXActor);
 }
 
 void SphereComponent::Update(const Time deltaTime)
