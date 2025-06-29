@@ -182,9 +182,9 @@ void MyGame::render()
             LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 5.f, 0.f);
 		}
 
-        if (ImGui::Checkbox("DisableCollision", &bStaticCollision))
+        if (ImGui::Checkbox("Physics Simulation", &bStaticCollision))
         {
-            LanternActor->GetStaticMeshCompoent()->SetPhysics(bStaticCollision);
+            LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(bStaticCollision);
         }
 	}
 
