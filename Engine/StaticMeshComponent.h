@@ -37,7 +37,7 @@ public:
 	virtual void InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath);
 public:
 	const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
-	const std::vector<Vec3>& GetAllVertexPosition() const;
+	const std::vector<::Vec3>& GetAllVertexPosition() const;
 	std::vector<TextureList>	Textures;
 	std::vector<uint32>			_geometryLinkMaterialIndices;
 	std::vector<Vec3>			AllVertexPosition;
@@ -125,9 +125,10 @@ public:
 
 public:
     void SetPhysics(bool bInPhysics, bool bForce = false);
+    void SetPhysicsSimulate(bool bInSimulate, bool bForce = false);
 protected:
     bool bPhysics = true;
-    bool bAddedToScene = false;
+    bool bPhysicsSimulate = false;
 
 public:
     void SetPhysicsType(EPhysicsType InPhysicsType) { PhysicsType = InPhysicsType; }

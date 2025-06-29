@@ -105,7 +105,7 @@ const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
 	return _geometryLinkMaterialIndices;
 }
 
-const std::vector<Vec3>& StaticMesh::GetAllVertexPosition() const
+const std::vector<::Vec3>& StaticMesh::GetAllVertexPosition() const
 {
 	return AllVertexPosition;
 }
@@ -178,7 +178,7 @@ StaticMeshComponent::~StaticMeshComponent()
 
 void StaticMeshComponent::Update(const Time deltaTime)
 {
-	if (PhysicsObject)
+	if (PhysicsObject && PhysicsObject->IsSimulating())
 	{
 		setTranslation(PhysicsObject->GetPhysicsPos());
 	}
@@ -284,7 +284,7 @@ void StaticMeshComponent::setTranslation(const Vec3& translation)
 {
     SceneComponent::setTranslation(translation);
 
-    if (PhysicsObject)
+    if (PhysicsObject && bPhysics)
     {
         PhysicsObject->SetPos(translation);
     }
@@ -294,7 +294,7 @@ void StaticMeshComponent::setScale(const Vec3& InScale)
 {
 	SceneComponent::setScale(InScale);
     
-    if (PhysicsObject)
+    if (PhysicsObject && bPhysics)
     {
         PhysicsObject->SetScale(InScale);
     }
@@ -330,14 +330,7 @@ XMMATRIX StaticMeshComponent::GetRotationMatrix()
 void StaticMeshComponent::SetMesh(const std::wstring& Path)
 {
     _pStaticMesh->LoadFromFBX(Path);
-
-    if (g_pPhysics && bPhysics)
-    {
-        if (g_pPhysics->AddPhysicsObject(_pStaticMesh, PhysicsType, PhysicsObject))
-        {
-            SetPhysics(bPhysics, true);
-        }
-    }
+    SetPhysics(bPhysics, true);
 }
 
 std::shared_ptr<StaticMesh>& StaticMeshComponent::getStaticMesh()
@@ -363,6 +356,7 @@ void StaticMeshComponent::SetGravity(bool bGravity)
 
 void StaticMeshComponent::Clothing()
 {
+    /*
     // Desc
     PxTriangleMeshDesc TriangleMeshDesc;
     std::vector<Vec4> Vertices;
@@ -459,7 +453,7 @@ void StaticMeshComponent::Clothing()
         AttachData.actor[0] = DeformableSurface;
         AttachData.type[0] = PxDeformableAttachmentTargetType::eVERTEX;
         AttachData.indices[0].data = Indices.data();
-        AttachData.indices[0].count = Indices.size();
+        AttachData.indices[0].count = GetSize(Indices);
         AttachData.indices[0].stride = sizeof(uint32);
 
         AttachData.actor[1] = nullptr;
@@ -480,6 +474,7 @@ void StaticMeshComponent::Clothing()
 
         g_pPhysics->Scene->addActor(*DeformableSurface);
     }
+    */
 }
 
 void StaticMeshComponent::UpdateClothing()
@@ -526,20 +521,35 @@ void StaticMeshComponent::SetPhysics(bool bInPhysics, bool bForce)
 
     bPhysics = bInPhysics;
 
-    if (bPhysics)
+    if (g_pPhysics && bPhysics)
     {
-        if (bAddedToScene == false)
+        if (g_pPhysics->AddPhysicsObject(_pStaticMesh, PhysicsType, PhysicsObject))
         {
-            PhysicsObject->SetPhysics(true);
-            bAddedToScene = true;
+            //SetPhysics(bPhysics, true);
         }
     }
-    else
+}
+
+void StaticMeshComponent::SetPhysicsSimulate(bool bInSimulate, bool bForce /*= false*/)
+{
+    if (bPhysicsSimulate == bInSimulate && bForce == false)
     {
-        if (bAddedToScene)
-        {
-            PhysicsObject->SetPhysics(false);
-            bAddedToScene = false;
-        }
+        return;
+    }
+
+    if (PhysicsObject == nullptr)
+    {
+        return;
+    }
+
+    bPhysicsSimulate = bInSimulate;
+
+    if (bPhysics && PhysicsObject->IsSimulating() == false)
+    {
+        PhysicsObject->SetSimulate(true);
+    }
+    if (bPhysics == false && PhysicsObject->IsSimulating())
+    {
+        PhysicsObject->SetSimulate(false);
     }
 }
