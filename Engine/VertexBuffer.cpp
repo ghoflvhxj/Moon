@@ -3,10 +3,15 @@
 #include "GraphicDevice.h"
 #include "WindowException.h"
 
+#ifdef PHYSX
+#include "MPhysX.h"
+#endif
+
+#ifdef PHYSX_CUDA
 #include "cuda.h"
 #include "cudaD3D11.h"
 #include "driver_types.h"
-#include "MPhysX.h"
+#endif
 
 MVertexBuffer::MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer)
 	: _pBuffer		{ nullptr }
@@ -33,14 +38,17 @@ MVertexBuffer::MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, 
 #endif
 	}
 
+#ifdef PHYSX_CUDA
     // D3D11 리소스를 CUDA에 등록함
     CUresult Result = cuGraphicsD3D11RegisterResource(&CudaResource, _pBuffer, CU_GRAPHICS_REGISTER_FLAGS_NONE);
+#endif
 }
 
 MVertexBuffer::~MVertexBuffer()
 {
+#ifdef PHYSX_CUDA
     cuGraphicsUnregisterResource(CudaResource);
-
+#endif
 	SafeRelease(_pBuffer);
 }
 
@@ -67,12 +75,11 @@ void MVertexBuffer::Update(void* InData)
     g_pGraphicDevice->getContext()->Map(_pBuffer, 0u, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0u, &SubResource);
 
     memcpy(SubResource.pData, InData, VertexSize * VertexNum);
-    //Vertex* Vertices = reinterpret_cast<Vertex*>(SubResource.pData);
 
     g_pGraphicDevice->getContext()->Unmap(_pBuffer, 0u);
-    
 }
 
+#ifdef PHYSX_CUDA
 void MVertexBuffer::UpdateUsingCUDA(PxDeformableSurface* DeformableSurface, uint32 VertexNum)
 {
     // CUDA 접근을 위해 리소스를 Map함 
@@ -111,3 +118,5 @@ void MVertexBuffer::UpdateUsingCUDA(PxDeformableSurface* DeformableSurface, uint
     // CUDA 접근이 끝났으니 리소스 UnMap
     CUresult Result4 = cuGraphicsUnmapResources(1, &CudaResource, cudaStreamDefault);
 }
+//MSGBOX(TEXT("PhysX가 아닌데 Cuda를 이용해 정점을 업데이트 시도함."));
+#endif

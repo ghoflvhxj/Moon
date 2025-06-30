@@ -2,10 +2,12 @@
 
 #include "cuda.h"
 
+#ifdef PHYSX
 namespace physx
 {
     class PxDeformableSurface;
 }
+#endif
 
 class MVertexBuffer final
 {
@@ -28,6 +30,9 @@ private:
 
 public:
     void Update(void* InData);
+
+#ifdef PHYSX_CUDA
     void UpdateUsingCUDA(physx::PxDeformableSurface* DeformableSurface, uint32 VertexNum);
     CUgraphicsResource CudaResource;
+#endif
 };
