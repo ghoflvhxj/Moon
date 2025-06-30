@@ -33,7 +33,7 @@ protected:
 	bool CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh);
 
 public:
-    virtual bool AddPhysicsObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPhysicsType, std::unique_ptr<MPhysicsObject>& OutPhysicsObject) override;
+    virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
 };
 
 class ENGINE_DLL MPhysXObject : public MPhysicsObject
