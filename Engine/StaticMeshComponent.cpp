@@ -203,11 +203,6 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		PrimitiveData.Material = _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
 		PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
-		
-        //if (bSimpleLayout)
-        //{
-        //    PrimitiveData.InputLayout = g_pGraphicDevice->SimpleLayout;
-        //}
 
 		PrimitiveDataList.push_back(PrimitiveData);
 	}
@@ -475,16 +470,13 @@ void StaticMeshComponent::Clothing()
         g_pPhysics->Scene->addActor(*DeformableSurface);
     }
     */
-}
 
-void StaticMeshComponent::UpdateClothing()
-{
-    if (DeformableSurface)
+    if (g_pPhysics)
     {
-        if (auto VB = g_pRenderer->GetVertexBuffer(PrimitiveID))
-        {
-            VB->UpdateUsingCUDA(DeformableSurface, VertexNum);
-        }
+        FPhysicsConstructData Data;
+        Data.Mesh = _pStaticMesh;
+        Data.PrimitiveComponent = shared_from_this();
+        g_pPhysics->AddCloth(Data, PhysicsObject);
     }
 }
 
@@ -523,7 +515,11 @@ void StaticMeshComponent::SetPhysics(bool bInPhysics, bool bForce)
 
     if (g_pPhysics && bPhysics)
     {
-        if (g_pPhysics->AddPhysicsObject(_pStaticMesh, PhysicsType, PhysicsObject))
+        FPhysicsConstructData Data;
+        Data.Mesh = _pStaticMesh;
+        Data.PrimitiveComponent = shared_from_this();
+        Data.PhysicsType = PhysicsType;
+        if (g_pPhysics->AddPhysicsObject(Data, PhysicsObject))
         {
             //SetPhysics(bPhysics, true);
         }

@@ -113,10 +113,6 @@ public:
     // 피직스 테스트용
 public:
     void Clothing();
-    void UpdateClothing();
-    void SetSimpleLayout() { bSimpleLayout = true; }
-protected:
-    bool bSimpleLayout = false;
 
 public:
 	void SetMass(float NewMass);
@@ -148,5 +144,5 @@ private:
     std::shared_ptr<FMeshData> MeshDataForPhysX = nullptr;
 
 protected:
-    std::unique_ptr<class MPhysicsObject> PhysicsObject;
+    std::shared_ptr<class MPhysicsObject> PhysicsObject;
 };
