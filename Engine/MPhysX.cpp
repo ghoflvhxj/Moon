@@ -95,14 +95,14 @@ bool MPhysX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** Conv
     return false;
 }
 
-bool MPhysX::AddPhysicsObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPhysicsType, std::unique_ptr<MPhysicsObject>& OutPhysicsObject)
+bool MPhysX::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
 {
-    std::unique_ptr<MPhysXObject> NewObject = std::make_unique<MPhysXObject>(InMesh, InPhysicsType);
+    std::shared_ptr<MPhysXObject> NewObject = std::make_shared<MPhysXObject>(InData.Mesh, InData.PhysicsType);
 
     // ConvexMesh 있는 거 쓰고, 없으면 만듬 -> 작업 중
     PxMaterial* PhysxMaterial = Physics->createMaterial(0.5f, 0.5f, 0.f);
     PxConvexMesh* ConvexMesh = nullptr;
-    CreateConvex(InMesh->GetAllVertexPosition(), &ConvexMesh);
+    CreateConvex(InData.Mesh->GetAllVertexPosition(), &ConvexMesh);
 
     // Shape 있는 거 쓰고, 없으면 만듬 -> 작업 중
     PxConvexMeshGeometry Geometry = PxConvexMeshGeometry(ConvexMesh);
@@ -114,13 +114,13 @@ bool MPhysX::AddPhysicsObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType I
         return false;
     }
 
-    OutPhysicsObject = std::move(NewObject);
+    OutPhysicsObject = NewObject;
 
     return true;
 }
 
 MPhysXObject::MPhysXObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPhysicsType)
-    : MPhysicsObject(InMesh)
+    : MPhysicsObject(nullptr, InMesh)
 {
     switch (InPhysicsType)
     {
