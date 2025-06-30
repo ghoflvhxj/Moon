@@ -7,6 +7,7 @@
 #include "Jolt/Core/Reference.h"
 #include "Jolt/Physics/PhysicsSystem.h"
 #include "Jolt/Physics/Collision/Shape/Shape.h"
+#include "Jolt/Physics/Body/BodyID.h"
 
 class StaticMesh;
 
@@ -23,23 +24,24 @@ public:
     virtual ~MJoltPhysics() = default;
 
 public:
-    virtual bool AddPhysicsObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPhysicsType, std::unique_ptr<MPhysicsObject>& OutPhysicsObject) override;
+    virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
+    virtual bool AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
 
 public:
     virtual void Update(float deltaTime) override;
-    virtual void Release() override {}
+    virtual void Release() override;
 
 public:
     JPH::TempAllocator* tempAllocator = nullptr;
     JPH::JobSystem* jobSystem = nullptr;
     JPH::JobSystem* jobSystemValidating = nullptr;
-    JPH::PhysicsSystem physics_system;
+    JPH::PhysicsSystem* physics_system = nullptr;
 };
 
 class ENGINE_DLL MJoltPhysicsObject : public MPhysicsObject
 {
 public:
-    MJoltPhysicsObject(std::shared_ptr<StaticMesh> InMesh, EPhysicsType InPhysicsType);
+    MJoltPhysicsObject(FPhysicsConstructData& InData);
 
 public:
     MJoltPhysics* Get()
@@ -48,9 +50,11 @@ public:
     }
     JPH::PhysicsSystem* GetPhysicsSystem()
     {
-        return &Get()->physics_system;
+        return Get()->physics_system;
     }
 
+public:
+    virtual void UpdateVertices(std::vector<::Vertex>& InVertices) override;
 public:
     virtual bool IsSimulating() override;
 public:
@@ -67,9 +71,8 @@ public:
     virtual ::Vec4 GetPhysicsRotation() override;
 
 public:
-    void AttachShape(JPH::Ref<JPH::Shape> InShape) { ShapeCache = InShape; }
-    void SetBody(JPH::Body* InBody) { BodyCache = InBody; }
+    void SetBodyID(const JPH::BodyID InBodyID) { BodyIDCache = InBodyID; }
+    JPH::BodyID GetBodyID() { return BodyIDCache; }
 protected:
-    JPH::Ref<JPH::Shape> ShapeCache;
-    JPH::Body* BodyCache = nullptr;
+    JPH::BodyID BodyIDCache;
 };
