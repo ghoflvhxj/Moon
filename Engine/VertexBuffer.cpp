@@ -10,14 +10,16 @@
 
 MVertexBuffer::MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer)
 	: _pBuffer		{ nullptr }
-	, _vertexCount	{ vertexCount }
+	, VertexNum	{ vertexCount }
     , VertexSize     { vertexSize }
 {
 	D3D11_BUFFER_DESC bd = {};
 	bd.ByteWidth			= static_cast<UINT>(vertexSize * vertexCount);
-	bd.Usage				= D3D11_USAGE_DEFAULT;
+    //bd.Usage              = D3D11_USAGE_DEFAULT;
+    bd.Usage                = D3D11_USAGE_DYNAMIC;
 	bd.BindFlags			= D3D11_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags		= 0u;
+	//bd.CPUAccessFlags		= 0u;
+    bd.CPUAccessFlags		= D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
 	bd.MiscFlags			= 0u;
 	bd.StructureByteStride	= 0u;
 	
@@ -55,7 +57,20 @@ ID3D11Buffer* MVertexBuffer::getBuffer()
 
 const uint32 MVertexBuffer::getVertexCount() const
 {
-	return _vertexCount;
+	return VertexNum;
+}
+
+void MVertexBuffer::Update(void* InData)
+{
+    
+    D3D11_MAPPED_SUBRESOURCE SubResource;
+    g_pGraphicDevice->getContext()->Map(_pBuffer, 0u, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0u, &SubResource);
+
+    memcpy(SubResource.pData, InData, VertexSize * VertexNum);
+    //Vertex* Vertices = reinterpret_cast<Vertex*>(SubResource.pData);
+
+    g_pGraphicDevice->getContext()->Unmap(_pBuffer, 0u);
+    
 }
 
 void MVertexBuffer::UpdateUsingCUDA(PxDeformableSurface* DeformableSurface, uint32 VertexNum)
@@ -83,7 +98,7 @@ void MVertexBuffer::UpdateUsingCUDA(PxDeformableSurface* DeformableSurface, uint
     copyDesc.dstDevice = DevicePtr;
     copyDesc.dstPitch = sizeof(Vertex);         // 버텍스 전체 stride, 예: 36바이트
     copyDesc.WidthInBytes = sizeof(PxVec4);     // 복사할 너비(16바이트)
-    copyDesc.Height = _vertexCount;             // 행 수 = 파티클 수
+    copyDesc.Height = VertexNum;             // 행 수 = 파티클 수
     cuMemcpy2DAsync(&copyDesc, cudaStreamDefault);
 
     // 디버깅

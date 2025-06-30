@@ -23,10 +23,11 @@ private:
 public:
 	const uint32 getVertexCount() const;
 private:
-	uint32 _vertexCount;
+	uint32 VertexNum;
     uint32 VertexSize;
 
 public:
+    void Update(void* InData);
     void UpdateUsingCUDA(physx::PxDeformableSurface* DeformableSurface, uint32 VertexNum);
     CUgraphicsResource CudaResource;
 };
