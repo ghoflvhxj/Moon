@@ -1,13 +1,6 @@
 ﻿#pragma once
-#ifndef __DIRECTIONAL_LIGHT_COMPONENT_H__
 
 #include "LightComponent.h"
-
-#include "Vertex.h"
-
-class MVertexBuffer;
-class MIndexBuffer;
-class MConstantBuffer;
 
 class MTexture;
 
@@ -21,6 +14,3 @@ public:
     virtual void Update(const Time deltaTime) override;
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 };
-
-#define __DIRECTIONAL_LIGHT_COMPONENT_H__
-#endif

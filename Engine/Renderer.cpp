@@ -1,5 +1,4 @@
-﻿#include "Include.h"
-#include "Renderer.h"
+﻿#include "Renderer.h"
 
 // DirectXTK
 #include "DirectXTK/SpriteFont.h"
@@ -10,16 +9,14 @@
 #include "IndexBuffer.h"
 #include "ConstantBuffer.h"
 
-// Material
-#include "Material.h"
-
-// Render
 #include "RenderTarget.h"
 #include "RenderPass.h"
 #include "CombinePass.h"
 
-// Shader
+#include "Material.h"
 #include "Shader.h"
+
+#include "Core/StaticMesh/StaticMesh.h"
 
 // Framework
 #include "MainGame.h"

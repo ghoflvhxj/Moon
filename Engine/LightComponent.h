@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __LIGHT_COMPONENT_H__
 
 #include "PrimitiveComponent.h"
 
@@ -54,6 +53,3 @@ protected:
 private:
 	std::shared_ptr<StaticMesh> _pStaticMesh;
 };
-
-#define __LIGHT_COMPONENT_H__
-#endif

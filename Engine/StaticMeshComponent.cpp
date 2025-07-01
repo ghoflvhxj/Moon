@@ -1,155 +1,21 @@
-﻿#include "Include.h"
-#include "StaticMeshComponent.h"
-
-#include "GraphicDevice.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "Material.h"
+﻿#include "StaticMeshComponent.h"
 
 #include "Render.h"
 #include "Renderer.h"
-
+#include "GraphicDevice.h"
+#include "Material.h"
 #include "Texture.h"
+
+#include "Core/Physics/Physics.h"
+#include "Core/StaticMesh/StaticMesh.h"
 
 #include "MainGame.h"
 #include "Camera.h"
 
-#include "FBXLoader.h"
-
-#include "MPhysX.h"
-#include "NvidiaPhysX/PxPhysicsAPI.h"
-
-
-#include <DirectXMath.h>
-using namespace DirectX;
-using namespace physx;
-
 #undef min
 #undef max
 
-void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
-{
-	MFBXLoader FbxLoader;
-	InitializeFromFBX(FbxLoader, FilePath);
-
-	const std::vector<VertexList>& Vertices = FbxLoader.getVerticesList();
-	const std::vector<IndexList>& Indices = FbxLoader.getIndicesList();
-
-	// FBX를 이용해 Serialize할 데이터들을 저장
-	GeometryNum = FbxLoader.GetGeometryNum();
-	for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
-	{
-		auto MeshData = std::make_shared<FMeshData>();
-		MeshData->Vertices = Vertices[GeometryIndex];
-		MeshData->Indices = Indices[GeometryIndex];
-		MeshDataList.push_back(MeshData);
-	}
-
-	// 중심점과 모든 버텍스 위치
-    TotalVertexNum = FbxLoader.GetTotalVertexNum();
-	AllVertexPosition.reserve(TotalVertexNum);
-	CenterPos = { 0.f, 0.f, 0.f };
-	for (auto& vertices : Vertices)
-	{
-		for (auto& vertex : vertices)
-		{
-			AllVertexPosition.emplace_back(Vec3(vertex.Pos.x, vertex.Pos.y, vertex.Pos.z));
-			CenterPos.x += vertex.Pos.x;
-			CenterPos.y += vertex.Pos.y;
-			CenterPos.z += vertex.Pos.z;
-		}
-	}
-	CenterPos.x /= CastValue<float>(TotalVertexNum);
-	CenterPos.y /= CastValue<float>(TotalVertexNum);
-	CenterPos.z /= CastValue<float>(TotalVertexNum);
-}
-
-void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
-{
-	FbxLoader.LoadMesh(FilePath);
-
-	Textures = FbxLoader.GetTextures(); // MaterialTextures
-	_geometryLinkMaterialIndices = FbxLoader.getLinkList();
-	if (_geometryLinkMaterialIndices.size() == 0)
-	{
-		_geometryLinkMaterialIndices.emplace_back(0);
-	}
-
-	uint32 MaterialNum = std::max(1u, FbxLoader.GetMaterialNum());
-	Materials.reserve(MaterialNum);
-	for (uint32 MaterialIndex = 0; MaterialIndex < MaterialNum; ++MaterialIndex)
-	{
-		std::shared_ptr<MMaterial>& NewMaterial = std::make_shared<MMaterial>();
-
-		if (MaterialIndex < Textures.size())
-		{
-			NewMaterial->setTextures(Textures[MaterialIndex]);
-		}
-		
-		NewMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso"));
-		Materials.push_back(NewMaterial);
-	}
-
-	// 바운딩 박스
-    Vec3 Min, Max;
-    FbxLoader.getBoundingBoxInfo(Min, Max);
-    _pBoundingBox = std::make_shared<MBoundingBox>(Min, Max);
-
-    // 바운딩 스피어
-    float Radius = XMVectorGetX(XMVector3Length(XMLoadFloat3(&Min) - XMLoadFloat3(&Max)));
-
-}
-
-const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
-{
-	return _geometryLinkMaterialIndices;
-}
-
-const std::vector<::Vec3>& StaticMesh::GetAllVertexPosition() const
-{
-	return AllVertexPosition;
-}
-
-const std::shared_ptr<FMeshData>& StaticMesh::GetMeshData(const uint32 Index) const
-{
-	if (Index < GetMeshNum())
-	{
-		return MeshDataList[Index];
-	}
-	
-	return nullptr;
-}
-
-MaterialList& StaticMesh::getMaterials()
-{
-	return Materials;
-}
-
-std::shared_ptr<MMaterial> StaticMesh::getMaterial(const uint32 index)
-{
-	return Materials[index];
-}
-
-const uint32 StaticMesh::GetMaterialNum() const
-{
-	return CastValue<uint32>(Materials.size());
-}
-
-
-const uint32 StaticMesh::getGeometryCount() const
-{
-	return GeometryNum;
-}
-
-std::shared_ptr<MBoundingBox> StaticMesh::GetBoundingBox()
-{
-	return _pBoundingBox;
-}
-
-const Vec3& StaticMesh::GetCenterPos() const
-{
-	return CenterPos;
-}
+using namespace DirectX;
 
 StaticMeshComponent::StaticMeshComponent()
 	: MPrimitiveComponent()
@@ -172,8 +38,7 @@ StaticMeshComponent::StaticMeshComponent(const std::wstring& FilePath, bool bUse
 
 StaticMeshComponent::~StaticMeshComponent()
 {
-    if (PhysXConvexMesh) PhysXConvexMesh->release();
-    if (PhysxMaterial) PhysxMaterial->release();
+
 }
 
 void StaticMeshComponent::Update(const Time deltaTime)
@@ -193,14 +58,14 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		return false;
 	}
 
-	uint32 geometryCount = _pStaticMesh->getGeometryCount();
+	uint32 geometryCount = _pStaticMesh->GetMeshNum();
 	PrimitiveDataList.reserve(geometryCount);
 
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
 		FPrimitiveData PrimitiveData;
 		PrimitiveData.PrimitiveComponent = shared_from_this();
-		PrimitiveData.Material = _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]];
+		PrimitiveData.Material = _pStaticMesh->getGeometryLinkMaterialIndex().size() > 0 ? _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : _pStaticMesh->getMaterials()[0];
 		PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
 
@@ -297,15 +162,16 @@ void StaticMeshComponent::setScale(const Vec3& InScale)
 
 Mat4& StaticMeshComponent::getWorldMatrix()
 {
-    if (DeformableSurface)
-    {
-        DeformalMatrix = SceneComponent::getWorldMatrix();
-        DeformalMatrix.m[3][0] = 0.f;
-        DeformalMatrix.m[3][1] = 0.f;
-        DeformalMatrix.m[3][2] = 0.f;
+    // SoftBody 시뮬레이션의 경우 컴포넌트의 위치가 물리 시스템의 위치와 다르니 위치는 물리 시스템의 것을 사용해야 함. 
+    //if (DeformableSurface)
+    //{
+    //    DeformalMatrix = SceneComponent::getWorldMatrix();
+    //    DeformalMatrix.m[3][0] = 0.f;
+    //    DeformalMatrix.m[3][1] = 0.f;
+    //    DeformalMatrix.m[3][2] = 0.f;
 
-        return DeformalMatrix;
-    }
+    //    return DeformalMatrix;
+    //}
     
     return SceneComponent::getWorldMatrix();
 }
@@ -322,9 +188,18 @@ XMMATRIX StaticMeshComponent::GetRotationMatrix()
 	}
 }
 
-void StaticMeshComponent::SetMesh(const std::wstring& Path)
+void StaticMeshComponent::SetMesh(const std::wstring& InPath)
 {
-    _pStaticMesh->LoadFromFBX(Path);
+    std::filesystem::path Path(InPath);
+    if (Path.extension() == TEXT(".fbx"))
+    {
+        _pStaticMesh->LoadFromFBX(Path);
+    }
+    else if (Path.extension() == TEXT(".json"))
+    {
+        _pStaticMesh->LoadFromAsset(Path);
+    }
+
     SetPhysics(bPhysics, true);
 }
 

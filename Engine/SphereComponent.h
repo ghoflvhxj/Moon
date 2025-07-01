@@ -16,10 +16,10 @@ public:
 	void AddForce(const Vec3& Force);
 
 private:
-	physx::PxGeometry*			PhysXGeometry;
-	physx::PxRigidDynamic*		PhysXActor;
-	physx::PxShape*				PhysXShape;
-	physx::PxMaterial*			PhysXMaterial;
+	//physx::PxGeometry*			PhysXGeometry;
+	//physx::PxRigidDynamic*		PhysXActor;
+	//physx::PxShape*				PhysXShape;
+	//physx::PxMaterial*			PhysXMaterial;
 private:
 	float Radius;
 };

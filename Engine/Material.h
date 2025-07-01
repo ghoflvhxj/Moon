@@ -1,6 +1,6 @@
 ﻿#pragma once
-#ifndef __MATERIAL_H__
 
+#include "Include.h"
 #include "Vertex.h"
 #include "Shader.h"
 
@@ -74,6 +74,3 @@ public:
 public:
 	const bool IsTextureTypeUsed(const ETextureType type);
 };
-
-#define __MATERIAL_H__
-#endif

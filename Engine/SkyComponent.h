@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __SKY_COMPONENT_H__
 
 #include "PrimitiveComponent.h"
 
@@ -26,6 +25,3 @@ private:
 
 	std::shared_ptr<StaticMesh> _pSkyMesh;
 };
-
-#define __SKY_COMPONENT_H__
-#endif

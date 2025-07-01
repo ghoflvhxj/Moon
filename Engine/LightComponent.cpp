@@ -1,9 +1,8 @@
-﻿#include "Include.h"
-#include "LightComponent.h"
+﻿#include "LightComponent.h"
 
 #include "Renderer.h"
 #include "MainGameSetting.h"
-#include "StaticMeshComponent.h"
+#include "Core/StaticMesh/StaticMesh.h"
 
 using namespace DirectX;
 

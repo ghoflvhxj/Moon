@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __RENDER_H__
 
 #include "GraphicDevice.h"
 #include "ShaderManager.h"
@@ -114,6 +113,3 @@ struct FPrimitiveData
 
     struct ID3D11InputLayout* InputLayout = nullptr;
 };
-
-#define __RENDER_H__
-#endif

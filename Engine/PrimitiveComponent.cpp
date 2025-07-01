@@ -13,7 +13,7 @@
 #include "Camera.h"
 
 // FMeshData 참조용
-#include "StaticMeshComponent.h"
+#include "Core/StaticMesh/StaticMesh.h"
 
 using namespace DirectX;
 

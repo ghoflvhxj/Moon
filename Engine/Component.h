@@ -1,5 +1,5 @@
-#pragma once
-#ifndef __COMPONENT_H__
+﻿#pragma once
+#include "Include.h"
 
 class Actor;
 
@@ -15,6 +15,3 @@ public:
 private:
 	std::weak_ptr<Actor> _pOwningActor;
 };
-
-#define __COMPONENT_H__
-#endif

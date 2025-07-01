@@ -1,6 +1,6 @@
 ﻿#pragma once
-#ifndef __RENDERER_H__
 
+#include "Include.h"
 #include "Render.h"
 
 class SceneComponent;
@@ -105,6 +105,3 @@ protected:
 public:
 	RENDERER_OPTION(DrawCollision)
 };
-
-#define __RENDERER_H__
-#endif

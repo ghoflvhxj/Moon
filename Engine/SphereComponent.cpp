@@ -2,15 +2,14 @@
 #include "SphereComponent.h"
 
 #include "MainGame.h"
-#include "MPhysX.h"
 
 using namespace physx;
 
 SphereComponent::SphereComponent()
-	: PhysXGeometry{ nullptr }
-	, PhysXActor{ nullptr }
-	, PhysXShape{ nullptr }
-	, Radius{ 1.f }
+	: Radius{ 1.f }
+    //, PhysXGeometry{ nullptr }
+    //, PhysXActor{ nullptr }
+    //, PhysXShape{ nullptr }
 {
 	//if (g_pPhysics == nullptr)
 	//{
@@ -32,20 +31,20 @@ SphereComponent::SphereComponent()
 
 void SphereComponent::Update(const Time deltaTime)
 {
-	if (PhysXActor)
-	{
-		PxTransform PhysXTransform = PhysXActor->getGlobalPose();
-		setTranslation(PhysXTransform.p.x, PhysXTransform.p.y, PhysXTransform.p.z);
+	//if (PhysXActor)
+	//{
+	//	PxTransform PhysXTransform = PhysXActor->getGlobalPose();
+	//	setTranslation(PhysXTransform.p.x, PhysXTransform.p.y, PhysXTransform.p.z);
 
-		PxVec3 Rotation(PxIdentity);
-		PhysXTransform.rotate(Rotation);
-		setRotation(Vec3(Rotation.x, Rotation.y, Rotation.z));
-	}
+	//	PxVec3 Rotation(PxIdentity);
+	//	PhysXTransform.rotate(Rotation);
+	//	setRotation(Vec3(Rotation.x, Rotation.y, Rotation.z));
+	//}
 
 	MPrimitiveComponent::Update(deltaTime);
 }
 
 void SphereComponent::AddForce(const Vec3& Force)
 {
-	PhysXActor->addForce(PxVec3(Force.x, Force.y, Force.z));
+	//PhysXActor->addForce(PxVec3(Force.x, Force.y, Force.z));
 }

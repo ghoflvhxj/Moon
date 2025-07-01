@@ -20,7 +20,8 @@
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
-#include "StaticMeshComponent.h"
+#include "PrimitiveComponent.h"
+#include "Core/StaticMesh/StaticMesh.h"
 
 using namespace JPH;
 using namespace JPH::literals;

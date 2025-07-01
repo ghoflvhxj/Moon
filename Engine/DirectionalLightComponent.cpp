@@ -1,11 +1,9 @@
-﻿#include "Include.h"
-#include "DirectionalLightComponent.h"
+﻿#include "DirectionalLightComponent.h"
 #include "StaticMeshComponent.h"
 
 #include "Render.h"
-#include "Renderer.h"
-
 #include "Material.h"
+#include "Core/StaticMesh/StaticMesh.h"
 
 #include "MainGameSetting.h"
 

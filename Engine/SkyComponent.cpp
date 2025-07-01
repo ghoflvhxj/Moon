@@ -1,12 +1,11 @@
-﻿#include "Include.h"
-#include "SkyComponent.h"
+﻿#include "SkyComponent.h"
 
 #include "ShaderManager.h"
 
-#include "StaticMeshComponent.h"
 #include "Texture.h"
 #include "Material.h"
 #include "Renderer.h"
+#include "Core/StaticMesh/StaticMesh.h"
 
 using namespace DirectX;
 

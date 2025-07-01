@@ -20,6 +20,7 @@
 #include "Camera.h"
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
+#include "Core/StaticMesh/StaticMesh.h"
 
 #include "Core/Physics/Physics.h"
 
