@@ -180,7 +180,6 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="MoonEngine.cpp" />
-    <ClCompile Include="MPhysX.cpp" />
     <ClCompile Include="PixelShader.cpp" />
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="PrimitiveComponent.cpp" />
@@ -214,7 +213,8 @@
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
     <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
     <ClCompile Include="Source\Core\Physics\Physics.cpp" />
-    <ClCompile Include="Source\Core\Physics\Jolt.cpp" />
+    <ClCompile Include="Source\Core\Physics\PhysX\MPhysX.cpp" />
+    <ClCompile Include="Source\Core\Physics\Jolt\Jolt.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -317,9 +317,6 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="MoonEngine.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="MPhysX.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="PixelShader.h">
@@ -427,7 +424,12 @@
     <ClInclude Include="Source\Core\Physics\Physics.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Physics\Jolt.h">
+    <ClInclude Include="Source\Core\Physics\PhysX\MPhysX.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Physics\Jolt\Jolt.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -6,8 +6,8 @@
 #include "GraphicDevice.h"
 #include "Renderer.h"
 #include "MainGame.h"
-#include "MPhysX.h"
-#include "Core/Physics/Jolt.h"
+#include "Core/Physics/PhysX/MPhysX.h"
+#include "Core/Physics/Jolt/Jolt.h"
 
 #include "ShaderManager.h"
 #include "ShaderLoader.h"

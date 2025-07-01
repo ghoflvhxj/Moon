@@ -21,7 +21,7 @@
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
 
-#include "MPhysX.h"
+#include "Core/Physics/Physics.h"
 
 using namespace DirectX;
 

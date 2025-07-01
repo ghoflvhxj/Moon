@@ -45,7 +45,6 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="MoonEngine.cpp" />
-    <ClCompile Include="MPhysX.cpp" />
     <ClCompile Include="PixelShader.cpp" />
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="PrimitiveComponent.cpp" />
@@ -57,8 +56,9 @@
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="SkyComponent.cpp" />
-    <ClCompile Include="Source\Core\Physics\Jolt.cpp" />
+    <ClCompile Include="Source\Core\Physics\Jolt\Jolt.cpp" />
     <ClCompile Include="Source\Core\Physics\Physics.cpp" />
+    <ClCompile Include="Source\Core\Physics\PhysX\MPhysX.cpp" />
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
     <ClCompile Include="Source\Core\ResourceManager.cpp" />
     <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
@@ -113,7 +113,6 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MoonEngine.h" />
-    <ClInclude Include="MPhysX.h" />
     <ClInclude Include="PixelShader.h" />
     <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="PrimitiveComponent.h" />
@@ -127,8 +126,9 @@
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SkyComponent.h" />
-    <ClInclude Include="Source\Core\Physics\Jolt.h" />
+    <ClInclude Include="Source\Core\Physics\Jolt\Jolt.h" />
     <ClInclude Include="Source\Core\Physics\Physics.h" />
+    <ClInclude Include="Source\Core\Physics\PhysX\MPhysX.h" />
     <ClInclude Include="Source\Core\ResourceLoader.h" />
     <ClInclude Include="Source\Core\ResourceManager.h" />
     <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h" />
@@ -327,7 +327,7 @@
       <SDLCheck>true</SDLCheck>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>ENGINE;FBXSDK_SHARED;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_DEBUG_RENDERER;JPH_PROFILE_ENABLED;JPH_OBJECT_STREAM;JPH_USE_AVX2;JPH_USE_AVX;JPH_USE_SSE4_1;JPH_USE_SSE4_2;JPH_USE_LZCNT;JPH_USE_TZCNT;JPH_USE_F16C;JPH_USE_FMADD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENGINE;FBXSDK_SHARED;RAPIDJSON_HAS_STDSTRING;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_DEBUG_RENDERER;JPH_PROFILE_ENABLED;JPH_OBJECT_STREAM;JPH_USE_AVX2;JPH_USE_AVX;JPH_USE_SSE4_1;JPH_USE_SSE4_2;JPH_USE_LZCNT;JPH_USE_TZCNT;JPH_USE_F16C;JPH_USE_FMADD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Source;$(ProjectDir)Source\ThirdParty;$(ProjectDir)Source\ThirdParty\FBXSDK;$(ProjectDir)Source\ThirdParty\NvidiaPhysX;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9\include;$(ProjectDir)Source\ThirdParty\Jolt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
