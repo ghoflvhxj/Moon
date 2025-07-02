@@ -62,12 +62,10 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
 		_pAnimStack = _pScene->GetCurrentAnimationStack();
 		FbxString animStackName = _pAnimStack->GetName();
 		FbxTakeInfo* pTakeInfo = _pScene->GetTakeInfo(animStackName);
-		FbxTime startTime = pTakeInfo->mLocalTimeSpan.GetStart();
-		FbxTime endTime = pTakeInfo->mLocalTimeSpan.GetStop();
 
         AnimationClip& CurrentAnimClip = OutAnimationClips[AnimStackIndex];
 		CurrentAnimClip.Name = animStackName.Buffer();
-        CurrentAnimClip.SetFrameInfo(startTime, endTime);
+        CurrentAnimClip.SetFrameInfo(pTakeInfo->mLocalTimeSpan.GetStart(), pTakeInfo->mLocalTimeSpan.GetStop());
 
         // 조인트 그리기 용
 		//size_t jointCount = Joints.size();
@@ -159,7 +157,7 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
                     for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
                     {
                         FbxTime currentTime;
-                        currentTime.SetFrame(static_cast<FbxLongLong>(Frame), FbxTime::eFrames30);
+                        currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
 
                         //FbxAMatrix currentTransformOffset = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse();	// 메시의 글로벌 트랜스폼 * 지오메트리 트랜스폼
                         FbxAMatrix& Test = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse() * pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
