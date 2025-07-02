@@ -15,6 +15,7 @@ public:
 public: //삭제예정
     virtual void InitializeFromFBX(MFBXLoader& FbxLoaderm, const std::wstring& FilePath) override;
 public:
+    const std::vector<AnimationClip>& GetAnimClips() { return _animationClipList; }
     bool getAnimationClip(const int index, AnimationClip& OutAnimationClip);
     const uint32 getJointCount() const;
     std::vector<FJoint>& getJoints();

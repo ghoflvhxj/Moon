@@ -19,6 +19,8 @@ public:
     void SetMesh(const std::wstring& InPath);
 
 public:
+    void SetAnimClip(const uint32 Index) { _currentAinmClipIndex = Index, CurrentAnimTime = 0.f; }
+    uint32 GetAnimClipNum();
 	void playAnimation(const uint32 index, const Time deltaTime);
 private:
 	uint32 _currentAinmClipIndex = 0;

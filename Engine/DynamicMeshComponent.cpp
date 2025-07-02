@@ -36,7 +36,7 @@ void DynamicMeshComponent::Update(const Time deltaTime)
 
     if (IsAnimPlaying())
     {
-        playAnimation(0, deltaTime);
+        playAnimation(_currentAinmClipIndex, deltaTime);
     }
 }
 
@@ -55,7 +55,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
     {
         for (int32 JointIndex = 0; JointIndex < CastValue<int32>(jointCount); ++JointIndex)
         {
-            float RealFrame = CurrentAnimTime * 30.f;
+            float RealFrame = CurrentAnimTime * 24.f;
             uint32 Frame = CastValue<uint32>(RealFrame);
 
             XMMATRIX JointMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
@@ -137,6 +137,16 @@ void DynamicMeshComponent::SetMesh(const std::wstring& InPath)
     {
         Mesh->LoadFromAsset(InPath);
     }
+}
+
+uint32 DynamicMeshComponent::GetAnimClipNum()
+{
+    if (Mesh)
+    {
+        return GetSize(Mesh->GetAnimClips());
+    }
+
+    return 0;
 }
 
 std::shared_ptr<DynamicMesh>& DynamicMeshComponent::getDynamicMesh()
