@@ -166,8 +166,9 @@ public:
 	// 애니메이션 관련 데이터
 	fbxsdk::FbxSkeleton				*_pSkeleton = nullptr;
 	fbxsdk::FbxAnimStack			*_pAnimStack = nullptr;
-	std::vector<FJoint>				_jointList;
-	JointIndexMap					_jointIndexMap;
+	std::vector<FJoint>				Joints;
+    // 조인트의 [이름, 인덱스] 쌍을 저장함
+	JointIndexMap					JointIndices;
 	VertexWeightInfoListMap			_vertexWeightInfoListMap;
 
 private:
@@ -202,8 +203,8 @@ public:
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
-    // ControlPoint에 해당하는 정점들의 인덱스 저장
-	std::vector<std::map<int, std::vector<int>>> _indexMap;
+    // ControlPoint에 해당하는 정점들의 인덱스를 메시 단위로 저장
+	std::vector<std::map<int, std::vector<int>>> ControlPointToVertexIndices;
 	
 	std::vector<TextureList>	_texturesList;
 

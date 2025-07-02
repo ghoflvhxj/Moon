@@ -1,4 +1,5 @@
 ﻿#include "DynamicMesh.h"
+#include "FBXLoader.h"
 #include "Material.h"
 
 void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
@@ -12,7 +13,7 @@ void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& F
         Material->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
     }
 
-    _jointList = FbxLoader._jointList;
+    _jointList = FbxLoader.Joints;
     _jointCount = CastValue<uint32>(_jointList.size());
 
     _pSkeleton = std::make_shared<Skeleton>(this);
@@ -20,7 +21,7 @@ void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& F
 
 bool DynamicMesh::getAnimationClip(const int index, AnimationClip& OutAnimationClip)
 {
-    if (GetSize(_animationClipList) < index)
+    if (GetSize(_animationClipList) > index)
     {
         OutAnimationClip = _animationClipList[index];
         return true;
@@ -41,27 +42,27 @@ std::vector<FJoint>& DynamicMesh::getJoints()
 
 Skeleton::Skeleton(DynamicMesh* dynamicMesh)
 {
-    for (uint32 i = 0; i < 199; ++i)
-    {
-        auto& trans = dynamicMesh->getJoints()[i]._position;
-        _vertices.push_back({ Vec4{ trans.x, trans.y, trans.z, 1.f } });
-        _vertices.back().BlendIndex[0] = i;
-        _vertices.back().BlendWeight.x = 1.f;
+    // 스켈레톤 메시 생성
+    //for (uint32 JointIndex = 0; JointIndex < 199; ++JointIndex)
+    //{
+    //    auto& JointPosition = dynamicMesh->getJoints()[JointIndex]._position;
+    //    _vertices.push_back({ Vec4{ JointPosition.x, JointPosition.y, JointPosition.z, 1.f } });
+    //    _vertices.back().BlendIndex[0] = JointIndex;
+    //    _vertices.back().BlendWeight[0] = 1.f;
 
-        int32 parentIndex = dynamicMesh->getJoints()[i]._parentIndex;
-        if (parentIndex != -1)
-        {
-            auto& parentTrans = dynamicMesh->getJoints()[parentIndex]._position;
-            _vertices.push_back({ Vec4{ parentTrans.x, parentTrans.y, parentTrans.z, 1.f } });
-            _vertices.back().BlendIndex[0] = parentIndex;
-            _vertices.back().BlendWeight.x = 1.f;
-        }
-        else
-        {
-            _vertices.push_back({ Vec4{ trans.x, trans.y, trans.z, 1.f } });
-        }
-    }
-
+    //    int32 parentIndex = dynamicMesh->getJoints()[JointIndex]._parentIndex;
+    //    if (parentIndex != -1)
+    //    {
+    //        auto& parentTrans = dynamicMesh->getJoints()[parentIndex]._position;
+    //        _vertices.push_back({ Vec4{ parentTrans.x, parentTrans.y, parentTrans.z, 1.f } });
+    //        _vertices.back().BlendIndex[0] = parentIndex;
+    //        _vertices.back().BlendWeight[0] = 1.f;
+    //    }
+    //    else
+    //    {
+    //        _vertices.push_back({ Vec4{ JointPosition.x, JointPosition.y, JointPosition.z, 1.f } });
+    //    }
+    //}
     //_pVertexBuffer = std::make_shared<MVertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
     //_pMaterial = std::make_shared<MMaterial>();
     //_pMaterial->setShader(TEXT("Bone.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵

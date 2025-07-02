@@ -47,14 +47,37 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		return false;
 	}
 
-    AnimationClip currentAnimClip;
-    Mesh->getAnimationClip(_currentAinmClipIndex, currentAnimClip);
 	uint32 geometryCount = Mesh->GetMeshNum();
 	uint32 jointCount	 = Mesh->getJointCount();
 
-    PrimitiveDataList.reserve(geometryCount);
+    AnimationClip CurrentAnimClip;
+    if (Mesh->getAnimationClip(_currentAinmClipIndex, CurrentAnimClip))
+    {
+        for (int32 JointIndex = 0; JointIndex < CastValue<int32>(jointCount); ++JointIndex)
+        {
+            float RealFrame = CurrentAnimTime * 30.f;
+            uint32 Frame = CastValue<uint32>(RealFrame);
 
-	std::set<uint32> matricesSet;
+            XMMATRIX JointMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
+
+            // 다음 프레임과 블렌딩
+            if (Frame < CurrentAnimClip.TotalFrame - 1)
+            {
+                float currentFrameFactor = 1.f - (RealFrame - CastValue<float>(Frame));
+                float nextFrameFactor = 1.f - currentFrameFactor;
+                JointMatrix = XMMatrixMultiply(JointMatrix, XMMatrixScaling(currentFrameFactor, currentFrameFactor, currentFrameFactor));
+
+                XMMATRIX nextFrameMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
+                JointMatrix += XMMatrixMultiply(nextFrameMatrix, XMMatrixScaling(nextFrameFactor, nextFrameFactor, nextFrameFactor));
+            }
+
+            // 현재 프레임에서 조인트 행렬들
+            XMMATRIX globalBindPoseInverseMatrix = XMLoadFloat4x4(&Mesh->getJoints()[JointIndex]._globalBindPoseInverseMatrix);
+            XMStoreFloat4x4(&_matrices[JointIndex], XMMatrixMultiply(globalBindPoseInverseMatrix, JointMatrix));
+        }
+    }
+	
+    PrimitiveDataList.reserve(geometryCount);
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
 		FPrimitiveData primitive = {};
@@ -62,60 +85,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		primitive.Material = Mesh->getGeometryLinkMaterialIndex().size() > 0 ? Mesh->getMaterials()[Mesh->getGeometryLinkMaterialIndex()[geometryIndex]] : Mesh->getMaterials()[0];
 		primitive.PrimitiveType = EPrimitiveType::Mesh;
 		primitive.MeshData = Mesh->GetMeshData(geometryIndex);
-
-		for (int32 jointIndex = 0; jointIndex < CastValue<int32>(jointCount); ++jointIndex)
-		{
-			bool bHasKeyFrames = !currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty();
-			if (bHasKeyFrames == false)
-			{
-				// 다른 메시에서 업데이트 된 경우
-				bool bUpdatedFromOtherMesh = matricesSet.find(jointIndex) != matricesSet.end();
-				if (bUpdatedFromOtherMesh)  
-				{
-					continue;
-				}
-
-				// 본이 영향을 주는 버텍스가 없는 경우에는, 부모 본을 그대로 사용
-				int32 parentIndex = Mesh->getJoints()[jointIndex]._parentIndex;
-				if (parentIndex == -1)
-				{
-					_matrices[jointIndex] = IDENTITYMATRIX;
-				}
-				else
-				{
-					_matrices[jointIndex] = _matrices[parentIndex];
-				}
-			}
-			else
-			{
-				float realFrame = _currentPlayTime * 30.f; // 하드코딩 삭제하기
-				uint32 frame = CastValue<uint32>(realFrame);
-
-				XMMATRIX frameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame]);
-
-				// 다음 프레임과 블렌딩
-				if (frame < currentAnimClip._frameCount - 1)
-				{
-					float currentFrameFactor = 1.f - (realFrame - CastValue<float>(frame));
-					float nextFrameFactor = 1.f - currentFrameFactor;
-
-					frameMatrix = XMMatrixMultiply(frameMatrix, XMMatrixScaling(currentFrameFactor, currentFrameFactor, currentFrameFactor));
-
-					XMMATRIX nextFrameMatrix = XMLoadFloat4x4(&currentAnimClip._keyFrameLists[jointIndex][geometryIndex][frame + 1]);
-					nextFrameMatrix = XMMatrixMultiply(nextFrameMatrix, XMMatrixScaling(nextFrameFactor, nextFrameFactor, nextFrameFactor));
-
-					frameMatrix += nextFrameMatrix;
-				}
-
-				XMMATRIX globalBindPoseInverseMatrix = XMLoadFloat4x4(&Mesh->getJoints()[jointIndex]._globalBindPoseInverseMatrix);
-				XMStoreFloat4x4(&_matrices[jointIndex], XMMatrixMultiply(globalBindPoseInverseMatrix, frameMatrix));
-
-				matricesSet.insert(jointIndex);
-			}
-		}
-
-		primitive._matrices = _matrices;
-
+        primitive._matrices = _matrices;
         PrimitiveDataList.emplace_back(primitive);
 	}
 
@@ -177,14 +147,45 @@ std::shared_ptr<DynamicMesh>& DynamicMeshComponent::getDynamicMesh()
 void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTime)
 {
 	_currentAinmClipIndex = index;
-	_currentPlayTime += deltaTime;
+	CurrentAnimTime += deltaTime;
 
     AnimationClip AnimClip;
     if (Mesh->getAnimationClip(index, AnimClip))
     {
-        if (_currentPlayTime > CastValue<float>(AnimClip._duration))
+        if (CurrentAnimTime > CastValue<float>(AnimClip.Duration))
         {
-            _currentPlayTime = 0.f;
+            CurrentAnimTime = 0.f;
         }
     }
 }
+
+/*
+
+
+
+                //bool bHasKeyFrames = !currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty();
+                //if (bHasKeyFrames == false)
+                //{
+                //
+                //    // 다른 메시에서 업데이트 된 경우
+                //    bool bUpdatedFromOtherMesh = matricesSet.find(jointIndex) != matricesSet.end();
+                //    if (bUpdatedFromOtherMesh)
+                //    {
+                //        continue;
+                //    }
+
+                //    // 본이 영향을 주는 버텍스가 없는 경우에는, 부모 본을 그대로 사용
+                //    int32 parentIndex = Mesh->getJoints()[jointIndex]._parentIndex;
+                //    if (parentIndex == -1)
+                //    {
+                //        _matrices[jointIndex] = IDENTITYMATRIX;
+                //    }
+                //    else
+                //    {
+                //        _matrices[jointIndex] = _matrices[parentIndex];
+                //    }
+                //
+                //}
+                //else
+
+*/

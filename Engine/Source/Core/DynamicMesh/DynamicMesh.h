@@ -2,8 +2,10 @@
 
 #include "Include.h"
 #include "Core/StaticMesh/StaticMesh.h"
+#include "DynamicMeshComponentUtility.h"
 
 class Skeleton;
+class MFBXLoader;
 
 class ENGINE_DLL DynamicMesh : public StaticMesh
 {

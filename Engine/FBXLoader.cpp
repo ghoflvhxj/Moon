@@ -50,14 +50,14 @@ MFBXLoader::~MFBXLoader()
 	//_pFbxManager->Destroy();
 }
 
-void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
+void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
 {
-	// 애니메이션 관련 처리
-	int animStackCount = _pImporter->GetAnimStackCount();
-	animationClipList.resize(animStackCount);
+	// AnimStack == AnimClip
+	int AnimStackCount = _pImporter->GetAnimStackCount();
+	OutAnimationClips.resize(AnimStackCount);
 
 	PerformanceTimer timer;
-	for (int animStackIndex = 0; animStackIndex < animStackCount; ++animStackIndex)
+	for (int AnimStackIndex = 0; AnimStackIndex < AnimStackCount; ++AnimStackIndex)
 	{
 		_pAnimStack = _pScene->GetCurrentAnimationStack();
 		FbxString animStackName = _pAnimStack->GetName();
@@ -65,34 +65,43 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 		FbxTime startTime = pTakeInfo->mLocalTimeSpan.GetStart();
 		FbxTime endTime = pTakeInfo->mLocalTimeSpan.GetStop();
 
-		size_t jointCount = _jointList.size();
-		animationClipList[animStackIndex]._keyFrameLists.resize(jointCount); // 조인트 마다 키프레임을 저장하기 위해
-		animationClipList[animStackIndex]._animationName = animStackName.Buffer();
-		animationClipList[animStackIndex]._startFrame = CastValue<uint32>(startTime.GetFrameCount(FbxTime::eFrames30));
-		animationClipList[animStackIndex]._endFrame = CastValue<uint32>(endTime.GetFrameCount(FbxTime::eFrames30));
-		animationClipList[animStackIndex]._frameCount = CastValue<uint32>((endTime - startTime).GetFrameCount(FbxTime::eFrames30)) + 1;
-		animationClipList[animStackIndex]._duration = (endTime - startTime).GetSecondDouble();
+        AnimationClip& CurrentAnimClip = OutAnimationClips[AnimStackIndex];
+		CurrentAnimClip.Name = animStackName.Buffer();
+        CurrentAnimClip.SetFrameInfo(startTime, endTime);
 
-		for (auto& frameMatricesPerGeometry : animationClipList[animStackIndex]._keyFrameLists)
-		{
-			frameMatricesPerGeometry.resize(GeometryCount);
-		}
+        // 조인트 그리기 용
+		//size_t jointCount = Joints.size();
+        //std::set<int>jointPositionSet;
+        //FbxAMatrix temp = geometryTransform.Inverse() * transformMatrix.Inverse() * transformLinkMatrix;
+        //_jointList[JointIndex]._position = { static_cast<float>(temp[3][0]), static_cast<float>(temp[3][1]), static_cast<float>(temp[3][2]) };
+        //jointPositionSet.insert(JointIndex);
+        //for (uint32 i = 0; i < jointCount; ++i)
+        //{
+        //    if (jointPositionSet.find(i) == jointPositionSet.end())
+        //    {
+        //        int32 parentIndex = Joints[i]._parentIndex;
+        //        if (parentIndex != -1)
+        //        {
+        //            Joints[i]._position = Joints[Joints[i]._parentIndex]._position;
+        //        }
+        //    }
+        //}
 
-		std::set<int>jointPositionSet;
+        // 조인트를 얻기 위해 메시->디포머->스킨->클러스터 순으로 파고듬
 		for (uint32 meshIndex = 0; meshIndex < GeometryCount; ++meshIndex)
 		{
 			FbxMesh* pMesh = _meshList[meshIndex];
 			FbxNode* pMeshNode = pMesh->GetNode(0);
 
-			FbxAMatrix geometryTransform = { pMeshNode->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
-												pMeshNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
-												pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot) };
+			FbxAMatrix geometryTransform = { 
+                pMeshNode->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
+			    pMeshNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
+				pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot) 
+            };
+
 			FbxAMatrix transformMatrix;
 			FbxAMatrix transformLinkMatrix;
 			FbxAMatrix globalBindPoseInverseMatrix;
-
-			FbxTime currentTime;
-			Mat4 matrix;
 
 			int deformerCount = pMesh->GetDeformerCount();
 			for (int deformerIndex = 0; deformerIndex < deformerCount; ++deformerIndex)
@@ -108,89 +117,54 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 				int clusterCount = pSkin->GetClusterCount();
 				for (int clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex)
 				{
-					FbxCluster* pCluster = pSkin->GetCluster(clusterIndex);
+                    FbxCluster* pCluster = pSkin->GetCluster(clusterIndex);
+                    const char* JointName = pCluster->GetLink()->GetName();
+                    int JointIndex = JointIndices[JointName];
 
 					// 조인트의 바인드포즈 인버스 매트릭스 얻기
 					pCluster->GetTransformMatrix(transformMatrix);
 					pCluster->GetTransformLinkMatrix(transformLinkMatrix);
 					globalBindPoseInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
-					// VertexAtTimeT = TransformationOfPoseAtTimeT * InverseOfGlobalBindPoseMatrix * VertexAtBindingTime 
-					// 에서 InverseOfGlobalBindPoseMatrix를 얻어냈음
+                    XMStoreFloat4x4(&Joints[JointIndex]._globalBindPoseInverseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
 
-					const char* jointName = pCluster->GetLink()->GetName();
-					//if (_jointIndexMap.end() == _jointIndexMap.find(jointName))
-					//{
-					//	DEV_ASSERT_MSG("찾을 수 없는 Bone입니다!")
-					//	continue;
-					//}
-					int jointIndex = _jointIndexMap[jointName];
-
-					// 조인트 그리기 용
-					FbxAMatrix temp = geometryTransform.Inverse() * transformMatrix.Inverse() * transformLinkMatrix;
-					_jointList[jointIndex]._position = { static_cast<float>(temp[3][0]), static_cast<float>(temp[3][1]), static_cast<float>(temp[3][2]) };
-					jointPositionSet.insert(jointIndex);
-
-					double* weights = pCluster->GetControlPointWeights();
-					if (weights == nullptr)
+                    // 조인트가 영향을 주는 정점들을 찾아서, 자신의 정보를 저장시킴
+					double* ControlPointWeights = pCluster->GetControlPointWeights();
+					if (ControlPointWeights != nullptr)
 					{
-						continue;
+                        for (int ArrayIndex = 0; ArrayIndex < pCluster->GetControlPointIndicesCount(); ++ArrayIndex)
+                        {
+                            // Weights와 ControlPoindIndices의 수는 4개로 같음
+                            int ControlPointIndex = pCluster->GetControlPointIndices()[ArrayIndex];
+                            std::vector<int>& VertexIndices = ControlPointToVertexIndices[meshIndex][ControlPointIndex];
+
+                            float Weight = static_cast<float>(ControlPointWeights[ArrayIndex]);
+
+                            for (int VertexIndex : VertexIndices)
+                            {
+                                // 저장할 위치를 찾기 위한 로직
+                                for (int BlendCounter = 0; BlendCounter < 4; ++BlendCounter)
+                                {
+                                    if (_verticesList[meshIndex][VertexIndex].BlendIndex[BlendCounter] == 0)
+                                    {
+                                        _verticesList[meshIndex][VertexIndex].BlendIndex[BlendCounter] = JointIndex;
+                                        _verticesList[meshIndex][VertexIndex].BlendWeight[BlendCounter] = Weight;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
 					}
 
-					XMStoreFloat4x4(&_jointList[jointIndex]._globalBindPoseInverseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
+                    // 조인트가 프레임에 메시에 영향을 준다면 저장해야 함. ex) 10프레임에 조인트A가 메시0, 메시1에 영향을 준다
+                    for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
+                    {
+                        FbxTime currentTime;
+                        currentTime.SetFrame(static_cast<FbxLongLong>(Frame), FbxTime::eFrames30);
 
-					//{
-					//	PerformanceTimer timer(TEXT("WeigtIndex"));
-					int controlPointIndexCount = pCluster->GetControlPointIndicesCount();
-					for (int j = 0; j < controlPointIndexCount; ++j)
-					{
-						int controlPointIndex = pCluster->GetControlPointIndices()[j];
-
-						// 컨트롤 포인트가 공유되는 버텍스들의 인덱스를 가져옴
-						std::vector<int>& vertexIndices = _indexMap[meshIndex][controlPointIndex];
-						for (int vertexIndex : vertexIndices)
-						{
-							if (_verticesList[meshIndex][vertexIndex].BlendIndex[0] == 0)
-							{
-								_verticesList[meshIndex][vertexIndex].BlendIndex[0] = jointIndex;
-								_verticesList[meshIndex][vertexIndex].BlendWeight.x = static_cast<float>(weights[j]);
-							}
-							else if (_verticesList[meshIndex][vertexIndex].BlendIndex[1] == 0)
-							{
-								_verticesList[meshIndex][vertexIndex].BlendIndex[1] = jointIndex;
-								_verticesList[meshIndex][vertexIndex].BlendWeight.y = static_cast<float>(weights[j]);
-							}
-							else if (_verticesList[meshIndex][vertexIndex].BlendIndex[2] == 0)
-							{
-								_verticesList[meshIndex][vertexIndex].BlendIndex[2] = jointIndex;
-								_verticesList[meshIndex][vertexIndex].BlendWeight.z = static_cast<float>(weights[j]);
-							}
-							else if (_verticesList[meshIndex][vertexIndex].BlendIndex[3] == 0)
-							{
-								_verticesList[meshIndex][vertexIndex].BlendIndex[3] = jointIndex;
-								_verticesList[meshIndex][vertexIndex].BlendWeight.w = static_cast<float>(weights[j]);
-							}
-						}
-					}
-					//}
-
-					//{
-					//	PerformanceTimer timer(TEXT("LoadFrameMatrices"));
-						// 프레임에 존재하는 키 프레임을 저장해야 함
-					if (animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].capacity() == 0)
-					{
-						animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].reserve(animationClipList[animStackIndex]._frameCount);	// 조인트마다 키프레임 공간 예약. 키 프레임이 최대 프레임 수만큼 가질 수 있음. 굳이? 싶지만 지금은 최적화 생각안하고 구현
-					}
-
-					for (uint32 frame = animationClipList[animStackIndex]._startFrame; frame <= animationClipList[animStackIndex]._endFrame; ++frame)
-					{
-						currentTime.SetFrame(static_cast<FbxLongLong>(frame), FbxTime::eFrames30);
-
-						//FbxAMatrix currentTransformOffset = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse();	// 메시의 글로벌 트랜스폼 * 지오메트리 트랜스폼
-						XMStoreFloat4x4(&matrix, ToXMMatrix((pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse() * pCluster->GetLink()->EvaluateGlobalTransform(currentTime)));
-
-						animationClipList[animStackIndex]._keyFrameLists[jointIndex][meshIndex].emplace_back(matrix);
-					}
-					//}
+                        //FbxAMatrix currentTransformOffset = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse();	// 메시의 글로벌 트랜스폼 * 지오메트리 트랜스폼
+                        FbxAMatrix& Test = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse() * pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
+                        XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex), ToXMMatrix(Test));
+                    }
 
 #ifdef _DEBUG
 					std::string log;
@@ -207,24 +181,12 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& animationClipList)
 					log += "/";
 					log += std::to_string(clusterIndex);
 					log += ", jointName/Index: ";
-					log += jointName;
+					log += JointName;
 					log += "/";
-					log += std::to_string(jointIndex);
+					//log += std::to_string(jointIndex);
 					log += "\r\n";
 					OutputDebugStringA(log.c_str());
 #endif
-				}
-			}
-
-			for (uint32 i = 0; i < jointCount; ++i)
-			{
-				if (jointPositionSet.find(i) == jointPositionSet.end())
-				{
-					int32 parentIndex = _jointList[i]._parentIndex;
-					if (parentIndex != -1)
-					{
-						_jointList[i]._position = _jointList[_jointList[i]._parentIndex]._position;
-					}
 				}
 			}
 		}
@@ -245,7 +207,7 @@ bool MFBXLoader::LoadMesh(const wstring& Path)
 	_verticesList.resize(GeometryCount);
 	_indicesList.resize(GeometryCount);
 	_linkList.reserve(GeometryCount);
-	_indexMap.resize(GeometryCount);
+	ControlPointToVertexIndices.resize(GeometryCount);
 
 	MaterialNum = static_cast<uint32>(_pScene->GetMaterialCount());
 	//_texturesList.reserve(MaterialNum);
@@ -310,7 +272,7 @@ void MFBXLoader::initializeSDK()
 
 const uint32 MFBXLoader::getJointCount() const
 {
-	return CastValue<uint32>(_jointList.size());
+	return CastValue<uint32>(Joints.size());
 }
 
 const uint32 MFBXLoader::GetGeometryNum() const
@@ -427,7 +389,7 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
             {
                 Loaded[VertexKey] = vertexCounter;
                 MeshVertices.push_back(NewVertex);
-                _indexMap[meshIndex][controlPointIndex].push_back(vertexCounter);
+                ControlPointToVertexIndices[meshIndex][controlPointIndex].push_back(vertexCounter);
                 ++vertexCounter;
             }
 
@@ -696,20 +658,19 @@ void MFBXLoader::loadAnimation()
 
 void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName)
 {
-	_jointIndexMap.emplace(pNode->GetName(), static_cast<uint32>(_jointList.size()));
+    uint32 JointIndex = GetSize(Joints);
+	JointIndices.emplace(pNode->GetName(), JointIndex);
 
-	FJoint joint;
-	joint._name	= pNode->GetName();
-	if(_jointIndexMap.find(parentName) != _jointIndexMap.end())
+	FJoint NewJoint;
+	if(JointIndices.find(parentName) != JointIndices.end())
 	{
-		joint._parentIndex	= _jointIndexMap[parentName];
+        NewJoint._parentIndex = JointIndices[parentName];
 	}
-	;
 
 	auto& trans = pNode->GeometricTranslation.Get();
-	joint._position = { (float)trans[0], (float)trans[1], (float)trans[2] };
+    NewJoint._position = { (float)trans[0], (float)trans[1], (float)trans[2] };
 
-	_jointList.push_back(joint);
+	Joints.push_back(NewJoint);
 }
 
 void MFBXLoader::loadTexture()

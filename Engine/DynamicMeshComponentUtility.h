@@ -1,48 +1,45 @@
-#pragma once
-#ifndef __DYNAMICMESH_COMPONENT_UTILITY_H__
+﻿#pragma once
+#include "Include.h"
 
-#include "Define.h"
+namespace fbxsdk
+{
+    class FbxTime;
+}
 
 struct KeyFrame
 {
-	KeyFrame()
-		: _matrix()
-#ifdef _DEBUG
-		//, _scale{ VEC3ZERO }
-		//, _rotation{ VEC3ZERO }
-		//, _translation{ VEC3ZERO }
-#endif
-	{
-	}
-	DirectX::XMFLOAT4X4	_matrix;
-
-#ifdef _DEBUG
-	//Vec3	_scale;
-	//Vec3	_rotation;
-	//Vec3	_translation;
-#endif
+public:
+    // 특정 조인트의 행렬을 가져옴
+    Mat4& GetJointMatrix(int JointIndex) { return Matrices[JointIndex]; }
+protected:
+    // 모든 조인트의 행렬을 저장
+	Mat4 Matrices[200];
 };
 
 struct AnimationClip
 {
-	using MatricesPerFrame			= std::vector<Mat4>;
-	using FrameMatricesPerGeometry	= std::vector<MatricesPerFrame>;
-	using KeyFrameList				= std::vector<FrameMatricesPerGeometry>;
 	AnimationClip()
-		: _startFrame{ 0 }
-		, _endFrame{ 0 }
-		, _frameCount{ 0 }
-		, _duration{ 0.0 }
+		: StartFrame{ 0 }
+		, EndFrame{ 0 }
+		, TotalFrame{ 0 }
+		, Duration{ 0.0 }
 	{
 
 	}
 
-	std::string		_animationName;
-	uint32			_startFrame;
-	uint32			_endFrame;
-	uint32			_frameCount;
-	double			_duration;
-	KeyFrameList	_keyFrameLists;
+	std::string		Name;
+	uint32			StartFrame;
+	uint32			EndFrame;
+	uint32			TotalFrame;
+	double			Duration;
+
+public:
+    void SetFrameInfo(fbxsdk::FbxTime& InStart, fbxsdk::FbxTime& InEnd);
+    // 프레임 단위로 KeyFrame을 가져옴
+    KeyFrame& GetKeyFrame(int Frame) { return KeyFrames[Frame]; }
+protected:
+    // 프레임 단위로 조인트들의 행렬을 저장함. 1프레임 200개행렬, 2프레임 200개행렬 이런 구조.
+	std::vector<KeyFrame> KeyFrames;
 };
 
 struct VertexIndexWeightInfo
@@ -54,14 +51,12 @@ struct VertexIndexWeightInfo
 struct FJoint
 {
 	FJoint()
-		: _name{ "" }
-		, _parentIndex{ -1 }
+		: _parentIndex{ -1 }
 		, _position{ 0.f, 0.f, 0.f }
 	{
 
 	}
 
-	std::string			_name;
 	int32				_parentIndex;
 	Mat4	_globalBindPoseInverseMatrix;
 	Vec3	_position;
@@ -69,5 +64,3 @@ struct FJoint
 
 using JointIndexMap = std::unordered_map<std::string, int>;
 using VertexWeightInfoListMap = std::unordered_map<int, VertexIndexWeightInfo>;
-
-#endif __DYNAMICMESH_COMPONENT_UTILITY_H__
