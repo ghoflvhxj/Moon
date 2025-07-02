@@ -1,8 +1,7 @@
 ﻿#pragma once 
 
 #include "Include.h"
-#include "Serializerable.h"
-#include "FBXLoader.h"
+#include "Core/Serialize/Serializable.h"
 // TextureList, MaterialList 참조
 #include "Vertex.h"
 
@@ -14,6 +13,11 @@ struct ENGINE_DLL FMeshData
 {
     VertexList		Vertices;
     IndexList 		Indices;
+
+    REFLECTABLE(
+        REFLECT_FIELD(FMeshData, Vertices, EType::Array),
+        REFLECT_FIELD(FMeshData, Indices, EType::Array)
+    );
 };
 
 class ENGINE_DLL StaticMesh
@@ -58,4 +62,11 @@ public:
     const Vec3& GetCenterPos() const;
 private:
     Vec3 CenterPos = VEC3ZERO;
+
+
+public:
+    REFLECTABLE(
+        REFLECT_FIELD(StaticMesh, MeshDataList, EType::Array),
+        REFLECT_FIELD(StaticMesh, Materials, EType::Array)
+    );
 };

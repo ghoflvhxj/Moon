@@ -73,4 +73,11 @@ public:
 	// 유틸리티	함수들
 public:
 	const bool IsTextureTypeUsed(const ETextureType type);
+
+public:
+    REFLECTABLE(
+        REFLECT_FIELD(MMaterial, _vertexShaderFileName, EType::String),
+        REFLECT_FIELD(MMaterial, _pixelShaderFileName, EType::String)
+        //REFLECT_FIELD(MMaterial, _textureList, EType::Array)
+    );
 };

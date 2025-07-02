@@ -1,8 +1,11 @@
 ﻿#include "StaticMesh.h"
 
+#include "FBXLoader.h"
 // BoundingBox
 #include "PrimitiveComponent.h"
+
 #include "Material.h"
+#include "Core/Serialize/JsonSerializer.h"
 
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
@@ -135,7 +138,7 @@ void StaticMesh::LoadFromAsset(const std::wstring& Path)
                     ReadVec3(Doc[MeshName]["Tangent"], NewMeshData->Vertices[VertexCounter].Tangent, VertexCounter);
                     ReadVec3(Doc[MeshName]["BiTangent"], NewMeshData->Vertices[VertexCounter].Binormal, VertexCounter);
                     ReadArrayRange(Doc[MeshName]["BlendIndices"], NewMeshData->Vertices[VertexCounter].BlendIndex, VertexCounter * 4, 4);
-                    ReadVec4(Doc[MeshName]["BlendWeights"], NewMeshData->Vertices[VertexCounter].BlendWeight, VertexCounter);
+                    ReadArrayRange(Doc[MeshName]["BlendWeights"], NewMeshData->Vertices[VertexCounter].BlendWeight, VertexCounter * 4, 4);
                 }
 
                 MeshDataList.push_back(NewMeshData);

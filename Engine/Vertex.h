@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include <DirectXMath.h>
-
 namespace Graphic
 {
     struct VERTEX_SIMPLE
@@ -48,7 +46,7 @@ namespace Graphic
 		Vec3 Tangent = { 0.f, 0.f, 0.f };
 		Vec3 Binormal = { 0.f, 0.f, 0.f };
 		uint32 BlendIndex[4] = { 0, 0, 0, 0 };
-		Vec4 BlendWeight = { 0.f, 0.f, 0.f, 0.f };
+		float BlendWeight[4] = {0.f, 0.f, 0.f, 0.f};
 
 		static void getDesc(std::vector<D3D11_INPUT_ELEMENT_DESC> &inputDescVector)
 		{
@@ -68,6 +66,16 @@ namespace Graphic
 			inputDescVector.reserve(elementCount);
 			inputDescVector.assign(std::begin(inputDesc), std::end(inputDesc));
 		}
+
+        REFLECTABLE(
+            REFLECT_FIELD(VERTEX_COMMON, Pos, EType::Vec3),
+            REFLECT_FIELD(VERTEX_COMMON, Tex0, EType::Vec4),
+            REFLECT_FIELD(VERTEX_COMMON, Normal, EType::Vec3),
+            REFLECT_FIELD(VERTEX_COMMON, Tangent, EType::Vec3),
+            REFLECT_FIELD(VERTEX_COMMON, Binormal, EType::Vec3),
+            REFLECT_FIELD(VERTEX_COMMON, BlendIndex, EType::Array),
+            REFLECT_FIELD(VERTEX_COMMON, BlendWeight, EType::Array)
+        );
 	};
 }
 

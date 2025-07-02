@@ -1,5 +1,4 @@
-#pragma once
-#ifndef __TYPE_H__
+﻿#pragma once
 
 #include <chrono>
 #include <d3d11.h>
@@ -28,4 +27,17 @@ using XMMATRIX = DirectX::XMMATRIX;
 
 using DIRECTORY = const wchar_t *;
 
-#endif __TYPE_H__
+enum class EType
+{
+    None,
+    Int,
+    Float,
+    String,
+    Bool,
+    Object,
+    Array,
+    Vec2,
+    Vec3,
+    Vec4,
+    Map
+};
