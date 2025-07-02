@@ -25,13 +25,15 @@ protected:
 	virtual void tick(const Time deltaTime) override;
 
 public:
-	void JsonTest(bool bPretty = false);
+	void JsonSaveTest(bool bPretty = false);
+    void JsonLoadTest();
 	//void rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent);
 
 private:
 	std::shared_ptr<StaticMeshComponent>	_pMeshComponent;
 	std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent;
-	std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent2;
+    std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent2;
+    std::shared_ptr<StaticMeshComponent>	LoadedMeshComponent;
 	std::shared_ptr<DynamicMeshComponent>	CharacterMeshComponent;
 	std::shared_ptr<SkyComponent>			_pSkyComponent;
 	std::shared_ptr<PointLightComponent>	_pLightComponent;

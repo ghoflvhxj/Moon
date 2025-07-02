@@ -16,6 +16,7 @@
 #include "DirectInput.h"
 #include "DynamicMeshComponent.h"
 #include "GameFramework/StaticMeshActor/StaticMeshActor.h"
+#include "Core/StaticMesh/StaticMesh.h"
 #include "Core/ResourceManager.h"
 #include "Material.h"
 
@@ -110,7 +111,7 @@ void MyGame::Tick(const Time deltaTime)
 
 void MyGame::PostUpdate(const Time deltaTime)
 {
-    ClothActor->GetStaticMeshCompoent()->UpdateClothing();
+
 }
 
 void MyGame::render()
@@ -188,17 +189,30 @@ void MyGame::render()
         }
 	}
 
-	if (ImGui::Button("SaveJson"))
-	{
-		_pPlayer->JsonTest();
-	}
-	if (ImGui::Button("SaveJsonPretty"))
-	{
-		_pPlayer->JsonTest(true);
-	}
+    if (ImGui::CollapsingHeader("JsonTest"))
+    {
+        ImGui::Indent(20);
+        if (ImGui::Button("SaveJson"))
+        {
+            _pPlayer->JsonSaveTest();
+        }
+        if (ImGui::Button("SaveJsonPretty"))
+        {
+            _pPlayer->JsonSaveTest(true);
+        }
+        if (ImGui::Button("LoadJson"))
+        {
+            _pPlayer->JsonLoadTest();
+        }
+        ImGui::Indent(-20);
+    }
 
     if (DynamicMeshComp && ImGui::Button(DynamicMeshComp->IsAnimPlaying() ? "PauseAnim" : "PlayAnim"))
     {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<int> AnimClipIndex(0, DynamicMeshComp->GetAnimClipNum());
+        DynamicMeshComp->SetAnimClip(AnimClipIndex(gen));
         DynamicMeshComp->SetAnimPlaying(!DynamicMeshComp->IsAnimPlaying());
     }
 

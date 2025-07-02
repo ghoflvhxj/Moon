@@ -12,14 +12,18 @@
 #include "PointLightComponent.h"
 #include "DirectionalLightComponent.h"
 #include "SkyComponent.h"
+#include "Core/StaticMesh/StaticMesh.h"
+#include "Core/DynamicMesh/DynamicMesh.h"
 
 #include "imgui.h"
 
+#include "Core/Serialize/JsonSerializer.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/prettywriter.h"
+#include "rapidjson/filereadstream.h"
 
 #define UsePointLight 1
 #define UseRandomPointLight 1
@@ -45,7 +49,8 @@ Player::~Player()
 void Player::initialize()
 {
 #if UseGround == 1
-	_pMeshComponent = std::make_shared<StaticMeshComponent>(TEXT("Base/Box.fbx"), true, true);
+	_pMeshComponent = std::make_shared<StaticMeshComponent>();
+    _pMeshComponent->SetMesh(TEXT("Base/Box.fbx"));
 	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
     _pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
@@ -53,11 +58,15 @@ void Player::initialize()
 	_pMeshComponent->setTranslation(1.f, -3.f, 0.f);
 #endif
 
-    _pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>(TEXT("Table/Table.fbx"), true, true);
+    _pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>();
+    _pStaticMeshComponent2->SetMesh(TEXT("Table/Table.fbx"));
     _pStaticMeshComponent2->setScale(Vec3{ 0.02f, 0.02f, 0.02f });
     _pStaticMeshComponent2->setDrawingBoundingBox(true);
     _pStaticMeshComponent2->SetDrawCollision(true);
     addComponent(TEXT("test2"), _pStaticMeshComponent2);
+
+    LoadedMeshComponent = std::make_shared<StaticMeshComponent>();
+    addComponent(TEXT("Load"), LoadedMeshComponent);
 
 #if UsePointLight == 1
     _pLightComponent = std::make_shared<PointLightComponent>();
@@ -67,7 +76,8 @@ void Player::initialize()
 #endif
 
 #if UseDynamicMesh == 1
-	CharacterMeshComponent = std::make_shared<DynamicMeshComponent>(TEXT("2B/2b.fbx"));
+	CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
+    CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
 	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 	addComponent(TEXT("DynamicMesh"), CharacterMeshComponent);
 	CharacterMeshComponent->getDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
@@ -226,69 +236,104 @@ void Player::tick(const Time deltaTime)
 #endif
 }
 
-void Player::JsonTest(bool bPretty)
+void Player::JsonSaveTest(bool bPretty)
 {
-	Document Doc;
-	Doc.SetObject();
 
-	Value MaterialValue(kArrayType);
-	const MaterialList& Materials = CharacterMeshComponent->getDynamicMesh()->getMaterials();
-	for (const std::shared_ptr<MMaterial>& Mat : Materials)
-	{
-		//Mat->
-	}
+    Document Doc;
+    Doc.SetObject();
+    auto& Allocator = Doc.GetAllocator();
 
-	uint32 MeshNum = CharacterMeshComponent->getDynamicMesh()->GetMeshNum();
-	for (int i = 0; i < MeshNum; ++i)
-	{
-		Value Mesh(kObjectType);
-		Value PosValue(kArrayType);
-		Value TexValue(kArrayType);
-		Value NormalValue(kArrayType);
+    /*
+    std::shared_ptr<DynamicMesh> Mesh = CharacterMeshComponent->getDynamicMesh();
+    uint32 MeshNum = Mesh->GetMeshNum();
+    Value JsonMeshNum(kObjectType);
+    JsonMeshNum.SetInt(MeshNum);
+    Doc.AddMember("MeshNum", JsonMeshNum, Allocator);
 
-		for (const Vertex& Vtx : CharacterMeshComponent->getDynamicMesh()->GetMeshData(i)->Vertices)
-		{
-			PosValue.PushBack(Vtx.Pos.x, Doc.GetAllocator());
-			PosValue.PushBack(Vtx.Pos.y, Doc.GetAllocator());
-			PosValue.PushBack(Vtx.Pos.z, Doc.GetAllocator());
+    for (int i = 0; i < MeshNum; ++i)
+    {
+        auto Vec2Serialize = [&Allocator](const Vec2& InVec, Value& JsonValue) {
+            JsonValue.PushBack(InVec.x, Allocator);
+            JsonValue.PushBack(InVec.y, Allocator);
+        };
 
-			TexValue.PushBack(Vtx.Tex0.x, Doc.GetAllocator());
-			TexValue.PushBack(Vtx.Tex0.y, Doc.GetAllocator());
+        auto Vec3Serialize = [&Allocator](const Vec3& InVec, Value& JsonValue) {
+            JsonValue.PushBack(InVec.x, Allocator);
+            JsonValue.PushBack(InVec.y, Allocator);
+            JsonValue.PushBack(InVec.z, Allocator);
+        };
 
-			NormalValue.PushBack(Vtx.Normal.x, Doc.GetAllocator());
-			NormalValue.PushBack(Vtx.Normal.y, Doc.GetAllocator());
-			NormalValue.PushBack(Vtx.Normal.z, Doc.GetAllocator());
-		}
+        auto Vec4Serialize = [&Allocator](const Vec4& InVec, Value& JsonValue) {
+            JsonValue.PushBack(InVec.x, Allocator);
+            JsonValue.PushBack(InVec.y, Allocator);
+            JsonValue.PushBack(InVec.z, Allocator);
+            JsonValue.PushBack(InVec.w, Allocator);
+         };
 
-		Mesh.AddMember("Pos", PosValue, Doc.GetAllocator());
-		Mesh.AddMember("Tex", TexValue, Doc.GetAllocator());
-		Mesh.AddMember("Normal", NormalValue, Doc.GetAllocator());
+        auto VectorSerialize = [&Allocator](auto& In, Value& JsonValue) {
+            for (auto& Value : In)
+            {
+                JsonValue.PushBack(Value, Allocator);
+            }
+        };
 
-		uint32 MaterialNum = CharacterMeshComponent->getDynamicMesh()->GetMaterialNum();
-		Value MaterialIndices(kArrayType);
-		for (int j = 0; j < MaterialNum; ++j)
-		{
-			CharacterMeshComponent->getDynamicMesh()->getGeometryLinkMaterialIndex();
-		}
-		//Mesh.AddMember("Material", );
+        std::shared_ptr<FMeshData> MeshData = Mesh->GetMeshData(i);
 
-		const std::string str = "Mesh" + std::to_string(i);
-		Value Name(str, Doc.GetAllocator());
-		Doc.AddMember(Name, Mesh, Doc.GetAllocator());
-	}
+        // MeshData Serialize
+        Value JsonMesh(kObjectType);
+        {
+            Value JsonVertexNum;
+            JsonVertexNum.SetInt(MeshData->Vertices.size());
+            JsonMesh.AddMember("VertexNum", JsonVertexNum, Allocator);
 
-	Value TestArray(kArrayType);
-	//Value TestArray;
-	//TestArray.SetArray();
-	for (int i = 0; i < 10; ++i)
-	{
-		TestArray.PushBack(0.1f * i, Doc.GetAllocator());
-	}
-	Doc.AddMember("TestArray", TestArray, Doc.GetAllocator());
+            Value Indices(kArrayType);
+            VectorSerialize(MeshData->Indices, Indices);
+            JsonMesh.AddMember("Indices", Indices, Allocator);
 
-	Value TestInt;
-	TestInt.SetInt(10);
-	Doc.AddMember("TestInt", TestInt, Doc.GetAllocator());
+            Value Pos(kArrayType);
+            Value UV(kArrayType);
+            Value Normal(kArrayType);
+            Value Tangent(kArrayType);
+            Value BiTangent(kArrayType);
+            Value BlendIndices(kArrayType);
+            Value BlendWeights(kArrayType);
+            for (const Vertex& Vtx : MeshData->Vertices)
+            {
+                Vec4Serialize(Vtx.Pos, Pos);
+                Vec2Serialize(Vtx.Tex0, UV);
+                Vec3Serialize(Vtx.Normal, Normal);
+                Vec3Serialize(Vtx.Tangent, Tangent);
+                Vec3Serialize(Vtx.Binormal, BiTangent);
+                VectorSerialize(Vtx.BlendIndex, BlendIndices);
+                Vec4Serialize(Vtx.BlendWeight, BlendWeights);
+            }
+
+            JsonMesh.AddMember("Pos", Pos, Allocator);
+            JsonMesh.AddMember("UV", UV, Allocator);
+            JsonMesh.AddMember("Normal", Normal, Allocator);
+            JsonMesh.AddMember("Tangent", Tangent, Allocator);
+            JsonMesh.AddMember("BiTangent", BiTangent, Allocator);
+            JsonMesh.AddMember("BlendIndices", BlendIndices, Allocator);
+            JsonMesh.AddMember("BlendWeights", BlendWeights, Allocator);
+        }
+
+        const std::string str = "Mesh" + std::to_string(i);
+        Value Name(str, Allocator);
+        Doc.AddMember(Name, JsonMesh, Allocator);
+    }
+    */
+
+    MJsonSerializer Serializer;
+
+    // 정점 배열 저장 테스트
+    //Vertex Test[2];
+    //Test[0].Pos = { 1.f, 2.f, 3.f, 4.f };
+    //Test[1].Pos = { 5.f, 6.f, 7.f, 8.f };
+    //Value JsonMesh = Serializer.TSerialize(Test);
+    //Value JsonMesh = Serializer.TSerialize(*_pStaticMeshComponent2->getStaticMesh()->GetMeshData(0));
+    //Value JsonMesh = Serializer.TSerialize(*_pStaticMeshComponent2->getStaticMesh());
+    Value JsonMesh = Serializer.TSerialize(*CharacterMeshComponent->getDynamicMesh());
+    Doc.AddMember("Result", JsonMesh, Allocator);
 
 	FILE* fp = nullptr;
 	fopen_s(&fp, "D:\\Git\\Moon\\Client\\test.json", "wb");
@@ -296,25 +341,104 @@ void Player::JsonTest(bool bPretty)
 	char WriteBuffer[65536];
 	FileWriteStream WriteStream(fp, WriteBuffer, sizeof(WriteBuffer));
 
-	//Writer<FileWriteStream>* JsonWriter = nullptr;
-	//if (bPretty)
-	//{
-	//	JsonWriter = new PrettyWriter<FileWriteStream>(WriteStream);
-	//}
-	//else
-	//{
-	//	JsonWriter = new Writer<FileWriteStream>(WriteStream);
-	//}
-	
-	//JsonWriter->SetMaxDecimalPlaces(8);
-	//Doc.Accept(*JsonWriter);
-	//delete JsonWriter;
-
-	PrettyWriter<FileWriteStream> JsonWriter(WriteStream);
-	JsonWriter.SetMaxDecimalPlaces(8);
-	Doc.Accept(JsonWriter);
+    if (bPretty)
+    {
+        PrettyWriter<FileWriteStream> JsonWriter(WriteStream);
+        JsonWriter.SetMaxDecimalPlaces(8);
+        Doc.Accept(JsonWriter);
+    }
+    else
+    {
+        Writer<FileWriteStream> JsonWriter(WriteStream);
+        JsonWriter.SetMaxDecimalPlaces(8);
+        Doc.Accept(JsonWriter);
+    }
 
 	fclose(fp);
+}
+
+void Player::JsonLoadTest()
+{
+    //LoadedMeshComponent->SetMesh(TEXT("D:\\Git\\Moon\\Client\\test.json"));
+    //LoadedMeshComponent->setScale(Vec3(0.01f, 0.01f, 0.01f));
+
+    CharacterMeshComponent->SetMesh(TEXT("D:\\Git\\Moon\\Client\\test.json"));
+    /*
+    auto ReadArray = [](Value& InValue, auto& OutVector) {
+        for (auto& Value : InValue.GetArray())
+        {
+            OutVector.push_back(Value.GetInt());
+        }
+    };
+
+    auto ReadArrayRange = [](Value& InValue, auto& Out, uint32 Start, uint32 Num) {
+        for (uint32 i = 0; i < Num; ++i)
+        {
+            Out[Start + i] = InValue.GetArray()[Start + i].GetInt();
+        }
+    };
+
+    auto ReadVec4 = [](Value& InValue, Vec4& Vec, uint32 Start) {
+        Vec.x = InValue.GetArray()[Start * 4].GetFloat();
+        Vec.y = InValue.GetArray()[Start * 4 + 1].GetFloat();
+        Vec.z = InValue.GetArray()[Start * 4 + 2].GetFloat();
+        Vec.w = InValue.GetArray()[Start * 4 + 3].GetFloat();
+    };
+
+    auto ReadVec3 = [](Value& InValue, Vec3& Vec, uint32 Start) {
+        Vec.x = InValue.GetArray()[Start * 3].GetFloat();
+        Vec.y = InValue.GetArray()[Start * 3 + 1].GetFloat();
+        Vec.z = InValue.GetArray()[Start * 3 + 2].GetFloat();
+    };
+
+    auto ReadVec2 = [](Value& InValue, Vec2& Vec, uint32 Start) {
+        Vec.x = InValue.GetArray()[Start * 2].GetFloat();
+        Vec.y = InValue.GetArray()[Start * 2 + 1].GetFloat();
+    };
+
+    FILE* fp = nullptr;
+    fopen_s(&fp, "D:\\Git\\Moon\\Client\\test.json", "rb");
+
+    char readBuffer[2048];
+    FileReadStream frs(fp, readBuffer, sizeof(readBuffer));
+
+    Document Doc;
+    Doc.ParseStream(frs);
+
+    std::vector< std::shared_ptr<FMeshData>> MeshDatas;
+    
+    if (Doc.HasMember("MeshNum"))    
+    {
+        uint32 MeshNum = Doc["MeshNum"].GetInt();
+        for (uint32 MeshCounter = 0; MeshCounter < MeshNum; ++MeshCounter)
+        {
+            std::string MeshName = "MeshNum" + std::to_string(MeshCounter);
+            if (Doc.HasMember(MeshName))
+            {
+                std::shared_ptr<FMeshData> NewMeshData = std::make_shared<FMeshData>();
+
+                ReadArray(Doc[MeshName]["Indices"], NewMeshData->Indices);
+
+                uint32 VertexNum = Doc[MeshName]["VertexNum"].GetInt();
+                NewMeshData->Vertices.resize(VertexNum);
+                for (uint32 VertexCounter = 0; VertexCounter < VertexNum; ++VertexCounter)
+                {
+                    ReadVec4(Doc[MeshName]["Pos"], NewMeshData->Vertices[VertexCounter].Pos, VertexCounter);
+                    ReadVec2(Doc[MeshName]["UV"], NewMeshData->Vertices[VertexCounter].Tex0, VertexCounter);
+                    ReadVec3(Doc[MeshName]["Normal"], NewMeshData->Vertices[VertexCounter].Normal, VertexCounter);
+                    ReadVec3(Doc[MeshName]["Tangent"], NewMeshData->Vertices[VertexCounter].Tangent, VertexCounter);
+                    ReadVec3(Doc[MeshName]["BiTangent"], NewMeshData->Vertices[VertexCounter].Binormal, VertexCounter);
+                    ReadArrayRange(Doc[MeshName]["BlendIndices"], NewMeshData->Vertices[VertexCounter].BlendIndex, VertexCounter * 4, 4);
+                    ReadVec4(Doc[MeshName]["BlendWeights"], NewMeshData->Vertices[VertexCounter].BlendWeight, VertexCounter);
+                }
+
+                MeshDatas.push_back(NewMeshData);
+            }
+        }
+    }
+
+    fclose(fp);
+    */
 }
 
 //void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)
