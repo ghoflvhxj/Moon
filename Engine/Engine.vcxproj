@@ -62,6 +62,8 @@
     <ClCompile Include="Source\Core\Physics\PhysX\MPhysX.cpp" />
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
     <ClCompile Include="Source\Core\ResourceManager.cpp" />
+    <ClCompile Include="Source\Core\Serialize\JsonSerializer.cpp" />
+    <ClCompile Include="Source\Core\Serialize\Serializerable.cpp" />
     <ClCompile Include="Source\Core\StaticMesh\StaticMesh.cpp" />
     <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
     <ClCompile Include="SphereComponent.cpp" />
@@ -123,7 +125,6 @@
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="SceneComponent.h" />
-    <ClInclude Include="Serializerable.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="ShaderManager.h" />
@@ -135,6 +136,8 @@
     <ClInclude Include="Source\Core\Physics\PhysX\MPhysX.h" />
     <ClInclude Include="Source\Core\ResourceLoader.h" />
     <ClInclude Include="Source\Core\ResourceManager.h" />
+    <ClInclude Include="Source\Core\Serialize\JsonSerializer.h" />
+    <ClInclude Include="Source\Core\Serialize\Serializable.h" />
     <ClInclude Include="Source\Core\StaticMesh\StaticMesh.h" />
     <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h" />
     <ClInclude Include="SphereComponent.h" />

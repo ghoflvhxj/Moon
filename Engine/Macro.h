@@ -62,6 +62,16 @@
 #define ASSERT_CONDITION_MSG(_condition, _msg)											\
 		{ assert(_condition && TEXT(_msg)); }
 
+#define REFLECT_FIELD(Class, Name, Type) \
+    std::make_tuple(#Name, &Class::Name, Type)
+
+#define REFLECTABLE(...)                                        \
+    static constexpr auto GetFields() {                         \
+        return std::make_tuple(__VA_ARGS__);                    \
+    }                                                           
+
+//static constexpr uint32 GetFieldNum() { return std::tuple_size<decltype(GetFieldList())>::value; }
+
 #ifdef DEBUG																			
 	#define DEV_ASSERT_MSG(_msg)														\
 		{ assert(false && TEXT(_msg)); }														

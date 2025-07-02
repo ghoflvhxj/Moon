@@ -217,6 +217,8 @@
     <ClCompile Include="Source\Core\Physics\Jolt\Jolt.cpp" />
     <ClCompile Include="Source\Core\DynamicMesh\DynamicMesh.cpp" />
     <ClCompile Include="Source\Core\StaticMesh\StaticMesh.cpp" />
+    <ClCompile Include="Source\Core\Serialize\JsonSerializer.cpp" />
+    <ClCompile Include="Source\Core\Serialize\Serializerable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -438,7 +440,10 @@
     <ClInclude Include="Source\Core\StaticMesh\StaticMesh.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Serializerable.h">
+    <ClInclude Include="Source\Core\Serialize\JsonSerializer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Serialize\Serializable.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
