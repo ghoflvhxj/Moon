@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 
-#include "Core/ResourceLoader.h"
+#include "Include.h"
 
 class ENGINE_DLL MTexture : public MResource
 {
@@ -22,4 +22,12 @@ private:
 
 public:
 	const bool GetResolution(uint32& OutWidth, uint32& OutHeight);
+
+protected:
+    std::wstring Path;
+
+public:
+    REFLECTABLE(
+        REFLECT_FIELD(MTexture, Path)
+    )
 };

@@ -62,8 +62,8 @@
 #define ASSERT_CONDITION_MSG(_condition, _msg)											\
 		{ assert(_condition && TEXT(_msg)); }
 
-#define REFLECT_FIELD(Class, Name, Type) \
-    std::make_tuple(#Name, &Class::Name, Type)
+#define REFLECT_FIELD(Class, Name) \
+    std::make_tuple(#Name, &Class::Name)
 
 #define REFLECTABLE(...)                                        \
     static constexpr auto GetFields() {                         \

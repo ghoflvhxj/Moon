@@ -76,8 +76,13 @@ public:
 
 public:
     REFLECTABLE(
-        REFLECT_FIELD(MMaterial, _vertexShaderFileName, EType::String),
-        REFLECT_FIELD(MMaterial, _pixelShaderFileName, EType::String)
-        //REFLECT_FIELD(MMaterial, _textureList, EType::Array)
+        REFLECT_FIELD(MMaterial, _vertexShaderFileName),
+        REFLECT_FIELD(MMaterial, _pixelShaderFileName),
+        REFLECT_FIELD(MMaterial, _textureList),
+        REFLECT_FIELD(MMaterial, _eTopology),
+        REFLECT_FIELD(MMaterial, _eFillMode),
+        REFLECT_FIELD(MMaterial, _eCullMode),
+        REFLECT_FIELD(MMaterial, bUseAlpha),
+        REFLECT_FIELD(MMaterial, bAlphaMask)
     );
 };

@@ -68,13 +68,13 @@ namespace Graphic
 		}
 
         REFLECTABLE(
-            REFLECT_FIELD(VERTEX_COMMON, Pos, EType::Vec3),
-            REFLECT_FIELD(VERTEX_COMMON, Tex0, EType::Vec4),
-            REFLECT_FIELD(VERTEX_COMMON, Normal, EType::Vec3),
-            REFLECT_FIELD(VERTEX_COMMON, Tangent, EType::Vec3),
-            REFLECT_FIELD(VERTEX_COMMON, Binormal, EType::Vec3),
-            REFLECT_FIELD(VERTEX_COMMON, BlendIndex, EType::Array),
-            REFLECT_FIELD(VERTEX_COMMON, BlendWeight, EType::Array)
+            REFLECT_FIELD(VERTEX_COMMON, Pos),
+            REFLECT_FIELD(VERTEX_COMMON, Tex0),
+            REFLECT_FIELD(VERTEX_COMMON, Normal),
+            REFLECT_FIELD(VERTEX_COMMON, Tangent),
+            REFLECT_FIELD(VERTEX_COMMON, Binormal),
+            REFLECT_FIELD(VERTEX_COMMON, BlendIndex),
+            REFLECT_FIELD(VERTEX_COMMON, BlendWeight)
         );
 	};
 }
