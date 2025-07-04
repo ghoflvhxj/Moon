@@ -1,0 +1,28 @@
+{
+    "_vertexShaderFileName": "TexVertexShader.cso",
+    "_pixelShaderFileName": "TexPixelShader.cso",
+    "_textureList": {
+        "0": {
+            "Path": "Table/DefaultMaterial_Base_Color.png"
+        },
+        "1": {
+            "Path": ""
+        },
+        "2": {
+            "Path": "Table/DefaultMaterial_Base_Color_N.png"
+        },
+        "3": {
+            "Path": "Table/DefaultMaterial_Base_Color_S.png"
+        },
+        "4": {
+            "Path": ""
+        },
+        "5": {
+            "Path": ""
+        }
+    },
+    "_eTopology": 4,
+    "_eFillMode": 1,
+    "_eCullMode": 2,
+    "bUseAlpha": false
+}

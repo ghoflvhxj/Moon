@@ -1,0 +1,29 @@
+{
+    "_vertexShaderFileName": "TexAnimVertexShader.cso",
+    "_pixelShaderFileName": "TexPixelShader.cso",
+    "_textureList": {
+        "0": {
+            "Path": "2B/2B_Head.png"
+        },
+        "1": {
+            "Path": ""
+        },
+        "2": {
+            "Path": "2B/2B_Head_N.png"
+        },
+        "3": {
+            "Path": ""
+        },
+        "4": {
+            "Path": ""
+        },
+        "5": {
+            "Path": ""
+        }
+    },
+    "_eTopology": 4,
+    "_eFillMode": 1,
+    "_eCullMode": 2,
+    "bUseAlpha": false,
+    "bAlphaMask": false
+}
