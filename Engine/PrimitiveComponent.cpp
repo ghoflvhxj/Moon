@@ -76,9 +76,11 @@ MBoundingBox::MBoundingBox(const Vec3 &min, const Vec3 &max)
 	_pMaterial->setFillMode(Graphic::FillMode::WireFrame);
 	_pMaterial->setCullMode(Graphic::CullMode::None);
 
-    MeshData = std::make_shared<FMeshData>();
+    std::shared_ptr<FMeshData> MeshData = std::make_shared<FMeshData>();
     MeshData->Vertices = _vertices;
     MeshData->Indices = _indices;
+
+    MeshDatas.push_back(MeshData);
 }
 
 std::shared_ptr<MVertexBuffer> MBoundingBox::getVertexBuffer()
@@ -91,6 +93,10 @@ std::shared_ptr<MMaterial> MBoundingBox::getMaterial()
 	return _pMaterial;
 }
 
+std::shared_ptr<FMeshData> MBoundingBox::GetMeshData() const
+{
+    return MeshDatas[0];
+}
 
 const bool MBoundingBox::cull(const std::vector<XMVECTOR> palnes, const Vec3 &position)
 {

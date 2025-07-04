@@ -39,9 +39,9 @@ protected:
 	std::shared_ptr<MMaterial> _pMaterial = nullptr;
 
 public:
-    const std::shared_ptr<FMeshData>& GetMeshData() const { return MeshData; }
+    std::shared_ptr<FMeshData> GetMeshData() const;
 protected:
-    std::shared_ptr<FMeshData> MeshData = nullptr;
+    std::vector<std::shared_ptr<FMeshData>> MeshDatas;
 };
 
 class ENGINE_DLL MPrimitiveComponent abstract : public SceneComponent, public std::enable_shared_from_this<MPrimitiveComponent>
