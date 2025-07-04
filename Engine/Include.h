@@ -15,10 +15,12 @@ class __declspec(dllexport) std::exception;
 
 #include <vector>
 #include <list>
+#include <queue>
 #include <map>
 #include <unordered_map>
 #include <set>
 #include <unordered_set>
+#include <array>
 
 // Window Platform
 #ifdef _WIN64
