@@ -16,8 +16,8 @@
 #include "DirectInput.h"
 #include "DynamicMeshComponent.h"
 #include "GameFramework/StaticMeshActor/StaticMeshActor.h"
-#include "Core/StaticMesh/StaticMesh.h"
 #include "Core/ResourceManager.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 #include "Material.h"
 
 #include "imgui.h"

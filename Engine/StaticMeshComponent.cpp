@@ -7,7 +7,7 @@
 #include "Texture.h"
 
 #include "Core/Physics/Physics.h"
-#include "Core/StaticMesh/StaticMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
 #include "MainGame.h"
 #include "Camera.h"

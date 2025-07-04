@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 #include "MainGameSetting.h"
-#include "Core/StaticMesh/StaticMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
 using namespace DirectX;
 

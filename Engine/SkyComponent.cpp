@@ -5,7 +5,7 @@
 #include "Texture.h"
 #include "Material.h"
 #include "Renderer.h"
-#include "Core/StaticMesh/StaticMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
 using namespace DirectX;
 

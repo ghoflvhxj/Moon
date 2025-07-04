@@ -56,7 +56,6 @@
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="SkyComponent.cpp" />
-    <ClCompile Include="Source\Core\DynamicMesh\DynamicMesh.cpp" />
     <ClCompile Include="Source\Core\Physics\Jolt\Jolt.cpp" />
     <ClCompile Include="Source\Core\Physics\Physics.cpp" />
     <ClCompile Include="Source\Core\Physics\PhysX\MPhysX.cpp" />
@@ -64,8 +63,10 @@
     <ClCompile Include="Source\Core\ResourceManager.cpp" />
     <ClCompile Include="Source\Core\Serialize\JsonSerializer.cpp" />
     <ClCompile Include="Source\Core\Serialize\Serializerable.cpp" />
-    <ClCompile Include="Source\Core\StaticMesh\StaticMesh.cpp" />
     <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
+    <ClCompile Include="Source\Mesh\DynamicMesh\DynamicMesh.cpp" />
+    <ClCompile Include="Source\Mesh\Mesh.cpp" />
+    <ClCompile Include="Source\Mesh\StaticMesh\StaticMesh.cpp" />
     <ClCompile Include="SphereComponent.cpp" />
     <ClCompile Include="StaticMeshComponent.cpp" />
     <ClCompile Include="TerrainComponent.cpp" />
@@ -130,7 +131,6 @@
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SkyComponent.h" />
-    <ClInclude Include="Source\Core\DynamicMesh\DynamicMesh.h" />
     <ClInclude Include="Source\Core\Physics\Jolt\Jolt.h" />
     <ClInclude Include="Source\Core\Physics\Physics.h" />
     <ClInclude Include="Source\Core\Physics\PhysX\MPhysX.h" />
@@ -138,8 +138,9 @@
     <ClInclude Include="Source\Core\ResourceManager.h" />
     <ClInclude Include="Source\Core\Serialize\JsonSerializer.h" />
     <ClInclude Include="Source\Core\Serialize\Serializable.h" />
-    <ClInclude Include="Source\Core\StaticMesh\StaticMesh.h" />
     <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h" />
+    <ClInclude Include="Source\Mesh\DynamicMesh\DynamicMesh.h" />
+    <ClInclude Include="Source\Mesh\StaticMesh\StaticMesh.h" />
     <ClInclude Include="SphereComponent.h" />
     <ClInclude Include="StaticMeshComponent.h" />
     <ClInclude Include="stdafx.h" />

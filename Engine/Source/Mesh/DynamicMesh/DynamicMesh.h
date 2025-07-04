@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "Include.h"
-#include "Core/StaticMesh/StaticMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 #include "DynamicMeshComponentUtility.h"
 
 class Skeleton;
@@ -22,7 +22,7 @@ public:
 private:
     std::vector<AnimationClip> _animationClipList;
     std::vector<FJoint> _jointList;
-    uint32 _jointCount;
+    uint32 _jointCount = 0;
 
 public:
     std::shared_ptr<Skeleton> _pSkeleton = nullptr;

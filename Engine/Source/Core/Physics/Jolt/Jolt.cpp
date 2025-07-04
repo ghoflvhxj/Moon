@@ -21,7 +21,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "PrimitiveComponent.h"
-#include "Core/StaticMesh/StaticMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
 using namespace JPH;
 using namespace JPH::literals;
@@ -239,6 +239,11 @@ bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_p
     
     const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
     const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0)->Indices;
+
+    if (Vertices.empty())
+    {
+        return false;
+    }
 
     Body* NewBody = nullptr;
 

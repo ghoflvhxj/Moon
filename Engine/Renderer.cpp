@@ -16,7 +16,7 @@
 #include "Material.h"
 #include "Shader.h"
 
-#include "Core/StaticMesh/StaticMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
 // Framework
 #include "MainGame.h"

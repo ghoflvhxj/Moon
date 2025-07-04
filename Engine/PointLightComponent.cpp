@@ -3,7 +3,7 @@
 #include "Render.h"
 #include "Material.h"
 
-#include "Core/StaticMesh/StaticMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
 using namespace DirectX;
 

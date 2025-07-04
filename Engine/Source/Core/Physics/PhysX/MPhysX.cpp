@@ -2,7 +2,7 @@
 #include "MPhysX.h"
 #include "NvidiaPhysX/extensions/PxDefaultCpuDispatcher.h"
 #include "NvidiaPhysX/gpu/PxGpu.h"
-#include "Core/StaticMesh/StaticMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
 #define PVD_HOST "127.0.0.1"
 

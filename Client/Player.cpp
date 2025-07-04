@@ -12,8 +12,8 @@
 #include "PointLightComponent.h"
 #include "DirectionalLightComponent.h"
 #include "SkyComponent.h"
-#include "Core/StaticMesh/StaticMesh.h"
-#include "Core/DynamicMesh/DynamicMesh.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
+#include "Mesh/DynamicMesh/DynamicMesh.h"
 
 #include "imgui.h"
 

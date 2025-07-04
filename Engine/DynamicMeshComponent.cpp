@@ -6,7 +6,7 @@
 #include "Material.h"
 #include "Texture.h"
 
-#include "Core/DynamicMesh/DynamicMesh.h"
+#include "Mesh/DynamicMesh/DynamicMesh.h"
 
 #include "MainGame.h"
 #include "Camera.h"
