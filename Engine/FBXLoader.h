@@ -1,18 +1,14 @@
 ﻿#pragma once
-#ifndef __FBXLOADER_H__
+
+#include "Include.h"
 
 #include "FBXSDK/fbxsdk.h"
-#include "FBXSDK/fbxsdk/scene/fbxaxissystem.h"
 #include "Vertex.h"
+#include "Mesh/Mesh.h"
 
-#include "DynamicMeshComponentUtility.h"
-
-#include <set>
 #include <chrono>
 #include <thread>
-#include <queue>
 #include <mutex>
-#include <functional>
 #include <future>
 
 class ThreadPool {
@@ -133,25 +129,32 @@ namespace std
 
 class MTexture;
 
-class MFBXLoader
+class ENGINE_DLL MFBXLoader
 {
 public:
 	explicit MFBXLoader();
 	explicit MFBXLoader(const wchar_t *filePathName);
 	~MFBXLoader();
+protected:
+    void SafeDestroy(fbxsdk::FbxObject*& InObject);
 
 
 public:
 	void LoadAnim(std::vector<AnimationClip>& animationClipList);
-	bool LoadMesh(const std::wstring& Path);
-
+	bool LoadMesh(const std::wstring& InPath);
+    // FBX파일을 Json으로 만들 때 호출됨
+    void SaveJsonAsset(const std::wstring& InPath);
 private:
 	void InitializeFbxSdk();
 	void convertScene();
 
+public:
+    const std::wstring& GetDirectory() const { return Directory; }
 private:
-	std::wstring _filePathName;
+	std::wstring Path;
 	std::wstring Directory;
+    std::wstring Name;
+    std::wstring Extension;
 
 private:
 	void initializeSDK();
@@ -186,6 +189,7 @@ private:
 private:
 	void loadTexture();
 private:
+    // 메시와 
 	void linkMaterial(fbxsdk::FbxNode *pNode);
 private:
 	fbxsdk::FbxMesh *FBXMesh;
@@ -196,17 +200,21 @@ private:
 	const char* GetTexturePropertyString(ETextureType TextureType);
 
 public:
+    // 각 메시의 버텍스 리스트
 	std::vector<VertexList>&	getVerticesList();
+    // 각 메시의 인덱스 리스트
 	std::vector<IndexList>&		getIndicesList();
-	std::vector<TextureList>& GetTextures();
-	const std::vector<uint32>&	getLinkList() const;
+    // 각 메시의 텍스쳐 리스트
+	std::vector<TextureList>&   GetTextures();
+	const std::vector<uint32>&	GetMaterialIndices() const;
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
     // ControlPoint에 해당하는 정점들의 인덱스를 메시 단위로 저장
 	std::vector<std::map<int, std::vector<int>>> ControlPointToVertexIndices;
 	
-	std::vector<TextureList>	_texturesList;
+    // 매터리얼별 텍스쳐 리스트
+	std::vector<TextureList>	MaterialTextures;
 
 	//// 사용된 텍스쳐
 	//std::vector<MTexture> _texturesList;
@@ -214,7 +222,8 @@ private:
 	//// 매터리얼 - 텍스처 인덱스 바인딩
 	//std::vector<uint32, std::vector<uint32>> MaterialTextureIndicesMap;
 
-	std::vector<uint32>			_linkList;
+    // 각 메시의 매터리얼 인덱스
+	std::vector<uint32>			MaterialIndices;
 	int meshCounter;
 
 public:
@@ -232,12 +241,12 @@ private:
 	uint32 MaterialNum;
 
 public:
+    std::wstring GetMaterialIName(uint32 Index);
+
+public:
 	const uint32 GetTotalVertexNum() const;
 private:
 	uint32 TotalVertexNum;
 };
 
 inline DirectX::XMMATRIX ToXMMatrix(const FbxAMatrix& pSrc);
-
-#define __FBXLOADER_H__
-#endif
