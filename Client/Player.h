@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __PLAYER_H__
 
 #include "Actor.h"
 
@@ -45,7 +44,4 @@ private:
 
 private:
     float CameraSpeedScale = 1.f;
-};
 
-#define __PLAYER_H__
-#endif

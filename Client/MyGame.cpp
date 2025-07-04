@@ -209,10 +209,11 @@ void MyGame::render()
 
     if (DynamicMeshComp && ImGui::Button(DynamicMeshComp->IsAnimPlaying() ? "PauseAnim" : "PlayAnim"))
     {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int> AnimClipIndex(0, DynamicMeshComp->GetAnimClipNum());
-        DynamicMeshComp->SetAnimClip(AnimClipIndex(gen));
+        //std::random_device rd;
+        //std::mt19937 gen(rd());
+        //std::uniform_int_distribution<int> AnimClipIndex(0, DynamicMeshComp->GetAnimClipNum());
+        //DynamicMeshComp->SetAnimClip(AnimClipIndex(gen));
+        DynamicMeshComp->SetAnimClip(0);
         DynamicMeshComp->SetAnimPlaying(!DynamicMeshComp->IsAnimPlaying());
     }
 
