@@ -1,5 +1,4 @@
-﻿#include "Include.h"
-#include "Material.h"
+﻿#include "Material.h"
 
 #include "MapUtility.h"
 
@@ -15,6 +14,7 @@
 #include "Shader.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
+#include "Core/ResourceManager.h"
 
 #include "MainGame.h"
 
@@ -36,11 +36,25 @@ MMaterial::MMaterial()
 	, bUseAlpha{ false }
 	, bAlphaMask{ false }
 {
+    setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso"));
 }
 
 MMaterial::~MMaterial()
 {
 	ClearShader();
+}
+
+void MMaterial::OnLoaded()
+{
+    for (auto& Texture : _textureList)
+    {
+        if (Texture == nullptr)
+        {
+            continue;
+        }
+
+        Texture->Load();
+    }
 }
 
 void MMaterial::SetTexturesToDevice()

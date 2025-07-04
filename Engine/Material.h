@@ -25,6 +25,15 @@ public:
 	~MMaterial();
 
 public:
+    void SetName(const std::wstring& InName) { Name = InName; }
+    std::wstring GetName() { return Name; }
+protected:
+    std::wstring Name;
+
+public:
+    void OnLoaded();
+
+public:
 	void SetTexturesToDevice();
 
 public:
