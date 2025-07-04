@@ -1,15 +1,15 @@
-#include "Include.h"
-#include "Texture.h"
-
-#include "GraphicDevice.h"
+﻿#include "Texture.h"
 
 #include "DirectXTK/WICTextureLoader.h"
+#include "GraphicDevice.h"
+#include "Core/ResourceLoader.h"
 
 using namespace DirectX;
 
 MTexture::MTexture(const std::wstring& FilePath)
 	: _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
+    , Path(FilePath)
 {
 	loadTextureFile(FilePath.c_str());
 }
@@ -43,11 +43,28 @@ MTexture::MTexture()
 
 }
 
+MTexture::MTexture(const MTexture& Rhs)
+    : _rawTexture{ nullptr }
+    , _pResourceView{ nullptr }
+{
+    Path = Rhs.Path;
+}
+
 MTexture::~MTexture()
 {
 	OutputDebugStringW(TEXT("Release Texture\n"));
 	SafeRelease(_pResourceView);
 	SafeRelease(_rawTexture);
+}
+
+void MTexture::Load()
+{
+    if (Path.empty())
+    {
+        return;
+    }
+
+    loadTextureFile(Path.c_str());
 }
 
 const bool MTexture::loadTextureFile(const wchar_t *fileName)
