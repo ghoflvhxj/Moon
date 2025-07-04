@@ -35,11 +35,11 @@ const bool SkyComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitive
 		return false;
 	}
 
-	FPrimitiveData primitiveData = {};
+    FPrimitiveData primitiveData = {};
 	primitiveData.PrimitiveComponent = shared_from_this();
-	primitiveData.MeshData = _pSkyMesh->GetMeshData(0);
-	primitiveData.Material = _pSkyMesh->getMaterials()[0];
 	primitiveData.PrimitiveType = EPrimitiveType::Sky;
+    primitiveData.MeshData = _pSkyMesh->GetMeshData(0);
+	primitiveData.Material = _pSkyMesh->getMaterials()[0];
 	primitiveDataList.emplace_back(primitiveData);
 
 	return true;

@@ -63,11 +63,11 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
-		FPrimitiveData PrimitiveData;
+        FPrimitiveData PrimitiveData = {};
 		PrimitiveData.PrimitiveComponent = shared_from_this();
-		PrimitiveData.Material = _pStaticMesh->getGeometryLinkMaterialIndex().size() > 0 ? _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : _pStaticMesh->getMaterials()[0];
 		PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
-		PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
+        PrimitiveData.MeshData = _pStaticMesh->GetMeshData(geometryIndex);
+		PrimitiveData.Material = _pStaticMesh->getGeometryLinkMaterialIndex().size() > 0 ? _pStaticMesh->getMaterials()[_pStaticMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : _pStaticMesh->getMaterials()[0];
 
 		PrimitiveDataList.push_back(PrimitiveData);
 	}
@@ -76,11 +76,11 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	std::shared_ptr<MBoundingBox> &boundingBox = _pStaticMesh->GetBoundingBox();
 	if (boundingBox && _bDrawBoundingBox)
 	{
-		FPrimitiveData PrimitiveData = {};
+        FPrimitiveData PrimitiveData = {};
 		PrimitiveData.PrimitiveComponent = shared_from_this();
-		PrimitiveData.Material = boundingBox->getMaterial();
 		PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
         PrimitiveData.MeshData = boundingBox->GetMeshData();
+		PrimitiveData.Material = boundingBox->getMaterial();
 
 		PrimitiveDataList.push_back(PrimitiveData);
 	}

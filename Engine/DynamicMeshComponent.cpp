@@ -82,9 +82,9 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 	{
 		FPrimitiveData primitive = {};
 		primitive.PrimitiveComponent = shared_from_this();
-		primitive.Material = Mesh->getGeometryLinkMaterialIndex().size() > 0 ? Mesh->getMaterials()[Mesh->getGeometryLinkMaterialIndex()[geometryIndex]] : Mesh->getMaterials()[0];
 		primitive.PrimitiveType = EPrimitiveType::Mesh;
 		primitive.MeshData = Mesh->GetMeshData(geometryIndex);
+		primitive.Material = Mesh->getGeometryLinkMaterialIndex().size() > 0 ? Mesh->getMaterials()[Mesh->getGeometryLinkMaterialIndex()[geometryIndex]] : Mesh->getMaterials()[0];
         primitive._matrices = _matrices;
         PrimitiveDataList.emplace_back(primitive);
 	}
@@ -115,9 +115,9 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
     {
         FPrimitiveData PrimitiveData = {};
         PrimitiveData.PrimitiveComponent = shared_from_this();
-        PrimitiveData.Material = BoundingBox->getMaterial();
         PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
         PrimitiveData.MeshData = BoundingBox->GetMeshData();
+        PrimitiveData.Material = BoundingBox->getMaterial();
 
         PrimitiveDataList.emplace_back(PrimitiveData);
     }
@@ -170,32 +170,28 @@ void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTim
 }
 
 /*
+//bool bHasKeyFrames = !currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty();
+//if (bHasKeyFrames == false)
+//{
+//
+//    // 다른 메시에서 업데이트 된 경우
+//    bool bUpdatedFromOtherMesh = matricesSet.find(jointIndex) != matricesSet.end();
+//    if (bUpdatedFromOtherMesh)
+//    {
+//        continue;
+//    }
 
-
-
-                //bool bHasKeyFrames = !currentAnimClip._keyFrameLists[jointIndex][geometryIndex].empty();
-                //if (bHasKeyFrames == false)
-                //{
-                //
-                //    // 다른 메시에서 업데이트 된 경우
-                //    bool bUpdatedFromOtherMesh = matricesSet.find(jointIndex) != matricesSet.end();
-                //    if (bUpdatedFromOtherMesh)
-                //    {
-                //        continue;
-                //    }
-
-                //    // 본이 영향을 주는 버텍스가 없는 경우에는, 부모 본을 그대로 사용
-                //    int32 parentIndex = Mesh->getJoints()[jointIndex]._parentIndex;
-                //    if (parentIndex == -1)
-                //    {
-                //        _matrices[jointIndex] = IDENTITYMATRIX;
-                //    }
-                //    else
-                //    {
-                //        _matrices[jointIndex] = _matrices[parentIndex];
-                //    }
-                //
-                //}
-                //else
-
+//    // 본이 영향을 주는 버텍스가 없는 경우에는, 부모 본을 그대로 사용
+//    int32 parentIndex = Mesh->getJoints()[jointIndex]._parentIndex;
+//    if (parentIndex == -1)
+//    {
+//        _matrices[jointIndex] = IDENTITYMATRIX;
+//    }
+//    else
+//    {
+//        _matrices[jointIndex] = _matrices[parentIndex];
+//    }
+//
+//}
+//else
 */
