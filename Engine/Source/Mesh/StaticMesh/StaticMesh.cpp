@@ -37,37 +37,7 @@ void StaticMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
         MeshDatas.push_back(NewMeshData);
     }
 
-    // 중심점과 모든 버텍스 위치
-    TotalVertexNum = 0;
-    for (auto& MeshData : MeshDatas)
-    {
-        TotalVertexNum += GetSize(MeshData->Vertices);
-    }
-
-    AllVertexPosition.clear();
-    AllVertexPosition.resize(TotalVertexNum);
-    int32 VertexCounter = 0;
-    CenterPos = { 0.f, 0.f, 0.f };
-    for (auto& MeshData : MeshDatas)
-    {
-        for (uint32 i = 0; i < GetSize(MeshData->Vertices); ++i)
-        {
-            Vec4& Pos = MeshData->Vertices[i].Pos;
-
-            AllVertexPosition[VertexCounter].x = Pos.x;
-            AllVertexPosition[VertexCounter].y = Pos.y;
-            AllVertexPosition[VertexCounter].z = Pos.z;
-
-            CenterPos.x += Pos.x;
-            CenterPos.y += Pos.y;
-            CenterPos.z += Pos.z;
-
-            ++VertexCounter;
-        }
-    }
-    CenterPos.x /= CastValue<float>(TotalVertexNum);
-    CenterPos.y /= CastValue<float>(TotalVertexNum);
-    CenterPos.z /= CastValue<float>(TotalVertexNum);
+    OnLoaded();
 }
 
 void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
@@ -94,6 +64,11 @@ void StaticMesh::LoadFromAsset(const std::wstring& Path)
         Materials.push_back(NewMaterial);
     }
 
+    OnLoaded();
+}
+
+void StaticMesh::OnLoaded()
+{
     // 로드된 데이터로 정보 설정
     TotalVertexNum = 0;
     for (auto& MeshData : MeshDatas)

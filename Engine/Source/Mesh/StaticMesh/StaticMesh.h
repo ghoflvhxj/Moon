@@ -19,6 +19,7 @@ public:
     void LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader);
     void LoadFromFBX(const std::wstring& Path);
     void LoadFromAsset(const std::wstring& Path);
+    void OnLoaded();
     virtual void InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath);
 public:
     const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
