@@ -182,6 +182,10 @@ void MainGame::Pick()
     XMStoreFloat3(&RayDirection, XMVector3Normalize(FarWorldPos - NearWorldPos));
     XMStoreFloat3(&RayStart, NearWorldPos);
 
+    //std::shared_ptr<FMeshData> HitMesh = nullptr;
+    FPrimitiveData HitPrimitiveData;
+    float MinDistance = FLT_MAX;
+
     const auto& MeshPrimitives = g_pRenderer->GetRenderablePrimitiveData();
     for (auto& PrimitiveData : MeshPrimitives)
     {
@@ -195,30 +199,38 @@ void MainGame::Pick()
         XMVECTOR End = XMVector3TransformCoord(FarWorldPos, InverseWorldMat);
         XMVECTOR Dir = XMVector3Normalize(End - Start);
 
-        const auto& Vertices = PrimitiveData.MeshData.lock()->Vertices;
-        const auto& Indices = PrimitiveData.MeshData.lock()->Indices;
+        const auto& MeshData = PrimitiveData.MeshData.lock();
+        const auto& Vertices = MeshData->Vertices;
+        const auto& Indices = MeshData->Indices;
         uint32 Loop = GetSize(Indices) / 3;
+
         for (uint32 i = 0; i < Loop; ++i)
         {
             float Distance = 0.f;
             if (TriangleTests::Intersects(Start, Dir, XMLoadFloat4(&Vertices[Indices[i * 3 + 0]].Pos), XMLoadFloat4(&Vertices[Indices[i * 3 + 1]].Pos), XMLoadFloat4(&Vertices[Indices[i * 3 + 2]].Pos), Distance))
             {
-                std::cout << "Intersect!" << std::endl;
-                return;
+                if (Distance > MinDistance)
+                {
+                    continue;
+                }
+
+                HitPrimitiveData = PrimitiveData;
+
+                MinDistance = Distance;
             }
+        }
+    }
 
-            //XMVECTOR Plane = XMPlaneFromPoints();
-            //XMVECTOR Result = XMPlaneIntersectLine(Plane, Start, End);
-
-            //if (XMVector3IsNaN(Result) == false)
-            //{
-            //    XMVECTOR DirToResult = Result - Start;
-            //    if (XMVectorGetX(XMVector3Dot(DirToResult, Dir)) > 0.f)
-            //    {
-            //        std::cout << "Intersect!" << std::endl;
-            //        return;
-            //    }
-            //}
+    if (std::shared_ptr<MMeshComponent> MeshComponent = HitPrimitiveData.GetPrimitiveComponent<MMeshComponent>())
+    {
+        uint32 MeshNum = MeshComponent->GetMesh()->GetMeshNum();
+        for (uint32 i = 0; i < MeshNum; ++i)
+        {
+            if (HitPrimitiveData.MeshData.lock() == MeshComponent->GetMesh()->GetMeshData(i))
+            {
+                std::cout << "Intersect, " << "MeshIndex: " << i << std::endl;
+                break;
+            }
         }
     }
 }
