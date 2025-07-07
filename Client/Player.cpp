@@ -41,18 +41,10 @@ Player::Player()
 	: Actor()
 {
 	initialize();
-
-    int arr[2] = {};
-    std::array<int, 2> arr2;
-    TestF(arr);
-    TestF(arr2);
-    //TestF2(arr);
-    //TestF3(arr);
 }
 
 Player::~Player()
 {
-	std::cout << "asd" << std::endl;
 }
 
 void Player::initialize()
@@ -60,8 +52,8 @@ void Player::initialize()
 #if UseGround == 1
 	_pMeshComponent = std::make_shared<StaticMeshComponent>();
     _pMeshComponent->SetMesh(TEXT("Base/Box.fbx"));
-	_pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
-    _pMeshComponent->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
+	_pMeshComponent->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
+    _pMeshComponent->GetMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
 	addComponent(ROOT_COMPONENT, _pMeshComponent);
 	_pMeshComponent->setScale(20.f, 1.f, 20.f);
 	_pMeshComponent->setTranslation(1.f, -3.f, 0.f);
@@ -90,11 +82,11 @@ void Player::initialize()
 	addComponent(TEXT("DynamicMesh"), CharacterMeshComponent);
 	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
-    CharacterMeshComponent->SetMesh(TEXT("2B/2b.json"));
+    //CharacterMeshComponent->SetMesh(TEXT("2B/2b.json"));
  
-    //CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
-	//CharacterMeshComponent->getDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
-	//CharacterMeshComponent->getDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
+    CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
+	CharacterMeshComponent->GetDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
+	CharacterMeshComponent->GetDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
     // 2 = 치마
 
     CharacterMeshComponent->setDrawingBoundingBox(true);
@@ -204,6 +196,11 @@ void Player::tick(const Time deltaTime)
 	{
 		CharacterMeshComponent->playAnimation(0, deltaTime);
 	}
+    Vec3 JointPos = CharacterMeshComponent->GetJointPosition("bone001");
+    Vec3 Dir = VEC3ZERO;
+    XMStoreFloat3(&Dir, XMVector3Normalize(XMLoadFloat3(&PreviousJointPos) - XMLoadFloat3(&JointPos)));
+    CharacterMeshComponent->AddForce(Dir);
+    PreviousJointPos = JointPos;
 #endif
 
     static float DeltaTime = 0.f;
@@ -273,8 +270,8 @@ void Player::JsonSaveTest(bool bPretty)
     //FbxLoader.SaveJsonAsset(TEXT("2B/2B.fbx"));
 
     // 수정한 메시를 Json으로 저장
-    Serializer.Serialize(CharacterMeshComponent->getDynamicMesh(), TEXT("2B/2B.json"), false);
-    for (auto& Mat : CharacterMeshComponent->getDynamicMesh()->getMaterials())
+    Serializer.Serialize(CharacterMeshComponent->GetDynamicMesh(), TEXT("2B/2B.json"), false);
+    for (auto& Mat : CharacterMeshComponent->GetDynamicMesh()->getMaterials())
     {
         std::wstring Path = TEXT("2B/") + Mat->GetName() + TEXT(".json");
 

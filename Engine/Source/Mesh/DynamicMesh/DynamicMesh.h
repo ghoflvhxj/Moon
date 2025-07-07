@@ -17,15 +17,31 @@ public: //삭제예정
 public:
     const std::vector<AnimationClip>& GetAnimClips() { return _animationClipList; }
     bool getAnimationClip(const int index, AnimationClip& OutAnimationClip);
-    const uint32 getJointCount() const;
-    std::vector<FJoint>& getJoints();
+
 private:
     std::vector<AnimationClip> _animationClipList;
-    std::vector<FJoint> _jointList;
+
+
+public:
+    const uint32 GetJointNum() const;
+    std::vector<FJoint>& GetJoints();
+    FJoint GetJoint(uint32 InIndex);
+    FJoint GetJoint(const std::string& InName);
+    int32 GetJointIndex(const std::string& InName);
+protected:
+    std::unordered_map<std::string, uint32> NameToJointIndex;
+    std::vector<FJoint> Joints;
     uint32 _jointCount = 0;
 
 public:
     std::shared_ptr<Skeleton> _pSkeleton = nullptr;
+
+public:
+    REFLECTABLE(
+        REFLECT_FIELD(DynamicMesh, MeshDatas),
+        REFLECT_FIELD(DynamicMesh, MaterialPaths),
+        REFLECT_FIELD(DynamicMesh, UsedMaterialIndices)
+    );
 };
 
 class Skeleton

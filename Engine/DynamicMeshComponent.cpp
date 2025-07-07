@@ -1,6 +1,7 @@
 ﻿#include "DynamicMeshComponent.h"
 #include "DynamicMeshComponentUtility.h"
 
+#include "Core/Physics/Physics.h"
 #include "Render.h"
 #include "GraphicDevice.h"
 #include "Material.h"
@@ -37,6 +38,11 @@ void DynamicMeshComponent::Update(const Time deltaTime)
     if (IsAnimPlaying())
     {
         playAnimation(_currentAinmClipIndex, deltaTime);
+    }
+
+    if (PhysicsObject2)
+    {
+        PhysicsObject2->SetPos(GetJointPosition("bone001"));
     }
 }
 
@@ -127,18 +133,47 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 	return true;
 }
 
-void DynamicMeshComponent::SetMesh(const std::wstring& InPath)
+void DynamicMeshComponent::Clothing()
 {
-    std::filesystem::path Path(InPath);
+    MMeshComponent::Clothing();
 
-    if (Path.extension() == TEXT(".fbx"))
+    // 옷 바디 충돌 테스트
     {
-        Mesh->LoadFromFBX(InPath);
+        FPhysicsConstructData Data;
+        Data.PrimitiveComponent = shared_from_this();
+        Data.PhysicsType = EPhysicsType::Dynamic;
+        Data.bCapsule = true;
+        g_pPhysics->AddPhysicsObject(Data, PhysicsObject2);
     }
-    else if (Path.extension() == TEXT(".json"))
+}
+
+Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
+{
+    Vec3 OutPos = VEC3ZERO;
+
+    FJoint Joint = GetDynamicMesh()->GetJoint(InName);
+    int32 JointIndex = GetDynamicMesh()->GetJointIndex(InName);
+    Vec3 JointPos = Joint._position;
+    
+    XMVECTOR JointPosVec = XMLoadFloat3(&JointPos);
+    XMVECTOR ZeroVec = XMLoadFloat3(&VEC3ZERO);
+    XMMATRIX WorldMat = XMLoadFloat4x4(&getWorldMatrix());
+    
+    XMVECTOR Pos = ZeroVec;
+    AnimationClip CurrentAnimClip;
+    if (GetDynamicMesh()->getAnimationClip(_currentAinmClipIndex, CurrentAnimClip))
     {
-        Mesh->LoadFromAsset(InPath);
+        float RealFrame = CurrentAnimTime * 24.f;
+        uint32 Frame = CastValue<uint32>(RealFrame);
+
+        XMMATRIX JointMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
+        Pos = XMVector3TransformCoord(Pos, JointMatrix);
+        Pos = XMVector3TransformCoord(Pos, WorldMat);
     }
+
+    XMStoreFloat3(&OutPos, Pos);
+
+    return OutPos;
 }
 
 uint32 DynamicMeshComponent::GetAnimClipNum()

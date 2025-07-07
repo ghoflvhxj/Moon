@@ -5,7 +5,10 @@
 void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
 {
     StaticMesh::InitializeFromFBX(FbxLoader, FilePath);
-    FbxLoader.LoadAnim(_animationClipList);
+    FbxLoader.LoadFBXAnim(_animationClipList);
+
+    NameToJointIndex = FbxLoader.GetNameToJointIndex();
+    Joints = FbxLoader.GetJoints();
 
     for (std::shared_ptr<MMaterial>& Material : Materials)
     {
@@ -13,8 +16,6 @@ void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& F
         Material->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
     }
 
-    _jointList = FbxLoader.Joints;
-    _jointCount = CastValue<uint32>(_jointList.size());
 
     _pSkeleton = std::make_shared<Skeleton>(this);
 }
@@ -30,14 +31,44 @@ bool DynamicMesh::getAnimationClip(const int index, AnimationClip& OutAnimationC
     return false;
 }
 
-const uint32 DynamicMesh::getJointCount() const
+const uint32 DynamicMesh::GetJointNum() const
 {
-    return _jointCount;
+    return GetSize(Joints);
 }
 
-std::vector<FJoint>& DynamicMesh::getJoints()
+std::vector<FJoint>& DynamicMesh::GetJoints()
 {
-    return _jointList;
+    return Joints;
+}
+
+FJoint DynamicMesh::GetJoint(uint32 InIndex)
+{
+    if (InIndex < GetSize(Joints))
+    {
+        return Joints[InIndex];
+    }
+
+    return FJoint();
+}
+
+FJoint DynamicMesh::GetJoint(const std::string& InName)
+{
+    if (NameToJointIndex.find(InName) != NameToJointIndex.end())
+    {
+        return GetJoint(NameToJointIndex[InName]);
+    }
+
+    return FJoint();
+}
+
+int32 DynamicMesh::GetJointIndex(const std::string& InName)
+{
+    if (NameToJointIndex.find(InName) != NameToJointIndex.end())
+    {
+        return NameToJointIndex[InName];
+    }
+
+    return -1;
 }
 
 Skeleton::Skeleton(DynamicMesh* dynamicMesh)

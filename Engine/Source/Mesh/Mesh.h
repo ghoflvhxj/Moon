@@ -30,12 +30,16 @@ namespace fbxsdk
 
 struct ENGINE_DLL KeyFrame
 {
+    KeyFrame()
+        : Matrices(200, IDENTITYMATRIX)
+    {
+    }
 public:
     // 특정 조인트의 행렬을 가져옴
     Mat4& GetJointMatrix(int JointIndex) { return Matrices[JointIndex]; }
 protected:
     // 모든 조인트의 행렬을 저장
-    Mat4 Matrices[200];
+    std::vector<Mat4> Matrices;
 };
 
 struct ENGINE_DLL AnimationClip
@@ -75,11 +79,14 @@ struct ENGINE_DLL FJoint
     FJoint()
         : _parentIndex{ -1 }
         , _position{ 0.f, 0.f, 0.f }
+        , _globalBindPoseInverseMatrix{ IDENTITYMATRIX }
     {
 
     }
 
     int32	_parentIndex;
+
+    // 조인트에 적용된 바인드 포즈 변환을 지우기 위한 행렬
     Mat4	_globalBindPoseInverseMatrix;
     Vec3	_position;
 };

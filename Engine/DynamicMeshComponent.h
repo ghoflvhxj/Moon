@@ -15,7 +15,11 @@ public:
     virtual void Update(const Time deltaTime);
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList) override;
 
+    virtual void Clothing() override;
+
 public:
+    // 조인트의 월드 위치를 반환함
+    Vec3 GetJointPosition(const std::string& InName);
 
 public:
     void SetAnimClip(const uint32 Index) { _currentAinmClipIndex = Index, CurrentAnimTime = 0.f; }
@@ -24,7 +28,9 @@ public:
 private:
 	uint32 _currentAinmClipIndex = 0;
 	float CurrentAnimTime = 0.f;
-	Mat4 _matrices[200];
+
+    // 현재 프레임에서 조인트 행렬들
+	Mat4 JointAnimMatrices[200];
 
 public:
     void SetAnimPlaying(bool bPlaying) { bAnimPlaying = bPlaying; }

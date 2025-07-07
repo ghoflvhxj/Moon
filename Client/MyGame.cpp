@@ -51,19 +51,22 @@ const bool MyGame::initialize()
 
     LanternActor = CreateActor<MStaticMeshActor>(this);
     LanternActor->GetStaticMeshCompoent()->SetPhysicsType(EPhysicsType::Dynamic);
-    LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));;
+    LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));
     LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+    //LanternActor->SetStaticMesh(TEXT("Base/Box.fbx"));
+    //LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.1f, 0.1f, 0.1f });
     LanternActor->GetStaticMeshCompoent()->SetDrawCollision(true);
     //LanternActor->GetStaticMeshCompoent()->setTranslation(5.f, 0.f, 0.f);
     //LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
+    LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
 
     ClothActor = CreateActor<MStaticMeshActor>(this);
     ClothActor->GetStaticMeshCompoent()->SetPhysics(false);
     ClothActor->SetStaticMesh(TEXT("Untitled.fbx"));
     ClothActor->GetStaticMeshCompoent()->setTranslation(0.f, 6.f, 0.f);
 
-    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
-    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
+    ClothActor->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
+    ClothActor->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
 
     //std::shared_ptr<MTexture> Texture = nullptr;
     //if (g_ResourceManager->Load<MTexture>(TEXT("Resources/Texture/Player.jpeg"), Texture))
@@ -187,7 +190,12 @@ void MyGame::render()
         {
             LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(bStaticCollision);
         }
+        LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
 	}
+    else
+    {
+        LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(true);
+    }
 
     if (ImGui::CollapsingHeader("JsonTest"))
     {
@@ -215,11 +223,18 @@ void MyGame::render()
         //DynamicMeshComp->SetAnimClip(AnimClipIndex(gen));
         DynamicMeshComp->SetAnimClip(0);
         DynamicMeshComp->SetAnimPlaying(!DynamicMeshComp->IsAnimPlaying());
+
     }
+
+    Vec3 a = DynamicMeshComp->GetJointPosition("bone001");
+    //LanternActor->GetStaticMeshCompoent()->setTranslation(a);
+    //std::cout << "X: " << a.x << ", Y: " << a.y << ", Z: " << a.z << std::endl;
+
 
     if(ClothActor && ImGui::Button("Cloth"))
     {
-        ClothActor->GetStaticMeshCompoent()->Clothing();
+        DynamicMeshComp->Clothing();
+        //ClothActor->GetStaticMeshCompoent()->Clothing();
     }
 
 	ImGui::End();
