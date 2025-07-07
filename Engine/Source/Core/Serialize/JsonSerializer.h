@@ -57,7 +57,7 @@ public:
     // 시리얼 라이즈 할 때 사용하는 함수.
     // 클래스나 구조체의 shared_ptr를 받음
     template <class T>
-    void Serialize(std::shared_ptr<T>& Object, const std::wstring& Path, bool bPretty)
+    void Serialize(std::shared_ptr<T> Object, const std::wstring& Path, bool bPretty)
     {
         Serialize(*Object, Path, bPretty);
     }
