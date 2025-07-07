@@ -96,7 +96,7 @@ void Renderer::initialize() noexcept
     ViewMeshComponent->SetMesh(TEXT("Base/Plane.fbx"));
 	ViewMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	ViewMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
-    ViewMeshComponent->getStaticMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
+    ViewMeshComponent->GetMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	ViewMeshComponent->SceneComponent::Update(0.f);
 
 	// 렌더 타겟 추가
