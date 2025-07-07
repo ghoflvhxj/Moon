@@ -4,6 +4,9 @@
 #include "Vertex.h"
 #include "PhysicsEnum.h"
 
+// 임시, FTest 참조
+#include "MeshComponent.h"
+
 class StaticMesh;
 class MPhysicsObject;
 class MPrimitiveComponent;
@@ -13,6 +16,9 @@ struct FPhysicsConstructData
 	std::shared_ptr<MPrimitiveComponent> PrimitiveComponent;
 	std::shared_ptr<StaticMesh> Mesh;
 	EPhysicsType PhysicsType;
+
+    // 임시
+    bool bCapsule = false;
 };
 
 class ENGINE_DLL MPhysics
@@ -28,6 +34,7 @@ public:
 public:
     virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) = 0;
     virtual bool AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) { return false; }
+    virtual void AddCloth(FPhysicsConstructData& InData, std::vector<FTest>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) {}
 
 protected:
     std::vector<std::weak_ptr<MPhysicsObject>> SoftBodyObjects;

@@ -17,6 +17,7 @@
 #include "Jolt/Physics/SoftBody/SoftBodyMotionProperties.h"
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 #include "Jolt/Physics/SoftBody/SoftBodyShape.h"
+#include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
 
 #include "Renderer.h"
 #include "Vertex.h"
@@ -238,18 +239,21 @@ MJoltPhysics::MJoltPhysics()
 bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
 {
     BodyInterface& bodyInterface = physics_system->GetBodyInterface();
-    
+    Ref<Shape> NewShape;
+    BodyID NewBodyID;
+
+    if (InData.bCapsule == false)
+    {
+
+
     const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
     const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0)->Indices;
 
-    if (Vertices.empty())
-    {
-        return false;
-    }
+    //if (Vertices.empty())
+    //{
+    //    return false;
+    //}
 
-    Body* NewBody = nullptr;
-
-    Ref<Shape> NewShape;
 
     // Make ConvexHull
     {
@@ -262,8 +266,10 @@ bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_p
             JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
         }
         NewShape = ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)).Create().Get();
+        EMotionType MotionType = InData.PhysicsType == EPhysicsType::Static ? EMotionType::Static : EMotionType::Dynamic;
+        NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), RVec3(0.f, 0.f, 0.f), QuatArg::sIdentity(), MotionType, Layers::NON_MOVING), EActivation::Activate);
     }
-    EMotionType MotionType = InData.PhysicsType == EPhysicsType::Static ? EMotionType::Static : EMotionType::Dynamic;
+    }
 
     // MeshShape
     //if (MotionType == EMotionType::Static)
@@ -283,11 +289,18 @@ bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_p
     //    NewShape = MeshShapeSettings(vertexList, triangleList).Create().Get();
     //}
 
-    BodyID bodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), RVec3(0.f, 0.f, 0.f), QuatArg::sIdentity(), MotionType, Layers::NON_MOVING), EActivation::Activate);
+    // 캡슐
+    if (InData.bCapsule)
+    {
+        RefConst<Shape> big_capsule = new CapsuleShape(5.f, 2.5f);
+        auto b = BodyCreationSettings(big_capsule, RVec3(0, 0.f, 0), Quat::sEulerAngles(Vec3Arg(0.f, 0.f, 1.57f)), EMotionType::Dynamic, Layers::MOVING);
+        b.mMassPropertiesOverride.mMass = 0.f;
+        b.mGravityFactor = 0.f;
+        NewBodyID = bodyInterface.CreateAndAddBody(b, EActivation::Activate);
+    }
 
     std::shared_ptr<MJoltPhysicsObject> NewPhysicsObject = std::make_shared<MJoltPhysicsObject>(InData);
-    NewPhysicsObject->SetBodyID(bodyID);
-
+    NewPhysicsObject->SetBodyID(NewBodyID);
     OutPhysicsObject = NewPhysicsObject;
 
     return true;
@@ -516,7 +529,7 @@ void MJoltPhysicsObject::SetMass(float InMass)
 
 void MJoltPhysicsObject::SetPos(const ::Vec3& InPos)
 {
-    GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, RVec3Arg(InPos.x, InPos.y, InPos.z), EActivation::DontActivate);
+    GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, RVec3Arg(InPos.x, InPos.y, InPos.z), EActivation::Activate);
 }
 
 void MJoltPhysicsObject::SetScale(const ::Vec3& InScale)
@@ -541,7 +554,21 @@ void MJoltPhysicsObject::SetGravity(bool bGravity)
 
 void MJoltPhysicsObject::AddForce(const ::Vec3& InForce)
 {
-
+    BodyLockWrite lock(GetPhysicsSystem()->GetBodyLockInterface(), GetBodyID());
+    if (lock.Succeeded())
+    {
+        Body& Body = lock.GetBody();
+        if (Body.GetMotionPropertiesUnchecked() == nullptr)
+        {
+            return;
+        }
+        
+        JPH::Vec3 Arg;
+        Arg.SetX(InForce.x * 10000.f);
+        Arg.SetY(InForce.y * 10000.f);
+        Arg.SetZ(InForce.z * 10000.f);
+        Body.AddForce(Arg);
+    }
 }
 
 void MJoltPhysicsObject::SetVelocity(const ::Vec3& InVelocity)
