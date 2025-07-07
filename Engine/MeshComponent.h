@@ -1,12 +1,17 @@
 ﻿#pragma once
-#ifndef __MESH_COMPONENT_H__
 
-#include "Vertex.h"
-
+#include "Include.h"
 #include "PrimitiveComponent.h"
+#include "Core/Physics/PhysicsEnum.h"
 
-class MTexture;
-class MMaterial;
+class StaticMesh;
+class MPhysicsObject;
+
+struct FTest
+{
+    uint32 MeshIndex;
+    std::vector<float> InvMass;
+};
 
 class ENGINE_DLL MMeshComponent abstract : public MPrimitiveComponent
 {
@@ -14,30 +19,30 @@ public:
 	explicit MMeshComponent();
 	virtual ~MMeshComponent();
 
-// 삭제 예정
-//private:
-//	void initializeMeshInformation();
-//private:
-//	std::vector<Vertex> _vertexList;
-//	std::vector<Index>	_indexList;
-
-//public:
-	//virtual void Update(const Time deltaTime) override;
-	//virtual void render() override;
+    // 메시 관련
+public:
+    void SetMesh(const std::wstring& InPath);
+    std::shared_ptr<StaticMesh> GetMesh();
+protected:
+    std::shared_ptr<StaticMesh> Mesh;
 
 public:
-	const bool addTexture(std::shared_ptr<MTexture> pTexture);
-	void setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture);
-	std::shared_ptr<MTexture>& getTexture(const ETextureType textureType);
-private:
-	std::vector<std::shared_ptr<MTexture>> _textureList;
+    void AddForce(const Vec3& InForce);
 
+/* 피직스 관련 */
 public:
-	void setMaterial(std::shared_ptr<MMaterial> pMaterial);
-	std::shared_ptr<MMaterial>& getMaterial();
-private:
-	std::shared_ptr<MMaterial> _pMaterial;
+    virtual void Clothing();
+public:
+    void SetPhysics(bool bInPhysics, bool bForce = false);
+    void SetPhysicsSimulate(bool bInSimulate, bool bForce = false);
+    void SetPhysicsType(EPhysicsType InPhysicsType) { PhysicsType = InPhysicsType; }
+protected:
+    bool bPhysics = true;
+    bool bPhysicsSimulate = false;
+    EPhysicsType PhysicsType = EPhysicsType::Static;
+    std::shared_ptr<MPhysicsObject> PhysicsObject;
+    // 바디 테스트
+    std::shared_ptr<MPhysicsObject> PhysicsObject2;
+
+    std::vector<FTest> ClothData;
 };
-
-#define __MESH_COMPONENT_H__
-#endif

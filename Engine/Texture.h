@@ -2,6 +2,9 @@
 
 #include "Include.h"
 
+// MResource 참조용
+#include "Core/ResourceLoader.h"
+
 class ENGINE_DLL MTexture : public MResource
 {
 public:

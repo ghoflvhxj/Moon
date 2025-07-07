@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "Include.h"
+
 namespace Graphic
 {
     struct VERTEX_SIMPLE

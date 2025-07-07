@@ -1,10 +1,10 @@
 ﻿#pragma once
-#include "PrimitiveComponent.h"
+#include "MeshComponent.h"
 #include "Core/Physics/PhysicsEnum.h"
 
 class StaticMesh;
 
-class ENGINE_DLL StaticMeshComponent : public MPrimitiveComponent
+class ENGINE_DLL StaticMeshComponent : public MMeshComponent
 {
 public:
 	using SceneComponent::setTranslation;
@@ -30,36 +30,16 @@ public:
 	virtual XMMATRIX GetRotationMatrix();
 
 public:
-    void SetMesh(const std::wstring& InPath);
-	virtual std::shared_ptr<StaticMesh>& getStaticMesh();
-
-private:
-	std::shared_ptr<StaticMesh> _pStaticMesh = nullptr;
-
-public:
 	void Temp(float y);
 	void SetGravity(bool bGravity);
 
     // 피직스 테스트용
-public:
-    void Clothing();
+
 
 public:
 	void SetMass(float NewMass);
     void SetAngularVelocity(float x, float y, float z);
     void SetVelocity(float x, float y, float z);
-
-public:
-    void SetPhysics(bool bInPhysics, bool bForce = false);
-    void SetPhysicsSimulate(bool bInSimulate, bool bForce = false);
-protected:
-    bool bPhysics = true;
-    bool bPhysicsSimulate = false;
-
-public:
-    void SetPhysicsType(EPhysicsType InPhysicsType) { PhysicsType = InPhysicsType; }
-protected:
-    EPhysicsType PhysicsType = EPhysicsType::Static;
 
 	// 피직스
 private:
@@ -70,7 +50,4 @@ private:
     std::shared_ptr<MMaterial> MaterialForPhysX = nullptr;
     // 피직스 렌더링을 위한 임시 메시데이터
     std::shared_ptr<FMeshData> MeshDataForPhysX = nullptr;
-
-protected:
-    std::shared_ptr<class MPhysicsObject> PhysicsObject;
 };

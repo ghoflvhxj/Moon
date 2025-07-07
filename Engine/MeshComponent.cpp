@@ -1,20 +1,10 @@
-﻿#include "Include.h"
-#include "MeshComponent.h"
+﻿#include "MeshComponent.h"
 
-#include "GraphicDevice.h"
-#include "Material.h"
-
-#include "Texture.h"
-
-#include "MainGame.h"
-#include "Camera.h"
-
-#include "MainGame.h"
-#include "MainGameSetting.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
+#include "Core/Physics/Physics.h"
 
 MMeshComponent::MMeshComponent()
 	: MPrimitiveComponent()
-	, _textureList(5, nullptr)
 {
 	//initializeMeshInformation();
 }
@@ -23,34 +13,114 @@ MMeshComponent::~MMeshComponent()
 {
 }
 
-const bool MMeshComponent::addTexture(std::shared_ptr<MTexture> pTexture)
+void MMeshComponent::SetMesh(const std::wstring& InPath)
 {
-	if (_textureList.size() == _textureList.capacity())
-		return false;
+    std::filesystem::path Path(InPath);
+    if (Path.extension() == TEXT(".fbx"))
+    {
+        Mesh->LoadFromFBX(Path);
+    }
+    else if (Path.extension() == TEXT(".json"))
+    {
+        Mesh->LoadFromAsset(Path);
+    }
 
-	_textureList.push_back(pTexture);
-	return true;
+    SetPhysics(bPhysics, true);
+    SetPhysicsSimulate(bPhysicsSimulate);
 }
 
-void MMeshComponent::setMaterial(std::shared_ptr<MMaterial> pMaterial)
+std::shared_ptr<StaticMesh> MMeshComponent::GetMesh()
 {
-	_pMaterial = pMaterial;
+    return Mesh;
 }
 
-std::shared_ptr<MMaterial>& MMeshComponent::getMaterial()
+
+void MMeshComponent::AddForce(const Vec3& InForce)
 {
-	return _pMaterial;
+    if (PhysicsObject)
+    {
+        PhysicsObject->AddForce(InForce);
+    }
 }
 
-void MMeshComponent::setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture)
+void MMeshComponent::Clothing()
 {
-	_textureList[EnumToIndex(textureType)] = pTexture;
+    if (g_pPhysics)
+    {
+        FPhysicsConstructData Data;
+        Data.Mesh = Mesh;
+        Data.PrimitiveComponent = shared_from_this();
+        Data.PhysicsType = EPhysicsType::Dynamic;
+        //g_pPhysics->AddCloth(Data, PhysicsObject);
 
-	// 매터리얼에 새로운 텍스쳐를 바인딩 해줌
-	_pMaterial->setTextures(_textureList);
+        std::vector<FTest> t;
+        {
+            FTest a;
+            a.MeshIndex = 7;
+            a.InvMass.resize(Mesh->GetMeshData(7)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        {
+            FTest a;
+            a.MeshIndex = 8;
+            a.InvMass.resize(Mesh->GetMeshData(8)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        {
+            FTest a;
+            a.MeshIndex = 11;
+            a.InvMass.resize(Mesh->GetMeshData(11)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        {
+            FTest a;
+            a.MeshIndex = 12;
+            a.InvMass.resize(Mesh->GetMeshData(12)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        {
+            FTest a;
+            a.MeshIndex = 13;
+            a.InvMass.resize(Mesh->GetMeshData(13)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        g_pPhysics->AddCloth(Data, t, PhysicsObject);
+
+
+    }
 }
 
-std::shared_ptr<MTexture> &MMeshComponent::getTexture(const ETextureType textureType)
+void MMeshComponent::SetPhysics(bool bInPhysics, bool bForce)
 {
-	return _textureList[EnumToIndex(textureType)];
+    if (bPhysics == bInPhysics && bForce == false)
+    {
+        return;
+    }
+
+    bPhysics = bInPhysics;
+
+    if (g_pPhysics && bPhysics)
+    {
+        FPhysicsConstructData Data;
+        Data.Mesh = Mesh;
+        Data.PrimitiveComponent = shared_from_this();
+        Data.PhysicsType = PhysicsType;
+        g_pPhysics->AddPhysicsObject(Data, PhysicsObject);
+
+        //g_pPhysics->AddCloth();
+    }
+}
+
+void MMeshComponent::SetPhysicsSimulate(bool bInSimulate, bool bForce /*= false*/)
+{
+    if (PhysicsObject == nullptr)
+    {
+        return;
+    }
+
+    if (bInSimulate != PhysicsObject->IsSimulating())
+    {
+        bPhysicsSimulate = bInSimulate;
+        PhysicsObject->SetSimulate(bPhysicsSimulate);
+    }
 }

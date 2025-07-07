@@ -1,10 +1,10 @@
 ﻿#pragma once
-#include "PrimitiveComponent.h"
+#include "MeshComponent.h"
 #include "DynamicMeshComponentUtility.h"
 
 class DynamicMesh;
 
-class ENGINE_DLL DynamicMeshComponent : public MPrimitiveComponent
+class ENGINE_DLL DynamicMeshComponent : public MMeshComponent
 {
 public:
 	explicit DynamicMeshComponent();
@@ -16,7 +16,6 @@ public:
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList) override;
 
 public:
-    void SetMesh(const std::wstring& InPath);
 
 public:
     void SetAnimClip(const uint32 Index) { _currentAinmClipIndex = Index, CurrentAnimTime = 0.f; }
@@ -34,8 +33,5 @@ protected:
     bool bAnimPlaying = true;
 
 public:
-	virtual std::shared_ptr<DynamicMesh>& getDynamicMesh();
-
-private:
-	std::shared_ptr<DynamicMesh> Mesh = nullptr;
+	std::shared_ptr<DynamicMesh> GetDynamicMesh();
 };
