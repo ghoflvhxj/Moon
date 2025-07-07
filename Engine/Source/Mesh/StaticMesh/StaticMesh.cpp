@@ -104,7 +104,7 @@ void StaticMesh::OnLoaded()
 
 void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
 {
-    FbxLoader.LoadMesh(FilePath);
+    FbxLoader.LoadFBXMesh(FilePath);
 
     std::vector<TextureList>& Textures = FbxLoader.GetTextures(); // MaterialTextures
     UsedMaterialIndices = FbxLoader.GetMaterialIndices();

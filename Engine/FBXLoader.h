@@ -80,16 +80,16 @@ public:
 	std::chrono::system_clock::time_point _start;
 };
 
-struct FVertexKey
+struct FFBXVertexKey
 {
-    FVertexKey() = default;
-    FVertexKey(const FVertexKey& Rhs) = default;
-    FVertexKey(int a0, int a, int b, int c, int d)
+    FFBXVertexKey() = default;
+    FFBXVertexKey(const FFBXVertexKey& Rhs) = default;
+    FFBXVertexKey(int a0, int a, int b, int c, int d)
         : ControlPointIndex(a0), UVIndex(a), NormalIndex(b), TangentIndex(c), BiNormalIndex(d)
     {
 
     }
-    FVertexKey(FVertexKey&& Rhs) = default;
+    FFBXVertexKey(FFBXVertexKey&& Rhs) = default;
 
     int ControlPointIndex = -1;
     int UVIndex = -1;
@@ -97,7 +97,7 @@ struct FVertexKey
     int TangentIndex = -1;
     int BiNormalIndex = -1;
 
-    bool operator==(const FVertexKey& Rhs) const
+    bool operator==(const FFBXVertexKey& Rhs) const
     {
         return ControlPointIndex == Rhs.ControlPointIndex && UVIndex == Rhs.UVIndex && NormalIndex == Rhs.NormalIndex && TangentIndex == Rhs.TangentIndex && BiNormalIndex == Rhs.BiNormalIndex;
     }
@@ -106,9 +106,9 @@ struct FVertexKey
 namespace std
 {
     template<>
-    struct hash<FVertexKey>
+    struct hash<FFBXVertexKey>
     {
-        size_t operator()(const FVertexKey& Data) const
+        size_t operator()(const FFBXVertexKey& Data) const
         {
             size_t h0 = std::hash<int>{}(Data.ControlPointIndex);
             size_t h1 = std::hash<int>{}(Data.UVIndex);
@@ -140,8 +140,8 @@ protected:
 
 
 public:
-	void LoadAnim(std::vector<AnimationClip>& animationClipList);
-	bool LoadMesh(const std::wstring& InPath);
+	void LoadFBXAnim(std::vector<AnimationClip>& animationClipList);
+	bool LoadFBXMesh(const std::wstring& InPath);
     // FBX파일을 Json으로 만들 때 호출됨
     void SaveJsonAsset(const std::wstring& InPath);
 private:
@@ -169,20 +169,24 @@ public:
 	// 애니메이션 관련 데이터
 	fbxsdk::FbxSkeleton				*_pSkeleton = nullptr;
 	fbxsdk::FbxAnimStack			*_pAnimStack = nullptr;
-	std::vector<FJoint>				Joints;
+
+public:
+    const std::unordered_map<std::string, uint32>& GetNameToJointIndex() const { return NameToJointIndex; }
+    const std::vector<FJoint>& GetJoints() const { return Joints; }
+protected:
     // 조인트의 [이름, 인덱스] 쌍을 저장함
-	JointIndexMap					JointIndices;
-	VertexWeightInfoListMap			_vertexWeightInfoListMap;
+    std::unordered_map<std::string, uint32> NameToJointIndex;
+	std::vector<FJoint>				Joints;
 
 private:
 	void loadNode();
 private:
 	void parseMeshNode(fbxsdk::FbxNode *pNode, const uint32 meshIndex);
 	void loadPosition(Vertex &vertex, const int controlPointIndex);
-	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
-	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
-	void loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
-	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey);
+	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
+	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
+	void loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
+	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
 	void loadAnimation();
 private:
 	void loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName);

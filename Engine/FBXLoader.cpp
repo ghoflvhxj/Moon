@@ -40,7 +40,7 @@ MFBXLoader::MFBXLoader(const wchar_t* filePathName)
 	, MaterialNum{ 0 }
 	, meshCounter{ 0 }
 {
-	LoadMesh(Path);
+	LoadFBXMesh(Path);
 }
 
 MFBXLoader::~MFBXLoader()
@@ -59,7 +59,7 @@ void MFBXLoader::SafeDestroy(fbxsdk::FbxObject*& InObject)
     }
 }
 
-void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
+void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
 {
     // 메시를 그릴거임.
     // 근데 애니메이션이 적용됬다면, 정점들에 애니메이션 행렬을 곱해야 함.
@@ -80,24 +80,6 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
 		CurrentAnimClip.Name = animStackName.Buffer();
         CurrentAnimClip.SetFrameInfo(pTakeInfo->mLocalTimeSpan.GetStart(), pTakeInfo->mLocalTimeSpan.GetStop());
 
-        // 조인트 그리기 용
-		//size_t jointCount = Joints.size();
-        //std::set<int>jointPositionSet;
-        //FbxAMatrix temp = geometryTransform.Inverse() * transformMatrix.Inverse() * transformLinkMatrix;
-        //_jointList[JointIndex]._position = { static_cast<float>(temp[3][0]), static_cast<float>(temp[3][1]), static_cast<float>(temp[3][2]) };
-        //jointPositionSet.insert(JointIndex);
-        //for (uint32 i = 0; i < jointCount; ++i)
-        //{
-        //    if (jointPositionSet.find(i) == jointPositionSet.end())
-        //    {
-        //        int32 parentIndex = Joints[i]._parentIndex;
-        //        if (parentIndex != -1)
-        //        {
-        //            Joints[i]._position = Joints[Joints[i]._parentIndex]._position;
-        //        }
-        //    }
-        //}
-
         // 조인트를 얻기 위해 메시->디포머->스킨->클러스터 순으로 파고듬
 		for (uint32 meshIndex = 0; meshIndex < GeometryCount; ++meshIndex)
 		{
@@ -109,10 +91,6 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
 			    pMeshNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
 				pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot) 
             };
-
-			FbxAMatrix transformMatrix;
-			FbxAMatrix transformLinkMatrix;
-			FbxAMatrix globalBindPoseInverseMatrix;
 
 			int deformerCount = pMesh->GetDeformerCount();
 			for (int deformerIndex = 0; deformerIndex < deformerCount; ++deformerIndex)
@@ -130,12 +108,21 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
 				{
                     FbxCluster* pCluster = pSkin->GetCluster(clusterIndex);
                     const char* JointName = pCluster->GetLink()->GetName();
-                    int JointIndex = JointIndices[JointName];
+                    int JointIndex = NameToJointIndex[JointName];
 
-					// 조인트의 바인드포즈 인버스 매트릭스 얻기
-					pCluster->GetTransformMatrix(transformMatrix);
+                    FbxAMatrix b = {
+                        pCluster->GetLink()->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
+                        pCluster->GetLink()->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
+                        pCluster->GetLink()->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot)
+                    };
+
+					// 조인트에 적용된 바인드 포즈 변환을 지우기 위한, 바인드 포즈 인버스 매트릭스 계산.
+                    FbxAMatrix transformLinkMatrix; // 조인트 글로벌 바인드 포즈
 					pCluster->GetTransformLinkMatrix(transformLinkMatrix);
-					globalBindPoseInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * geometryTransform;
+                    FbxAMatrix transformMatrix;     // 메시 글로벌 바인드 포즈
+					pCluster->GetTransformMatrix(transformMatrix);
+                    FbxAMatrix globalBindPoseInverseMatrix;
+					globalBindPoseInverseMatrix = (transformLinkMatrix * b).Inverse() * transformMatrix * geometryTransform;
                     XMStoreFloat4x4(&Joints[JointIndex]._globalBindPoseInverseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
 
                     // 조인트가 영향을 주는 정점들을 찾아서, 자신의 정보를 저장시킴
@@ -166,14 +153,17 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
                         }
 					}
 
-                    // 조인트가 프레임에 메시에 영향을 준다면 저장해야 함. ex) 10프레임에 조인트A가 메시0, 메시1에 영향을 준다
                     for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
                     {
                         FbxTime currentTime;
                         currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
 
-                        //FbxAMatrix currentTransformOffset = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse();	// 메시의 글로벌 트랜스폼 * 지오메트리 트랜스폼
-                        FbxAMatrix& Test = (pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform).Inverse() * pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
+                        // 메시 글로벌 
+                        FbxAMatrix MeshGlobal = pMeshNode->EvaluateGlobalTransform(currentTime);
+                        // 조인트 글로벌
+                        FbxAMatrix JointGlobal = pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
+                        // 메시의 로컬에서 조인트 글로벌로 변환
+                        FbxAMatrix& Test = MeshGlobal.Inverse() * JointGlobal;
                         XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex), ToXMMatrix(Test));
                     }
 
@@ -206,7 +196,7 @@ void MFBXLoader::LoadAnim(std::vector<AnimationClip>& OutAnimationClips)
 	//_jointList[0]._translation = { 0.f, 0.f, 0.f };
 }
 
-bool MFBXLoader::LoadMesh(const wstring& InPath)
+bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
 {
 	Path = InPath;
 	Directory = Path.substr(0, Path.find_last_of('/') + 1);
@@ -225,11 +215,6 @@ bool MFBXLoader::LoadMesh(const wstring& InPath)
 	ControlPointToVertexIndices.resize(GeometryCount);
 
 	MaterialNum = static_cast<uint32>(_pScene->GetMaterialCount());
-	//_texturesList.reserve(MaterialNum);
-	//for (auto& tl : _texturesList)
-	//{
-	//	tl.resize(CastValue<uint32>(ETextureType::End), nullptr);
-	//}
 	MaterialTextures.reserve(MaterialNum);
 
 	loadNode();
@@ -446,7 +431,7 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 	linkMaterial(pNode);
 
     // 버텍스 키 - 인덱스 쌍
-    std::unordered_map<FVertexKey, int> Loaded;
+    std::unordered_map<FFBXVertexKey, int> Loaded;
 
 	for (int i = 0; i < polygonCount; ++i)
 	{
@@ -458,7 +443,7 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
             // 한 컨트롤 포인트에는 여러 정점이 있을 수 있고...
             // 그 중에는 UV, NORMAL 등이 다른 경우가 있으니, 다른 점으로 나눠야 함.
             Vertex NewVertex;
-            FVertexKey VertexKey;
+            FFBXVertexKey VertexKey;
             VertexKey.ControlPointIndex = controlPointIndex;
 			loadPosition(NewVertex, controlPointIndex);
 			loadUV(NewVertex, controlPointIndex, vertexIndex, VertexKey);
@@ -527,7 +512,7 @@ void MFBXLoader::loadPosition(Vertex &vertex, const int controlPointIndex)
 	MaxPosition.z = std::max(MaxPosition.z, vertex.Pos.z);
 }
 
-void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey)
+void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey)
 {
 	FbxGeometryElementUV *uv = FBXMesh->GetElementUV(0);
 
@@ -577,7 +562,7 @@ void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int v
     }
 }
 
-void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey)
+void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey)
 {
 	FbxGeometryElementNormal *element = FBXMesh->GetElementNormal(0);
 
@@ -629,7 +614,7 @@ void MFBXLoader::loadNormal(Vertex &vertex, const int controlPointIndex, const i
     }
 }
 
-void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey)
+void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey)
 {
 	FbxGeometryElementTangent *element = FBXMesh->GetElementTangent(0);
 
@@ -684,7 +669,7 @@ void MFBXLoader::loadTangent(Vertex &vertex, const int controlPointIndex, const 
     }
 }
 
-void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FVertexKey& VertexKey)
+void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey)
 {
 	FbxGeometryElementBinormal *element = FBXMesh->GetElementBinormal(0);
 
@@ -747,15 +732,15 @@ void MFBXLoader::loadAnimation()
 void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName)
 {
     uint32 JointIndex = GetSize(Joints);
-	JointIndices.emplace(pNode->GetName(), JointIndex);
+	NameToJointIndex.emplace(pNode->GetName(), JointIndex);
 
 	FJoint NewJoint;
-	if(JointIndices.find(parentName) != JointIndices.end())
+	if(NameToJointIndex.find(parentName) != NameToJointIndex.end())
 	{
-        NewJoint._parentIndex = JointIndices[parentName];
+        NewJoint._parentIndex = NameToJointIndex[parentName];
 	}
 
-	auto& trans = pNode->GeometricTranslation.Get();
+    auto& trans = pNode->EvaluateGlobalTransform().GetT();
     NewJoint._position = { (float)trans[0], (float)trans[1], (float)trans[2] };
 
 	Joints.push_back(NewJoint);
@@ -808,42 +793,6 @@ void MFBXLoader::LoadTexturesFromFBXMaterial(FbxSurfaceMaterial* SurfaceMaterial
 		{
 		}
 	}
-
-	//int layeredTextureCount = Property.GetSrcObjectCount<FbxLayeredTexture>();
-	//if (0 < layeredTextureCount)
-	//{
-	//	for (int j = 0; j < layeredTextureCount; ++j)
-	//	{
-	//		FbxLayeredTexture *layeredTexture = FbxCast<FbxLayeredTexture>(Property.GetSrcObject<FbxLayeredTexture>(j));
-	//		int textureCount = layeredTexture->GetSrcObjectCount<FbxTexture>();
-	//		for (int k = 0; k < textureCount; ++k)
-	//		{
-	//			FbxTexture *texture = layeredTexture->GetSrcObject<FbxTexture>(k);
-	//			FbxFileTexture *fileTexture = FbxCast<FbxFileTexture>(texture);
-
-	//			const char *a = fileTexture->GetFileName();
-	//			int b = 0;
-	//		}
-	//	}
-	//}
-	//else
-	//{
-	//	int TextureNum = Property.GetSrcObjectCount<FbxTexture>();
-	//	for (int TextureIndex = 0; TextureIndex < TextureNum; ++TextureIndex)
-	//	{
-	//		FbxTexture* FbxTexture = Property.GetSrcObject<FbxTexture>(TextureIndex);
-	//		FbxFileTexture *FbxFileTexture = FbxCast<FbxFileTexture>(FbxTexture);
-
-	//		char FilePath[255] = { 0, };
-	//		WStringToString(_filePath, FilePath, 255);
-	//		strcat_s(FilePath, 255, PathFindFileNameA(FbxFileTexture->GetFileName()));
-
-	//		std::shared_ptr<MTexture> Texture = std::make_shared<MTexture>(FilePath);
-	//		
-	//		TextureList &textureList = _texturesList.back();
-	//		textureList[EnumToIndex(textureType)] = Texture;
-	//	}
-	//}
 }
 
 const char* MFBXLoader::GetTexturePropertyString(ETextureType TextureType)
@@ -870,3 +819,21 @@ inline DirectX::XMMATRIX ToXMMatrix(const FbxAMatrix& pSrc)
 		static_cast<FLOAT>(pSrc[3][0]), static_cast<FLOAT>(pSrc[3][1]), static_cast<FLOAT>(pSrc[3][2]), static_cast<FLOAT>(pSrc[3][3])
 	};
 }
+
+// 조인트 그리기 용
+//size_t jointCount = Joints.size();
+//std::set<int>jointPositionSet;
+//FbxAMatrix temp = geometryTransform.Inverse() * transformMatrix.Inverse() * transformLinkMatrix;
+//_jointList[JointIndex]._position = { static_cast<float>(temp[3][0]), static_cast<float>(temp[3][1]), static_cast<float>(temp[3][2]) };
+//jointPositionSet.insert(JointIndex);
+//for (uint32 i = 0; i < jointCount; ++i)
+//{
+//    if (jointPositionSet.find(i) == jointPositionSet.end())
+//    {
+//        int32 parentIndex = Joints[i]._parentIndex;
+//        if (parentIndex != -1)
+//        {
+//            Joints[i]._position = Joints[Joints[i]._parentIndex]._position;
+//        }
+//    }
+//}
