@@ -17,6 +17,42 @@ namespace JPH
     class JobSystem;
 }
 
+struct FVertexKey
+{
+    bool operator==(const FVertexKey& Rhs) const
+    {
+        auto IsEqual = [](float lhs, float rhs)->bool {
+            return std::fabsf(lhs - rhs) < 0.00001f;
+        };
+        return IsEqual(x, Rhs.x) && IsEqual(y, Rhs.y) && IsEqual(z, Rhs.z);
+    }
+
+    float x = 0.f;
+    float y = 0.f;
+    float z = 0.f;
+};
+
+namespace std
+{
+    template <>
+    struct hash<FVertexKey>
+    {
+        size_t operator()(const FVertexKey& VertexKey) const
+        {
+            constexpr float Precision = 10000.f;
+            size_t h0 = std::hash<float>{}(std::round(VertexKey.x * Precision));
+            size_t h1 = std::hash<float>{}(std::round(VertexKey.x * Precision));
+            size_t h2 = std::hash<float>{}(std::round(VertexKey.x * Precision));
+
+            size_t h = h0;
+            h ^= h1 + 0x9e3779b9 + (h << 6) + (h >> 2);
+            h ^= h2 + 0x9e3779b9 + (h << 6) + (h >> 2);
+
+            return h;
+        }
+    };
+};
+
 class ENGINE_DLL MJoltPhysics : public MPhysics
 {
 public:
@@ -26,6 +62,7 @@ public:
 public:
     virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
     virtual bool AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
+    virtual void AddCloth(FPhysicsConstructData& InData, std::vector<FTest>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
 
 public:
     virtual void Update(float deltaTime) override;
@@ -75,4 +112,19 @@ public:
     JPH::BodyID GetBodyID() { return BodyIDCache; }
 protected:
     JPH::BodyID BodyIDCache;
+
+public:
+    void SetMeshIndices(std::vector<uint32> InMeshIndices) { MeshIndices = InMeshIndices; }
+    const std::vector<uint32>& GetMeshIndices() const { return MeshIndices; }
+protected:
+    std::vector<uint32> MeshIndices;
+
+public:
+    void SetVertexIndices(std::unordered_map<FVertexKey, uint32>& Rhs) { VertexIndex = std::move(Rhs); }
+    uint32 GetVertexIndex(const ::Vec3& Pos);
+protected:
+    // 소프트 바디 버텍스, 인덱스 쌍
+    std::unordered_map<FVertexKey, uint32> VertexIndex;
+
+
 };
