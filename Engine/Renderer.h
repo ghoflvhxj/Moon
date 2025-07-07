@@ -42,8 +42,8 @@ protected:
 
     //임시
 public:
-    std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId) {
-        return VertexBuffers[InId][0];
+    std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId, uint32 Offset = 0) {
+        return VertexBuffers[InId][Offset];
     }
 
 public:
