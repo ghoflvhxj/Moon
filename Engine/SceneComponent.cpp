@@ -10,7 +10,7 @@ SceneComponent::SceneComponent()
 	, m_rotation{ FLOAT3_ZERO }
 	, m_translation{ FLOAT3_ZERO }
 	, RelativeTranslation{ FLOAT3_ZERO }
-	, _worldMatrix()
+	, _worldMatrix(IDENTITYMATRIX)
     , InverseWorldMatrix()
 	, _bUpdateable{ false }
 	, bUpdated{ false }
