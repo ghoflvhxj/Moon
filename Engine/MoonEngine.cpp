@@ -97,8 +97,8 @@ std::unique_ptr<MainGameSetting>& getSetting()
 
 const bool setGame(std::unique_ptr<MainGame>&& pGame)
 {
-	pGame->initialize();
 	g_pMainGame = std::move(pGame);
+    g_pMainGame->initialize();
 
 	return true;
 }
