@@ -87,7 +87,7 @@ class MShader;
 struct FPrimitiveData
 {
     FPrimitiveData()
-        : PrimitiveType(EPrimitiveType::Count), _jointCount(0), _matrices(nullptr) 
+        : PrimitiveType(EPrimitiveType::Count), _jointCount(0), AnimMatrices(nullptr) 
     {}
 
     template <class T>
@@ -108,7 +108,7 @@ struct FPrimitiveData
 	std::shared_ptr<MIndexBuffer>				IndexBuffer;
 
 	// 다이나믹 메쉬용
-	Mat4* _matrices = nullptr;
+	Mat4* AnimMatrices = nullptr;
 	uint32 _jointCount;
 
     struct ID3D11InputLayout* InputLayout = nullptr;

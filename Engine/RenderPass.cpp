@@ -167,11 +167,11 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 	Material->getVertexShader()->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
     Material->getVertexShader()->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
 	// 애님 관련 변수
-	BOOL animated = PrimitiveData._matrices != nullptr;
+	BOOL animated = PrimitiveData.AnimMatrices != nullptr;
 	Material->getVertexShader()->SetValue(TEXT("animated"), animated);
 	if (animated == TRUE)
 	{
-		Material->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), PrimitiveData._matrices);
+		Material->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), PrimitiveData.AnimMatrices);
 	}
 
 	// -------------------------------------------------------------------------------------------------------------------------
