@@ -9,6 +9,6 @@ DirectX 11을 이용해 렌더링 기능을 구현하는 것, 2B의 머리카락
 - Cascade Shadow 구현
 ![CascadeShadow](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/CascadeShadow.gif)
 - FBX SDK를 이용하여 3D 모델링 로드, 애니메이션 재생
-- NVIDIA PhysX를 이용한 물리 시뮬레이션
+- NVIDIA PhysX를 이용한 물리 시뮬레이션 -> JoltPhysics로 변경 되었습니다.
 ![PhysX](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/PhysX.gif)
-
+![JoltPhysics](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/JoltPhysics.webp)
