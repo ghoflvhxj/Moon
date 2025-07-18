@@ -453,6 +453,21 @@
     <ClInclude Include="Source\Mesh\DynamicMesh\DynamicMesh.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Core\Reflection\Property\ContainerProperty.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Reflection\Property\FundamentaProperty.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Reflection\Property\Property.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Reflection\Reflection.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Reflection\TypeDesc.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Bone.hlsl" />
@@ -480,5 +495,6 @@
     <None Include="TestFont.spritefont" />
     <None Include="VSCommon.hlsli" />
     <None Include="PSCommon.hlsli" />
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

@@ -135,6 +135,11 @@
     <ClInclude Include="Source\Core\Physics\Jolt\Jolt.h" />
     <ClInclude Include="Source\Core\Physics\Physics.h" />
     <ClInclude Include="Source\Core\Physics\PhysX\MPhysX.h" />
+    <ClInclude Include="Source\Core\Reflection\Property\ContainerProperty.h" />
+    <ClInclude Include="Source\Core\Reflection\Property\FundamentaProperty.h" />
+    <ClInclude Include="Source\Core\Reflection\Property\Property.h" />
+    <ClInclude Include="Source\Core\Reflection\Reflection.h" />
+    <ClInclude Include="Source\Core\Reflection\TypeDesc.h" />
     <ClInclude Include="Source\Core\ResourceLoader.h" />
     <ClInclude Include="Source\Core\ResourceManager.h" />
     <ClInclude Include="Source\Core\Serialize\JsonDeserializer.h" />
@@ -241,6 +246,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.hlsli" />
+    <None Include="cpp.hint" />
     <None Include="GSCommon.hlsli" />
     <None Include="PSCommon.hlsli">
       <FileType>Document</FileType>
