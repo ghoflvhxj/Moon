@@ -84,14 +84,15 @@ public:
 	const bool IsTextureTypeUsed(const ETextureType type);
 
 public:
-    REFLECTABLE(
-        REFLECT_FIELD(MMaterial, _vertexShaderFileName),
-        REFLECT_FIELD(MMaterial, _pixelShaderFileName),
-        REFLECT_FIELD(MMaterial, _textureList),
-        REFLECT_FIELD(MMaterial, _eTopology),
-        REFLECT_FIELD(MMaterial, _eFillMode),
-        REFLECT_FIELD(MMaterial, _eCullMode),
-        REFLECT_FIELD(MMaterial, bUseAlpha),
-        REFLECT_FIELD(MMaterial, bAlphaMask)
-    );
+    //REFLECTABLE(
+    //    MMaterial,
+    //    REFLECT_FIELD(_vertexShaderFileName),
+    //    REFLECT_FIELD(_pixelShaderFileName),
+    //    REFLECT_FIELD(_textureList),
+    //    REFLECT_FIELD(_eTopology),
+    //    REFLECT_FIELD(_eFillMode),
+    //    REFLECT_FIELD(_eCullMode),
+    //    REFLECT_FIELD(bUseAlpha),
+    //    REFLECT_FIELD(bAlphaMask)
+    //);
 };

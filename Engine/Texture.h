@@ -33,7 +33,8 @@ protected:
     std::wstring Path;
 
 public:
-    REFLECTABLE(
-        REFLECT_FIELD(MTexture, Path)
-    )
+    //REFLECTABLE(
+    //    MTexture,
+    //    REFLECT_FIELD(Path)
+    //)
 };

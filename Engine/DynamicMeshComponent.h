@@ -40,4 +40,10 @@ protected:
 
 public:
 	std::shared_ptr<DynamicMesh> GetDynamicMesh();
+
+    REFLECT(
+        DynamicMeshComponent, 
+        PROPERTY(AnimTime),
+        PROPERTY(bAnimPlaying)
+    );
 };

@@ -37,11 +37,12 @@ public:
     std::shared_ptr<Skeleton> _pSkeleton = nullptr;
 
 public:
-    REFLECTABLE(
-        REFLECT_FIELD(DynamicMesh, MeshDatas),
-        REFLECT_FIELD(DynamicMesh, MaterialPaths),
-        REFLECT_FIELD(DynamicMesh, UsedMaterialIndices)
-    );
+    //REFLECTABLE(
+    //    DynamicMesh,
+    //    REFLECT_FIELD(MeshDatas),
+    //    REFLECT_FIELD(MaterialPaths),
+    //    REFLECT_FIELD(UsedMaterialIndices)
+    //);
 };
 
 class Skeleton

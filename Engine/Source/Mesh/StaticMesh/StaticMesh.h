@@ -60,9 +60,24 @@ private:
     Vec3 CenterPos = VEC3ZERO;
 
 public:
-    REFLECTABLE(
-        REFLECT_FIELD(StaticMesh, MeshDatas),
-        REFLECT_FIELD(StaticMesh, MaterialPaths),
-        REFLECT_FIELD(StaticMesh, UsedMaterialIndices)
-    );
+public:
+    //REFLECTABLE(
+    //    StaticMesh,
+    //    REFLECT_FIELD(MeshDatas),
+    //    REFLECT_FIELD(MaterialPaths),
+    //    REFLECT_FIELD(UsedMaterialIndices)
+    //);
+
+    //OBJECT(
+    //    StaticMesh,
+    //    TESTMACRO(ClothData, std::vector<FClothData>)
+    //);
+
+    REFLECT_TOP(
+        StaticMesh,
+        PROPERTY(MeshDatas),
+        PROPERTY(MaterialPaths),
+        PROPERTY(UsedMaterialIndices),
+        PROPERTY(ClothData)
+    )
 };

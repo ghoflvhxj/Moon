@@ -22,22 +22,25 @@ class __declspec(dllexport) std::exception;
 #include <unordered_set>
 #include <array>
 
+// RTTI
+#include <typeinfo>
+
 // Window Platform
 #ifdef _WIN64
-	#include <sdkddkver.h>
-	#include <afx.h>        //mfc제거하기
-	#include <Windows.h>
-	#include <Shlwapi.h>	// 문자열 처리용
+#include <sdkddkver.h>
+#include <afx.h>        //mfc제거하기
+#include <Windows.h>
+#include <Shlwapi.h>	// 문자열 처리용
 
 
-	// DirectX
-	#include <d3d11.h>
-	#include <d3dcompiler.h>
-    #include <DirectXCollision.h>
-	#include <Xinput.h>
+// DirectX
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#include <DirectXCollision.h>
+#include <Xinput.h>
 
-	#define DIRECTINPUT_VERSION 0x0800
-	#include <dinput.h>
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
 #endif
 
 #include "Type.h"
@@ -46,3 +49,4 @@ class __declspec(dllexport) std::exception;
 #include "Extern.h"
 #include "Macro.h"
 #include "Function.h"
+#include "Core/Reflection/Reflection.h"

@@ -8,20 +8,25 @@ struct ENGINE_DLL FMeshData
     VertexList		Vertices;
     IndexList 		Indices;
 
-    REFLECTABLE(
-        REFLECT_FIELD(FMeshData, Vertices),
-        REFLECT_FIELD(FMeshData, Indices)
-    );
+    //REFLECTABLE(
+    //    FMeshData,
+    //    REFLECT_FIELD(Vertices),
+    //    REFLECT_FIELD(Indices)
+    //);
+
+    REFLECT_TOP(FMeshData, PROPERTY(Vertices), PROPERTY(Indices));
 };
 
-//struct ENGINE_DLL FMesh
-//{
-//    std::vector<std::shared_ptr<FMeshData>> SubMeshs;
-//
-//    REFLECTABLE(
-//        REFLECT_FIELD(FMesh, SubMeshs)
-//    )
-//};
+struct FClothData
+{
+    uint32 MeshIndex;
+    std::vector<float> InvMass;
+
+    // 옷감이 붙는 조인트 인덱스
+    int32 JointIndex = -1;
+
+    REFLECT_TOP(FClothData, PROPERTY(MeshIndex), PROPERTY(JointIndex), PROPERTY(InvMass));
+};
 
 namespace fbxsdk
 {

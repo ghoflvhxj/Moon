@@ -14,4 +14,11 @@ public:
 	std::shared_ptr<Actor> getOwningActor() const;
 private:
 	std::weak_ptr<Actor> _pOwningActor;
+
+    //OBJECT(Component);
+    //REFLECTABLE(
+    //    Component
+    //);
+
+    REFLECT_TOP(Component);
 };

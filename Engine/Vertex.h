@@ -41,6 +41,19 @@ namespace Graphic
 
 	__declspec(align(16)) struct VERTEX_COMMON
 	{
+        VERTEX_COMMON() = default;
+        VERTEX_COMMON(const Vec4& pos)
+            : Pos(pos)
+        {
+        }
+        VERTEX_COMMON(const VERTEX_COMMON& Rhs)
+            : Pos(Rhs.Pos), Color(Rhs.Color), Tex0(Rhs.Tex0),
+              Normal(Rhs.Normal), Tangent(Rhs.Tangent), Binormal(Rhs.Binormal),
+              BlendIndex{ Rhs.BlendIndex[0], Rhs.BlendIndex[1], Rhs.BlendIndex[2], Rhs.BlendIndex[3] },
+              BlendWeight{ Rhs.BlendWeight[0], Rhs.BlendWeight[1], Rhs.BlendWeight[2], Rhs.BlendWeight[3] }
+        {
+        }
+
 		Vec4 Pos = { 0.f, 0.f, 0.f, 1.f };
 		Vec4 Color = { 1.f, 1.f, 1.f, 1.f };
 		Vec2 Tex0 = { 0.f, 0.f };
@@ -69,15 +82,18 @@ namespace Graphic
 			inputDescVector.assign(std::begin(inputDesc), std::end(inputDesc));
 		}
 
-        REFLECTABLE(
-            REFLECT_FIELD(VERTEX_COMMON, Pos),
-            REFLECT_FIELD(VERTEX_COMMON, Tex0),
-            REFLECT_FIELD(VERTEX_COMMON, Normal),
-            REFLECT_FIELD(VERTEX_COMMON, Tangent),
-            REFLECT_FIELD(VERTEX_COMMON, Binormal),
-            REFLECT_FIELD(VERTEX_COMMON, BlendIndex),
-            REFLECT_FIELD(VERTEX_COMMON, BlendWeight)
-        );
+        // 가상함수 등이 추가되면 vptr때문에 사이즈가 달라짐...
+        //REFLECT_TOP(
+        //    VERTEX_COMMON, 
+        //    PROPERTY(Pos),             
+        //    PROPERTY(Color),
+        //    PROPERTY(Tex0),
+        //    PROPERTY(Normal),
+        //    PROPERTY(Tangent),
+        //    PROPERTY(Binormal),
+        //    PROPERTY(BlendIndex),
+        //    PROPERTY(BlendWeight)
+        //);
 	};
 }
 
