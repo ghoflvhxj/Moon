@@ -62,7 +62,7 @@ private:
 
     // 옷감 데이터
 public:
-    const std::vector<FClothData>& GetClothDatas() const { return ClothData; }
+    std::vector<FClothData>& GetClothDatas() { return ClothData; }
 protected:
     std::vector<FClothData> ClothData;
 
