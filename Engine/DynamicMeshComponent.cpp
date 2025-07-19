@@ -12,6 +12,8 @@
 #include "MainGame.h"
 #include "Camera.h"
 
+#include "Core/Physics/Jolt/Jolt.h"
+
 using namespace DirectX;
 
 DynamicMeshComponent::DynamicMeshComponent()
@@ -40,9 +42,35 @@ void DynamicMeshComponent::Update(const Time deltaTime)
         playAnimation(AinmClipIndex, deltaTime);
     }
 
-    if (PhysicsObject2)
+    // 옷과 바디 충돌 테스트
+    if (BodyTestObject)
     {
-        PhysicsObject2->SetPos(GetJointPosition("bone001"));
+        BodyTestObject->SetPos(GetJointPosition("bone014"));
+    }
+    
+    uint32 ClothPhysicsObjectNum = GetSize(ClothPhysicsObjects);
+    uint32 ClothUpdateDataNum = GetSize(ClothUpdateDatas);
+    if (ClothPhysicsObjectNum == ClothUpdateDataNum && ClothPhysicsObjectNum > 0 && ClothUpdateDataNum > 0)
+    {
+        for (uint32 ClothIndex = 0; ClothIndex < ClothPhysicsObjectNum; ++ClothIndex)
+        {
+            std::shared_ptr<MPhysicsObject>& ClothObject = ClothPhysicsObjects[ClothIndex];
+            FClothUpdateData& ClothUpdateData = ClothUpdateDatas[ClothIndex];
+
+            const FClothData& ClothData = GetDynamicMesh()->GetClothDatas()[ClothUpdateData.ClothDataIndex];
+
+            // 옷 위치 업데이트
+            Vec3 JointPos = GetJointPosition(ClothData.JointIndex);
+            ClothObject->SetPos(JointPos);
+            ClothObject->SetRotation(GetJointRotation(ClothData.JointIndex));
+
+            // 조인트 위치 변화를 옷에 포스 적용
+            Vec3 Dir = VEC3ZERO;
+            XMStoreFloat3(&Dir, XMVector3Normalize(XMLoadFloat3(&ClothUpdateData.PreviousJointPos) - XMLoadFloat3(&JointPos)));
+            ClothUpdateData.PreviousJointPos = JointPos;
+
+            ClothObject->AddForce(Dir);
+        }
     }
 }
 
@@ -137,13 +165,62 @@ void DynamicMeshComponent::Clothing()
 {
     MMeshComponent::Clothing();
 
+    Vec3 JointPos = GetJointPosition("bone001");
+
+    // 옷
+    if (g_pPhysics)
+    {
+        std::shared_ptr<MPhysicsObject> NewClothPhysicsObject = nullptr;
+
+        FPhysicsConstructData Data;
+        Data.Mesh = Mesh;
+        Data.PrimitiveComponent = shared_from_this();
+        Data.PhysicsType = EPhysicsType::Dynamic;
+        Data.Pos = GetJointPosition("bone001");
+
+        std::vector<FClothData> t;
+        {
+            FClothData a;
+            a.MeshIndex = 7;
+            a.InvMass.resize(Mesh->GetMeshData(7)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        {
+            FClothData a;
+            a.MeshIndex = 8;
+            a.InvMass.resize(Mesh->GetMeshData(8)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        {
+            FClothData a;
+            a.MeshIndex = 11;
+            a.InvMass.resize(Mesh->GetMeshData(11)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        {
+            FClothData a;
+            a.MeshIndex = 12;
+            a.InvMass.resize(Mesh->GetMeshData(12)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+        {
+            FClothData a;
+            a.MeshIndex = 13;
+            a.InvMass.resize(Mesh->GetMeshData(13)->Vertices.size(), 1.f);
+            t.push_back(a);
+        }
+
+        g_pPhysics->AddCloth(Data, t, NewClothPhysicsObject);
+        ClothPhysicsObjects.push_back(NewClothPhysicsObject);
+    }
+
     // 옷 바디 충돌 테스트
     {
         FPhysicsConstructData Data;
         Data.PrimitiveComponent = shared_from_this();
-        Data.PhysicsType = EPhysicsType::Dynamic;
+        Data.PhysicsType = EPhysicsType::Kinematic;
         Data.bCapsule = true;
-        g_pPhysics->AddPhysicsObject(Data, PhysicsObject2);
+        g_pPhysics->AddPhysicsObject(Data, BodyTestObject);
     }
 }
 

@@ -48,6 +48,7 @@ protected:
 public:
 	std::shared_ptr<DynamicMesh> GetDynamicMesh();
 
+    std::shared_ptr<MPhysicsObject> Kinematic;
     REFLECT(
         DynamicMeshComponent, 
         PROPERTY(AnimTime),
