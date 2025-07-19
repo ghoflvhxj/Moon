@@ -1,8 +1,7 @@
 ﻿#pragma once
 
-#include "cuda.h"
-
 #ifdef PHYSX
+#include "cuda.h"
 namespace physx
 {
     class PxDeformableSurface;
