@@ -151,23 +151,23 @@ void DynamicMeshComponent::SetPhysics(bool bInPhysics, bool bForce /* = false */
 {
     MMeshComponent::SetPhysics(bInPhysics, bForce);
 }
+
 Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
 {
-    Vec3 OutPos = VEC3ZERO;
+    return GetJointPosition(GetDynamicMesh()->GetJointIndex(InName));
+}
 
-    FJoint Joint = GetDynamicMesh()->GetJoint(InName);
-    int32 JointIndex = GetDynamicMesh()->GetJointIndex(InName);
-    Vec3 JointPos = Joint._position;
-    
-    XMVECTOR JointPosVec = XMLoadFloat3(&JointPos);
-    XMVECTOR ZeroVec = XMLoadFloat3(&VEC3ZERO);
+Vec3 DynamicMeshComponent::GetJointPosition(uint32 JointIndex)
+{
+    Vec3 OutPos = VEC3ZERO;
+    XMVECTOR Pos = XMLoadFloat3(&VEC3ZERO);
     XMMATRIX WorldMat = XMLoadFloat4x4(&getWorldMatrix());
-    
-    XMVECTOR Pos = ZeroVec;
+
+    FJoint Joint = GetDynamicMesh()->GetJoint(JointIndex);
     AnimationClip CurrentAnimClip;
-    if (GetDynamicMesh()->getAnimationClip(_currentAinmClipIndex, CurrentAnimClip))
+    if (GetDynamicMesh()->getAnimationClip(AinmClipIndex, CurrentAnimClip))
     {
-        float RealFrame = CurrentAnimTime * 24.f;
+        float RealFrame = AnimTime * 24.f;
         uint32 Frame = CastValue<uint32>(RealFrame);
 
         XMMATRIX JointMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
@@ -180,6 +180,39 @@ Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
     return OutPos;
 }
 
+Vec3 DynamicMeshComponent::GetRelativeJointPosition(const std::string& InName)
+{
+    Vec3 OutPos = VEC3ZERO;
+
+    XMStoreFloat3(&OutPos, XMLoadFloat3(&GetJointPosition(InName)) - XMLoadFloat3(&getWorldTranslation()));
+
+    return OutPos;
+}
+
+Vec4 DynamicMeshComponent::GetJointRotation(const std::string& InName)
+{
+    return GetJointRotation(GetDynamicMesh()->GetJointIndex(InName));
+}
+
+Vec4 DynamicMeshComponent::GetJointRotation(uint32 JointIndex)
+{
+    Vec4 OutRot = VEC4ZERO;
+
+    AnimationClip CurrentAnimClip;
+    if (GetDynamicMesh()->getAnimationClip(AinmClipIndex, CurrentAnimClip))
+    {
+        float RealFrame = AnimTime * 24.f;
+        uint32 Frame = CastValue<uint32>(RealFrame);
+
+        XMVECTOR Scale, Rotation, Translation;
+
+        XMMatrixDecompose(&Scale, &Rotation, &Translation, XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex)));
+        XMStoreFloat4(&OutRot, Rotation);
+    }
+
+    return OutRot;
+}
+
 void DynamicMeshComponent::SetAnimClip(const uint32 Index)
 {
     if (AinmClipIndex != Index)
@@ -188,6 +221,7 @@ void DynamicMeshComponent::SetAnimClip(const uint32 Index)
         AnimTime = 0.f;
     }
 }
+
 uint32 DynamicMeshComponent::GetAnimClipNum()
 {
     if (Mesh)
