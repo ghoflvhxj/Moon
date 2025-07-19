@@ -24,7 +24,7 @@ DynamicMeshComponent::DynamicMeshComponent(const std::wstring& FilePath)
 	: MMeshComponent()
 {
 	Mesh = std::make_shared<DynamicMesh>();
-    SetMesh(FilePath);
+    SetMesh(FilePath, false);
 }
 
 DynamicMeshComponent::~DynamicMeshComponent()
@@ -37,7 +37,7 @@ void DynamicMeshComponent::Update(const Time deltaTime)
 
     if (IsAnimPlaying())
     {
-        playAnimation(_currentAinmClipIndex, deltaTime);
+        playAnimation(AinmClipIndex, deltaTime);
     }
 
     if (PhysicsObject2)
@@ -147,6 +147,10 @@ void DynamicMeshComponent::Clothing()
     }
 }
 
+void DynamicMeshComponent::SetPhysics(bool bInPhysics, bool bForce /* = false */)
+{
+    MMeshComponent::SetPhysics(bInPhysics, bForce);
+}
 Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
 {
     Vec3 OutPos = VEC3ZERO;
@@ -176,6 +180,14 @@ Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
     return OutPos;
 }
 
+void DynamicMeshComponent::SetAnimClip(const uint32 Index)
+{
+    if (AinmClipIndex != Index)
+    {
+        AinmClipIndex = Index;
+        AnimTime = 0.f;
+    }
+}
 uint32 DynamicMeshComponent::GetAnimClipNum()
 {
     if (Mesh)

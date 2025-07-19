@@ -13,7 +13,7 @@ MMeshComponent::~MMeshComponent()
 {
 }
 
-void MMeshComponent::SetMesh(const std::wstring& InPath)
+void MMeshComponent::SetMesh(const std::wstring& InPath, bool bSetPhyiscs)
 {
     std::filesystem::path Path(InPath);
     if (Path.extension() == TEXT(".fbx"))
@@ -25,8 +25,11 @@ void MMeshComponent::SetMesh(const std::wstring& InPath)
         Mesh->LoadFromAsset(Path);
     }
 
-    SetPhysics(bPhysics, true);
-    SetPhysicsSimulate(bPhysicsSimulate);
+    if (bPhysics && bSetPhyiscs)
+    {
+        SetPhysics(bPhysics, true);
+        SetPhysicsSimulate(bPhysicsSimulate);
+    }
 }
 
 std::shared_ptr<StaticMesh> MMeshComponent::GetMesh()
@@ -45,48 +48,15 @@ void MMeshComponent::AddForce(const Vec3& InForce)
 
 void MMeshComponent::Clothing()
 {
-    if (g_pPhysics)
+    
+}
+
+void MMeshComponent::RemovePhysics()
+{
+    if (PhysicsObject)
     {
-        FPhysicsConstructData Data;
-        Data.Mesh = Mesh;
-        Data.PrimitiveComponent = shared_from_this();
-        Data.PhysicsType = EPhysicsType::Dynamic;
-        //g_pPhysics->AddCloth(Data, PhysicsObject);
-
-        std::vector<FTest> t;
-        {
-            FTest a;
-            a.MeshIndex = 7;
-            a.InvMass.resize(Mesh->GetMeshData(7)->Vertices.size(), 1.f);
-            t.push_back(a);
-        }
-        {
-            FTest a;
-            a.MeshIndex = 8;
-            a.InvMass.resize(Mesh->GetMeshData(8)->Vertices.size(), 1.f);
-            t.push_back(a);
-        }
-        {
-            FTest a;
-            a.MeshIndex = 11;
-            a.InvMass.resize(Mesh->GetMeshData(11)->Vertices.size(), 1.f);
-            t.push_back(a);
-        }
-        {
-            FTest a;
-            a.MeshIndex = 12;
-            a.InvMass.resize(Mesh->GetMeshData(12)->Vertices.size(), 1.f);
-            t.push_back(a);
-        }
-        {
-            FTest a;
-            a.MeshIndex = 13;
-            a.InvMass.resize(Mesh->GetMeshData(13)->Vertices.size(), 1.f);
-            t.push_back(a);
-        }
-        g_pPhysics->AddCloth(Data, t, PhysicsObject);
-
-
+        PhysicsObject->Remove();
+        PhysicsObject.reset();
     }
 }
 
@@ -106,8 +76,6 @@ void MMeshComponent::SetPhysics(bool bInPhysics, bool bForce)
         Data.PrimitiveComponent = shared_from_this();
         Data.PhysicsType = PhysicsType;
         g_pPhysics->AddPhysicsObject(Data, PhysicsObject);
-
-        //g_pPhysics->AddCloth();
     }
 }
 

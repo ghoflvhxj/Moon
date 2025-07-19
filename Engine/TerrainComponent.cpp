@@ -52,12 +52,13 @@ void TerrainComponent::initializeMeshInfromation()
 	{
 		for (uint32 j = 0; j < vertexNumX; ++j)
 		{
-			Vec4 pos = { j * _interval, 0.f , i * _interval, 1.f };
-			Vec2 uv = { 1.f * j, 1.f * (_tileNumY - i) };
-			Vec3 normal = { 0.f, 1.f, 0.f };
-			Vec3 tangent = { 1.f, 0.f, 0.f };
-			Vec3 binormal = { 0.f, 0.f, 1.f };
-			_vertexList.push_back(Vertex{ pos, color, uv, normal, tangent, binormal });
+            Vertex NewVertex;
+			NewVertex.Pos = { j * _interval, 0.f , i * _interval, 1.f };
+			NewVertex.Tex0 = { 1.f * j, 1.f * (_tileNumY - i) };
+			NewVertex.Normal= { 0.f, 1.f, 0.f };
+			NewVertex.Tangent = { 1.f, 0.f, 0.f };
+			NewVertex.Binormal = { 0.f, 0.f, 1.f };
+			_vertexList.push_back(NewVertex);
 		}
 	}
 

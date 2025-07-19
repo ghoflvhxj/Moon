@@ -18,16 +18,19 @@ public:
     virtual void Clothing() override;
 
 public:
+    virtual void SetPhysics(bool bInPhysics, bool bForce = false);
+
+public:
     // 조인트의 월드 위치를 반환함
     Vec3 GetJointPosition(const std::string& InName);
 
 public:
-    void SetAnimClip(const uint32 Index) { _currentAinmClipIndex = Index, CurrentAnimTime = 0.f; }
+    void SetAnimClip(const uint32 Index);
     uint32 GetAnimClipNum();
 	void playAnimation(const uint32 index, const Time deltaTime);
 private:
-	uint32 _currentAinmClipIndex = 0;
-	float CurrentAnimTime = 0.f;
+	uint32 AinmClipIndex = 0;
+	float AnimTime = 0.f;
 
     // 현재 프레임에서 조인트 행렬들
 	Mat4 JointAnimMatrices[200];

@@ -452,6 +452,11 @@ void Renderer::RenderScene()
 	std::vector<FPrimitiveData> ViewPrimitiveData;
 	ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
 
+    if (ViewPrimitiveData.empty())
+    {
+        return;
+    }
+
 	if (a == nullptr)
 	{
 		auto& MeshData = ViewPrimitiveData[0].MeshData.lock();

@@ -6,9 +6,9 @@ using namespace DirectX;
 
 SceneComponent::SceneComponent()
 	: Component()
-	, m_scale{ FLOAT3_ONE }
-	, m_rotation{ FLOAT3_ZERO }
-	, m_translation{ FLOAT3_ZERO }
+	, Scale{ FLOAT3_ONE }
+	, Rotation{ FLOAT3_ZERO }
+	, Translation{ FLOAT3_ZERO }
 	, RelativeTranslation{ FLOAT3_ZERO }
 	, _worldMatrix(IDENTITYMATRIX)
     , InverseWorldMatrix()
@@ -25,9 +25,9 @@ SceneComponent::~SceneComponent()
 void SceneComponent::Update(const Time deltaTime)
 {
 	XMVECTOR vectors[(int)Transform::End] = {
-		XMLoadFloat3(&m_scale),
-		XMLoadFloat3(&m_rotation),
-		XMLoadFloat3(&m_translation)
+		XMLoadFloat3(&Scale),
+		XMLoadFloat3(&Rotation),
+		XMLoadFloat3(&Translation)
 	};
 
 	XMMATRIX matrices[(int)Transform::End] = {
@@ -55,8 +55,8 @@ void SceneComponent::Update(const Time deltaTime)
 void SceneComponent::Update(const Time deltaTime, const XMMATRIX& ParentWorldMatrix)
 {
 	XMVECTOR vectors[(int)Transform::End] = {
-		XMLoadFloat3(&m_scale),
-		XMLoadFloat3(&m_rotation),
+		XMLoadFloat3(&Scale),
+		XMLoadFloat3(&Rotation),
 		XMLoadFloat3(&RelativeTranslation)
 	};
 
@@ -87,7 +87,7 @@ void SceneComponent::OnUpdated()
 
 void SceneComponent::setScale(const Vec3& InScale)
 {
-	m_scale = InScale;
+	Scale = InScale;
 }
 
 void SceneComponent::setScale(const float scaleX, const float scaleY, const float scaleZ)
@@ -97,27 +97,27 @@ void SceneComponent::setScale(const float scaleX, const float scaleY, const floa
 
 const Vec3& SceneComponent::getScale() const
 {
-	return m_scale;
+	return Scale;
 }
 
 XMMATRIX SceneComponent::GetRotationMatrix()
 {
-	return XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_rotation));
+	return XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Rotation));
 }
 
 void SceneComponent::setRotation(const Vec3 &rotation)
 {
-	m_rotation = rotation;
+	Rotation = rotation;
 }
 
 const Vec3& SceneComponent::getRotation() const
 {
-	return m_rotation;
+	return Rotation;
 }
 
 void SceneComponent::setTranslation(const Vec3 &translation)
 {
-	m_translation = translation;
+	Translation = translation;
 }
 
 void SceneComponent::setTranslation(const float transX, const float transY, const float transZ)
@@ -127,7 +127,7 @@ void SceneComponent::setTranslation(const float transX, const float transY, cons
 
 const Vec3& SceneComponent::getTranslation() const
 {
-	return m_translation;
+	return Translation;
 }
 
 const Vec3 SceneComponent::GetForward() const

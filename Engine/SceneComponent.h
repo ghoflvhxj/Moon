@@ -1,9 +1,6 @@
 ﻿#pragma once
-#ifndef __SCENE_COMPONENT_H__
 
 #include "Component.h"
-
-class MainGame;
 
 class ENGINE_DLL SceneComponent : public Component
 {
@@ -24,21 +21,21 @@ public:
 	void setScale(const float scaleX, const float scaleY, const float scaleZ);
 	const Vec3& getScale() const;
 private:
-	Vec3 m_scale;
+	Vec3 Scale;
 
 public:
 	virtual XMMATRIX GetRotationMatrix();
 	void setRotation(const Vec3 &rotation);
 	const Vec3&	getRotation() const;
 private:
-	Vec3 m_rotation;
+	Vec3 Rotation;
 
 public:
 	virtual void setTranslation(const Vec3 &translation);
 	void setTranslation(const float transX, const float transY, const float transZ);
 	const Vec3&	getTranslation() const;
 private:
-	Vec3 m_translation;
+	Vec3 Translation;
 	Vec3 RelativeTranslation;
 public:
 	const Vec3			GetForward() const;
@@ -63,10 +60,7 @@ public:
 	void AddChildComponent(std::shared_ptr<SceneComponent> Component);
 private:
 	std::vector<std::shared_ptr<SceneComponent>> ChildComponents;
-};
 
-#define __SCENE_COMPONENT_H__
-#endif    REFLECT(
     REFLECT(
         SceneComponent,
         PROPERTY(Scale),
