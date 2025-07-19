@@ -205,17 +205,6 @@ void MyGame::render()
         ImGui::Indent(-20);
     }
 
-    if (DynamicMeshComp && ImGui::Button(DynamicMeshComp->IsAnimPlaying() ? "PauseAnim" : "PlayAnim"))
-    {
-        //std::random_device rd;
-        //std::mt19937 gen(rd());
-        //std::uniform_int_distribution<int> AnimClipIndex(0, DynamicMeshComp->GetAnimClipNum());
-        //DynamicMeshComp->SetAnimClip(AnimClipIndex(gen));
-        DynamicMeshComp->SetAnimClip(0);
-        DynamicMeshComp->SetAnimPlaying(!DynamicMeshComp->IsAnimPlaying());
-
-    }
-
     // 바디와 옷 충돌 테스트
     if (DynamicMeshComp->BodyTestObject)
     {
