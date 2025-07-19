@@ -63,8 +63,23 @@ void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
 {
     // 메시를 그릴거임.
     // 근데 애니메이션이 적용됬다면, 정점들에 애니메이션 행렬을 곱해야 함.
-    // 점에 영향을 주는 조인트 4개가 있는데 이거를 같이 보냄. (인덱스, 수치 정보)
-    // 그래서 점에 조인트 행렬과 수치를 곱해줌
+    // 점에 영향을 주는 조인트 4개가 있고 인덱스, 수치 값을 찾아서 정점에 저장함.
+
+    // 애니메이션이 있는 메시는 T포즈가 설정되있고, 정점을 불러오면 위치는 T포즈 상태에서의 값임.
+    //
+    // 점 위치를 조인트 기준으로 변환하고 싶다.그래서 '조인트 T포즈 역행렬'을 곱함. (씬->조인트 좌표계 변환)
+    // 이제 메시 공간으로 변환하고 싶다.메시 행렬을 곱함(클러스터 행렬, 조인트->메시 좌표계 변환)
+    //
+    // 이제 조인트가 움직이고 회전하는 것을 적용하고 싶다.그래서 '조인트 행렬'을 곱함(메시->씬 좌표계 변환)
+    // 조인트 행렬 때문에 씬 좌표계로 되버림
+    // 다시 메시 공간으로 변환하고 싶다.메시의 역행렬을 곱함(씬->메시 좌표계로 변환)
+    //
+    // 왜 인지는 모르겠는데, 마지막에 조인트 글로벌 매트릭스를 곱함
+    // 결국 씬에서 조인트
+    // 
+    //---------------------------------------------------------------------------------
+    // 조인트 T포즈 역행렬은 어떻게 구하나 ?
+    // 조인트 T포즈 행렬의 역 * 클러스터의 T포즈 행렬
 
 	int AnimStackCount = _pImporter->GetAnimStackCount();
 	OutAnimationClips.resize(AnimStackCount);
@@ -80,7 +95,8 @@ void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
 		CurrentAnimClip.Name = animStackName.Buffer();
         CurrentAnimClip.SetFrameInfo(pTakeInfo->mLocalTimeSpan.GetStart(), pTakeInfo->mLocalTimeSpan.GetStop());
 
-        // 조인트를 얻기 위해 메시->디포머->스킨->클러스터 순으로 파고듬
+        // 조인트를 얻기 위해 메시->디포머->스킨->클러스터->링크 순으로 파고듬
+        // 클러스터의 링크 = 조인트
 		for (uint32 meshIndex = 0; meshIndex < GeometryCount; ++meshIndex)
 		{
 			FbxMesh* pMesh = _meshList[meshIndex];
@@ -116,13 +132,13 @@ void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
                         pCluster->GetLink()->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot)
                     };
 
-					// 조인트에 적용된 바인드 포즈 변환을 지우기 위한, 바인드 포즈 인버스 매트릭스 계산.
-                    FbxAMatrix transformLinkMatrix; // 조인트 글로벌 바인드 포즈
-					pCluster->GetTransformLinkMatrix(transformLinkMatrix);
-                    FbxAMatrix transformMatrix;     // 메시 글로벌 바인드 포즈
-					pCluster->GetTransformMatrix(transformMatrix);
+                    // 바인드 포즈 역행렬 = 조인트 역행렬 * 클러스터 행렬
+                    FbxAMatrix JointTransformMatrix;
+					pCluster->GetTransformLinkMatrix(JointTransformMatrix);
+                    FbxAMatrix ClusterTransformMatrix;
+					pCluster->GetTransformMatrix(ClusterTransformMatrix);
                     FbxAMatrix globalBindPoseInverseMatrix;
-					globalBindPoseInverseMatrix = (transformLinkMatrix * b).Inverse() * transformMatrix * geometryTransform;
+					globalBindPoseInverseMatrix = (JointTransformMatrix * b).Inverse() * (ClusterTransformMatrix * geometryTransform);
                     XMStoreFloat4x4(&Joints[JointIndex]._globalBindPoseInverseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
 
                     // 조인트가 영향을 주는 정점들을 찾아서, 자신의 정보를 저장시킴
@@ -225,6 +241,7 @@ bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
 
 void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
 {
+    /*
     Path = InPath;
     Directory = Path.substr(0, Path.find_last_of('/') + 1);
     std::filesystem::path PathObject(Path);
@@ -272,6 +289,7 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
     MJsonSerializer Serializer;
     std::wstring MeshPath = Directory + Name + TEXT(".json");
     Serializer.Serialize(*NewStaticMesh, MeshPath, true);
+    */
 }
 
 void MFBXLoader::InitializeFbxSdk()
@@ -740,7 +758,9 @@ void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName
         NewJoint._parentIndex = NameToJointIndex[parentName];
 	}
 
-    auto& trans = pNode->EvaluateGlobalTransform().GetT();
+    FbxAMatrix& GlobalTransform = pNode->EvaluateGlobalTransform();
+    auto& trans = GlobalTransform.GetT();
+    auto& Rot = GlobalTransform.GetR();
     NewJoint._position = { (float)trans[0], (float)trans[1], (float)trans[2] };
 
 	Joints.push_back(NewJoint);
