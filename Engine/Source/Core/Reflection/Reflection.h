@@ -20,11 +20,11 @@ virtual const FTypeDesc& GetTypeDesc() \
 } \
 static const FTypeDesc& GetTypeDescStatic() \
 { \
-	static FTypeDesc MyClass##_Desc; \
-    MyClass##_Desc.Parent = nullptr; \
-	MyClass##_Desc.Name = #MyClass; \
-	MyClass##_Desc.Size = sizeof(MyClass); \
-	MyClass##_Desc.Properties = { __VA_ARGS__ }; \
+	static FTypeDesc MyClass##_Desc = { \
+    nullptr, \
+	#MyClass, \
+	sizeof(MyClass), \
+	{ __VA_ARGS__ }}; \
 	return MyClass##_Desc; \
 }
 
@@ -38,10 +38,10 @@ virtual const FTypeDesc& GetTypeDesc() \
 } \
 static const FTypeDesc& GetTypeDescStatic() \
 { \
-	static FTypeDesc MyClass##_Desc; \
-	MyClass##_Desc.Parent = &Super::GetTypeDescStatic(); \
-	MyClass##_Desc.Name = #MyClass; \
-	MyClass##_Desc.Size = sizeof(MyClass); \
-	MyClass##_Desc.Properties = { __VA_ARGS__ }; \
+	static FTypeDesc MyClass##_Desc = { \
+	&Super::GetTypeDescStatic(), \
+	#MyClass, \
+	sizeof(MyClass), \
+	{ __VA_ARGS__ }}; \
 	return MyClass##_Desc; \
 }
