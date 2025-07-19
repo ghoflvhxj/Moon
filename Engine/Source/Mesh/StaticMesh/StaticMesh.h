@@ -13,6 +13,7 @@ class ENGINE_DLL StaticMesh
 {
 public:
     StaticMesh() = default;
+    virtual ~StaticMesh() = default;
 
 public:
     // Fbx 전달 버전
@@ -59,7 +60,13 @@ public:
 private:
     Vec3 CenterPos = VEC3ZERO;
 
+    // 옷감 데이터
 public:
+    const std::vector<FClothData>& GetClothDatas() const { return ClothData; }
+protected:
+    std::vector<FClothData> ClothData;
+
+
 public:
     //REFLECTABLE(
     //    StaticMesh,

@@ -91,9 +91,10 @@ struct ENGINE_DLL FJoint
 
     int32	_parentIndex;
 
-    // 조인트에 적용된 바인드 포즈 변환을 지우기 위한 행렬
+    // 메시의 점 위치를 조인트 기준의 위치로 변환하는 행렬
     Mat4	_globalBindPoseInverseMatrix;
     Vec3	_position;
+    Vec3    Rotation;
 };
 
 using JointIndexMap = std::unordered_map<std::string, int>;

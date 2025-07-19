@@ -48,23 +48,23 @@ void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
 
 void StaticMesh::LoadFromAsset(const std::wstring& Path)
 {
-    // 메시 로드
-    MJsonDeserializer Deserializer;
-    Deserializer.Deserialize(*this, Path);
+    //// 메시 로드
+    //MJsonDeserializer Deserializer;
+    //Deserializer.Deserialize(*this, Path);
 
-    // 매터리얼 로드
-    for (auto& MaterialPath : MaterialPaths)
-    {
-        std::shared_ptr<MMaterial> NewMaterial = std::make_shared<MMaterial>();
-        MJsonDeserializer MatDeserializer;
-        MatDeserializer.Deserialize(*NewMaterial, MaterialPath);
+    //// 매터리얼 로드
+    //for (auto& MaterialPath : MaterialPaths)
+    //{
+    //    std::shared_ptr<MMaterial> NewMaterial = std::make_shared<MMaterial>();
+    //    MJsonDeserializer MatDeserializer;
+    //    MatDeserializer.Deserialize(*NewMaterial, MaterialPath);
 
-        NewMaterial->OnLoaded();
+    //    NewMaterial->OnLoaded();
 
-        Materials.push_back(NewMaterial);
-    }
+    //    Materials.push_back(NewMaterial);
+    //}
 
-    OnLoaded();
+    //OnLoaded();
 }
 
 void StaticMesh::OnLoaded()

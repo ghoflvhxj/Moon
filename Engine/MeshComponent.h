@@ -7,10 +7,10 @@
 class StaticMesh;
 class MPhysicsObject;
 
-struct FTest
+struct FClothUpdateData
 {
-    uint32 MeshIndex;
-    std::vector<float> InvMass;
+    int32 ClothDataIndex = -1;
+    Vec3 PreviousJointPos = VEC3ZERO;
 };
 
 class ENGINE_DLL MMeshComponent abstract : public MPrimitiveComponent
@@ -49,8 +49,12 @@ public:
     // 바디 테스트
     std::shared_ptr<MPhysicsObject> BodyTestObject;
 
+protected:
+    // 옷감 피직스 오브젝트
+    std::vector<std::shared_ptr<MPhysicsObject>> ClothPhysicsObjects;
+    // 옷감 피직스 오브젝트 업데이트를 위한 데이터. 개수가 같아야 함.
+    std::vector<FClothUpdateData> ClothUpdateDatas;
 
-    std::vector<FTest> ClothData;
     REFLECT(
         MMeshComponent, 
         PROPERTY_DELEGATE(bPhysicsSimulate, [&](MMeshComponent* InObject) {
