@@ -165,8 +165,9 @@ void DynamicMeshComponent::Clothing()
 {
     MMeshComponent::Clothing();
 
-    Vec3 JointPos = GetJointPosition("bone001");
-
+    std::string JointName = "bone001";
+    Vec3 JointPos = GetJointPosition(JointName);
+    uint32 JointIndex = GetDynamicMesh()->GetJointIndex(JointName);
     // 옷
     if (g_pPhysics)
     {
@@ -183,35 +184,46 @@ void DynamicMeshComponent::Clothing()
             FClothData a;
             a.MeshIndex = 7;
             a.InvMass.resize(Mesh->GetMeshData(7)->Vertices.size(), 1.f);
+            a.JointIndex = JointIndex;
             t.push_back(a);
         }
         {
             FClothData a;
             a.MeshIndex = 8;
             a.InvMass.resize(Mesh->GetMeshData(8)->Vertices.size(), 1.f);
+            a.JointIndex = JointIndex;
             t.push_back(a);
         }
         {
             FClothData a;
             a.MeshIndex = 11;
             a.InvMass.resize(Mesh->GetMeshData(11)->Vertices.size(), 1.f);
+            a.JointIndex = JointIndex;
             t.push_back(a);
         }
         {
             FClothData a;
             a.MeshIndex = 12;
             a.InvMass.resize(Mesh->GetMeshData(12)->Vertices.size(), 1.f);
+            a.JointIndex = JointIndex;
             t.push_back(a);
         }
         {
             FClothData a;
             a.MeshIndex = 13;
             a.InvMass.resize(Mesh->GetMeshData(13)->Vertices.size(), 1.f);
+            a.JointIndex = JointIndex;
             t.push_back(a);
         }
 
-        g_pPhysics->AddCloth(Data, t, NewClothPhysicsObject);
+        GetDynamicMesh()->GetClothDatas() = t;
+
+        g_pPhysics->AddCloth(Data, GetDynamicMesh()->GetClothDatas(), NewClothPhysicsObject);
         ClothPhysicsObjects.push_back(NewClothPhysicsObject);
+
+        FClothUpdateData UpdateData = {};
+        UpdateData.ClothDataIndex = 0;
+        ClothUpdateDatas.push_back(UpdateData);
     }
 
     // 옷 바디 충돌 테스트
