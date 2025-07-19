@@ -42,6 +42,9 @@ private:
 	bool bButtonPressed = false;
 	bool bStaticCollision = true;
 	float Force = 0.f;
+
+public:
+    virtual bool IsPickable() const override;
 };
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject);

@@ -88,6 +88,7 @@ private:
 	std::shared_ptr<MCamera> _pMainCamera;
 
 public:
+    virtual bool IsPickable() const { return true; }
     void Pick();
 protected:
     FHitData HitData;

@@ -1,4 +1,4 @@
-#include "Include.h"
+ï»¿#include "Include.h"
 #include "DirectInput.h"
 
 #include "WindowException.h"
@@ -17,13 +17,13 @@ DirectInput::DirectInput()
 {
 	WINDOW_EXCEPTION(DirectInput8Create(g_hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void **)&_pDirectInput, nullptr))
 
-	// Å°º¸µå
+	// í‚¤ë³´ë“œ
 	WINDOW_EXCEPTION(_pDirectInput->CreateDevice(GUID_SysKeyboard, &_pKeyboard, nullptr))
 	WINDOW_EXCEPTION(_pKeyboard->SetDataFormat(&c_dfDIKeyboard))
-	WINDOW_EXCEPTION(_pKeyboard->SetCooperativeLevel(g_pMainWindow->getHandle(), DISCL_FOREGROUND | DISCL_EXCLUSIVE))
+	WINDOW_EXCEPTION(_pKeyboard->SetCooperativeLevel(g_pMainWindow->getHandle(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))
 	WINDOW_EXCEPTION(_pKeyboard->Acquire())
 
-	// ¸¶¿ì½º
+	// ë§ˆìš°ìŠ¤
 	WINDOW_EXCEPTION(_pDirectInput->CreateDevice(GUID_SysMouse, &_pMouse, nullptr))
 	WINDOW_EXCEPTION(_pMouse->SetDataFormat(&c_dfDIMouse))
 	WINDOW_EXCEPTION(_pMouse->SetCooperativeLevel(g_pMainWindow->getHandle(), DISCL_BACKGROUND | DISCL_NONEXCLUSIVE))

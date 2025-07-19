@@ -86,19 +86,34 @@ void MyGame::intializeImGui()
 	// ImGui
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO &io = ImGui::GetIO();
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.Fonts->AddFontFromFileTTF("Resources/Fonts/NanumSquareRoundR.ttf", 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
+
 	ImGui::StyleColorsDark();
 	ImGui_ImplWin32_Init(g_hWnd);
 	ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
 
-    io.Fonts->AddFontFromFileTTF("Resources/Fonts/NanumSquareRoundR.ttf", 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
+    //io.WantCaptureKeyboard = true;
 }
 
 void MyGame::Tick(const Time deltaTime)
 {
-    if (InputManager::mouseDown(MOUSEBUTTON::LB))
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("Hello, world!");
+
+    if (InputManager::mouseDown(MOUSEBUTTON::LB) && IsPickable())
     {
         Pick();
+    }
+    if (InputManager::keyDown(DIK_ESCAPE))
+    {
+        HitData.HitComponent.reset();
+        HitData.Distance = FLT_MAX;
     }
 }
 
@@ -112,11 +127,7 @@ void MyGame::render()
     std::shared_ptr<MLightComponent> DirectionalLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
     std::shared_ptr<MLightComponent> PointLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
     std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(TEXT("DynamicMesh")));
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-
-	ImGui::Begin("Hello, world!");                  
+    
 	ImGui::Text("Toatal primitive:%d", getRenderer()->TotalPrimitiveNum);
 	ImGui::Text("show primitive:%d", getRenderer()->ShownPrimitiveNum);
 	ImGui::Text("culled primitive:%d", getRenderer()->CulledPrimitiveNum);
@@ -271,6 +282,11 @@ void MyGame::render()
 }
 
 
+bool MyGame::IsPickable() const
+{
+    return ImGui::IsWindowHovered() == false;
+}
+
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject)
 {
     // 벡터 요소들을 순회하면서
@@ -367,7 +383,10 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
         {
             auto &Temp = static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject);
             float TempArr[3] = { Temp.x, Temp.y, Temp.z };
-            ImGui::InputFloat3(Prop->Name.c_str(), TempArr);
+            if (ImGui::InputFloat3(Prop->Name.c_str(), TempArr))
+            {
+                Temp = { TempArr[0], TempArr[1], TempArr[2] };
+            }
         }
         break;
         default:
