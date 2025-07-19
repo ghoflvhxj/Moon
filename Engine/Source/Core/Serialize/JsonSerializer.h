@@ -10,7 +10,6 @@
 #include "rapidjson/filereadstream.h"
 
 class MSerializable;
-struct FProperty;
 
 class ENGINE_DLL MJsonSerializer
 {
@@ -21,14 +20,13 @@ protected:
     rapidjson::MemoryPoolAllocator<>& Allocator;
 
 public:
-
     // 시리얼 라이즈 할 때 사용하는 함수
     // 클래스나 구조체 타입만을 받음. 즉, vector, map, int 등은 못받음
     template <class T>
     void Serialize(const T& Object, const std::wstring& Path, bool bPretty)
     {
         constexpr auto Fields = T::GetFields();
-        std::apply([&, Object](auto&& ...Field) {
+        std::apply([&](auto&& ...Field) {
             ((Doc.AddMember(rapidjson::Value(std::get<0>(Field), Allocator), ToJsonValue(Object.*(std::get<1>(Field))), Allocator)), ...);
         }, Fields);
 
