@@ -45,4 +45,10 @@ protected:
     std::shared_ptr<MPhysicsObject> PhysicsObject2;
 
     std::vector<FTest> ClothData;
+    REFLECT(
+        MMeshComponent, 
+        PROPERTY_DELEGATE(bPhysicsSimulate, [&](MMeshComponent* InObject) {
+            InObject->SetPhysicsSimulate(InObject->IsPhysicsSimulating());
+        })
+    );
 };

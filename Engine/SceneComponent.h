@@ -66,4 +66,12 @@ private:
 };
 
 #define __SCENE_COMPONENT_H__
-#endif
+#endif    REFLECT(
+    REFLECT(
+        SceneComponent,
+        PROPERTY(Scale),
+        PROPERTY(Rotation),
+        PROPERTY(Translation),
+        PROPERTY(bUpdated)
+    );
+};
