@@ -24,6 +24,9 @@
 
 #include "Core/Physics/Physics.h"
 
+// 테스트용
+#include "Core/Serialize/JsonSerializer.h"
+
 using namespace DirectX;
 
 MainGame::MainGame()
@@ -204,10 +207,15 @@ void MainGame::Pick()
         const auto& Indices = MeshData->Indices;
         uint32 Loop = GetSize(Indices) / 3;
 
+        auto Lambda = [](const Vec4& Pos)->XMVECTOR {
+            Vec3 OutPos = { Pos.x, Pos.y, Pos.z };
+            return XMLoadFloat3(&OutPos);
+        };
+
         for (uint32 i = 0; i < Loop; ++i)
         {
             float Distance = 0.f;
-            if (TriangleTests::Intersects(Start, Dir, XMLoadFloat4(&Vertices[Indices[i * 3 + 0]].Pos), XMLoadFloat4(&Vertices[Indices[i * 3 + 1]].Pos), XMLoadFloat4(&Vertices[Indices[i * 3 + 2]].Pos), Distance))
+            if (TriangleTests::Intersects(Start, Dir, Lambda(Vertices[Indices[i * 3 + 0]].Pos), Lambda(Vertices[Indices[i * 3 + 1]].Pos), Lambda(Vertices[Indices[i * 3 + 2]].Pos), Distance))
             {
                 if (Distance > MinDistance)
                 {
@@ -215,7 +223,6 @@ void MainGame::Pick()
                 }
 
                 HitPrimitiveData = PrimitiveData;
-
                 MinDistance = Distance;
             }
         }
@@ -232,5 +239,14 @@ void MainGame::Pick()
                 break;
             }
         }
+
+        HitData.HitComponent = HitPrimitiveData.PrimitiveComponent;
+        HitData.Distance = MinDistance;
+        //auto& Fields = MeshComponent->GetFieldsss();
+        //for (auto& Field : Fields)
+        //{
+        //    std::cout << Field->Name << std::endl;
+        //}
     }
 }
+

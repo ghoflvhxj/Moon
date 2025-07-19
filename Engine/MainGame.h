@@ -13,6 +13,14 @@ class MCamera;
 
 class MPhysX;
 
+
+// 피킹 --------------------------------------------------------------------------
+struct FHitData
+{
+    std::weak_ptr<class Component> HitComponent;
+    float Distance = 0.f;
+};
+
 class ENGINE_DLL MainGame : public std::enable_shared_from_this<MainGame>
 {
 public:
@@ -81,4 +89,13 @@ private:
 
 public:
     void Pick();
+protected:
+    FHitData HitData;
+
+public:
+    float TestVariable = 0.f;
+    //TEST(
+    //    MainGame,
+    //    TESTMACRO(TestVariable, float)
+    //);
 };
