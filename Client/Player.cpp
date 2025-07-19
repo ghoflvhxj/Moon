@@ -80,6 +80,7 @@ void Player::initialize()
 #if UseDynamicMesh == 1
 	CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
 	addComponent(TEXT("DynamicMesh"), CharacterMeshComponent);
+    CharacterMeshComponent->SetPhysics(false);
 	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
     //CharacterMeshComponent->SetMesh(TEXT("2B/2b.json"));
@@ -196,11 +197,6 @@ void Player::tick(const Time deltaTime)
 	{
 		CharacterMeshComponent->playAnimation(0, deltaTime);
 	}
-    Vec3 JointPos = CharacterMeshComponent->GetJointPosition("bone001");
-    Vec3 Dir = VEC3ZERO;
-    XMStoreFloat3(&Dir, XMVector3Normalize(XMLoadFloat3(&PreviousJointPos) - XMLoadFloat3(&JointPos)));
-    CharacterMeshComponent->AddForce(Dir);
-    PreviousJointPos = JointPos;
 #endif
 
     static float DeltaTime = 0.f;
@@ -270,14 +266,14 @@ void Player::JsonSaveTest(bool bPretty)
     //FbxLoader.SaveJsonAsset(TEXT("2B/2B.fbx"));
 
     // 수정한 메시를 Json으로 저장
-    Serializer.Serialize(CharacterMeshComponent->GetDynamicMesh(), TEXT("2B/2B.json"), false);
-    for (auto& Mat : CharacterMeshComponent->GetDynamicMesh()->getMaterials())
-    {
-        std::wstring Path = TEXT("2B/") + Mat->GetName() + TEXT(".json");
+    //Serializer.Serialize(CharacterMeshComponent->GetDynamicMesh(), TEXT("2B/2B.json"), false);
+    //for (auto& Mat : CharacterMeshComponent->GetDynamicMesh()->getMaterials())
+    //{
+    //    std::wstring Path = TEXT("2B/") + Mat->GetName() + TEXT(".json");
 
-        MJsonSerializer MatSerializer;
-        MatSerializer.Serialize(Mat, Path, true);
-    }
+    //    MJsonSerializer MatSerializer;
+    //    MatSerializer.Serialize(Mat, Path, true);
+    //}
 }
 
 void Player::JsonLoadTest()
