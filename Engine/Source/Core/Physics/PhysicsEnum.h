@@ -3,5 +3,6 @@
 enum class EPhysicsType
 {
     Static,
-    Dynamic
+    Dynamic,
+    Kinematic
 };

@@ -11,6 +11,7 @@
 #include "Jolt/Physics/Collision//Shape/MeshShape.h"
 #include "Jolt/Physics/Collision/Shape/BoxShape.h"
 #include "Jolt/Physics/Collision/Shape/SphereShape.h"
+#include "Jolt/Physics/Collision/Shape/EmptyShape.h"
 #include "Jolt/Physics/Body/BodyCreationSettings.h"
 #include "Jolt/Physics/Body/BodyActivationListener.h"
 #include "Jolt/Physics/SoftBody/SoftBodyCreationSettings.h"
@@ -18,6 +19,7 @@
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 #include "Jolt/Physics/SoftBody/SoftBodyShape.h"
 #include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
+#include "Jolt/Physics/Constraints/FixedConstraint.h"
 
 #include "Renderer.h"
 #include "Vertex.h"
@@ -25,12 +27,20 @@
 #include "PrimitiveComponent.h"
 #include "Mesh/Mesh.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
+#include "Mesh/DynamicMesh/DynamicMesh.h"
+#include "DynamicMeshComponent.h"
+#include "MainGame.h"
+#include <DirectXMath.h>
 
 using namespace JPH;
 using namespace JPH::literals;
 using namespace std;
+using namespace DirectX;
 
-constexpr float SoftBodyMagicNum = 3.f;
+constexpr float SoftBodyMagicNum = 1.f;
+constexpr char* BoneName = "bone014";
+
+#define SKIN 0
 
 #ifdef JPH_ENABLE_ASSERTS
     static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, uint inLine)
@@ -292,8 +302,8 @@ bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_p
     // 캡슐
     if (InData.bCapsule)
     {
-        RefConst<Shape> big_capsule = new CapsuleShape(5.f, 2.5f);
-        auto b = BodyCreationSettings(big_capsule, RVec3(0, 0.f, 0), Quat::sEulerAngles(Vec3Arg(0.f, 0.f, 1.57f)), EMotionType::Dynamic, Layers::MOVING);
+        RefConst<Shape> big_capsule = new CapsuleShape(3.5f, 0.13f);
+        auto b = BodyCreationSettings(big_capsule, RVec3(0, 0.f, 0), Quat::sEulerAngles(Vec3Arg(0.f, 0.f, 0.f)), EMotionType::Kinematic, Layers::MOVING);
         b.mMassPropertiesOverride.mMass = 0.f;
         b.mGravityFactor = 0.f;
         NewBodyID = bodyInterface.CreateAndAddBody(b, EActivation::Activate);
@@ -335,8 +345,8 @@ bool MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhys
         NewSharedSettings->AddFace(NewFace);
     }
 
-    SoftBodySharedSettings::VertexAttributes inVertexAttributes = { 1.0e-5f, 1.0e-5f, 1.0e-5f };
-    NewSharedSettings->CreateConstraints(&inVertexAttributes, 1);
+    SoftBodySharedSettings::VertexAttributes inVertexAttributes = { 0.f, 0.f, 0.f, SoftBodySharedSettings::ELRAType::GeodesicDistance };
+    NewSharedSettings->CreateConstraints(&inVertexAttributes, 4);
     NewSharedSettings->Optimize();
 
     SoftBodyCreationSettings Cloth(NewSharedSettings, JPH::Vec3(0.f, 5.f, 0.f), QuatArg::sIdentity(), Layers::MOVING);
@@ -352,7 +362,7 @@ bool MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhys
     return true;
 }
 
-void MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::vector<FTest>& ClothDatas, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
+void MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::vector<FClothData>& ClothDatas, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
 {
     BodyInterface& bodyInterface = physics_system->GetBodyInterface();
 
@@ -362,10 +372,10 @@ void MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::vector<FTest>& C
     std::unordered_map<FVertexKey, uint32> VertexIndex;
 
     std::vector<uint32> MeshIndices;
-    for (const FTest& Test : ClothDatas)
+    for (const FClothData& ClothData : ClothDatas)
     {
-        MeshIndices.push_back(Test.MeshIndex);
-        std::shared_ptr<FMeshData> MeshData = InData.Mesh->GetMeshData(Test.MeshIndex);
+        MeshIndices.push_back(ClothData.MeshIndex);
+        std::shared_ptr<FMeshData> MeshData = InData.Mesh->GetMeshData(ClothData.MeshIndex);
         
         for (uint32 i = 0; i < GetSize(MeshData->Vertices); ++i)
         {
@@ -405,39 +415,98 @@ void MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::vector<FTest>& C
         }
     }
 
-    SoftBodySharedSettings::VertexAttributes inVertexAttributes = { 1.0e-5f, 1.0e-5f, 1.0e-5f };
-    //SoftBodySharedSettings::VertexAttributes inVertexAttributes = { 1.f, 1.f, 1.f };
-    NewSharedSettings->CreateConstraints(&inVertexAttributes, 1);
-    NewSharedSettings->Optimize();
-
-    JPH::Vec3 ClothPos = JPH::Vec3(0.f, SoftBodyMagicNum, 0.f);
-    if (InData.PrimitiveComponent)
+    // 바인드 포즈 역행렬 ---------------------------------------------------------------------------------------------
+    auto& Joints = std::static_pointer_cast<DynamicMesh>(InData.Mesh)->GetJoints();
+    uint32 JointNum = GetSize(Joints);
+    //for (uint32 JointIndex = 0; JointIndex < JointNum; ++JointIndex)
     {
-        //::Vec3 CompPos = InData.PrimitiveComponent->getWorldTranslation();
-        //ClothPos.SetX(CompPos.x);
-        //ClothPos.SetY(CompPos.y);
-        //ClothPos.SetZ(CompPos.z);
+        Mat4& MyMat = Joints[std::static_pointer_cast<DynamicMesh>(InData.Mesh)->GetJointIndex(BoneName)]._globalBindPoseInverseMatrix;
+        Mat44 mat = {
+            Vec4Arg{MyMat._11, MyMat._12, MyMat._13, MyMat._14},
+            Vec4Arg{MyMat._21, MyMat._22, MyMat._23, MyMat._24},
+            Vec4Arg{MyMat._31, MyMat._32, MyMat._33, MyMat._34},
+            Vec4Arg{MyMat._41, MyMat._42, MyMat._43, MyMat._44}
+        };
+        //mat = Mat44::sIdentity();
+        NewSharedSettings->mInvBindMatrices.emplace_back(0, mat);
     }
 
+
+#if SKIN == 1
+    // 스키닝 제약 ---------------------------------------------------------------------------------------------
+    uint32 VertexNum = GetSize(NewSharedSettings->mVertices);
+    for (uint32 VertexIndex = 0; VertexIndex < VertexNum; ++VertexIndex)
+    {
+        SoftBodySharedSettings::Skinned NewSkinConstraint(VertexIndex, NewSharedSettings->mVertices[VertexIndex].mInvMass > 0.0f ? 0.1f : 0.f, 0.1f, 40.f);
+
+        NewSkinConstraint.mWeights[0] = SoftBodySharedSettings::SkinWeight(0, 1.f);
+
+        NewSharedSettings->mSkinnedConstraints.push_back(NewSkinConstraint);
+    }
+    NewSharedSettings->CalculateSkinnedConstraintNormals();
+#else
+    // 일반 제약 ---------------------------------------------------------------------------------------------
+    SoftBodySharedSettings::VertexAttributes inVertexAttributes = { 0.f, 0.f, 0.f, SoftBodySharedSettings::ELRAType::GeodesicDistance };
+    NewSharedSettings->CreateConstraints(&inVertexAttributes, 1);
+#endif
+
+    // 바디 생성 ---------------------------------------------------------------------------------------------
+    NewSharedSettings->Optimize();
+    //JPH::Vec3 ClothPos = JPH::Vec3(InData.Pos.x, InData.Pos.y, InData.Pos.z);
+    JPH::Vec3 ClothPos = JPH::Vec3::sZero();
     SoftBodyCreationSettings ClothCreateSetting(NewSharedSettings, ClothPos, QuatArg::sIdentity(), Layers::MOVING);
+    ClothCreateSetting.mAllowSleeping = false;
+    ClothCreateSetting.mLinearDamping = 0.f;
     BodyID bodyId = bodyInterface.CreateAndAddSoftBody(ClothCreateSetting, EActivation::Activate);
-    //bodyInterface.SetMotionType(bodyId, EMotionType::Dynamic, EActivation::Activate);
 
     std::shared_ptr<MJoltPhysicsObject> JoltPhysicsObject = std::make_shared<MJoltPhysicsObject>(InData);
     JoltPhysicsObject->SetBodyID(bodyId);
     JoltPhysicsObject->SetMeshIndices(MeshIndices);
     JoltPhysicsObject->SetVertexIndices(VertexIndex);
+    //JoltPhysicsObject->CachePos = InData.Pos;
 
     OutPhysicsObject = JoltPhysicsObject;
-
     SoftBodyObjects.push_back(OutPhysicsObject);
 
-    //BodyLockWrite lock(physics_system->GetBodyLockInterface(), bodyId);
-    //if (lock.Succeeded())
-    //{
-    //    Body& SoftBody = lock.GetBody();
-    //    SoftBody.AddForce(Vec3Arg(0.f, 1000.f, 0.f));
-    //}
+    // 스키닝 적용 ---------------------------------------------------------------------------------------------
+#if SKIN == 1
+    JoltPhysicsObject->SkinVertices(true, tempAllocator);
+#endif
+
+    SoftBodyMotionProperties* mp = static_cast<SoftBodyMotionProperties*>(JoltPhysicsObject->GetBody().GetMotionProperties());
+    mp->SetUpdatePosition(false);
+}
+
+void MJoltPhysics::AddKinematic(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
+{
+    JPH::Vec3 Pos = JPH::Vec3(InData.Pos.x, InData.Pos.y, InData.Pos.z);
+
+    // 고정을 위한 Kinematic
+    EmptyShapeSettings* ShapeSetting = new EmptyShapeSettings();
+    BodyCreationSettings JointBodySettings(
+        ShapeSetting,
+        Pos,
+        QuatArg::sIdentity(),
+        EMotionType::Kinematic,
+        Layers::MOVING
+    );
+
+    auto& bodyInterface = physics_system->GetBodyInterface();
+    BodyID bodyId = bodyInterface.CreateAndAddBody(JointBodySettings, EActivation::Activate);
+
+    std::shared_ptr<MJoltPhysicsObject> JoltPhysicsObject = std::make_shared<MJoltPhysicsObject>(InData);
+    JoltPhysicsObject->SetBodyID(bodyId);
+
+    OutPhysicsObject = JoltPhysicsObject;
+}
+
+void MJoltPhysics::Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_ptr<MPhysicsObject>& Rhs)
+{
+    std::shared_ptr<MJoltPhysicsObject> lhs = std::static_pointer_cast<MJoltPhysicsObject>(Lhs);
+    std::shared_ptr<MJoltPhysicsObject> rhs = std::static_pointer_cast<MJoltPhysicsObject>(Rhs);
+
+    FixedConstraintSettings* ConstraintSetting = new FixedConstraintSettings();
+    physics_system->AddConstraint(ConstraintSetting->Create(lhs->GetBody(), rhs->GetBody()));
 }
 
 void MJoltPhysics::Update(float deltaTime)
@@ -448,38 +517,70 @@ void MJoltPhysics::Update(float deltaTime)
     // SoftBody의 정점위치 갱신
     for (auto& SoftBodyObject : SoftBodyObjects)
     {
-        std::shared_ptr<MJoltPhysicsObject> PhysicObject = std::static_pointer_cast<MJoltPhysicsObject>(SoftBodyObject.lock());
-        if (PhysicObject == nullptr)
+        if (SoftBodyObject.expired())
         {
             continue;
         }
 
-        Array<SoftBodyMotionProperties::Vertex> SoftBodyVertices;
-        BodyLockRead lock(physics_system->GetBodyLockInterface(), PhysicObject->GetBodyID());
-        JPH::Vec3 BodyPos;
-        if (lock.Succeeded())
-        {
-            const Body& SoftBody = lock.GetBody();
-            const SoftBodyMotionProperties* motionProperties = static_cast<const SoftBodyMotionProperties*>(SoftBody.GetMotionProperties());
+        std::shared_ptr<MJoltPhysicsObject> PhysicObject = std::static_pointer_cast<MJoltPhysicsObject>(SoftBodyObject.lock());
 
-            SoftBodyVertices = motionProperties->GetVertices();
-            BodyPos = SoftBody.GetPosition();
+        Array<SoftBodyMotionProperties::Vertex> SoftBodyVertices;
+        JPH::Vec3 BodyPos;
+        {
+            BodyLockRead lock(physics_system->GetBodyLockInterface(), PhysicObject->GetBodyID());
+            if (lock.Succeeded())
+            {
+                const Body& SoftBody = lock.GetBody();
+                const SoftBodyMotionProperties* motionProperties = static_cast<const SoftBodyMotionProperties*>(SoftBody.GetMotionProperties());
+                SoftBodyVertices = motionProperties->GetVertices();
+                BodyPos = SoftBody.GetPosition();
+            }
         }
 
+#if SKIN == 1
+        PhysicObject->SkinVertices(false, tempAllocator);
+#endif
+        int test = -1;
+
+        JPH::Vec3 ToLocal = PhysicObject->CachePos;
         for (uint32 MeshIndex : PhysicObject->GetMeshIndices())
         {
             std::vector<::Vertex> Vertices = PhysicObject->GetMesh()->GetMeshData(MeshIndex)->Vertices;
-            for (uint32 i = 0; i < GetSize(Vertices); ++i)
+            uint32 VertexNum = GetSize(Vertices);
+            for (uint32 i = 0; i < VertexNum; ++i)
             {
                 uint32 SoftBodyVertexIndex = PhysicObject->GetVertexIndex(::Vec3{ Vertices[i].Pos.x , Vertices[i].Pos.y, Vertices[i].Pos.z });
-                Vertices[i].Pos.x = BodyPos.GetX() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetX();
-                Vertices[i].Pos.y = BodyPos.GetY() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetY() - SoftBodyMagicNum;
-                Vertices[i].Pos.z = BodyPos.GetZ() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ();
+                Vertices[i].Pos.x = BodyPos.GetX() - ToLocal.GetX() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetX();
+                Vertices[i].Pos.y = BodyPos.GetY() - ToLocal.GetY() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetY();
+                Vertices[i].Pos.z = BodyPos.GetZ() - ToLocal.GetZ() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ();
+
+                //Vertices[i].Pos.x = BodyPos.GetX() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetX();
+                //Vertices[i].Pos.y = BodyPos.GetY() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetY();
+                //Vertices[i].Pos.z = BodyPos.GetZ() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ();
+
+                //Vertices[i].Pos.x = BodyPos.GetX();
+                //Vertices[i].Pos.y = BodyPos.GetY();
+                //Vertices[i].Pos.z = BodyPos.GetZ();
+
+                if (test == -1 && SoftBodyVertices[SoftBodyVertexIndex].mInvMass == 0.f)
+                {
+                    test = SoftBodyVertexIndex;
+                }
             }
 
             std::shared_ptr<MVertexBuffer> VertexBuffer = g_pRenderer->GetVertexBuffer(PhysicObject->GetPrimitiveComponent()->GetPrimitiveID(), MeshIndex);
             VertexBuffer->Update(Vertices.data());
         }
+
+        if (PhysicObject->bTest)
+        {
+            std::cout << "SoftBodyPos " << "X:" << BodyPos.GetX() << ", Y:" << BodyPos.GetY() << ", Z:" << BodyPos.GetZ() << std::endl;
+            std::cout << "ToLocal " << "X:" << ToLocal.GetX() << ", Y:" << ToLocal.GetY() << ", Z:" << ToLocal.GetZ() << std::endl;
+            //std::cout << "ToLocal " << "X:" << SoftBodyVertices[test].mPosition.GetX() << ", Y:" << SoftBodyVertices[test].mPosition.GetY() << ", Z:" << SoftBodyVertices[test].mPosition.GetZ() << std::endl;
+        }
+        std::cout << "SoftBodyPos " << "X:" << BodyPos.GetX() << ", Y:" << BodyPos.GetY() << ", Z:" << BodyPos.GetZ() << std::endl;
+
+        PhysicObject->bTest = false;
     }
 }
 
@@ -502,6 +603,16 @@ void MJoltPhysicsObject::UpdateVertices(std::vector<::Vertex>& InVertices)
 {
     std::shared_ptr<MVertexBuffer> VertexBuffer = g_pRenderer->GetVertexBuffer(GetPrimitiveComponent()->GetPrimitiveID());
     VertexBuffer->Update(InVertices.data());
+}
+
+void MJoltPhysicsObject::MoveTo(const ::Vec3& TargetPos)
+{
+    GetPhysicsSystem()->GetBodyInterface().MoveKinematic(BodyIDCache, RVec3Arg(TargetPos.x, TargetPos.y, TargetPos.z), Quat::sIdentity(), g_pMainGame->getDeltaTime());
+}
+
+void MJoltPhysicsObject::Remove()
+{
+    GetPhysicsSystem()->GetBodyInterface().RemoveBody(BodyIDCache);
 }
 
 bool MJoltPhysicsObject::IsSimulating()
@@ -529,7 +640,40 @@ void MJoltPhysicsObject::SetMass(float InMass)
 
 void MJoltPhysicsObject::SetPos(const ::Vec3& InPos)
 {
-    GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, RVec3Arg(InPos.x, InPos.y, InPos.z), EActivation::Activate);
+    JPH::Vec3 JInPos = { InPos.x, InPos.y, InPos.z };
+
+    Body& body = GetBody();
+    if (body.IsSoftBody())
+    {
+        if (CachePos != JInPos)
+        {
+            GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, JInPos, EActivation::Activate);
+            CachePos = JInPos;
+            bTest = true;
+        }
+    }
+    else
+    {
+        GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, JInPos, EActivation::Activate);
+    }
+
+    //std::cout << "SetPos Target: " << InPos.x << ", " << InPos.y << ", " << InPos.z << std::endl;
+    //std::cout << "SetPos Current: " << 
+}
+
+void MJoltPhysicsObject::SetRotation(const ::Vec4& InRotation)
+{
+    JPH::Quat JInQuat = { InRotation.x, InRotation.y, InRotation.z,InRotation.w };
+    
+    Body& body = GetBody();
+    if (body.IsSoftBody())
+    {
+        GetPhysicsSystem()->GetBodyInterface().SetRotation(BodyIDCache, JInQuat, EActivation::Activate);
+    }
+    else
+    {
+
+    }
 }
 
 void MJoltPhysicsObject::SetScale(const ::Vec3& InScale)
@@ -573,7 +717,31 @@ void MJoltPhysicsObject::AddForce(const ::Vec3& InForce)
 
 void MJoltPhysicsObject::SetVelocity(const ::Vec3& InVelocity)
 {
-    GetPhysicsSystem()->GetBodyInterface().SetLinearVelocity(BodyIDCache, RVec3Arg(InVelocity.x, InVelocity.y, InVelocity.z));
+    JPH::Vec3 JPHVelociy = { InVelocity.x, InVelocity.y, InVelocity.z };
+
+    PrevVeloc = JPHVelociy;
+    Body& body = GetBody();
+    if (body.IsSoftBody())
+    {
+        if (body.GetPosition() != JPHVelociy)
+        {
+            // InvMass 0인 점들에 속도를 설정하는 방법 ---------------------------------------------------------------------------------------
+            SoftBodyMotionProperties* motionProperties = static_cast<SoftBodyMotionProperties*>(body.GetMotionProperties());
+            size_t Num = motionProperties->GetVertices().size();
+            for (size_t i = 0; i < Num; ++i)
+            {
+                auto& Vtx = motionProperties->GetVertex(i);
+                if (Vtx.mInvMass == 0.f)
+                {
+                    Vtx.mVelocity = JPHVelociy - body.GetPosition();
+                }
+            }
+        }
+    }
+    else
+    {
+        GetPhysicsSystem()->GetBodyInterface().SetLinearVelocity(BodyIDCache, RVec3Arg(InVelocity.x, InVelocity.y, InVelocity.z));
+    }
 }
 
 void MJoltPhysicsObject::SetAngularVelocity(const ::Vec3& InVelocity)
@@ -592,6 +760,15 @@ void MJoltPhysicsObject::SetAngularVelocity(const ::Vec3& InVelocity)
     return VEC4ZERO;
 }
 
+JPH::Body& MJoltPhysicsObject::GetBody()
+{
+    BodyLockWrite lock(GetPhysicsSystem()->GetBodyLockInterface(), BodyIDCache);
+    if (lock.Succeeded())
+    {
+        return lock.GetBody();
+    }
+}
+
 uint32 MJoltPhysicsObject::GetVertexIndex(const ::Vec3& Pos)
 {
     FVertexKey Key = { Pos.x, Pos.y, Pos.z };
@@ -603,7 +780,25 @@ uint32 MJoltPhysicsObject::GetVertexIndex(const ::Vec3& Pos)
     return 0;
 }
 
-//struct FVertexKey
-//{
-//    
-//};
+void MJoltPhysicsObject::SkinVertices(bool bHard, TempAllocator* Alloc)
+{
+    Body& body = GetBody();
+
+    auto DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(GetPrimitiveComponent());
+    Mat44& offset = body.GetCenterOfMassTransform().InversedRotationTranslation().ToMat44();
+    //uint32 JointNum = DynamicMeshComp->GetDynamicMesh()->GetJointNum();
+    uint32 JointNum = 1;
+    uint32 JointIndex = DynamicMeshComp->GetDynamicMesh()->GetJointIndex(BoneName);
+    static Array<Mat44> Pose(JointNum);
+
+    //for (uint32 i = 0; i < JointNum; ++i)
+    //{
+        const Mat44* AnimPose = reinterpret_cast<const Mat44*>(&DynamicMeshComp->GetAnimMatrix(JointIndex));
+        Pose[0] = offset * (*AnimPose);
+    //}
+
+    auto tf = body.GetCenterOfMassTransform();
+    SoftBodyMotionProperties* mp = static_cast<SoftBodyMotionProperties*>(body.GetMotionProperties());
+    mp->SetEnableSkinConstraints(true);
+    mp->SkinVertices(tf, Pose.data(), JointNum, bHard, *Alloc);
+}

@@ -62,7 +62,9 @@ public:
 public:
     virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
     virtual bool AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
-    virtual void AddCloth(FPhysicsConstructData& InData, std::vector<FTest>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
+    virtual void AddCloth(FPhysicsConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
+    virtual void AddKinematic(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject);
+    virtual void Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_ptr<MPhysicsObject>& Rhs);
 
 public:
     virtual void Update(float deltaTime) override;
@@ -91,13 +93,19 @@ public:
     }
 
 public:
+    void PostUpdate();
+
+public:
     virtual void UpdateVertices(std::vector<::Vertex>& InVertices) override;
+    virtual void MoveTo(const ::Vec3& TargetPos) override;
+    virtual void Remove() override;
 public:
     virtual bool IsSimulating() override;
 public:
     virtual void SetSimulate(bool bEnable) override;
     virtual void SetMass(float InMass) override;
     virtual void SetPos(const ::Vec3& InPos) override;
+    virtual void SetRotation(const ::Vec4& InRotation) override;
     virtual void SetScale(const ::Vec3& InScale) override;
     virtual void SetGravity(bool bGravity) override;
     virtual void AddForce(const ::Vec3& InForce) override;
@@ -108,6 +116,7 @@ public:
     virtual ::Vec4 GetPhysicsRotation() override;
 
 public:
+    JPH::Body& GetBody();
     void SetBodyID(const JPH::BodyID InBodyID) { BodyIDCache = InBodyID; }
     JPH::BodyID GetBodyID() { return BodyIDCache; }
 protected:
@@ -126,5 +135,16 @@ protected:
     // 소프트 바디 버텍스, 인덱스 쌍
     std::unordered_map<FVertexKey, uint32> VertexIndex;
 
+    // 임시
+public:
+    JPH::Vec3 CachePos = JPH::Vec3::sZero();
+    JPH::Vec3 PrevVeloc = JPH::Vec3::sZero();
 
+public:
+    void SkinVertices(bool bHard, JPH::TempAllocator* Alloc);
+
+    bool bTest = false;
+
+    bool bOrigin = false;
+    JPH::Vec3 Origin = JPH::Vec3::sZero();
 };
