@@ -19,6 +19,7 @@
 #include "Core/ResourceManager.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Material.h"
+#include "Core/Physics/Physics.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -59,14 +60,15 @@ const bool MyGame::initialize()
     //LanternActor->GetStaticMeshCompoent()->setTranslation(5.f, 0.f, 0.f);
     //LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
     LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
+    //LanternActor->GetStaticMeshCompoent()->RemovePhysics();
 
-    ClothActor = CreateActor<MStaticMeshActor>(this);
-    ClothActor->GetStaticMeshCompoent()->SetPhysics(false);
-    ClothActor->SetStaticMesh(TEXT("Untitled.fbx"));
-    ClothActor->GetStaticMeshCompoent()->setTranslation(0.f, 6.f, 0.f);
+    //ClothActor = CreateActor<MStaticMeshActor>(this);
+    //ClothActor->GetStaticMeshCompoent()->SetPhysics(false);
+    //ClothActor->SetStaticMesh(TEXT("Untitled.fbx"));
+    //ClothActor->GetStaticMeshCompoent()->setTranslation(0.f, 6.f, 0.f);
 
-    ClothActor->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
-    ClothActor->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
+    //ClothActor->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
+    //ClothActor->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
 
     //std::shared_ptr<MTexture> Texture = nullptr;
     //if (g_ResourceManager->Load<MTexture>(TEXT("Resources/Texture/Player.jpeg"), Texture))
@@ -75,18 +77,6 @@ const bool MyGame::initialize()
     //    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setCullMode(Graphic::CullMode::None);
     //    //ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setFillMode(Graphic::FillMode::WireFrame);
     //}
-
-	//_pTerrainComponent = std::make_shared<TerrainComponent>(100, 100);
-	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Diffuse), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_albedo.jpg")));
-	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Normal), std::make_shared<TextureComponent>(TEXT("Resources/Texture/Stone_01_normal.jpg")));
-	//_pTerrainComponent->setTexture(EnumToIndex(TextureType::Specular), std::make_shared<TextureComponent>(TEXT("Resources/Texture/stone_01_Specular.jpg")));
-	//_pTerrainComponent->getMaterial(0)
-
-	//auto pComponent = getMainCamera()->getComponent(TEXT("RootComponent"));
-	//if (nullptr == pComponent)
-	//	return false;
-
-	//pComponent->setTranslation(0.f, 0.f, -10.f);
 
 	return true;
 }
@@ -186,15 +176,15 @@ void MyGame::render()
             LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 5.f, 0.f);
 		}
 
-        if (ImGui::Checkbox("Physics Simulation", &bStaticCollision))
-        {
-            LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(bStaticCollision);
-        }
+        //if (ImGui::Checkbox("Physics Simulation", &bStaticCollision))
+        //{
+        //    LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(bStaticCollision);
+        //}
         LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
 	}
     else
     {
-        LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(true);
+        //LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(true);
     }
 
     if (ImGui::CollapsingHeader("JsonTest"))
@@ -226,19 +216,183 @@ void MyGame::render()
 
     }
 
-    Vec3 a = DynamicMeshComp->GetJointPosition("bone001");
-    //LanternActor->GetStaticMeshCompoent()->setTranslation(a);
-    //std::cout << "X: " << a.x << ", Y: " << a.y << ", Z: " << a.z << std::endl;
+    // 바디와 옷 충돌 테스트
+    if (DynamicMeshComp->BodyTestObject)
+    {
+        Vec3 a = DynamicMeshComp->BodyTestObject->GetPhysicsPos();
+        LanternActor->GetStaticMeshCompoent()->setTranslation(a);
+    }
 
+    // 조인트 위치 테스트
+    //if (LanternActor && DynamicMeshComp)
+    //{
+    //    LanternActor->GetStaticMeshCompoent()->setTranslation(DynamicMeshComp->GetJointPosition("bone001"));
+    //}
 
-    if(ClothActor && ImGui::Button("Cloth"))
+    //Vec3 JointPos = DynamicMeshComp->GetJointPosition("bone001");
+    //std::cout << "JointPos X: " << JointPos.x << ", Y: " << JointPos.y << ", Z: " << JointPos.z << std::endl;
+
+    if (ClothActor && ImGui::Button("Cloth"))
+    {
+        ClothActor->GetStaticMeshCompoent()->Clothing();
+    }
+
+    if (DynamicMeshComp && DynamicMeshComp->PhysicsObject && ImGui::Button("DynamicMeshCloth Pos"))
+    {
+        DynamicMeshComp->PhysicsObject->SetPos(DynamicMeshComp->GetJointPosition("bone014"));
+    }
+
+    if(DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
     {
         DynamicMeshComp->Clothing();
-        //ClothActor->GetStaticMeshCompoent()->Clothing();
     }
+
+    if (std::shared_ptr<Component> HitComponent = HitData.HitComponent.lock())
+    {
+        auto TypeDesc = HitComponent->GetTypeDesc();
+
+        const FTypeDesc* Current = &TypeDesc;
+        while (Current)
+        {
+            if (ImGui::CollapsingHeader(Current->Name.c_str()))
+            {
+                DispatchStruct(Current, HitComponent.get());
+            }
+            //for (auto Prop : Current->Properties)
+            //{
+            //    if (Prop->bContainer)
+            //    {
+            //        DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), HitComponent.get());
+            //    }
+            //    else
+            //    {
+            //        
+            //    }
+            //}
+
+            Current = Current->Parent;
+        }
+    }
+
 
 	ImGui::End();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+
+void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject)
+{
+    // 벡터 요소들을 순회하면서
+    for (int i = 0; i < InContainerDesc->GetNum(InObject); ++i)
+    {
+        // 요소들 타입에 따라 출력
+        if (InElementTypeDesc) // EngineDataType
+        {
+            for (auto& Prop : InElementTypeDesc->Properties)
+            {
+                //cout << Prop->Name + ": ";
+                switch (Prop->Type)
+                {
+                case EType::Int:
+                {
+                    int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InContainerDesc->Get(InObject, i));
+                    //cout << Temp << endl;
+                }
+                break;
+                case EType::Float:
+                {
+                    float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InContainerDesc->Get(InObject, i));
+                    //cout << Temp << endl;
+                }
+                break;
+                default:
+                {
+                    size_t num = InContainerDesc->GetNum(InObject);
+                    if (Prop->bContainer)
+                    {
+                        DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), InContainerDesc->Get(InObject, i));
+                    }
+                    else
+                    {
+                        DispatchStruct(Prop->TypeDesc, InContainerDesc->Get(InObject, i));
+                    }
+                }
+                break;
+                }
+            }
+        }
+        else // FundamentalDataType
+        {
+            switch (InContainerDesc->Type)
+            {
+            case EType::Int:
+            {
+                int& Temp = *(int*)InContainerDesc->Get(InObject, i);
+                //cout << Temp << endl;
+            }
+            break;
+            case EType::Float:
+            {
+                float& Temp = *(float*)InContainerDesc->Get(InObject, i);
+                //cout << Temp << endl;
+            }
+            break;
+            }
+        }
+
+    }
+}
+
+void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
+{
+    for (auto& Prop : InStructDesc->Properties)
+    {
+        switch (Prop->Type)
+        {
+        case EType::Int:
+        {
+            int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject);
+            //cout << Temp << endl;
+        }
+        break;
+        case EType::Float:
+        {
+            float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject);
+            //cout << Temp << endl;
+        }
+        break;
+        case EType::Bool:
+        {
+            bool Temp = static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject);
+            bool Prev = Temp;
+            ImGui::Checkbox(Prop->Name.c_str(), &Temp);
+            if (Temp != Prev)
+            {
+                static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Set(InObject, Temp);
+            }
+        }
+        break;
+        case EType::Vec3:
+        {
+            auto &Temp = static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject);
+            float TempArr[3] = { Temp.x, Temp.y, Temp.z };
+            ImGui::InputFloat3(Prop->Name.c_str(), TempArr);
+        }
+        break;
+        default:
+        {
+            if (Prop->bContainer)
+            {
+                DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), InObject);
+            }
+            else
+            {
+                DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
+            }
+        }
+        break;
+        }
+    }
 }
