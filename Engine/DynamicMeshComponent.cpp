@@ -87,11 +87,11 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 	uint32 jointCount	 = dMesh->GetJointNum();
 
     AnimationClip CurrentAnimClip;
-    if (dMesh->getAnimationClip(_currentAinmClipIndex, CurrentAnimClip))
+    if (dMesh->getAnimationClip(AinmClipIndex, CurrentAnimClip))
     {
         for (int32 JointIndex = 0; JointIndex < CastValue<int32>(jointCount); ++JointIndex)
         {
-            float RealFrame = CurrentAnimTime * 24.f;
+            float RealFrame = AnimTime * 24.f;
             uint32 Frame = CastValue<uint32>(RealFrame);
 
             XMMATRIX JointMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
@@ -101,10 +101,9 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
             {
                 float currentFrameFactor = 1.f - (RealFrame - CastValue<float>(Frame));
                 float nextFrameFactor = 1.f - currentFrameFactor;
-                JointMatrix = XMMatrixMultiply(JointMatrix, XMMatrixScaling(currentFrameFactor, currentFrameFactor, currentFrameFactor));
-
-                XMMATRIX nextFrameMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
-                JointMatrix += XMMatrixMultiply(nextFrameMatrix, XMMatrixScaling(nextFrameFactor, nextFrameFactor, nextFrameFactor));
+                XMMATRIX CurrentMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
+                XMMATRIX NextMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
+                JointMatrix = (NextMat * nextFrameFactor) + (CurrentMat * currentFrameFactor);
             }
 
             // 현재 프레임에서 조인트 행렬들
@@ -116,13 +115,14 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
     PrimitiveDataList.reserve(geometryCount);
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
-		FPrimitiveData primitive = {};
-		primitive.PrimitiveComponent = shared_from_this();
-		primitive.PrimitiveType = EPrimitiveType::Mesh;
-		primitive.MeshData = dMesh->GetMeshData(geometryIndex);
-		primitive.Material = dMesh->getGeometryLinkMaterialIndex().size() > 0 ? dMesh->getMaterials()[dMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : dMesh->getMaterials()[0];
-        primitive._matrices = JointAnimMatrices;
-        PrimitiveDataList.emplace_back(primitive);
+		FPrimitiveData NewPrimitiveData = {};
+		NewPrimitiveData.PrimitiveComponent = shared_from_this();
+		NewPrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
+		NewPrimitiveData.MeshData = dMesh->GetMeshData(geometryIndex);
+		NewPrimitiveData.Material = dMesh->getGeometryLinkMaterialIndex().size() > 0 ? dMesh->getMaterials()[dMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : dMesh->getMaterials()[0];
+        NewPrimitiveData.AnimMatrices = JointAnimMatrices;
+
+        PrimitiveDataList.emplace_back(NewPrimitiveData);
 	}
 
 	if (dMesh->_pSkeleton)
@@ -316,17 +316,47 @@ std::shared_ptr<DynamicMesh> DynamicMeshComponent::GetDynamicMesh()
 
 void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTime)
 {
-	_currentAinmClipIndex = index;
-	CurrentAnimTime += deltaTime;
+	AinmClipIndex = index;
+	AnimTime += deltaTime;
 
     AnimationClip AnimClip;
     if (GetDynamicMesh()->getAnimationClip(index, AnimClip))
     {
-        if (CurrentAnimTime > CastValue<float>(AnimClip.Duration))
+        if (AnimTime > CastValue<float>(AnimClip.Duration))
         {
-            CurrentAnimTime = 0.f;
+            AnimTime = 0.f;
         }
     }
+}
+
+Mat4 DynamicMeshComponent::GetAnimMatrix(uint32 JointIndex)
+{
+    Mat4 OutMatrix = IDENTITYMATRIX;
+
+    AnimationClip CurrentAnimClip;
+    if (GetDynamicMesh()->getAnimationClip(AinmClipIndex, CurrentAnimClip))
+    {
+        float RealFrame = AnimTime * 24.f;
+        uint32 Frame = CastValue<uint32>(RealFrame);
+
+        XMMATRIX XMOutMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
+
+        // 다음 프레임과 블렌딩
+        if (Frame < CurrentAnimClip.TotalFrame - 1)
+        {
+            float currentFrameFactor = 1.f - (RealFrame - CastValue<float>(Frame));
+            float nextFrameFactor = 1.f - currentFrameFactor;
+            XMMATRIX CurrentMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
+            XMMATRIX NextMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
+            XMOutMatrix = (NextMat * nextFrameFactor) + (CurrentMat * currentFrameFactor);
+        }
+
+        XMStoreFloat4x4(&OutMatrix, XMOutMatrix);
+    }
+
+    return OutMatrix;
+
+    //return JointAnimMatrices[JointIndex];
 }
 
 /*

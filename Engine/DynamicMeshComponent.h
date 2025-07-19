@@ -36,6 +36,9 @@ private:
 	uint32 AinmClipIndex = 0;
 	float AnimTime = 0.f;
 
+public:
+    Mat4* GetAnimMatrices() { return JointAnimMatrices; }
+    Mat4 GetAnimMatrix(uint32 JointIndex);
     // 현재 프레임에서 조인트 행렬들
 	Mat4 JointAnimMatrices[200];
 
@@ -49,6 +52,7 @@ public:
 	std::shared_ptr<DynamicMesh> GetDynamicMesh();
 
     std::shared_ptr<MPhysicsObject> Kinematic;
+
     REFLECT(
         DynamicMeshComponent, 
         PROPERTY(AnimTime),
