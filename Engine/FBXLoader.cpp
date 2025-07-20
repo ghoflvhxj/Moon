@@ -241,7 +241,6 @@ bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
 
 void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
 {
-    /*
     Path = InPath;
     Directory = Path.substr(0, Path.find_last_of('/') + 1);
     std::filesystem::path PathObject(Path);
@@ -289,7 +288,6 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
     MJsonSerializer Serializer;
     std::wstring MeshPath = Directory + Name + TEXT(".json");
     Serializer.Serialize(*NewStaticMesh, MeshPath, true);
-    */
 }
 
 void MFBXLoader::InitializeFbxSdk()
