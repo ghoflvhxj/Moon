@@ -33,11 +33,12 @@ enum class EType
     Int,
     Float,
     String,
+    WString,
     Bool,
     Object,
     Array,
     Vec2,
     Vec3,
     Vec4,
-    Map
+    Enum,
 };

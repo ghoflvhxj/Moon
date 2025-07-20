@@ -14,9 +14,9 @@ MakeProp(#Prop, &Self::Prop, Func)
 public: \
 using Super = void; \
 using Self = MyClass; \
-virtual const FTypeDesc& GetTypeDesc() \
+virtual const FTypeDesc* GetTypeDesc() const \
 { \
-	return Self::GetTypeDescStatic(); \
+	return &Self::GetTypeDescStatic(); \
 } \
 static const FTypeDesc& GetTypeDescStatic() \
 { \
@@ -32,9 +32,9 @@ static const FTypeDesc& GetTypeDescStatic() \
 public: \
 using Super = Self; \
 using Self = MyClass; \
-virtual const FTypeDesc& GetTypeDesc() \
+virtual const FTypeDesc* GetTypeDesc() const \
 { \
-	return Self::GetTypeDescStatic(); \
+	return &Self::GetTypeDescStatic(); \
 } \
 static const FTypeDesc& GetTypeDescStatic() \
 { \
@@ -45,3 +45,64 @@ static const FTypeDesc& GetTypeDescStatic() \
 	{ __VA_ARGS__ }}; \
 	return MyClass##_Desc; \
 }
+
+/*
+template <>
+FTypeDesc* GetTypeDesc<Vec2>()
+{
+    static FTypeDesc NewTypeDesc = {
+        nullptr,
+        "Vec2",
+        sizeof(Vec2),
+        { 
+            MakeProp("x", &Vec2::x, nullptr),
+            MakeProp("y", &Vec2::y, nullptr)
+        }
+    };
+
+    return &NewTypeDesc;
+}
+
+template <>
+FTypeDesc* GetTypeDesc<Vec3>()
+{
+    static FTypeDesc NewTypeDesc = {
+        nullptr,
+        "Vec3",
+        sizeof(Vec3),
+        {
+            MakeProp("x", &Vec3::x, nullptr),
+            MakeProp("y", &Vec3::y, nullptr),
+            MakeProp("z", &Vec3::z, nullptr)
+        }
+    };
+}
+
+template <>
+FTypeDesc* GetTypeDesc<Vec4>()
+{
+    static FTypeDesc NewTypeDesc = {
+        nullptr,
+        "Vec4",
+        sizeof(Vec4),
+        {
+            MakeProp("x", &Vec4::x, nullptr),
+            MakeProp("y", &Vec4::y, nullptr),
+            MakeProp("z", &Vec4::z, nullptr),
+            MakeProp("w", &Vec4::w, nullptr)
+        }
+    };
+}
+
+template <>
+FTypeDesc* GetTypeDesc<std::wstring>()
+{
+    static FTypeDesc NewTypeDesc = {
+        nullptr,
+        "wstring",
+        0,
+        {
+        }
+    };
+}
+*/

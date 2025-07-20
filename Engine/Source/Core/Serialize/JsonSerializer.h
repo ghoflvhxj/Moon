@@ -1,5 +1,15 @@
 ﻿#pragma once
 
+/*
+클래스, 구조체 같은 커스텀 자료형을 Json으로 만듬.
+리플렉션 기능을 활용해 구현되며, 현재 컨테이너는 벡터 타입만 지원하도록 구현됨.
+
+주요 함수와 설명
+ToJsonValue             - T, T*, T[N], vector<T> 를 받아 JsonValue로 만드는 함수. 
+                          컴파일 타임에 T에 따라 분기하여, 즉시 JsonValue를 만들거나 SerializeCustomType을 호출함
+SerializeCustomType     - 커스텀 타입을 JsonValue로 만들어서 반환하는 함수.
+*/
+
 #include "Include.h"
 
 #include "rapidjson/rapidjson.h"
@@ -20,15 +30,15 @@ protected:
     rapidjson::MemoryPoolAllocator<>& Allocator;
 
 public:
-    // 시리얼 라이즈 할 때 사용하는 함수
-    // 클래스나 구조체 타입만을 받음. 즉, vector, map, int 등은 못받음
+    rapidjson::Value DispatchStruct(const FTypeDesc* InTypeDesc, void* InObject);
+    rapidjson::Value DispatchContainer(FContainerPropertyDesc* InContainerPropDesc, void* InObject);
+
+public:
+    // 리플렉션에 등록된 클래스나 구조체를 Json으로 만듬.
     template <class T>
-    void Serialize(const T& Object, const std::wstring& Path, bool bPretty)
+    void Serialize(T& Object, const std::wstring& Path, bool bPretty)
     {
-        constexpr auto Fields = T::GetFields();
-        std::apply([&](auto&& ...Field) {
-            ((Doc.AddMember(rapidjson::Value(std::get<0>(Field), Allocator), ToJsonValue(Object.*(std::get<1>(Field))), Allocator)), ...);
-        }, Fields);
+        Doc.AddMember(rapidjson::Value(Object.GetTypeDesc()->Name, Allocator), DispatchStruct(Object.GetTypeDesc(), &Object), Allocator);
 
         FILE* fp = nullptr;
         _wfopen_s(&fp, Path.c_str(), TEXT("wb"));
@@ -52,8 +62,7 @@ public:
         fclose(fp);
     }
 
-    // 시리얼 라이즈 할 때 사용하는 함수.
-    // 클래스나 구조체의 shared_ptr를 받음
+    // shared_ptr을 지원을 위한 오버로딩
     template <class T>
     void Serialize(std::shared_ptr<T> Object, const std::wstring& Path, bool bPretty)
     {
@@ -61,123 +70,24 @@ public:
     }
 
 public:
-    // 오브젝트
+    // 일반 타입 SerializeCustomType. 실제로는 호출되지 않지만, 다른 특수화된 템플릿을 생성하기 위해 존재.
     template <class T>
-    rapidjson::Value TSerialize(const T& Object)
+    rapidjson::Value SerializeCustomType(const T& Object)
     {
         rapidjson::Value OutValue(rapidjson::kObjectType);
-
-        constexpr auto Fields = T::GetFields();
-        std::apply([&, Object](auto&& ...Field) {
-            ((OutValue.AddMember(rapidjson::Value(std::get<0>(Field), Allocator), ToJsonValue(Object.*(std::get<1>(Field))), Allocator)), ...);
-        }, Fields);
-
         return OutValue;
     }
 
-    // shared_ptr
-    template <class T>
-    rapidjson::Value TSerialize(const std::shared_ptr<T>& Object)
-    {
-        return TSerialize(*Object.get());
-    }
-
-    // 배열
-    template <class T, size_t N>
-    rapidjson::Value TSerialize(T(&Objects)[N])
-    {
-        rapidjson::Value OutValue(rapidjson::kObjectType);
-
-        constexpr auto Fields = T::GetFields();
-        for (size_t i = 0; i < N; ++i)
-        {
-            rapidjson::Value ElemValue(rapidjson::kObjectType);
-
-            // Element를 Serialize
-            T& Object = Objects[i];
-            std::apply([&, Object](auto&& ...Field) {
-                ((ElemValue.AddMember(rapidjson::Value(std::get<0>(Field), Allocator), ToJsonValue(Object.*(std::get<1>(Field))), Allocator)), ...);
-                }, Fields);
-
-            // Serialize된 Element 추가
-            OutValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), ElemValue, Allocator);
-        }
-
-        return OutValue;
-    }
-
-    template <class T, size_t N>
-    rapidjson::Value TSerialize(const std::array<T, N> Objects)
-    {
-        rapidjson::Value OutValue(rapidjson::kObjectType);
-
-        constexpr auto Fields = T::GetFields();
-        for (size_t i = 0; i < N; ++i)
-        {
-            rapidjson::Value ElemValue(rapidjson::kObjectType);
-
-            // Element를 Serialize
-            const T& Object = Objects[i];
-            std::apply([&, Object](auto&& ...Field) {
-                ((ElemValue.AddMember(rapidjson::Value(std::get<0>(Field), Allocator), ToJsonValue(Object.*(std::get<1>(Field))), Allocator)), ...);
-                }, Fields);
-
-            // Serialize된 Element 추가
-            OutValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), ElemValue, Allocator);
-        }
-
-        return OutValue;
-    }
-
-    // 벡터
-    template <class T>
-    rapidjson::Value TSerialize(const std::vector<T>& Objects)
-    {
-        rapidjson::Value OutValue(rapidjson::kObjectType);
-
-        constexpr auto Fields = T::GetFields();
-        size_t N = Objects.size();
-        for (size_t i = 0; i < N; ++i)
-        {
-            rapidjson::Value ElemValue(rapidjson::kObjectType);
-            const T& Object = Objects[i];
-
-            // Element를 Serialize
-            std::apply([&, Object](auto&& ...Field) {
-                ((ElemValue.AddMember(rapidjson::Value(std::get<0>(Field), Allocator), ToJsonValue(Object.*(std::get<1>(Field))), Allocator)), ...);
-                }, Fields);
-
-            // Serialize된 Element 추가
-            OutValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), ElemValue, Allocator);
-        }
-
-        return OutValue;
-    }
-
-    // shared_ptr 배열
-    template <class T>
-    rapidjson::Value TSerialize(const std::vector<std::shared_ptr<T>>& Objects)
-    {
-        std::vector<T> Vector;
-        Vector.reserve(Objects.size());
-        for (auto& Object : Objects)
-        {
-            if (Object)
-            {
-                Vector.push_back(*Object.get());
-            }
-            else
-            {
-                T Dummy;
-                Vector.push_back(Dummy);
-            }
-        }
-        return TSerialize(Vector);
-    }
-
-    // 문자열
+    // string
     template <>
-    rapidjson::Value TSerialize(const std::wstring& Object)
+    rapidjson::Value SerializeCustomType(const std::string& Object)
+    {
+        return rapidjson::Value(Object.c_str(), Allocator);
+    }
+
+    // wstring
+    template <>
+    rapidjson::Value SerializeCustomType(const std::wstring& Object)
     {
         char Buffer[256];
         WStringToString(Object, Buffer, sizeof(Buffer));
@@ -186,7 +96,7 @@ public:
 
     // Vec2
     template <>
-    rapidjson::Value TSerialize(const Vec2& Object)
+    rapidjson::Value SerializeCustomType(const Vec2& Object)
     {
         rapidjson::Value ArrayValue(rapidjson::kArrayType);
         ArrayValue.PushBack(rapidjson::Value(Object.x), Allocator);
@@ -197,7 +107,7 @@ public:
 
     // Vec3
     template <>
-    rapidjson::Value TSerialize(const Vec3& Object)
+    rapidjson::Value SerializeCustomType(const Vec3& Object)
     {
         rapidjson::Value ArrayValue(rapidjson::kArrayType);
         ArrayValue.PushBack(rapidjson::Value(Object.x), Allocator);
@@ -209,7 +119,7 @@ public:
 
     // Vec4
     template <>
-    rapidjson::Value TSerialize(const Vec4& Object)
+    rapidjson::Value SerializeCustomType(const Vec4& Object)
     {
         rapidjson::Value ArrayValue(rapidjson::kArrayType);
         ArrayValue.PushBack(rapidjson::Value(Object.x), Allocator);
@@ -220,12 +130,13 @@ public:
         return ArrayValue;
     }
 
+public:
+    // ToJson T
     template <class T>
     rapidjson::Value ToJsonValue(const T& InValue)
     {
         if constexpr (std::is_arithmetic_v<T>)
         {
-            // 일반 자료형
             return rapidjson::Value(InValue);
         }
         else if constexpr (std::is_enum_v<T>)
@@ -234,36 +145,55 @@ public:
         }
         else
         {
-            // 구조체, 클래스 등
-            return TSerialize(InValue);
+            return SerializeCustomType(InValue);
         }
     }
 
+    // ToJson T*
+    template <class T>
+    rapidjson::Value ToJsonValue(T* InValue, uint32 Num)
+    {
+        rapidjson::Value ArrayValue(rapidjson::kArrayType);
+        if constexpr (std::is_arithmetic_v<T>)
+        {
+            for (size_t i = 0; i < Num; ++i)
+            {
+                ArrayValue.PushBack(rapidjson::Value(InValue[i]), Allocator);
+            }
+        }
+        else
+        {
+            for (size_t i = 0; i < Num; ++i)
+            {
+                ArrayValue.PushBack(SerializeCustomType(InValue[i]), Allocator);
+            }
+        }
+        return ArrayValue;
+    }
+
+    // ToJson T[N]
     template <class T, size_t N>
     rapidjson::Value ToJsonValue(T (&InValue)[N])
     {
         if constexpr (std::is_arithmetic_v<T>)
         {
-            // 일반 자료형
             rapidjson::Value ArrayValue(rapidjson::kArrayType);
             for (size_t i = 0; i < N; ++i)
             {
-                //TSerialize(ArrayValue, InArray[i]);
                 ArrayValue.PushBack(rapidjson::Value(InValue[i]), Allocator);
             }
             return ArrayValue;
         }
         else
         {
-            // 구조체, 클래스 등
-            return TSerialize(InValue);
+            return SerializeCustomType(InValue);
         }
     }
 
+    // ToJson vector<T>
     template <class T>
     rapidjson::Value ToJsonValue(const std::vector<T>& InValue)
     {
-        // 일반 자료형
         if constexpr (std::is_arithmetic_v<T>)
         {
             rapidjson::Value ArrayValue(rapidjson::kArrayType);
@@ -286,25 +216,8 @@ public:
         }
         else // 구조체, 클래스 등
         { 
-            
-            return TSerialize(InValue);
+            return SerializeCustomType(InValue);
         }
-    }
-
-    // vector<wstring> 특수화
-    template <>
-    rapidjson::Value ToJsonValue(const std::vector<std::wstring>& InValue)
-    {
-        // 일반 자료형
-        rapidjson::Value ArrayValue(rapidjson::kArrayType);
-        size_t N = InValue.size();
-        for (size_t i = 0; i < N; ++i)
-        {
-            char Buffer[512] = {};
-            WStringToString(InValue[i], Buffer, 512);
-            ArrayValue.PushBack(rapidjson::Value(Buffer, Allocator), Allocator);
-        }
-        return ArrayValue;
     }
 };
 

@@ -12,7 +12,7 @@ struct FContainerPropertyInterface
 {
 public:
 	virtual void Resize(void* InObject, const size_t InSize) = 0;
-	virtual size_t GetNum(void* InObject) = 0;
+	virtual size_t GetNum(void* InObject) const = 0;
 	virtual void* Get(void* InObject, const size_t InIndex) = 0;
     virtual void Set(void* InObject, const size_t InIndex, void* InData) = 0;
 };
@@ -39,7 +39,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::
 			((Owner*)InObject->*TestMemPtr).resize(InSize);
 		}
 
-		virtual size_t GetNum(void* InObject) override
+		virtual size_t GetNum(void* InObject) const override
 		{
 			return ((Owner*)InObject->*TestMemPtr).size();
 		}
@@ -48,6 +48,11 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::
 		{
 			return &((Owner*)InObject->*TestMemPtr)[InIndex];
 		}
+
+        virtual void* GetAsVoid(const void* InObject) override
+        {
+            return &((Owner*)InObject->*TestMemPtr);
+        }
 
         virtual void Set(void* InObject, const size_t InIndex, void* InData) override
         {
@@ -68,38 +73,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::
 	NewDesc->bContainer = true;
 	NewDesc->bPointerElements = false;
 
-    if constexpr (std::is_same_v<int, Type>)
-    {
-        NewDesc->Type = EType::Int;
-    }
-    else if constexpr (std::is_same_v<float, Type>)
-    {
-        NewDesc->Type = EType::Float;
-    }
-    else if constexpr (std::is_same_v<double, Type>)
-    {
-        NewDesc->Type = EType::Double;
-    }
-    else if constexpr (std::is_same_v<::Vec2, Type>)
-    {
-        NewDesc->Type = EType::Vec2;
-    }
-    else if constexpr (std::is_same_v<::Vec3, Type>)
-    {
-        NewDesc->Type = EType::Vec3;
-    }
-    else if constexpr (std::is_same_v<::Vec4, Type>)
-    {
-        NewDesc->Type = EType::Vec4;
-    }
-    else if constexpr (std::is_same_v<string, Type> || std::is_same_v<wstring, Type>)
-    {
-        NewDesc->Type = EType::String;
-    }
-    else if constexpr (std::is_fundamental_v<Type> == false)
-    {
-        //NewDesc->TypeDesc = &Type::GetTypeDescStatic();
-    }
+    SetType<Type>(NewDesc);
 
 	//cout << "Make Vec Prop NonPointer" << endl;
 
@@ -110,8 +84,63 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::
 template <class Owner, class T>
 static FPropertyDesc* MakeProp(const std::string& InName, std::vector<std::shared_ptr<T>> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
 {
-    //return MakeProp(vector<T>(), InName, MemPtr);
-    return nullptr;
+    struct FContainerDescImple : public FContainerPropertyDesc
+    {
+        FContainerDescImple(std::vector<std::shared_ptr<T>> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
+            : TestMemPtr(MemPtr), Func(InFunc)
+        {
+        }
+        std::vector<std::shared_ptr<T>> Owner::* TestMemPtr;
+        std::function<void(Owner* InObject)> Func;
+
+        virtual void Resize(void* InObject, const size_t InSize) override
+        {
+            ((Owner*)InObject->*TestMemPtr).resize(InSize);
+        }
+
+        virtual size_t GetNum(void* InObject) const override
+        {
+            return ((Owner*)InObject->*TestMemPtr).size();
+        }
+
+        virtual void* Get(void* InObject, const size_t InIndex) override
+        {
+            if (((Owner*)InObject->*TestMemPtr)[InIndex])
+            {
+                return ((Owner*)InObject->*TestMemPtr)[InIndex].get();
+            }
+
+            return nullptr;
+        }
+
+        virtual void* GetAsVoid(const void* InObject) override
+        {
+            return &((Owner*)InObject->*TestMemPtr);
+        }
+
+        virtual void Set(void* InObject, const size_t InIndex, void* InData) override
+        {
+            //((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<T*>(InData);
+            //if (Func)
+            //{
+            //    Func((Owner*)InObject);
+            //}
+        }
+    };
+
+    using Type = T;
+
+    std::function<void(Owner* InObject)> Func = InFunc;
+    FPropertyDesc* NewDesc = new FContainerDescImple(MemPtr, Func);
+    NewDesc->Name = InName;
+    NewDesc->Size = sizeof(T);
+    //NewDesc->Offset = InOffset;
+    NewDesc->bContainer = true;
+    NewDesc->bPointerElements = false;
+
+    SetType<Type>(NewDesc);
+
+    return NewDesc;
 }
 
 template <class Owner, class T>
