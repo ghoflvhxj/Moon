@@ -5,7 +5,6 @@
 #include "MainGameSetting.h"
 
 #include "GraphicDevice.h"
-#include "TextureSetter.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "ConstantBuffer.h"
@@ -18,7 +17,6 @@
 
 #include "MainGame.h"
 
-#include "Texture.h"
 #include "PrimitiveComponent.h"
 #include "DynamicMeshComponent.h"
 

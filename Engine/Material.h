@@ -3,6 +3,7 @@
 #include "Include.h"
 #include "Vertex.h"
 #include "Shader.h"
+#include "Texture.h"
 
 class MVertexBuffer;
 class MIndexBuffer;
@@ -12,7 +13,7 @@ class MShader;
 class VertexShader;
 class PixelShader;
 
-class MTexture;
+//class MTexture;
 class MPrimitiveComponent;
 class DynamicMeshComponent;
 
@@ -95,4 +96,15 @@ public:
     //    REFLECT_FIELD(bUseAlpha),
     //    REFLECT_FIELD(bAlphaMask)
     //);
+    REFLECT_TOP(
+        MMaterial,
+        PROPERTY(_vertexShaderFileName),
+        PROPERTY(_pixelShaderFileName),
+        PROPERTY(_textureList),
+        PROPERTY(_eTopology),
+        PROPERTY(_eFillMode),
+        PROPERTY(_eCullMode),
+        PROPERTY(bUseAlpha),
+        PROPERTY(bAlphaMask)
+    )
 };

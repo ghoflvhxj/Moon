@@ -37,4 +37,9 @@ public:
     //    MTexture,
     //    REFLECT_FIELD(Path)
     //)
+
+    REFLECT_TOP(
+        MTexture,
+        PROPERTY(Path)
+    )
 };

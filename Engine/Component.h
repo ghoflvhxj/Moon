@@ -15,10 +15,5 @@ public:
 private:
 	std::weak_ptr<Actor> _pOwningActor;
 
-    //OBJECT(Component);
-    //REFLECTABLE(
-    //    Component
-    //);
-
     REFLECT_TOP(Component);
 };
