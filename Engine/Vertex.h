@@ -82,19 +82,34 @@ namespace Graphic
 			inputDescVector.assign(std::begin(inputDesc), std::end(inputDesc));
 		}
 
-        // 가상함수 등이 추가되면 vptr때문에 사이즈가 달라짐...
+        // 가상함수 등이 추가되면 vtable때문에 사이즈가 달라짐...
         //REFLECT_TOP(
         //    VERTEX_COMMON, 
-        //    PROPERTY(Pos),             
-        //    PROPERTY(Color),
-        //    PROPERTY(Tex0),
-        //    PROPERTY(Normal),
-        //    PROPERTY(Tangent),
-        //    PROPERTY(Binormal),
-        //    PROPERTY(BlendIndex),
-        //    PROPERTY(BlendWeight)
         //);
 	};
+}
+
+// VERTEX_COMMON 리플렉션
+template <>
+static const FTypeDesc* GetTypeDesc<Graphic::VERTEX_COMMON>()
+{
+    static FTypeDesc NewTypeDesc = {
+        nullptr,
+        "VERTEX_COMMON",
+        sizeof(Graphic::VERTEX_COMMON),
+        {
+            MakeProp("Pos", &Graphic::VERTEX_COMMON::Pos, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
+            MakeProp("Color", &Graphic::VERTEX_COMMON::Color, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
+            MakeProp("Tex0", &Graphic::VERTEX_COMMON::Tex0, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
+            MakeProp("Normal", &Graphic::VERTEX_COMMON::Normal, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
+            MakeProp("Tangent", &Graphic::VERTEX_COMMON::Tangent, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
+            MakeProp("Binormal", &Graphic::VERTEX_COMMON::Binormal, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
+            MakeProp("BlendIndex", &Graphic::VERTEX_COMMON::BlendIndex, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
+            MakeProp("BlendWeight", &Graphic::VERTEX_COMMON::BlendWeight, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
+        }
+    };
+
+    return &NewTypeDesc;
 }
 
 using Vertex	= Graphic::VERTEX_COMMON;
