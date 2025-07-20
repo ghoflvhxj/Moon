@@ -94,7 +94,7 @@ const bool DirectInput::mousePress(const MOUSEBUTTON eMouseButton)
 
 const LONG DirectInput::mouseMove(const MOUSEAXIS eMouseAxis)
 {
-	return bFocused == true ? *(((LONG *)&_mouseState) + static_cast<LONG>(eMouseAxis)) : 0.0;
+	return bFocused == true ? *(((LONG *)&_mouseState) + static_cast<LONG>(eMouseAxis)) : 0;
 }
 
 const bool InputManager::keyDown(unsigned char key)

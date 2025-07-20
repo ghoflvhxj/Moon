@@ -247,33 +247,48 @@ void Player::JsonSaveTest(bool bPretty)
     MJsonSerializer Serializer;
 
     std::wstring Path = TEXT("D:\\Git\\Moon\\Client\\test.json");
-    // 정점 배열 저장 테스트
-    //Test t;
+
+    // ----------------------------------------  Vec3 배열 저장 테스트
+    //struct FTest
+    //{
+    //    Vec3 Vertices[2];
+
+    //    REFLECT_TOP(
+    //        FTest,
+    //        PROPERTY(Vertices)
+    //    );
+    //};
+    //FTest t;
+    //t.Vertices[0] = { 1.f, 2.f, 3.f };
+    //t.Vertices[1] = { 5.f, 6.f, 7.f };
+    //Serializer.Serialize(t, Path, bPretty);
+
+    // ----------------------------------------  정점 배열 저장 테스트
+    //struct FTest
+    //{
+    //    Vertex Vertices[2];
+
+    //    REFLECT_TOP(
+    //        FTest,
+    //        PROPERTY(Vertices)
+    //    );
+    //};
+    //FTest t;
     //t.Vertices[0].Pos = { 1.f, 2.f, 3.f, 4.f };
     //t.Vertices[1].Pos = { 5.f, 6.f, 7.f, 8.f };
     //Serializer.Serialize(t, Path, bPretty);
     
-    // 단일 메시 저장 테스트
-    //Serializer.Serialize(*_pStaticMeshComponent2->getStaticMesh()->GetMeshData(0), Path, bPretty);
+    // ---------------------------------------- 단일 메시 저장 테스트
+    //Serializer.Serialize(*_pStaticMeshComponent2->GetMesh()->GetMeshData(0), Path, bPretty);
      
-    // 메시 저장 테스트
-    //Serializer.Serialize(*_pStaticMeshComponent2->getStaticMesh(), Path, bPretty);
+    // ---------------------------------------- 메시 저장 테스트
+    //Serializer.Serialize(_pStaticMeshComponent2->GetMesh(), Path, bPretty);
 
-    //Serializer.Serialize(*CharacterMeshComponent->getDynamicMesh());
+    //Serializer.Serialize(CharacterMeshComponent->GetDynamicMesh(), Path, bPretty);
 
-    // FBX를 로드해서 Json으로 저장
+    // ---------------------------------------- FBX를 로드해서 Json으로 저장
     //MFBXLoader FbxLoader;
-    //FbxLoader.SaveJsonAsset(TEXT("2B/2B.fbx"));
-
-    // 수정한 메시를 Json으로 저장
-    //Serializer.Serialize(CharacterMeshComponent->GetDynamicMesh(), TEXT("2B/2B.json"), false);
-    //for (auto& Mat : CharacterMeshComponent->GetDynamicMesh()->getMaterials())
-    //{
-    //    std::wstring Path = TEXT("2B/") + Mat->GetName() + TEXT(".json");
-
-    //    MJsonSerializer MatSerializer;
-    //    MatSerializer.Serialize(Mat, Path, true);
-    //}
+    //FbxLoader.SaveJsonAsset(TEXT("Lantern/Lantern.fbx"));
 }
 
 void Player::JsonLoadTest()

@@ -727,8 +727,8 @@ void MJoltPhysicsObject::SetVelocity(const ::Vec3& InVelocity)
         {
             // InvMass 0인 점들에 속도를 설정하는 방법 ---------------------------------------------------------------------------------------
             SoftBodyMotionProperties* motionProperties = static_cast<SoftBodyMotionProperties*>(body.GetMotionProperties());
-            size_t Num = motionProperties->GetVertices().size();
-            for (size_t i = 0; i < Num; ++i)
+            uint32 Num = GetSize(motionProperties->GetVertices());
+            for (uint32 i = 0; i < Num; ++i)
             {
                 auto& Vtx = motionProperties->GetVertex(i);
                 if (Vtx.mInvMass == 0.f)
@@ -763,10 +763,7 @@ void MJoltPhysicsObject::SetAngularVelocity(const ::Vec3& InVelocity)
 JPH::Body& MJoltPhysicsObject::GetBody()
 {
     BodyLockWrite lock(GetPhysicsSystem()->GetBodyLockInterface(), BodyIDCache);
-    if (lock.Succeeded())
-    {
-        return lock.GetBody();
-    }
+    return lock.GetBody();
 }
 
 uint32 MJoltPhysicsObject::GetVertexIndex(const ::Vec3& Pos)

@@ -349,7 +349,7 @@ const bool GraphicDevice::buildSamplerState()
 	auto CreateSamplerLambda = [this](D3D11_SAMPLER_DESC& samplerDesc)
 	{
 		ID3D11SamplerState* pSamplerState = nullptr;
-		FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState), false);
+        FAILED_CHECK(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState));
 		Samplers.emplace_back(pSamplerState);
 	};
 

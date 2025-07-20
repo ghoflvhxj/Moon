@@ -242,11 +242,6 @@ void MainGame::Pick()
 
         HitData.HitComponent = HitPrimitiveData.PrimitiveComponent;
         HitData.Distance = MinDistance;
-        //auto& Fields = MeshComponent->GetFieldsss();
-        //for (auto& Field : Fields)
-        //{
-        //    std::cout << Field->Name << std::endl;
-        //}
     }
 }
 

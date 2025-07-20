@@ -50,16 +50,13 @@ const bool MyGame::initialize()
 
 	_pPlayer = CreateActor<Player>(this);
 
-    LanternActor = CreateActor<MStaticMeshActor>(this);
-    LanternActor->GetStaticMeshCompoent()->SetPhysicsType(EPhysicsType::Dynamic);
-    LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));
-    LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-    //LanternActor->SetStaticMesh(TEXT("Base/Box.fbx"));
-    //LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.1f, 0.1f, 0.1f });
-    LanternActor->GetStaticMeshCompoent()->SetDrawCollision(true);
-    //LanternActor->GetStaticMeshCompoent()->setTranslation(5.f, 0.f, 0.f);
+    //LanternActor = CreateActor<MStaticMeshActor>(this);
+    //LanternActor->GetStaticMeshCompoent()->SetPhysicsType(EPhysicsType::Dynamic);
+    //LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));
+    //LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+    //LanternActor->GetStaticMeshCompoent()->SetDrawCollision(true);
     //LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
-    LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
+    //LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
     //LanternActor->GetStaticMeshCompoent()->RemovePhysics();
 
     //ClothActor = CreateActor<MStaticMeshActor>(this);
@@ -249,9 +246,7 @@ void MyGame::render()
 
     if (std::shared_ptr<Component> HitComponent = HitData.HitComponent.lock())
     {
-        auto TypeDesc = HitComponent->GetTypeDesc();
-
-        const FTypeDesc* Current = &TypeDesc;
+        const FTypeDesc* Current = HitComponent->GetTypeDesc();
         while (Current)
         {
             if (ImGui::CollapsingHeader(Current->Name.c_str()))

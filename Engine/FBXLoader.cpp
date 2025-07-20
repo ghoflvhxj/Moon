@@ -495,7 +495,7 @@ void MFBXLoader::linkMaterial(FbxNode *pNode)
 		}
 
         int SceneMaterialNum = _pScene->GetMaterialCount();
-		for (uint32 i = 0; i < SceneMaterialNum; ++i)
+		for (int i = 0; i < SceneMaterialNum; ++i)
 		{
 			if (MeshMaterial == _pScene->GetMaterial(static_cast<int>(i)))
 			{
