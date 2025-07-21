@@ -29,14 +29,14 @@ public:
 	const Vec3&	getColor(void) const;
 	void		setColor(const Vec3 &color);
 private:
-	Vec3		_color;
+	Vec3 Color;
 
 public:
 	void		addIntensity(const float addIntensity);
 	void		setIntensity(const float intensity);
 	const float	getIntensity();
 private:
-	float	_intensity;
+	float Intensity;
 
 public:
 	void show();
@@ -46,10 +46,18 @@ public:
 	const bool isHidden() const;
 	const bool isShown() const;
 private:
-	bool _shown;
+	bool bShow;
 
 protected:
 	std::shared_ptr<StaticMesh> getMesh() { return _pStaticMesh; }
 private:
 	std::shared_ptr<StaticMesh> _pStaticMesh;
+
+    REFLECT(
+        MLightComponent,
+        PROPERTY(Color),
+        PROPERTY(Direction),
+        PROPERTY(Intensity),
+        PROPERTY(bShow)
+    )
 };

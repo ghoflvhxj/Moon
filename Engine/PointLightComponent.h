@@ -4,11 +4,11 @@
 
 struct FPrimitiveData;
 
-class ENGINE_DLL PointLightComponent : public MLightComponent
+class ENGINE_DLL MPointLightComponent : public MLightComponent
 {
 public:
-	explicit PointLightComponent(void);
-	virtual ~PointLightComponent(void);
+	explicit MPointLightComponent(void);
+	virtual ~MPointLightComponent(void);
 
 public:
 	virtual void Update(const Time deltaTime) override;
@@ -19,5 +19,10 @@ public:
 	void		setRange(const float range);
 	const float	getRange() const;
 private:
-	float	_range;
+	float Range;
+
+    REFLECT(
+        MPointLightComponent,
+        PROPERTY(Range)
+    )
 };

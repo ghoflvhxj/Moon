@@ -7,18 +7,18 @@
 
 using namespace DirectX;
 
-PointLightComponent::PointLightComponent(void)
+MPointLightComponent::MPointLightComponent(void)
 	: MLightComponent()
-	, _range{ 1.f }
+	, Range{ 1.f }
 {
 	getMesh()->getMaterial(0)->setShader(TEXT("Light.cso"), TEXT("PointLightShader.cso"));
 }
 
-PointLightComponent::~PointLightComponent(void)
+MPointLightComponent::~MPointLightComponent(void)
 {
 }
 
-void PointLightComponent::Update(const Time deltaTime)
+void MPointLightComponent::Update(const Time deltaTime)
 {
 	MPrimitiveComponent::Update(deltaTime);
 
@@ -38,7 +38,7 @@ void PointLightComponent::Update(const Time deltaTime)
 	XMStoreFloat4x4(&LightWorldMatrix, matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
 }
 
-const bool PointLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
+const bool MPointLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
 	MLightComponent::GetPrimitiveData(primitiveDataList);
     primitiveDataList[0].PrimitiveType = EPrimitiveType::PointLight;
@@ -46,17 +46,17 @@ const bool PointLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &pr
 	return true;
 }
 
-void PointLightComponent::addRange(float addRange)
+void MPointLightComponent::addRange(float addRange)
 {
-	_range += addRange;
+	Range += addRange;
 }
 
-void PointLightComponent::setRange(float range)
+void MPointLightComponent::setRange(float range)
 {
-	_range = range;
+	Range = range;
 }
 
-const float PointLightComponent::getRange() const
+const float MPointLightComponent::getRange() const
 {
-	return _range;
+	return Range;
 }

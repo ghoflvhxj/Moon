@@ -8,10 +8,10 @@ using namespace DirectX;
 
 MLightComponent::MLightComponent(void)
 	: MPrimitiveComponent()
-    , Direction     {VEC3ZERO}
-	, _color		{ 1.f, 1.f, 1.f }
-	, _intensity	{ 1.f }
-	, _shown		{ true }
+    , Direction { VEC3ZERO }
+	, Color	{ 1.f, 1.f, 1.f }
+	, Intensity { 1.f }
+	, bShow { true }
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
 	_pStaticMesh->LoadFromFBX(TEXT("Base/Plane.fbx"));
@@ -55,37 +55,37 @@ Mat4& MLightComponent::getWorldMatrix()
 
 const Vec3& MLightComponent::getColor(void) const
 {
-	return _color;
+	return Color;
 }
 
 void MLightComponent::setColor(const Vec3 &color)
 {
-	_color = color;
+	Color = color;
 }
 
 void MLightComponent::addIntensity(const float addIntensity)
 {
-	_intensity += addIntensity;
+	Intensity += addIntensity;
 }
 
 void MLightComponent::setIntensity(const float intensity)
 {
-	_intensity = intensity;
+	Intensity = intensity;
 }
 
 const float MLightComponent::getIntensity()
 {
-	return _intensity;
+	return Intensity;
 }
 
 void MLightComponent::show()
 {
-	_shown = true;
+	bShow = true;
 }
 
 void MLightComponent::hide()
 {
-	_shown = false;
+	bShow = false;
 }
 
 void MLightComponent::toggle()
@@ -95,10 +95,10 @@ void MLightComponent::toggle()
 
 const bool MLightComponent::isHidden() const
 {
-	return _shown == false;
+	return bShow == false;
 }
 
 const bool MLightComponent::isShown() const
 {
-	return _shown == true;
+	return bShow == true;
 }
