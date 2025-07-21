@@ -336,6 +336,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
         switch (Prop->Type)
         {
         case EType::Int:
+        case EType::Enum:
         {
             int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject);
             //cout << Temp << endl;
