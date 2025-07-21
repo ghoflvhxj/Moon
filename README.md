@@ -12,3 +12,7 @@ DirectX 11을 이용해 렌더링 기능을 구현하는 것, 2B의 머리카락
 - NVIDIA PhysX를 이용한 물리 시뮬레이션 -> JoltPhysics로 변경 되었습니다.
 ![PhysX](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/PhysX.gif)
 ![JoltPhysics](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/JoltPhysics.webp)
+- 리플렉션 기능을 구현해 UI를 통해 속성을 제어, Json 저장&로드를 구현
+![Reflection1](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/Reflection_1.webp)
+![Reflection2](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/Reflection_2.webp)
+![Reflection3](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/JsonLoad.webp)
