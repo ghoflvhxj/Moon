@@ -365,7 +365,7 @@ std::wstring MFBXLoader::GetMaterialIName(uint32 Index)
         }
     }
 
-    return TEXT("");
+    return TEXT("DefulatMaterial");
 }
 
 const uint32 MFBXLoader::GetTotalVertexNum() const
