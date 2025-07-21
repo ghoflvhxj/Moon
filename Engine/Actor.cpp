@@ -38,6 +38,16 @@ void Actor::tick(const Time deltaTime)
 {
 }
 
+const Vec3& Actor::GetWorldTranslation()
+{
+    if (auto& RootComp = getComponent(ROOT_COMPONENT))
+    {
+        return RootComp->getWorldTranslation();
+    }
+
+    return VEC3ZERO;
+}
+
 std::shared_ptr<SceneComponent> Actor::getComponent(const wchar_t componentName[])
 {
 	std::shared_ptr<SceneComponent> pComponent = nullptr;
