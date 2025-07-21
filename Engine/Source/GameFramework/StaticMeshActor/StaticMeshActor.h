@@ -11,7 +11,7 @@ public:
 
 public:
     void SetStaticMesh(const std::wstring& Path);
-    std::shared_ptr<StaticMeshComponent> GetStaticMeshCompoent() { return StaticMeshComp; }
+    std::shared_ptr<StaticMeshComponent>& GetStaticMeshCompoent() { return StaticMeshComp; }
 protected:
     std::shared_ptr<StaticMeshComponent> StaticMeshComp = nullptr;
 };

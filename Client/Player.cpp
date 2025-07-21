@@ -67,7 +67,7 @@ void Player::initialize()
     addComponent(TEXT("test2"), _pStaticMeshComponent2);
 
     LoadedMeshComponent = std::make_shared<StaticMeshComponent>();
-    //LoadedMeshComponent->setScale(Vec3(0.01f, 0.01f, 0.01f));
+    LoadedMeshComponent->setScale(Vec3(0.01f, 0.01f, 0.01f));
     addComponent(TEXT("Load"), LoadedMeshComponent);
 
 #if UsePointLight == 1
@@ -248,6 +248,21 @@ void Player::JsonSaveTest(bool bPretty)
 
     std::wstring Path = TEXT("D:\\Git\\Moon\\Client\\test.json");
 
+    // ----------------------------------------  int 배열 저장 테스트
+    //struct FTest
+    //{
+    //    int Arr[2];
+
+    //    REFLECT_TOP(
+    //        FTest,
+    //        PROPERTY(Arr)
+    //    )
+    //};
+    //FTest t;
+    //t.Arr[0] = 1;
+    //t.Arr[1] = 10;
+    //Serializer.Serialize(t, Path, bPretty);
+
     // ----------------------------------------  Vec3 배열 저장 테스트
     //struct FTest
     //{
@@ -282,34 +297,71 @@ void Player::JsonSaveTest(bool bPretty)
     //Serializer.Serialize(*_pStaticMeshComponent2->GetMesh()->GetMeshData(0), Path, bPretty);
      
     // ---------------------------------------- 메시 저장 테스트
-    //Serializer.Serialize(_pStaticMeshComponent2->GetMesh(), Path, bPretty);
+    Serializer.Serialize(_pStaticMeshComponent2->GetMesh(), Path, bPretty);
 
+    // ---------------------------------------- 
     //Serializer.Serialize(CharacterMeshComponent->GetDynamicMesh(), Path, bPretty);
 
     // ---------------------------------------- FBX를 로드해서 Json으로 저장
-    //MFBXLoader FbxLoader;
-    //FbxLoader.SaveJsonAsset(TEXT("Lantern/Lantern.fbx"));
+    MFBXLoader FbxLoader;
+    FbxLoader.SaveJsonAsset(TEXT("Table/table.fbx"));
 }
 
 void Player::JsonLoadTest()
 {
     MJsonDeserializer Deserializer;
+    std::wstring Path = TEXT("D:\\Git\\Moon\\Client\\test.json");
 
-    std::wstring Path = TEXT("D:/Git/Moon/Client/Table/Table.json");
+    // ----------------------------------------  int 배열 저장 테스트
+    //struct FTest
+    //{
+    //    int Arr[2];
 
-    // 정점 배열 저장 테스트
-    //Test t;
-    //MJsonDeserializer Deserializer;
+    //    REFLECT_TOP(
+    //        FTest,
+    //        PROPERTY(Arr)
+    //    )
+    //};
+    //FTest t;
     //Deserializer.Deserialize(t, Path);
 
-    // 단일 메시 저장 테스트
+    // ----------------------------------------  Vec3 배열 저장 테스트
+    //struct FTest
+    //{
+    //    Vec3 Vertices[2];
+
+    //    REFLECT_TOP(
+    //        FTest,
+    //        PROPERTY(Vertices)
+    //    );
+    //};
+    //FTest t;
+    //Deserializer.Deserialize(t, Path);
+ 
+    // ----------------------------------------  정점 배열 저장 테스트
+    //struct FTest
+    //{
+    //    Vertex Vertices[2];
+
+    //    REFLECT_TOP(
+    //        FTest,
+    //        PROPERTY(Vertices)
+    //    );
+    //};
+    //FTest t;
+    //Deserializer.Deserialize(t, Path);
+
+    // ---------------------------------------- 단일 메시 저장 테스트
     //FMeshData MeshData;
     //Deserializer.Deserialize(MeshData, Path);
 
     // 메시 저장 테스트
-    //Deserializer.Deserialize(*LoadedMeshComponent->getStaticMesh(), Path);
+    Deserializer.Deserialize(*LoadedMeshComponent->GetMesh(), Path);
+    LoadedMeshComponent->GetMesh()->LoadFromAsset(Path);
 
-    LoadedMeshComponent->SetMesh(TEXT("2B/2B.json"));
+    //LoadedMeshComponent->SetMesh(Path);
+
+    std::cout << "Deserialize Finished" << std::endl;
 }
 
 //void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)

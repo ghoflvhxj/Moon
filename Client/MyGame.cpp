@@ -242,6 +242,9 @@ void MyGame::render()
     if(DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
     {
         DynamicMeshComp->Clothing();
+        FMeshData a;
+        static_cast<FContainerPropertyDesc*>(a.GetTypeDesc()->Properties[0])->Resize(&a, 10000);
+        static_cast<FContainerPropertyDesc*>(a.GetTypeDesc()->Properties[1])->Resize(&a, 10000);
     }
 
     if (std::shared_ptr<Component> HitComponent = HitData.HitComponent.lock())
@@ -268,7 +271,6 @@ void MyGame::render()
             Current = Current->Parent;
         }
     }
-
 
 	ImGui::End();
 
@@ -365,13 +367,8 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
         break;
         case EType::Bool:
         {
-            bool Temp = static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject);
-            bool Prev = Temp;
+            bool &Temp = static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject);
             ImGui::Checkbox(Prop->Name.c_str(), &Temp);
-            if (Temp != Prev)
-            {
-                static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Set(InObject, Temp);
-            }
         }
         break;
         case EType::Vec3:

@@ -7,6 +7,7 @@
 using Byte		= unsigned char;
 using uint8		= unsigned char;
 using uint32	= unsigned int;
+using uint64    = unsigned long long;
 using int32		= int;
 
 using Frame		= unsigned int;
