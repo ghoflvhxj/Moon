@@ -23,9 +23,7 @@
 using namespace Graphic;
 
 MMaterial::MMaterial()
-	: _vertexShader{ nullptr }
-	, _pixelShader{ nullptr }
-	, _textureList(EnumToIndex(ETextureType::End), nullptr)
+	: _textureList(EnumToIndex(ETextureType::End), nullptr)
 	, _eTopology{ D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST }
 	, _eFillMode{ FillMode::Solid }
 	, _eCullMode{ CullMode::Backface }
@@ -75,28 +73,32 @@ void MMaterial::SetTexturesToDevice()
 
 std::shared_ptr<MShader> MMaterial::getVertexShader()
 {
-	return _vertexShader;
+    std::shared_ptr<VertexShader>	_vertexShader;
+	ShaderManager->getVertexShader(_vertexShaderFileName.c_str(), _vertexShader);
+    return _vertexShader;
 }
 
 std::shared_ptr<MShader> MMaterial::getPixelShader()
 {
-	return _pixelShader;
+    std::shared_ptr<PixelShader>	_pixelShader;
+	ShaderManager->getPixelShader(_pixelShaderFileName.c_str(), _pixelShader);
+    return _pixelShader;
 }
 
 void MMaterial::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
 {
 	ClearShader();
 
-	if (false == ShaderManager->getVertexShader(vertexShaderFileName, _vertexShader))
-	{
-		return;
-	}
+	//if (false == ShaderManager->getVertexShader(vertexShaderFileName, _vertexShader))
+	//{
+	//	return;
+	//}
 	_vertexShaderFileName = vertexShaderFileName;
 
-	if (false == ShaderManager->getPixelShader(pixelShaderFileName, _pixelShader))
-	{
-		return;
-	}
+	//if (false == ShaderManager->getPixelShader(pixelShaderFileName, _pixelShader))
+	//{
+	//	return;
+	//}
 	_pixelShaderFileName = pixelShaderFileName;
 }
 
@@ -146,26 +148,50 @@ const Graphic::CullMode MMaterial::getCullMode() const
 	return _eCullMode;
 }
 
-std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const ShaderType shaderType, const uint32 index)
+std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const ShaderType InShaderType, const uint32 index)
 {
-	return getConstantBufferVariables(shaderType, static_cast<EConstantBufferLayer>(index));
+	return getConstantBufferVariables(InShaderType, static_cast<EConstantBufferLayer>(index));
 }
 
-std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const ShaderType shaderType, const EConstantBufferLayer layer)
+std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer)
 {
-	size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
-	std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
-	shaders[CastValue<uint32>(ShaderType::Vertex)] = _vertexShader;
-	shaders[CastValue<uint32>(ShaderType::Pixel)] = _pixelShader;
+	//size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
+	//std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
+	//shaders[CastValue<uint32>(ShaderType::Vertex)] = _vertexShader;
+	//shaders[CastValue<uint32>(ShaderType::Pixel)] = _pixelShader;
 
-	uint32 shaderTypeIndex = static_cast<uint32>(shaderType);
-	if (shaders[shaderTypeIndex] == nullptr)
-	{
-		static std::vector<FShaderVariable> Dummy;
-		return Dummy;
-	}
+	//uint32 shaderTypeIndex = static_cast<uint32>(shaderType);
+	//if (shaders[shaderTypeIndex] == nullptr)
+	//{
+	//	static std::vector<FShaderVariable> Dummy;
+	//	return Dummy;
+	//}
 
-	return shaders[shaderTypeIndex]->GetVariables()[CastValue<uint32>(layer)];
+	//return shaders[shaderTypeIndex]->GetVariables()[CastValue<uint32>(layer)];
+
+    std::shared_ptr<MShader> Shader = nullptr;
+
+    switch (InShaderType)
+    {
+    case ShaderType::Vertex:
+    {
+        Shader = getVertexShader();
+        break;
+    }
+    case ShaderType::Pixel:
+    {
+        Shader = getPixelShader();
+        break;
+    }
+    }
+
+    if (Shader == nullptr)
+    {
+        static std::vector<FShaderVariable> Dummy;
+        return Dummy;
+    }
+
+    return Shader->GetVariables()[CastValue<uint32>(layer)];
 }
 
 const bool MMaterial::IsTextureTypeUsed(const ETextureType type)

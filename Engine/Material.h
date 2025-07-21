@@ -46,8 +46,8 @@ private:
 private:
 	std::wstring _vertexShaderFileName;
 	std::wstring _pixelShaderFileName;
-	std::shared_ptr<VertexShader>	_vertexShader;
-	std::shared_ptr<PixelShader>	_pixelShader; 
+	//std::shared_ptr<VertexShader>	_vertexShader;
+	//std::shared_ptr<PixelShader>	_pixelShader; 
 
 public:
 	void setTexture(const ETextureType textureType, std::shared_ptr<MTexture> pTexture);
@@ -77,25 +77,14 @@ private:
 	bool bAlphaMask;
 
 public:
-	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType shaderType, const EConstantBufferLayer layer);
-	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType shaderType, const uint32 index);
+	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer);
+	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType InShaderType, const uint32 index);
 	
 	// 유틸리티	함수들
 public:
 	const bool IsTextureTypeUsed(const ETextureType type);
 
 public:
-    //REFLECTABLE(
-    //    MMaterial,
-    //    REFLECT_FIELD(_vertexShaderFileName),
-    //    REFLECT_FIELD(_pixelShaderFileName),
-    //    REFLECT_FIELD(_textureList),
-    //    REFLECT_FIELD(_eTopology),
-    //    REFLECT_FIELD(_eFillMode),
-    //    REFLECT_FIELD(_eCullMode),
-    //    REFLECT_FIELD(bUseAlpha),
-    //    REFLECT_FIELD(bAlphaMask)
-    //);
     REFLECT_TOP(
         MMaterial,
         PROPERTY(_vertexShaderFileName),
