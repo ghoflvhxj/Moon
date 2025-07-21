@@ -13,15 +13,16 @@ struct FTypeDesc;
 struct FPropertyDesc
 {
 	std::string Name;
-	size_t Offset;
-	size_t Size;
-	size_t Num;
-	EType Type;
+	size_t Offset = 0;
+	size_t Size = 0;
+	size_t Num = 0;
+	EType Type = EType::None;
 
 	// 프로퍼티가 vector, map 같은 컨테이너 인지?
-	bool bContainer;
+	bool bContainer = false;
+
 	// 프로퍼티가 포인터를 저장하는 컨테이너 인지?
-	bool bPointerElements;
+	bool bPointerElements = false;
 
 	const FTypeDesc* TypeDesc = nullptr;
 
