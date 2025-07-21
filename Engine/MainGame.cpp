@@ -188,6 +188,7 @@ void MainGame::Pick()
     //std::shared_ptr<FMeshData> HitMesh = nullptr;
     FPrimitiveData HitPrimitiveData;
     float MinDistance = FLT_MAX;
+    XMVECTOR HitPos = XMVectorZero();
 
     const auto& MeshPrimitives = g_pRenderer->GetRenderablePrimitiveData();
     for (auto& PrimitiveData : MeshPrimitives)
@@ -197,7 +198,9 @@ void MainGame::Pick()
             continue;
         }
 
-        XMMATRIX InverseWorldMat = XMLoadFloat4x4(&PrimitiveData.PrimitiveComponent.lock()->GetInverseWorldMatrix());
+        std::shared_ptr<MPrimitiveComponent> PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock();
+
+        XMMATRIX InverseWorldMat = XMLoadFloat4x4(&PrimitiveComponent->GetInverseWorldMatrix());
         XMVECTOR Start = XMVector3TransformCoord(NearWorldPos, InverseWorldMat);
         XMVECTOR End = XMVector3TransformCoord(FarWorldPos, InverseWorldMat);
         XMVECTOR Dir = XMVector3Normalize(End - Start);
@@ -214,16 +217,21 @@ void MainGame::Pick()
 
         for (uint32 i = 0; i < Loop; ++i)
         {
-            float Distance = 0.f;
-            if (TriangleTests::Intersects(Start, Dir, Lambda(Vertices[Indices[i * 3 + 0]].Pos), Lambda(Vertices[Indices[i * 3 + 1]].Pos), Lambda(Vertices[Indices[i * 3 + 2]].Pos), Distance))
+            float LocalDistance = 0.f;
+            if (TriangleTests::Intersects(Start, Dir, Lambda(Vertices[Indices[i * 3 + 0]].Pos), Lambda(Vertices[Indices[i * 3 + 1]].Pos), Lambda(Vertices[Indices[i * 3 + 2]].Pos), LocalDistance))
             {
-                if (Distance > MinDistance)
+                XMVECTOR LocalHitPos = Start + (Dir * LocalDistance);
+                XMVECTOR WorldHitPos = XMVector3TransformCoord(LocalHitPos, XMLoadFloat4x4(&PrimitiveComponent->getWorldMatrix()));
+
+                float WorldDistance = XMVectorGetX(XMVector3Length(WorldHitPos - NearWorldPos));
+                if (WorldDistance > MinDistance)
                 {
                     continue;
                 }
 
                 HitPrimitiveData = PrimitiveData;
-                MinDistance = Distance;
+                MinDistance = WorldDistance;
+                HitPos = WorldHitPos;
             }
         }
     }
@@ -240,8 +248,10 @@ void MainGame::Pick()
             }
         }
 
+        // 최종적으로 HitData를 채움
         HitData.HitComponent = HitPrimitiveData.PrimitiveComponent;
         HitData.Distance = MinDistance;
+        XMStoreFloat3(&HitData.HitPos, HitPos);
     }
 }
 

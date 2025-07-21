@@ -18,6 +18,7 @@ class MPhysX;
 struct FHitData
 {
     std::weak_ptr<class Component> HitComponent;
+    Vec3 HitPos = VEC3ZERO;
     float Distance = 0.f;
 };
 
