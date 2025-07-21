@@ -15,6 +15,7 @@ public:
 	virtual size_t GetNum(void* InObject) const = 0;
 	virtual void* Get(void* InObject, const size_t InIndex) = 0;
     virtual void Set(void* InObject, const size_t InIndex, void* InData) = 0;
+    virtual void Clear (void* InObject) = 0;
 };
 
 struct FContainerPropertyDesc : public FPropertyDesc, public FContainerPropertyInterface
@@ -36,7 +37,8 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::
 
 		virtual void Resize(void* InObject, const size_t InSize) override
 		{
-			((Owner*)InObject->*TestMemPtr).resize(InSize);
+            auto& Vec = ((Owner*)InObject->*TestMemPtr);
+            Vec.resize(InSize);
 		}
 
 		virtual size_t GetNum(void* InObject) const override
@@ -61,6 +63,11 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::
             {
                 Func((Owner*)InObject);
             }
+        }
+
+        virtual void Clear(void* InObject) override
+        {
+            ((Owner*)InObject->*TestMemPtr).clear();
         }
 	};
     using Type = T;
@@ -95,7 +102,10 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<std::share
 
         virtual void Resize(void* InObject, const size_t InSize) override
         {
-            ((Owner*)InObject->*TestMemPtr).resize(InSize);
+            for (size_t i = GetNum(InObject); i < InSize; ++i)
+            {
+                ((Owner*)InObject->*TestMemPtr).push_back(std::make_shared<T>());
+            }
         }
 
         virtual size_t GetNum(void* InObject) const override
@@ -120,11 +130,16 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<std::share
 
         virtual void Set(void* InObject, const size_t InIndex, void* InData) override
         {
-            //((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<T*>(InData);
-            //if (Func)
-            //{
-            //    Func((Owner*)InObject);
-            //}
+            *((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<T*>(InData);
+            if (Func)
+            {
+                Func((Owner*)InObject);
+            }
+        }
+
+        virtual void Clear(void* InObject) override
+        {
+            ((Owner*)InObject->*TestMemPtr).clear();
         }
     };
 

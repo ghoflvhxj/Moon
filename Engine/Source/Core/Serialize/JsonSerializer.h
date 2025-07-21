@@ -5,8 +5,16 @@
 리플렉션 기능을 활용해 구현되며, 현재 컨테이너는 벡터 타입만 지원하도록 구현됨.
 
 주요 함수와 설명
+
+Serialize               - 사용자가 호출할 함수. 내부적으로 Serialize 로직이 실행됨.
+
+DispatchStruct          - 실질적으로 클래스, 구조체 같은 커스텀 자료형을 Json으로 만드는 함수
+
+DispatchContainer       - 컨테이너를 Json으로 만드는 함수
+
 ToJsonValue             - T, T*, T[N], vector<T> 를 받아 JsonValue로 만드는 함수. 
                           컴파일 타임에 T에 따라 분기하여, 즉시 JsonValue를 만들거나 SerializeCustomType을 호출함
+
 SerializeCustomType     - 커스텀 타입을 JsonValue로 만들어서 반환하는 함수.
 */
 
@@ -139,10 +147,6 @@ public:
         {
             return rapidjson::Value(InValue);
         }
-        else if constexpr (std::is_enum_v<T>)
-        {
-            return rapidjson::Value((int)InValue);
-        }
         else
         {
             return SerializeCustomType(InValue);
@@ -151,24 +155,46 @@ public:
 
     // ToJson T*
     template <class T>
-    rapidjson::Value ToJsonValue(T* InValue, uint32 Num)
+    rapidjson::Value ToJsonValue(T* InValue, uint32 Num, bool bContainer = false)
     {
-        rapidjson::Value ArrayValue(rapidjson::kArrayType);
-        if constexpr (std::is_arithmetic_v<T>)
+        if (bContainer)
         {
-            for (size_t i = 0; i < Num; ++i)
+            rapidjson::Value ObjectValue(rapidjson::kObjectType);
+            if constexpr (std::is_arithmetic_v<T>)
             {
-                ArrayValue.PushBack(rapidjson::Value(InValue[i]), Allocator);
+                for (uint32 i = 0; i < Num; ++i)
+                {
+                    ObjectValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), rapidjson::Value(InValue[i]), Allocator);
+                }
             }
+            else
+            {
+                for (uint32 i = 0; i < Num; ++i)
+                {
+                    ObjectValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), SerializeCustomType(InValue[i]), Allocator);
+                }
+            }
+            return ObjectValue;
         }
         else
         {
-            for (size_t i = 0; i < Num; ++i)
+            rapidjson::Value ArrayValue(rapidjson::kArrayType);
+            if constexpr (std::is_arithmetic_v<T>)
             {
-                ArrayValue.PushBack(SerializeCustomType(InValue[i]), Allocator);
+                for (uint32 i = 0; i < Num; ++i)
+                {
+                    ArrayValue.PushBack(rapidjson::Value(InValue[i]), Allocator);
+                }
             }
+            else
+            {
+                for (uint32 i = 0; i < Num; ++i)
+                {
+                    ArrayValue.PushBack(SerializeCustomType(InValue[i]), Allocator);
+                }
+            }
+            return ArrayValue;
         }
-        return ArrayValue;
     }
 
     // ToJson T[N]
@@ -201,16 +227,6 @@ public:
             for (size_t i = 0; i < N; ++i)
             {
                 ArrayValue.PushBack(rapidjson::Value(InValue[i]), Allocator);
-            }
-            return ArrayValue;
-        }
-        else if constexpr (std::is_enum_v<T>)
-        {
-            rapidjson::Value ArrayValue(rapidjson::kArrayType);
-            size_t N = InValue.size();
-            for (size_t i = 0; i < N; ++i)
-            {
-                ArrayValue.PushBack(rapidjson::Value((int)InValue[i]), Allocator);
             }
             return ArrayValue;
         }

@@ -1,5 +1,18 @@
 ﻿#pragma once
 
+/*
+Json을 읽어 오브젝트 데이터를 채움.
+리플렉션 기능을 활용해 구현되며, 현재 컨테이너는 벡터 타입만 지원하도록 구현됨.
+
+주요 함수와 설명
+Deserialize             - Json을 읽어 오브젝트 데이터를 채우는 함수.
+
+GetObjectFromJson       -
+                          컴파일 타임에 T에 따라 분기하여, 즉시 JsonValue를 만들거나 SerializeCustomType을 호출함
+DeserializeCustomType   - 커스텀 타입을 Json으로 부터 읽어오는 함수.
+*/
+
+
 #include "Include.h"
 
 #include "rapidjson/rapidjson.h"
@@ -8,18 +21,6 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/filereadstream.h"
-
-#include "Vertex.h"
-
-#undef GetObject
-
-//struct Test
-//{
-//    std::array<Vertex, 2> Vertices;
-//    REFLECTABLE(
-//        REFLECT_FIELD(Test, Vertices, EType::Array)
-//    );
-//};
 
 class ENGINE_DLL MJsonDeserializer
 {
@@ -31,6 +32,7 @@ protected:
     rapidjson::MemoryPoolAllocator<>& Allocator;
 
 public:
+    // 리플렉션에 등록된 클래스나 구조체를 Json으로 부터 읽어옴.
     template <class T>
     void Deserialize(T& OutObject, const std::wstring& Path)
     {
@@ -43,11 +45,8 @@ public:
 
         fclose(fp);
 
-        auto Fields = T::GetFields();
-        std::string name = Doc.FindMember(std::get<0>(std::get<0>(Fields)))->name.GetString();
-        std::apply([&](auto& ...Field) {
-            ((GetObjectFromJson(Doc.FindMember(std::get<0>(Field))->value, OutObject.*(std::get<1>(Field)))), ...);
-        }, Fields);
+        const FTypeDesc* TypeDesc = OutObject.GetTypeDesc();
+        PatchStruct(TypeDesc, &OutObject, Doc.FindMember(TypeDesc->Name)->value);
     }
 
     template <class T>
@@ -57,120 +56,19 @@ public:
     }
 
 public:
-    // 구조체, 클래스
+    void PatchStruct(const FTypeDesc* InTypeDesc, void* InObject, rapidjson::Value& InValue);
+    void PatchContainer(void* InContainer, FContainerPropertyDesc* InContainerPropDesc, rapidjson::Value& InJsonValue, void* InObject);
+
+public:
+    // 일반 타입 DeserializeCustomType. 실제로는 호출되지 않지만, 다른 특수화된 템플릿을 생성하기 위해 존재.
     template <class T>
-    void TDeserialize(rapidjson::Value& JsonValue, T& OutObject)
-    {
-        auto Fields = T::GetFields();
-        std::string name = JsonValue.FindMember(std::get<0>(std::get<0>(Fields)))->name.GetString();
-        std::apply([&](auto& ...Field) {
-            ((GetObjectFromJson(JsonValue.FindMember(std::get<0>(Field))->value, OutObject.*(std::get<1>(Field)))), ...);
-        }, Fields);
+    void DeserializeCustomType(rapidjson::Value& JsonValue, T& OutObject)
+    {  
     }
 
-    // 스마트 포인터
-    template <class T>
-    void TDeserialize(rapidjson::Value& JsonValue, std::shared_ptr<T>& OutObject)
-    {
-        TDeserialize(JsonValue, *OutObject.get());
-    }
-    
-    // 스마트 포인터 벡터
-    template <class T>
-    void TDeserialize(rapidjson::Value& JsonValue, std::vector<std::shared_ptr<T>>& OutVector)
-    {
-        if (OutVector.empty())
-        {
-            uint32 Num = JsonValue.MemberCount();
-            for (uint32 i = 0; i < Num; ++i)
-            {
-                std::shared_ptr<T> NewT = std::make_shared<T>();
-                TDeserialize(JsonValue.FindMember(std::to_string(i))->value, NewT);
-                OutVector.push_back(NewT);
-            }
-        }
-        else
-        {
-            uint32 Num = JsonValue.MemberCount();
-            for (uint32 i = 0; i < Num; ++i)
-            {
-                OutVector[i] = std::make_shared<T>();
-                TDeserialize(JsonValue.FindMember(std::to_string(i))->value, OutVector[i]);
-            }
-        }
-    }
-
-    // C배열
-    template <class T, size_t N>
-    void TDeserialize(rapidjson::Value& JsonValue, T (&OutArray)[N])
-    {
-        rapidjson::SizeType Num = static_cast<rapidjson::SizeType>(N);
-        if (JsonValue.IsArray())
-        {
-            for (rapidjson::SizeType i = 0; i < Num; ++i)
-            {
-                GetObjectFromJson(JsonValue.GetArray()[i], OutArray[i]);
-            }
-        }
-        if (JsonValue.IsObject())
-        {
-            for (rapidjson::SizeType i = 0; i < Num; ++i)
-            {
-                GetObjectFromJson(JsonValue.FindMember(std::to_string(i))->value, OutArray[i]);
-            }
-        }
-    }
-
-    // 배열
-    template <class T, size_t N>
-    void TDeserialize(rapidjson::Value& JsonValue, std::array<T, N>& ObjectArray)
-    {
-        rapidjson::SizeType Num = static_cast<rapidjson::SizeType>(N);
-        if (JsonValue.IsArray())
-        {
-            for (rapidjson::SizeType i = 0; i < N; ++i)
-            {
-                GetObjectFromJson(JsonValue.GetArray()[i], ObjectArray[i]);
-            }
-        }
-        if (JsonValue.IsObject())
-        {
-            for (rapidjson::SizeType i = 0; i < N; ++i)
-            {
-                GetObjectFromJson(JsonValue.FindMember(std::to_string(i))->value, ObjectArray[i]);
-            }
-        }
-    }
-
-    // 벡터
-    template <class T>
-    void TDeserialize(rapidjson::Value& JsonValue, std::vector<T>& ObjectVector)
-    {
-        if (JsonValue.IsArray())
-        {
-            rapidjson::SizeType ElementNum = JsonValue.GetArray().Size();
-            ObjectVector.resize(ElementNum);
-
-            for (rapidjson::SizeType i = 0; i < ElementNum; ++i)
-            {
-                GetObjectFromJson(JsonValue.GetArray()[i], ObjectVector[i]);
-            }
-        }
-        if (JsonValue.IsObject())
-        {
-            rapidjson::SizeType ElementNum = JsonValue.MemberCount();
-            ObjectVector.resize(ElementNum);
-
-            for (rapidjson::SizeType i = 0; i < ElementNum; ++i)
-            {
-                GetObjectFromJson(JsonValue.FindMember(std::to_string(i))->value, ObjectVector[i]);
-            }
-        }
-    }
-
-    // 문자열
+    // wstring
     template <>
-    void TDeserialize(rapidjson::Value& JsonValue, std::wstring& OutString)
+    void DeserializeCustomType(rapidjson::Value& JsonValue, std::wstring& OutString)
     {
         std::string temp = JsonValue.GetString();
         StringToWString(temp.c_str(), OutString);
@@ -178,7 +76,7 @@ public:
     
     // Vec2
     template <>
-    void TDeserialize(rapidjson::Value& JsonValue, Vec2& Vector)
+    void DeserializeCustomType(rapidjson::Value& JsonValue, Vec2& Vector)
     {
         Vector.x = JsonValue.GetArray()[0].GetFloat();
         Vector.y = JsonValue.GetArray()[1].GetFloat();
@@ -186,7 +84,7 @@ public:
 
     // Vec3
     template <>
-    void TDeserialize(rapidjson::Value& JsonValue, Vec3& Vector)
+    void DeserializeCustomType(rapidjson::Value& JsonValue, Vec3& Vector)
     {
         Vector.x = JsonValue.GetArray()[0].GetFloat();
         Vector.y = JsonValue.GetArray()[1].GetFloat();
@@ -195,7 +93,7 @@ public:
 
     // Vec4
     template <>
-    void TDeserialize(rapidjson::Value& JsonValue, Vec4& Vector)
+    void DeserializeCustomType(rapidjson::Value& JsonValue, Vec4& Vector)
     {
         Vector.x = JsonValue.GetArray()[0].GetFloat();
         Vector.y = JsonValue.GetArray()[1].GetFloat();
@@ -203,6 +101,7 @@ public:
         Vector.w = JsonValue.GetArray()[3].GetFloat();
     }
 
+public:
     template <class T>
     void GetObjectFromJson(rapidjson::Value& InJsonValue, T& OutObject)
     {
@@ -218,45 +117,34 @@ public:
         else
         {
             // 구조체, 클래스, 컨테이너
-            TDeserialize(InJsonValue, OutObject);
+            DeserializeCustomType(InJsonValue, OutObject);
         }
     }
 
+    // T*, T[N]
     template <class T>
-    void GetObjectFromJson(rapidjson::Value& InJsonValue, std::shared_ptr<T>& OutObject)
+    void GetObjectFromJson(rapidjson::Value& InJsonValue, T* OutObject, uint32 Num)
     {
-        OutObject = std::make_shared<T>();
         if constexpr (std::is_arithmetic_v<T>)
         {
-            // 일반 자료형
-            OutObject = InJsonValue.Get<T>();
+            for (uint32 i = 0; i < Num; ++i)
+            {
+                OutObject[i] = InJsonValue[i].Get<T>();
+            }
+
+            // 컨테이너 버전
+            //for (auto Iter = InJsonValue.MemberBegin(); Iter != InJsonValue.MemberEnd(); ++Iter)
+            //{
+            //    uint32 Index = std::stoi(Iter->name.GetString());
+            //    OutObject[Index] = Iter->value.Get<T>();
+            //}
         }
         else
         {
-            // 구조체, 클래스 등
-            TDeserialize(InJsonValue, OutObject);
+            for (uint32 i = 0; i < Num; ++i)
+            {
+                DeserializeCustomType(InJsonValue[i], OutObject[i]);
+            }
         }
     }
-
-    template <>
-    void GetObjectFromJson(rapidjson::Value& InJsonValue, std::wstring& OutObject)
-    {
-        StringToWString(InJsonValue.GetString(), OutObject);
-    }
-
-    template <>
-    void GetObjectFromJson(rapidjson::Value& InJsonValue, std::string& OutObject)
-    {
-        OutObject = InJsonValue.GetString();
-    }
-
-    //void A()
-    //{
-    //    const char* Path = "D:\\Git\\Moon\\Client\\test.json";
-
-    //    Test t;
-    //    MJsonDeserializer Deserializer;
-    //    Deserializer.Deserialize(t, Path);
-    //}
 };
-

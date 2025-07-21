@@ -12,8 +12,8 @@ template <class T>
 struct FFundamentalPropertyInterface
 {
 public:
-    // 포인터면 Property 반환이 const&로 반환되도록
-    using PropType = std::conditional_t<std::is_pointer_v<T>, std::add_const_t<T>, std::add_lvalue_reference_t<T>>;
+    // 값이면 Property Getter가 레퍼런스 타입을 반환하도록
+    using PropType = std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<T>>;
     using ElemType = std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, T>;
 public:
     // 프로퍼티 Getteer
@@ -37,8 +37,8 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
     // 배열이면 포인터로 변경
     using ImpleType = std::conditional_t<std::is_array_v<MemType>, std::add_pointer_t<std::remove_extent_t<MemType>>, MemType>;
     using ElemType = std::conditional_t<std::is_pointer_v<ImpleType>, std::remove_pointer_t<ImpleType>, ImpleType>;
-    // 포인터 -> const T*, 일반 -> T&
-    using PropType = std::conditional_t<std::is_pointer_v<ImpleType>, std::add_const_t<ImpleType>, std::add_lvalue_reference_t<ImpleType>>;
+    // 포인터 -> T*, 일반 -> T&
+    using PropType = std::conditional_t<std::is_pointer_v<ImpleType>, ImpleType, std::add_lvalue_reference_t<ImpleType>>;
 
 	struct FPropertyImple : public FFundamentalPropertyDesc<ImpleType>
 	{
@@ -97,6 +97,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
         }
 	};
     
+    // T[N] -> T
     using Type = std::conditional_t<std::is_array_v<MemType>, std::remove_extent_t<MemType>, MemType>;
     std::function<void(Owner* InObject)> Func = InFunc;
 	FPropertyDesc* NewDesc = new FPropertyImple(MemPtr, Func);
