@@ -64,6 +64,7 @@
     <ClCompile Include="Source\Core\Serialize\JsonDeserializer.cpp" />
     <ClCompile Include="Source\Core\Serialize\JsonSerializer.cpp" />
     <ClCompile Include="Source\Core\Serialize\Serializerable.cpp" />
+    <ClCompile Include="Source\GameFramework\PointLightActor\PointLightActor.cpp" />
     <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
     <ClCompile Include="Source\Mesh\DynamicMesh\DynamicMesh.cpp" />
     <ClCompile Include="Source\Mesh\Mesh.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Source\Core\Serialize\JsonDeserializer.h" />
     <ClInclude Include="Source\Core\Serialize\JsonSerializer.h" />
     <ClInclude Include="Source\Core\Serialize\Serializable.h" />
+    <ClInclude Include="Source\GameFramework\PointLightActor\PointLightActor.h" />
     <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h" />
     <ClInclude Include="Source\Mesh\DynamicMesh\DynamicMesh.h" />
     <ClInclude Include="Source\Mesh\StaticMesh\StaticMesh.h" />
