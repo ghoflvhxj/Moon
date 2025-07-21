@@ -135,6 +135,11 @@ bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
         return false;
     }
 
+    if (Primitive->IsRendering() == false)
+    {
+        return false;
+    }
+
     std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
     if (Material == nullptr)
     {

@@ -139,7 +139,7 @@ const float MBoundingBox::GetLength(const Vec3 &scale /*= { 1.f, 1.f, 1.f }*/) c
 uint32 MPrimitiveComponent::PrimitiveCounter = 0;
 
 MPrimitiveComponent::MPrimitiveComponent()
-	:_eRenderMdoe{ RenderMode::Perspective }
+	:RenderMode{ ERenderMode::Perspective }
 	, PrimitiveID{ PrimitiveCounter++ }
 {
 }
@@ -155,24 +155,24 @@ void MPrimitiveComponent::Update(const Time deltaTime)
 	g_pRenderer->AddPrimitive(shared_from_this());
 }
 
-const bool MPrimitiveComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
+const bool MPrimitiveComponent::GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList)
 {
 	return false;
 }
 
-const bool MPrimitiveComponent::GetBoundingBox(std::shared_ptr<MBoundingBox> &boundingBox)
+const bool MPrimitiveComponent::GetBoundingBox(std::shared_ptr<MBoundingBox>& boundingBox)
 {
 	return false;
 }
 
-void MPrimitiveComponent::setRenderMode(const RenderMode renderMode)
+void MPrimitiveComponent::setRenderMode(const ERenderMode renderMode)
 {
-	_eRenderMdoe = renderMode;
+	RenderMode = renderMode;
 }
 
-const MPrimitiveComponent::RenderMode MPrimitiveComponent::getRenderMdoe() const
+const MPrimitiveComponent::ERenderMode MPrimitiveComponent::getRenderMdoe() const
 {
-	return _eRenderMdoe;
+	return RenderMode;
 }
 
 void MPrimitiveComponent::SetRendering(bool bNewRendering)

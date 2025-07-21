@@ -47,7 +47,7 @@ protected:
 class ENGINE_DLL MPrimitiveComponent abstract : public SceneComponent, public std::enable_shared_from_this<MPrimitiveComponent>
 {
 public:
-	enum class RenderMode
+	enum class ERenderMode
 	{
 		Perspective, Orthogonal, End
 	};	
@@ -66,17 +66,18 @@ public:
 	virtual void Update(const Time deltaTime) override;
 
 public:
-	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList);
-	virtual const bool GetBoundingBox(std::shared_ptr<MBoundingBox> &boundingBox);
+	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList);
+	virtual const bool GetBoundingBox(std::shared_ptr<MBoundingBox>& boundingBox);
 
 public:
-	void				setRenderMode(const RenderMode renderMode);
-	const RenderMode	getRenderMdoe() const;
+	void				setRenderMode(const ERenderMode renderMode);
+	const ERenderMode	getRenderMdoe() const;
 private:
-	RenderMode _eRenderMdoe;
+	ERenderMode RenderMode;
 
 public:
 	void SetRendering(bool bNewRendering);
+    bool IsRendering() const { return bRendering; }
 protected:
 	bool bRendering;
 
@@ -87,7 +88,18 @@ public:
     bool _bDrawBoundingBox = false;
 
 public:
+    bool IsShadowing() const { return bShadowing; }
+protected:
+    bool bShadowing = true;
+
+public:
     void SetDrawCollision(const bool bDraw) { bDrawColliision = bDraw; }
 protected:
     bool bDrawColliision = false;
+
+    REFLECT(
+        MPrimitiveComponent,
+        PROPERTY(RenderMode),
+        PROPERTY(bRendering)
+    )
 };

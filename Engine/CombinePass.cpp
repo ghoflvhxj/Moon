@@ -66,7 +66,12 @@ void DirectionalShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& Pri
 
 bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-    return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && MRenderPass::IsValidPrimitive(PrimitiveData);
+    if (MRenderPass::IsValidPrimitive(PrimitiveData))
+    {
+        return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && PrimitiveData.PrimitiveComponent.lock()->IsShadowing();
+    }
+
+    return false;
 }
 
 void DirectionalShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
@@ -132,7 +137,12 @@ void PointShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& Primitive
 
 bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-    return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && MRenderPass::IsValidPrimitive(PrimitiveData);
+    if (MRenderPass::IsValidPrimitive(PrimitiveData))
+    {
+        return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && PrimitiveData.PrimitiveComponent.lock()->IsShadowing();
+    }
+
+    return false;
 }
 
 void PointShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
@@ -228,7 +238,7 @@ bool PointLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 
 void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<PointLightComponent> LightComp = PrimitiveData.GetPrimitiveComponent<PointLightComponent>();
+    std::shared_ptr<MPointLightComponent> LightComp = PrimitiveData.GetPrimitiveComponent<MPointLightComponent>();
     std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
 
     Vec3 trans = LightComp->getWorldTranslation();
