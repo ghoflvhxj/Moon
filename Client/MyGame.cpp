@@ -77,6 +77,8 @@ const bool MyGame::initialize()
     //    //ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setFillMode(Graphic::FillMode::WireFrame);
     //}
 
+    auto a = CreateActor<MPointLightActor>(this);
+
 	return true;
 }
 
