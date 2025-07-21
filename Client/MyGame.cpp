@@ -15,11 +15,13 @@
 #include "Player.h"
 #include "DirectInput.h"
 #include "DynamicMeshComponent.h"
-#include "GameFramework/StaticMeshActor/StaticMeshActor.h"
 #include "Core/ResourceManager.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Material.h"
 #include "Core/Physics/Physics.h"
+
+#include "GameFramework/StaticMeshActor/StaticMeshActor.h"
+#include "GameFramework/PointLightActor/PointLightActor.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -139,33 +141,11 @@ void MyGame::render()
         DirectionalLight->setRotation(rot);
 	}
 
-    // SceneComponent를 수정하게
-    if (ImGui::CollapsingHeader("PointLight") && PointLight)
-    {
-        Vec3 Pos = PointLight->getTranslation();
-        ImGui::SliderFloat("PosX", &Pos.x, -10, 10);
-        ImGui::SliderFloat("PosY", &Pos.y, -10, 10);
-        ImGui::SliderFloat("PosZ", &Pos.z, -10, 10);
-        PointLight->setTranslation(Pos);
-        LanternActor->GetStaticMeshCompoent()->setTranslation(Pos.x, Pos.y - 1.f, Pos.z);
-    }
-
 	if (ImGui::CollapsingHeader("Actor") && LanternActor)
 	{
-        Vec3 Pos = LanternActor->GetStaticMeshCompoent()->getTranslation();
-        Vec3 NewPos = Pos;
-        ImGui::SliderFloat("PosX", &NewPos.x, -30, 30);
-        ImGui::SliderFloat("PosY", &NewPos.y, -30, 30);
-        ImGui::SliderFloat("PosZ", &NewPos.z, -30, 30);
-
         auto IsNotEqual = [](float lhs, float rhs)->bool {
             return std::fabsf(lhs - rhs) > 0.00001;
         };
-
-        if (IsNotEqual(Pos.x, NewPos.x) || IsNotEqual(Pos.y, NewPos.y) || IsNotEqual(Pos.z, NewPos.z))
-        {
-            LanternActor->GetStaticMeshCompoent()->setTranslation(NewPos.x, NewPos.y, NewPos.z);
-        }
 
 		ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
 		if (ImGui::Button("AddForce"))
