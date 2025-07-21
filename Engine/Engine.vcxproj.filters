@@ -220,6 +220,7 @@
     <ClCompile Include="Source\Core\Serialize\JsonDeserializer.cpp" />
     <ClCompile Include="Source\Mesh\StaticMesh\StaticMesh.cpp" />
     <ClCompile Include="Source\Mesh\DynamicMesh\DynamicMesh.cpp" />
+    <ClCompile Include="Source\GameFramework\BillboardComponent\BillboardComponent.cpp" />
     <ClCompile Include="Source\GameFramework\PointLightActor\PointLightActor.cpp" />
     <ClCompile Include="Source\Mesh\Mesh.cpp" />
   </ItemGroup>
@@ -468,6 +469,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\GameFramework\PointLightActor\PointLightActor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GameFramework\BillboardComponent\BillboardComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
