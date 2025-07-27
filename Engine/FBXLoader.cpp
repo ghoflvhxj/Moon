@@ -287,7 +287,7 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
     // 이제 매터리얼 정보가 채워진 StaticMesh 저장할 수 있음.
     MJsonSerializer Serializer;
     std::wstring MeshPath = Directory + Name + TEXT(".json");
-    Serializer.Serialize(*NewStaticMesh, MeshPath, true);
+    Serializer.Serialize(*NewStaticMesh, MeshPath, false);
 }
 
 void MFBXLoader::InitializeFbxSdk()
@@ -463,6 +463,7 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
             VertexKey.ControlPointIndex = controlPointIndex;
 			loadPosition(NewVertex, controlPointIndex);
 			loadUV(NewVertex, controlPointIndex, vertexIndex, VertexKey);
+            LoadColor(NewVertex, controlPointIndex, vertexIndex, VertexKey);
 			loadNormal(NewVertex, controlPointIndex, vertexIndex, VertexKey);
 			loadTangent(NewVertex, controlPointIndex, vertexIndex, VertexKey);
 			loadBinormal(NewVertex, controlPointIndex, vertexIndex, VertexKey);
@@ -575,6 +576,60 @@ void MFBXLoader::loadUV(Vertex &vertex, const int controlPointIndex, const int v
             DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
         }
         break;
+    }
+}
+
+void MFBXLoader::LoadColor(Vertex& vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey)
+{
+    FbxGeometryElementVertexColor* Element = FBXMesh->GetElementVertexColor();
+    if (Element == nullptr)
+    {
+        return;
+    }
+
+    int ArrayIndex = 0;
+    switch (Element->GetMappingMode())
+    {
+    case FbxLayerElement::EMappingMode::eByControlPoint:    // 컨트롤 포인트 것을 사용
+        ArrayIndex = controlPointIndex;
+        break;
+
+    case FbxLayerElement::EMappingMode::eByPolygonVertex:   // 폴리곤의 버텍스 인덱스를 이용
+        ArrayIndex = vertexCounter;
+        break;
+
+    default:
+        DEV_ASSERT_MSG("지원하지 않는 UV MappingMode");
+        return;
+    }
+
+    switch (Element->GetReferenceMode())
+    {
+    case FbxLayerElement::EReferenceMode::eDirect:
+    {
+        vertex.Color.x = static_cast<float>(Element->GetDirectArray().GetAt(ArrayIndex).mRed);
+        vertex.Color.y = static_cast<float>(Element->GetDirectArray().GetAt(ArrayIndex).mGreen);
+        vertex.Color.z = static_cast<float>(Element->GetDirectArray().GetAt(ArrayIndex).mBlue);
+    }
+    break;
+    case FbxLayerElement::EReferenceMode::eIndex:
+    {
+
+    }
+    break;
+    case FbxLayerElement::EReferenceMode::eIndexToDirect:
+    {
+        int index = Element->GetIndexArray().GetAt(ArrayIndex);
+        vertex.Color.x = static_cast<float>(Element->GetDirectArray().GetAt(index).mRed);
+        vertex.Color.y = static_cast<float>(Element->GetDirectArray().GetAt(index).mGreen);
+        vertex.Color.z = static_cast<float>(Element->GetDirectArray().GetAt(index).mBlue);
+    }
+    break;
+    default:
+    {
+        DEV_ASSERT_MSG("Fbx 파일에서 찾을 수 없는 UV입니다. EMappingMode::eByControlPoint");
+    }
+    break;
     }
 }
 

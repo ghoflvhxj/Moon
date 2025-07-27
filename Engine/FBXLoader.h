@@ -184,6 +184,7 @@ private:
 	void parseMeshNode(fbxsdk::FbxNode *pNode, const uint32 meshIndex);
 	void loadPosition(Vertex &vertex, const int controlPointIndex);
 	void loadUV(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
+    void LoadColor(Vertex& vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
 	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
 	void loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
 	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
