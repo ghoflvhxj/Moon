@@ -106,5 +106,12 @@ protected:
     std::vector<Mat4> LightViewProj;
 
 public:
-	RENDERER_OPTION(DrawCollision)
+    RENDERER_OPTION(DrawCollision);
+    //bool bDrawCollision = false;
+
+    REFLECT_TOP(
+        Renderer,
+        PROPERTY(bDrawCollision),
+        PROPERTY(bDebugRenderTargets)
+    )
 };
