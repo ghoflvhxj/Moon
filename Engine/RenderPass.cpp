@@ -171,6 +171,8 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 	// 버텍스쉐이더 ConstantBuffer
 	Material->getVertexShader()->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
     Material->getVertexShader()->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
+    Material->getVertexShader()->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
+    bool b = Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal;
 	// 애님 관련 변수
 	BOOL animated = PrimitiveData.AnimMatrices != nullptr;
 	Material->getVertexShader()->SetValue(TEXT("animated"), animated);
@@ -287,7 +289,7 @@ void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
 void MRenderPass::HandleOuputMergeStage(const FPrimitiveData& PrimitiveData)
 {
     // DepthStencilState
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Enable), 1);
+    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(bDepthEnable ? Graphic::EDepthWriteMode::Enable : Graphic::EDepthWriteMode::Disable), 1);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 }
 

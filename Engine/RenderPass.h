@@ -111,6 +111,11 @@ private:
 	bool bClearTargets;
 
 public:
+    void SetDepthEnable(const bool InEnable) { bDepthEnable = InEnable; }
+private:
+    bool bDepthEnable = true;
+
+public:
 	void SetUseOwningDepthStencilBuffer(const ERenderTarget bUse);
 private:
 	ERenderTarget UsedDepthStencilBuffer;
