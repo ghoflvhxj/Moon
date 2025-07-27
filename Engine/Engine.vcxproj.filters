@@ -494,6 +494,10 @@
     <FxCompile Include="ShadowDepthPointPS.hlsl" />
     <FxCompile Include="ShadowDepthPointGS.hlsl" />
     <FxCompile Include="SimpleVertexShader.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_VertexColorOut.hlsl" />
+    <FxCompile Include="Shader\Vertex\VS_VertexColorOut.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_SimpleTexture.hlsl" />
+    <FxCompile Include="Shader\Vertex\VS_SimpleTexture.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.hlsli" />

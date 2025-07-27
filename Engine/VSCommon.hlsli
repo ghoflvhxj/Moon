@@ -29,12 +29,20 @@ struct VertexOut_Simple
 	float4 color : COLOR;
 };
 
+struct VertexOut_SimpleTex
+{
+    float4 pos : SV_POSITION;
+    float4 color : COLOR;
+    float2 uv : TEXCOORD0;
+};
+
 cbuffer VS_CBuffer_PerObject : register(b2)
 {
 	row_major matrix worldMatrix;
     row_major matrix InverseWorldMatrix;
 	row_major matrix keyFrameMatrices[199];
 	bool animated;
+    bool bOrtho;
 };
 
 int getCascadeIndex(float3 pos)

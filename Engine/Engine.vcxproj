@@ -200,6 +200,22 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
     </FxCompile>
+    <FxCompile Include="Shader\Pixel\PS_SimpleTexture.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Shader\Pixel\PS_VertexColorOut.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Shader\Vertex\VS_SimpleTexture.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Shader\Vertex\VS_VertexColorOut.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+    </FxCompile>
     <FxCompile Include="ShadowDepth.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
