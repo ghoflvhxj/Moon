@@ -125,10 +125,10 @@ void MyGame::Tick(const Time deltaTime)
         else
         {
             bControlGizmo = false;
-            if (Raycast(g_pRenderer->GetRenderablePrimitiveData(), HitData))
+            if (Raycast(getRenderer()->GetRenderablePrimitiveData(), HitData))
             {
-                g_pRenderer->bGizmo = true;
-                g_pRenderer->GizmoPos = HitData.HitComponent.lock()->getWorldTranslation();
+                getRenderer()->bGizmo = true;
+                getRenderer()->GizmoPos = HitData.HitComponent.lock()->getWorldTranslation();
             }
         }
     }
@@ -140,7 +140,7 @@ void MyGame::Tick(const Time deltaTime)
 
     if (auto GizmoTargetComp = HitData.HitComponent.lock())
     {
-        g_pRenderer->GizmoPos = GizmoTargetComp->getWorldTranslation();
+        getRenderer()->GizmoPos = GizmoTargetComp->getWorldTranslation();
 
         if (bControlGizmo)
         {
@@ -281,10 +281,10 @@ void MyGame::render()
 
     if (ImGui::CollapsingHeader("Render"))
     {
-        const FTypeDesc* Current = g_pRenderer->GetTypeDesc();
+        const FTypeDesc* Current = getRenderer()->GetTypeDesc();
         while (Current)
         {
-            DispatchStruct(Current, g_pRenderer.get());
+            DispatchStruct(Current, getRenderer().get());
             Current = Current->Parent;
         }
     }
