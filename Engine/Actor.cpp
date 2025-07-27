@@ -38,7 +38,7 @@ void Actor::tick(const Time deltaTime)
 {
 }
 
-const Vec3& Actor::GetWorldTranslation()
+const Vec3 Actor::GetWorldTranslation()
 {
     if (auto& RootComp = getComponent(ROOT_COMPONENT))
     {

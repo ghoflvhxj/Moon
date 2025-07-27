@@ -19,7 +19,7 @@ protected:
 	virtual void tick(const Time deltaTime);
 
 public:
-    const Vec3& GetWorldTranslation();
+    const Vec3 GetWorldTranslation();
 
 public:
 	std::shared_ptr<SceneComponent>		getComponent(const wchar_t componentName[]);

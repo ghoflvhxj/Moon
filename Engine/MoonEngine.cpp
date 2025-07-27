@@ -36,23 +36,17 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 	g_pMainWindow		= pWindow;
 
-	g_pDirectInput		= std::make_unique<DirectInput>();
+    g_pDirectInput = std::make_unique<DirectInput>();
+    g_pGraphicDevice = std::make_unique<GraphicDevice>();
 
-	g_pGraphicDevice	= std::make_unique<GraphicDevice>();
-	
-	ShaderManager	= std::make_unique<MShaderManager>();
-	ShaderLoader shaderLoader;
-	shaderLoader.loadShaderFiles(ShaderManager);
+    ShaderManager = std::make_unique<MShaderManager>();
+    ShaderLoader shaderLoader;
+    shaderLoader.loadShaderFiles(ShaderManager);
 
-	g_pGraphicDevice->BuildInputLayout();
+    g_ResourceManager = std::make_unique<MResourceManager>();
+    g_ResourceManager->AddLoader(std::make_shared<MTextureLoader>());
 
-    //g_pPhysics = std::make_unique<MPhysX>();
-    g_pPhysics = std::make_unique<MJoltPhysics>();
-
-	g_pRenderer			= std::make_unique<Renderer>();
-
-	g_ResourceManager = std::make_unique<MResourceManager>();
-	g_ResourceManager->AddLoader(std::make_shared<MTextureLoader>());
+    g_pGraphicDevice->BuildInputLayout();
 
 	return true;
 }
@@ -99,6 +93,14 @@ const bool setGame(std::unique_ptr<MainGame>&& pGame)
 {
 	g_pMainGame = std::move(pGame);
     g_pMainGame->initialize();
+
+
+
+    //g_pPhysics = std::make_unique<MPhysX>();
+    g_pPhysics = std::make_unique<MJoltPhysics>();
+    g_pRenderer = std::make_unique<Renderer>();
+
+
 
 	return true;
 }

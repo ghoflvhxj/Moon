@@ -574,11 +574,11 @@ void MJoltPhysics::Update(float deltaTime)
 
         if (PhysicObject->bTest)
         {
-            std::cout << "SoftBodyPos " << "X:" << BodyPos.GetX() << ", Y:" << BodyPos.GetY() << ", Z:" << BodyPos.GetZ() << std::endl;
-            std::cout << "ToLocal " << "X:" << ToLocal.GetX() << ", Y:" << ToLocal.GetY() << ", Z:" << ToLocal.GetZ() << std::endl;
+            //std::cout << "SoftBodyPos " << "X:" << BodyPos.GetX() << ", Y:" << BodyPos.GetY() << ", Z:" << BodyPos.GetZ() << std::endl;
+            //std::cout << "ToLocal " << "X:" << ToLocal.GetX() << ", Y:" << ToLocal.GetY() << ", Z:" << ToLocal.GetZ() << std::endl;
             //std::cout << "ToLocal " << "X:" << SoftBodyVertices[test].mPosition.GetX() << ", Y:" << SoftBodyVertices[test].mPosition.GetY() << ", Z:" << SoftBodyVertices[test].mPosition.GetZ() << std::endl;
         }
-        std::cout << "SoftBodyPos " << "X:" << BodyPos.GetX() << ", Y:" << BodyPos.GetY() << ", Z:" << BodyPos.GetZ() << std::endl;
+        //std::cout << "SoftBodyPos " << "X:" << BodyPos.GetX() << ", Y:" << BodyPos.GetY() << ", Z:" << BodyPos.GetZ() << std::endl;
 
         PhysicObject->bTest = false;
     }

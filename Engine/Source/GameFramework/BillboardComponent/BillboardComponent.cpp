@@ -28,8 +28,8 @@ MBillboardComponent::MBillboardComponent()
 Mat4& MBillboardComponent::getWorldMatrix()
 {
     XMVECTOR Look = XMVector3Normalize(XMLoadFloat3(&getWorldTranslation()) - XMLoadFloat3(&g_pMainGame->getMainCamera()->GetWorldTranslation()));
-    XMVECTOR Right = XMVector3Cross(XMLoadFloat3(&VEC3UP), Look);
-    XMVECTOR Up = XMVector3Cross(Look, Right);
+    XMVECTOR Right = XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&VEC3UP), Look));
+    XMVECTOR Up = XMVector3Normalize(XMVector3Cross(Look, Right));
 
     XMMATRIX Mat = XMLoadFloat4x4(&ZEROMATRIX);
     Mat.r[0] = Right;

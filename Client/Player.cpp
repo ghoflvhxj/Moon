@@ -71,7 +71,7 @@ void Player::initialize()
     addComponent(TEXT("Load"), LoadedMeshComponent);
 
 #if UsePointLight == 1
-    _pLightComponent = std::make_shared<PointLightComponent>();
+    _pLightComponent = std::make_shared<MPointLightComponent>();
     _pLightComponent->setRange(10.f);
     _pLightComponent->setTranslation(0.f, 0.f, 0.f);
     addComponent(TEXT("PointLight"), _pLightComponent);
@@ -116,7 +116,7 @@ void Player::initialize()
 
 	for (int i = 0; i < 1; ++i)
 	{
-		std::shared_ptr<PointLightComponent> pLight = std::make_shared<PointLightComponent>();
+		std::shared_ptr<MPointLightComponent> pLight = std::make_shared<MPointLightComponent>();
 		pLight->setTranslation(Vec3(transDis(gen) / 1.f, 1.f, transDis(gen) / 1.f));
 		pLight->setColor(Vec3(colorDis(gen) / 255.f, colorDis(gen) / 255.f, colorDis(gen) / 255.f));
 		pLight->setRange(10.f);

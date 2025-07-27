@@ -99,7 +99,7 @@ void MyGame::Tick(const Time deltaTime)
     {
         FHitData GizmoHitData = {};
         std::vector<FPrimitiveData> GizmoPrimitiveDatas;
-        g_pRenderer->GizmoMeshComp->GetPrimitiveData(GizmoPrimitiveDatas);
+        getRenderer()->GizmoMeshComp->GetPrimitiveData(GizmoPrimitiveDatas);
 
         if (Raycast(GizmoPrimitiveDatas, GizmoHitData))
         {

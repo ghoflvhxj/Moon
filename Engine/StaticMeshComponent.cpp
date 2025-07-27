@@ -48,7 +48,7 @@ void StaticMeshComponent::Update(const Time deltaTime)
 		setTranslation(PhysicsObject->GetPhysicsPos());
 	}
 
-	MPrimitiveComponent::Update(deltaTime);
+	Super::Update(deltaTime);
 }
 
 const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &PrimitiveDataList)
