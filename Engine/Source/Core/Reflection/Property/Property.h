@@ -36,6 +36,7 @@ public:
         return Size; 
     }
 
+    // 프로퍼티를 void* 로 반환하는 함수
     virtual void* GetAsVoid(const void* InObject)
     {
         return nullptr;
@@ -49,6 +50,29 @@ constexpr size_t OffsetOf(Type ClassType::* Ptr)
         &(reinterpret_cast<ClassType*>(0)->*Ptr)
     );
 }
+
+template<typename T>
+struct is_smart_ptr : std::false_type {};
+
+// shared_ptr 특수화
+template<typename U>
+struct is_smart_ptr<std::shared_ptr<U>> : std::true_type {};
+
+template<typename T>
+inline constexpr bool is_smart_ptr_v = is_smart_ptr<T>::value;
+
+template<typename T>
+struct remove_smart_pointer {
+    using type = T;
+};
+
+template<typename U>
+struct remove_smart_pointer<std::shared_ptr<U>> {
+    using type = U;
+};
+
+template<typename T>
+using remove_smart_pointer_t = typename remove_smart_pointer<T>::type;
 
 template <class Type>
 void SetType(FPropertyDesc* InDesc)

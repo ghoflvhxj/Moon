@@ -117,6 +117,7 @@ void MJsonDeserializer::PatchStruct(const FTypeDesc* InTypeDesc, void* InObject,
             break;
             case EType::WString:
             {
+                // 매터리얼 TextureList 읽는 중에, MTexture가 nullptr이면 내부가 비어있음. 그런데 읽으려면 멤버가 없으니...
                 std::wstring& Value = static_cast<FFundamentalPropertyDesc<std::wstring>*>(Prop)->Get(InObject);
                 if (InValue.HasMember(Prop->Name))
                 {

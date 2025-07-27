@@ -46,9 +46,8 @@ static const FTypeDesc& GetTypeDescStatic() \
 	return MyClass##_Desc; \
 }
 
-/*
 template <>
-FTypeDesc* GetTypeDesc<Vec2>()
+const FTypeDesc* GetTypeDesc<Vec2>()
 {
     static FTypeDesc NewTypeDesc = {
         nullptr,
@@ -64,7 +63,7 @@ FTypeDesc* GetTypeDesc<Vec2>()
 }
 
 template <>
-FTypeDesc* GetTypeDesc<Vec3>()
+const FTypeDesc* GetTypeDesc<Vec3>()
 {
     static FTypeDesc NewTypeDesc = {
         nullptr,
@@ -79,7 +78,7 @@ FTypeDesc* GetTypeDesc<Vec3>()
 }
 
 template <>
-FTypeDesc* GetTypeDesc<Vec4>()
+const FTypeDesc* GetTypeDesc<Vec4>()
 {
     static FTypeDesc NewTypeDesc = {
         nullptr,
@@ -94,6 +93,7 @@ FTypeDesc* GetTypeDesc<Vec4>()
     };
 }
 
+/*
 template <>
 FTypeDesc* GetTypeDesc<std::wstring>()
 {

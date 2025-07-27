@@ -23,22 +23,55 @@ struct FContainerPropertyDesc : public FPropertyDesc, public FContainerPropertyI
 };
 
 // 일반 타입 프로퍼티 함수 템플릿
-template <class Owner, class T, class F >
-static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::* MemPtr, F InFunc)
+template <class Owner, class MemType, class F >
+static FPropertyDesc* MakeProp(const std::string& InName, std::vector<MemType> Owner::* MemPtr, F InFunc)
 {
+    // 1) 배열이면 요소 타입의 포인터, 아니면 그대로
+    using _NoArray = std::conditional_t<
+        std::is_array_v<MemType>,
+        std::add_pointer_t<std::remove_extent_t<MemType>>,
+        MemType
+    >;
+
+    // 2) 스마트 포인터면 언랩해서 포인터로, 아니면 그대로
+    using _NoSmart = std::conditional_t<
+        is_smart_ptr_v<_NoArray>,
+        std::add_pointer_t<remove_smart_pointer_t<_NoArray>>,
+        _NoArray
+    >;
+
+    // 최종적으로 ImpleType
+    using ImpleType = _NoSmart;
+
+    // 포인터 -> T*, 일반 -> T&
+    using PropType = std::conditional_t<std::is_pointer_v<ImpleType>, ImpleType, std::add_lvalue_reference_t<ImpleType>>;
+
+    // 포인터, 스마트 포인터, 배열 등을 제거한 순수 타입
+    using ElemType = std::conditional_t<std::is_pointer_v<ImpleType>, std::remove_pointer_t<ImpleType>, ImpleType>;
+
 	struct FContainerDescImple : public FContainerPropertyDesc
 	{
-        FContainerDescImple(std::vector<T> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
+        FContainerDescImple(std::vector<MemType> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
             : TestMemPtr(MemPtr), Func(InFunc)
         {
         }
-        std::vector<T> Owner::* TestMemPtr;
+        std::vector<MemType> Owner::* TestMemPtr = nullptr;
         std::function<void(Owner* InObject)> Func;
 
 		virtual void Resize(void* InObject, const size_t InSize) override
-		{
-            auto& Vec = ((Owner*)InObject->*TestMemPtr);
-            Vec.resize(InSize);
+        {
+            if constexpr (is_smart_ptr_v<MemType>)
+            {
+                for (size_t i = GetNum(InObject); i < InSize; ++i)
+                {
+                    ((Owner*)InObject->*TestMemPtr).push_back(std::make_shared<ElemType>()); // 굳이 생성까지 해줘야 하나? 쓰는 쪽에서 넣어줘야 하는게 맞는듯?
+                }
+            }
+            else
+            {
+                auto& Vec = ((Owner*)InObject->*TestMemPtr);
+                Vec.resize(InSize);
+            }
 		}
 
 		virtual size_t GetNum(void* InObject) const override
@@ -48,21 +81,47 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::
 
 		virtual void* Get(void* InObject, const size_t InIndex) override
 		{
-			return &((Owner*)InObject->*TestMemPtr)[InIndex];
+            if constexpr (std::is_pointer_v<MemType>)
+            {
+                return ((Owner*)InObject->*TestMemPtr)[InIndex];
+            }
+            else if constexpr (is_smart_ptr_v<MemType>)
+            {
+                auto& Vec = ((Owner*)InObject->*TestMemPtr);
+                if (((Owner*)InObject->*TestMemPtr)[InIndex])
+                {
+                    return ((Owner*)InObject->*TestMemPtr)[InIndex].get();
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+            else
+            {
+			    return &((Owner*)InObject->*TestMemPtr)[InIndex];
+            }
 		}
 
         virtual void* GetAsVoid(const void* InObject) override
         {
-            return &((Owner*)InObject->*TestMemPtr);
+            if constexpr (std::is_pointer_v<MemType>)
+            {
+                return ((Owner*)InObject->*TestMemPtr);
+            }
+            else
+            {
+                return &((Owner*)InObject->*TestMemPtr);
+            }
         }
 
         virtual void Set(void* InObject, const size_t InIndex, void* InData) override
         {
-            ((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<T*>(InData);
-            if (Func)
-            {
-                Func((Owner*)InObject);
-            }
+            //((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<T*>(InData);
+            //if (Func)
+            //{
+            //    Func((Owner*)InObject);
+            //}
         }
 
         virtual void Clear(void* InObject) override
@@ -70,23 +129,25 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T> Owner::
             ((Owner*)InObject->*TestMemPtr).clear();
         }
 	};
-    using Type = T;
+
+    using Type = std::conditional_t<std::is_array_v<MemType>, std::remove_extent_t<MemType>, MemType>;
 
     std::function<void(Owner* InObject)> Func = InFunc;
 	FPropertyDesc* NewDesc = new FContainerDescImple(MemPtr, Func);
 	NewDesc->Name = InName;
-	NewDesc->Size = sizeof(T);
+	NewDesc->Size = sizeof(ElemType);
 	//NewDesc->Offset = InOffset;
 	NewDesc->bContainer = true;
 	NewDesc->bPointerElements = false;
 
-    SetType<Type>(NewDesc);
+    SetType<ElemType>(NewDesc);
 
 	//cout << "Make Vec Prop NonPointer" << endl;
 
 	return NewDesc;
 }
 
+/*
 // 스마트 포인터 타입 벡터 템플릿
 template <class Owner, class T>
 static FPropertyDesc* MakeProp(const std::string& InName, std::vector<std::shared_ptr<T>> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
@@ -157,28 +218,4 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<std::share
 
     return NewDesc;
 }
-
-template <class Owner, class T>
-static FPropertyDesc* MakeProp(const std::string& InName, std::vector<T*> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
-{
-	FPropertyDesc* NewDesc = new FPropertyDesc;
-	NewDesc->Name = InName;
-	NewDesc->Size = sizeof(T);
-	//NewDesc->Offset = InOffset;
-	NewDesc->bContainer = true;
-	NewDesc->TypeDesc = &T::GetTypeDescStatic();
-	NewDesc->bPointerElements = true;
-
-	//cout << "Make Vec Prop Pointer" << endl;
-
-	// static 시점에 아직 데이터가 안들어가 있으니, 알 방법이 없음
-	//for (int i = 0; i < NewDesc.Num; ++i)
-	//{
-	//	if constexpr (std::is_fundamental_v<T> == false)
-	//	{
-	//		NewDesc.ElementsDesc.push_back(&InT[i]->GetTypeDesc());
-	//	}
-	//}
-
-	return NewDesc;
-}
+*/
