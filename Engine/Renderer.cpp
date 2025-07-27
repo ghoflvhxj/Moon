@@ -1,5 +1,7 @@
 ﻿#include "Renderer.h"
 
+#include "MapUtility.h"
+
 // DirectXTK
 #include "DirectXTK/SpriteFont.h"
 
@@ -225,10 +227,22 @@ void Renderer::initialize() noexcept
 	{
         RenderPasses[EnumToIndex(ERenderPass::Test)]->SetDepthEnable(false);
 	}
+
+    GizmoMeshComp = std::make_shared<StaticMeshComponent>();
+    GizmoMeshComp->SetPhysics(false);
+    GizmoMeshComp->SetMesh(TEXT("Base/axis.fbx"));
+    GizmoMeshComp->setScale(0.001f, 0.001f, 0.001f);
+    GizmoMeshComp->SceneComponent::Update(0.f);
+
+    for (auto& Material : GizmoMeshComp->GetMesh()->getMaterials())
+    {
+        Material->setShader(TEXT("VS_VertexColorOut.cso"), TEXT("PS_VertexColorOut.cso"));
+    }
+    MakeBuffer(GizmoMeshComp);
 	ASSERT_MSG(EnumToIndex(ERenderPass::Count) == static_cast<uint32>(RenderPasses.size()), "ERenderPass::Count와 RenderPasses의 개수가 맞지 않음.");
 }
 
-void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent>& InPrimitiveComponent)
+void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent)
 {
 	if (InPrimitiveComponent == nullptr)
 	{
@@ -448,6 +462,28 @@ void Renderer::Render()
 	RenderScene();
 
     std::vector<FPrimitiveData> PostRenderPrimitiveDatas;
+
+    if (bGizmo)
+    {
+        float DistToScale = XMVectorGetX(XMVector3Length(XMLoadFloat3(&g_pMainGame->getMainCamera()->GetWorldTranslation()) - XMLoadFloat3(&GizmoPos))) / 10.f;
+
+        std::vector<FPrimitiveData> GizmoPrimitives;
+        GizmoMeshComp->setTranslation(GizmoPos);
+        GizmoMeshComp->setScale(0.001f * DistToScale, 0.001f * DistToScale, 0.001f * DistToScale);
+        GizmoMeshComp->GetPrimitiveData(GizmoPrimitives);
+        GizmoMeshComp->SceneComponent::Update(0.f);
+        
+        for (uint32 i = 0; i < GetSize(GizmoPrimitives); ++i)
+        {
+            uint32 PrimitiveID = GizmoMeshComp->GetPrimitiveID();
+            auto& GizmoPrimitive = GizmoPrimitives[i];
+            GizmoPrimitive.VertexBuffer = VertexBuffers[PrimitiveID][i];
+            GizmoPrimitive.IndexBuffer = IndexBuffers[PrimitiveID][i];
+        }
+
+        PostRenderPrimitiveDatas.insert(PostRenderPrimitiveDatas.end(), GizmoPrimitives.begin(), GizmoPrimitives.end());
+    }
+
 #ifdef _DEBUG
     // 렌더 타겟
     if (true == bDebugRenderTargets)

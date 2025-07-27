@@ -87,6 +87,13 @@ private:
     std::unordered_map<ERenderTarget, std::shared_ptr<StaticMeshComponent>> DebugRenderTargetMehses;
 	bool bDebugRenderTargets = true;
 
+// Editor
+public:
+    bool bGizmo = false;
+    Vec3 GizmoPos = VEC3ZERO;
+protected:
+    std::shared_ptr<StaticMeshComponent> GizmoMeshComp = nullptr;
+
 public:
 	const bool IsGlobalBufferDirty() const;
 private:
