@@ -13,13 +13,15 @@ class MCamera;
 
 class MPhysX;
 
+struct FPrimitiveData;
 
 // 피킹 --------------------------------------------------------------------------
 struct FHitData
 {
-    std::weak_ptr<class Component> HitComponent;
+    std::weak_ptr<class MPrimitiveComponent> HitComponent;
     Vec3 HitPos = VEC3ZERO;
     float Distance = 0.f;
+    uint32 PrimitiveIndex = 0;
 };
 
 class ENGINE_DLL MainGame : public std::enable_shared_from_this<MainGame>
@@ -90,14 +92,13 @@ private:
 
 public:
     virtual bool IsPickable() const { return true; }
-    void Pick();
-protected:
-    FHitData HitData;
+    bool Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData);
 
 public:
-    float TestVariable = 0.f;
-    //TEST(
-    //    MainGame,
-    //    TESTMACRO(TestVariable, float)
-    //);
+    void ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const;
+    void WorldToScreen(const Vec3& InPos, Vec2& OutPos) const;
+    void ProjectVec3(const Vec3& InBase, const Vec3& InTarget, Vec3& Out) const;
+    void ProjectVec2(const Vec2& InBase, const Vec2& InTarget, Vec2& Out) const;
+
+    const Vec2 GetMousePos();
 };

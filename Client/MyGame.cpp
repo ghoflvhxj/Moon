@@ -31,7 +31,6 @@ using namespace DirectX;
 
 MyGame::MyGame()
 	: MainGame()
-	, _pTerrainComponent{ nullptr }
 	, _pPlayer{ nullptr }
 {
 	intializeImGui();
@@ -52,30 +51,19 @@ const bool MyGame::initialize()
 
 	_pPlayer = CreateActor<Player>(this);
 
-    //LanternActor = CreateActor<MStaticMeshActor>(this);
-    //LanternActor->GetStaticMeshCompoent()->SetPhysicsType(EPhysicsType::Dynamic);
-    //LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));
-    //LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
-    //LanternActor->GetStaticMeshCompoent()->SetDrawCollision(true);
-    //LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
-    //LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
-    //LanternActor->GetStaticMeshCompoent()->RemovePhysics();
+    LanternActor = CreateActor<MStaticMeshActor>(this);
+    LanternActor->GetStaticMeshCompoent()->SetPhysicsType(EPhysicsType::Dynamic);
+    LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));
+    LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
+    LanternActor->GetStaticMeshCompoent()->SetDrawCollision(true);
+    LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
+    LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
+    LanternActor->GetStaticMeshCompoent()->RemovePhysics();
 
-    //ClothActor = CreateActor<MStaticMeshActor>(this);
-    //ClothActor->GetStaticMeshCompoent()->SetPhysics(false);
-    //ClothActor->SetStaticMesh(TEXT("Untitled.fbx"));
-    //ClothActor->GetStaticMeshCompoent()->setTranslation(0.f, 6.f, 0.f);
-
-    //ClothActor->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
-    //ClothActor->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
-
-    //std::shared_ptr<MTexture> Texture = nullptr;
-    //if (g_ResourceManager->Load<MTexture>(TEXT("Resources/Texture/Player.jpeg"), Texture))
-    //{
-    //    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, Texture);
-    //    ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setCullMode(Graphic::CullMode::None);
-    //    //ClothActor->GetStaticMeshCompoent()->getStaticMesh()->getMaterial(0)->setFillMode(Graphic::FillMode::WireFrame);
-    //}
+    //auto b = CreateActor<MStaticMeshActor>(this);
+    //b->SetStaticMesh(TEXT("Base/axis.fbx"));
+    //b->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setShader(TEXT("VS_VertexColorOut.cso"), TEXT("PS_VertexColorOut.cso"));
+    //b->GetStaticMeshCompoent()->setScale(0.1f, 0.1f, 0.1f);
 
     auto a = CreateActor<MPointLightActor>(this);
 
@@ -109,8 +97,104 @@ void MyGame::Tick(const Time deltaTime)
 
     if (InputManager::mouseDown(MOUSEBUTTON::LB) && IsPickable())
     {
-        Pick();
+        FHitData GizmoHitData = {};
+        std::vector<FPrimitiveData> GizmoPrimitiveDatas;
+        g_pRenderer->GizmoMeshComp->GetPrimitiveData(GizmoPrimitiveDatas);
+
+        if (Raycast(GizmoPrimitiveDatas, GizmoHitData))
+        {
+            if (bControlGizmo == false)
+            {
+                bUpdateGizmoOffset = true;
+                bControlGizmo = true;
+            }
+
+            switch (GizmoHitData.PrimitiveIndex)
+            {
+            case 0:
+                GizmoAxis = EAxies::Z;
+                break;
+            case 1:
+                GizmoAxis = EAxies::Y;
+                break;
+            case 2:
+                GizmoAxis = EAxies::X;
+                break;
+            }
+        }
+        else
+        {
+            bControlGizmo = false;
+            if (Raycast(g_pRenderer->GetRenderablePrimitiveData(), HitData))
+            {
+                g_pRenderer->bGizmo = true;
+                g_pRenderer->GizmoPos = HitData.HitComponent.lock()->getWorldTranslation();
+            }
+        }
     }
+
+    if (bControlGizmo && InputManager::mouseUp(MOUSEBUTTON::LB))
+    {
+        bControlGizmo = false;
+    }
+
+    if (auto GizmoTargetComp = HitData.HitComponent.lock())
+    {
+        g_pRenderer->GizmoPos = GizmoTargetComp->getWorldTranslation();
+
+        if (bControlGizmo)
+        {
+            Vec3 Near = {};
+            Vec3 Far = {};
+            Vec2 Current = GetMousePos();
+            ScreenToWorld(Current, 0.f, Near);
+            ScreenToWorld(Current, 1.f, Far);
+
+            XMVECTOR Plane = XMVectorZero();
+            Vec3 Pos = HitData.HitComponent.lock()->getWorldTranslation();
+            switch (GizmoAxis)
+            {
+            case EAxies::X:
+                Plane = XMPlaneFromPoints(XMLoadFloat3(&Pos), XMLoadFloat3(&Pos) + XMVectorSet(1.f, 0.f, 1.f, 0.f), XMLoadFloat3(&Pos) - XMLoadFloat3(&VEC3RIGHT));
+                break;
+            case EAxies::Z:
+                Plane = XMPlaneFromPoints(XMLoadFloat3(&Pos), XMLoadFloat3(&Pos) + XMVectorSet(1.f, 0.f, 1.f, 0.f), XMLoadFloat3(&Pos) - XMLoadFloat3(&VEC3RIGHT));
+                break;
+            case EAxies::Y:
+                Plane = XMPlaneFromPoints(XMLoadFloat3(&Pos), XMLoadFloat3(&Pos) + XMVectorSet(0.f, 1.f, -1.f, 0.f), XMLoadFloat3(&Pos) - XMLoadFloat3(&VEC3UP));
+                break;
+            }
+
+            XMVECTOR HitPos = XMPlaneIntersectLine(Plane, XMLoadFloat3(&Near), XMLoadFloat3(&Far));
+            if (bUpdateGizmoOffset)
+            {
+                XMStoreFloat3(&GizmoOffset, XMLoadFloat3(&Pos) - HitPos);
+                bUpdateGizmoOffset = false;
+            }
+
+            Vec3 NewPos = {};
+            XMStoreFloat3(&NewPos, HitPos + XMLoadFloat3(&GizmoOffset));
+
+            switch (GizmoAxis)
+            {
+            case EAxies::X:
+                NewPos.y = Pos.y;
+                NewPos.z = Pos.z;
+                break;
+            case EAxies::Y:
+                NewPos.x = Pos.x;
+                NewPos.z = Pos.z;
+                break;
+            case EAxies::Z:
+                NewPos.x = Pos.x;
+                NewPos.y = Pos.y;
+                break;
+            }
+
+            HitData.HitComponent.lock()->setTranslation(NewPos);
+        }
+    }
+
     if (InputManager::keyDown(DIK_ESCAPE))
     {
         HitData.HitComponent.reset();
@@ -165,17 +249,7 @@ void MyGame::render()
 		{
             LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 5.f, 0.f);
 		}
-
-        //if (ImGui::Checkbox("Physics Simulation", &bStaticCollision))
-        //{
-        //    LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(bStaticCollision);
-        //}
-        LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
 	}
-    else
-    {
-        //LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(true);
-    }
 
     if (ImGui::CollapsingHeader("JsonTest"))
     {
@@ -195,27 +269,6 @@ void MyGame::render()
         ImGui::Indent(-20);
     }
 
-    // 바디와 옷 충돌 테스트
-    if (DynamicMeshComp->BodyTestObject)
-    {
-        Vec3 a = DynamicMeshComp->BodyTestObject->GetPhysicsPos();
-        LanternActor->GetStaticMeshCompoent()->setTranslation(a);
-    }
-
-    // 조인트 위치 테스트
-    //if (LanternActor && DynamicMeshComp)
-    //{
-    //    LanternActor->GetStaticMeshCompoent()->setTranslation(DynamicMeshComp->GetJointPosition("bone001"));
-    //}
-
-    //Vec3 JointPos = DynamicMeshComp->GetJointPosition("bone001");
-    //std::cout << "JointPos X: " << JointPos.x << ", Y: " << JointPos.y << ", Z: " << JointPos.z << std::endl;
-
-    if (ClothActor && ImGui::Button("Cloth"))
-    {
-        ClothActor->GetStaticMeshCompoent()->Clothing();
-    }
-
     if (DynamicMeshComp && DynamicMeshComp->PhysicsObject && ImGui::Button("DynamicMeshCloth Pos"))
     {
         DynamicMeshComp->PhysicsObject->SetPos(DynamicMeshComp->GetJointPosition("bone014"));
@@ -224,12 +277,37 @@ void MyGame::render()
     if(DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
     {
         DynamicMeshComp->Clothing();
-        FMeshData a;
-        static_cast<FContainerPropertyDesc*>(a.GetTypeDesc()->Properties[0])->Resize(&a, 10000);
-        static_cast<FContainerPropertyDesc*>(a.GetTypeDesc()->Properties[1])->Resize(&a, 10000);
     }
 
-    if (std::shared_ptr<Component> HitComponent = HitData.HitComponent.lock())
+    if (ImGui::CollapsingHeader("Render"))
+    {
+        const FTypeDesc* Current = g_pRenderer->GetTypeDesc();
+        while (Current)
+        {
+            DispatchStruct(Current, g_pRenderer.get());
+            Current = Current->Parent;
+        }
+    }
+
+    // 메시 편집 기능. 일단 임시로 컴포넌트에서 메시를 가져옴
+    if (std::shared_ptr<MMeshComponent> HitComponent = std::static_pointer_cast<MMeshComponent>(HitData.HitComponent.lock()))
+    {
+        if (auto TestMesh = HitComponent->GetMesh())
+        {
+            if (ImGui::CollapsingHeader("Mesh Edit"))
+            {
+                const FTypeDesc* Current = TestMesh->GetTypeDesc();
+                while (Current)
+                {
+                    DispatchStruct(Current, TestMesh.get());
+                    Current = Current->Parent;
+                }
+            }
+        }
+    }
+
+    // 컴포넌트 속성 편집 기능
+    if (std::shared_ptr<MPrimitiveComponent> HitComponent = HitData.HitComponent.lock())
     {
         const FTypeDesc* Current = HitComponent->GetTypeDesc();
         while (Current)
@@ -238,17 +316,6 @@ void MyGame::render()
             {
                 DispatchStruct(Current, HitComponent.get());
             }
-            //for (auto Prop : Current->Properties)
-            //{
-            //    if (Prop->bContainer)
-            //    {
-            //        DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), HitComponent.get());
-            //    }
-            //    else
-            //    {
-            //        
-            //    }
-            //}
 
             Current = Current->Parent;
         }
@@ -260,7 +327,6 @@ void MyGame::render()
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
-
 bool MyGame::IsPickable() const
 {
     return ImGui::IsWindowHovered() == false;
@@ -268,27 +334,34 @@ bool MyGame::IsPickable() const
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject)
 {
-    // 벡터 요소들을 순회하면서
+    if (InObject == nullptr)
+    {
+        return;
+    }
+
     for (int i = 0; i < InContainerDesc->GetNum(InObject); ++i)
     {
-        // 요소들 타입에 따라 출력
-        if (InElementTypeDesc) // EngineDataType
+        if (InElementTypeDesc)
         {
             for (auto& Prop : InElementTypeDesc->Properties)
             {
-                //cout << Prop->Name + ": ";
                 switch (Prop->Type)
                 {
                 case EType::Int:
                 {
                     int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InContainerDesc->Get(InObject, i));
-                    //cout << Temp << endl;
                 }
                 break;
                 case EType::Float:
                 {
                     float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InContainerDesc->Get(InObject, i));
-                    //cout << Temp << endl;
+                }
+                break;
+                case EType::Vec2:
+                case EType::Vec3:
+                case EType::Vec4:
+                {
+
                 }
                 break;
                 default:
@@ -307,75 +380,172 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDes
                 }
             }
         }
-        else // FundamentalDataType
+        else
         {
             switch (InContainerDesc->Type)
             {
             case EType::Int:
+            case EType::Enum:
             {
                 int& Temp = *(int*)InContainerDesc->Get(InObject, i);
-                //cout << Temp << endl;
+                ImGui::InputInt((InContainerDesc->Name + std::to_string(i)).c_str(), &Temp);
             }
             break;
             case EType::Float:
             {
                 float& Temp = *(float*)InContainerDesc->Get(InObject, i);
-                //cout << Temp << endl;
+                ImGui::InputFloat((InContainerDesc->Name + std::to_string(i)).c_str(), &Temp);
             }
-            break;
             }
         }
-
     }
 }
 
 void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
 {
+    if (InObject == nullptr)
+    {
+        return;
+    }
+
     for (auto& Prop : InStructDesc->Properties)
     {
-        switch (Prop->Type)
+        if (Prop->bContainer)
         {
-        case EType::Int:
-        case EType::Enum:
-        {
-            int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject);
-            //cout << Temp << endl;
+            DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), InObject);
         }
-        break;
-        case EType::Float:
+        else if (Prop->Num > 1) // 배열
         {
-            float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject);
-            //cout << Temp << endl;
-        }
-        break;
-        case EType::Bool:
-        {
-            bool &Temp = static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject);
-            ImGui::Checkbox(Prop->Name.c_str(), &Temp);
-        }
-        break;
-        case EType::Vec3:
-        {
-            auto &Temp = static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject);
-            float TempArr[3] = { Temp.x, Temp.y, Temp.z };
-            if (ImGui::InputFloat3(Prop->Name.c_str(), TempArr))
+            uint32 Num = Prop->Num;
+            if (ImGui::CollapsingHeader(Prop->Name.c_str()))
             {
-                Temp = { TempArr[0], TempArr[1], TempArr[2] };
+                for (uint32 i = 0; i < Num; ++i)
+                {
+                    std::string NameString = Prop->Name + std::to_string(i);
+                    const char* Name = NameString.c_str();
+                    switch (Prop->Type)
+                    {
+                        case EType::Int:
+                        case EType::Enum:
+                        {
+                            int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject, i);
+                            ImGui::InputInt(Name, &Temp);
+                        }
+                        break;
+                        case EType::Float:
+                        {
+                            float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject, i);
+                            ImGui::InputFloat(Name, &Temp);
+                        }
+                        break;
+                        case EType::Bool:
+                        {
+                            bool& Temp = static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject, i);
+                            ImGui::Checkbox(Name, &Temp);
+                        }
+                        case EType::Vec2:
+                        case EType::Vec4:
+                        {
+
+                        }
+                        break;
+                        case EType::Vec3:
+                        {
+                            auto& Temp = static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject, i);
+                            float TempArr[3] = { Temp.x, Temp.y, Temp.z };
+                            if (ImGui::InputFloat3(Name, TempArr))
+                            {
+                                Temp = { TempArr[0], TempArr[1], TempArr[2] };
+                            }
+                        }
+                        break;
+                        case EType::WString:
+                        {
+                            auto& Temp = static_cast<FFundamentalPropertyDesc<std::wstring>*>(Prop)->Get(InObject, i);
+                            char Buff[256] = {};
+                            WStringToString(Temp, Buff, 256);
+
+                            if (ImGui::InputText(Name, Buff, 256))
+                            {
+
+                            }
+                        }
+                        break;
+                        default:
+                        {
+                            uint64 Base = (uint64)Prop->GetAsVoid(InObject);
+                            uint64 MemoryPos = Base + (Prop->GetSize() * i);
+                            DispatchStruct(Prop->TypeDesc, (void*)MemoryPos);
+                        }
+                        break;
+                    }
+                }
             }
         }
-        break;
-        default:
+        else
         {
-            if (Prop->bContainer)
+            switch (Prop->Type)
             {
-                DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), InObject);
-            }
-            else
+            case EType::Int:
+            case EType::Enum:
             {
-                DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
+                int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject);
+                ImGui::InputInt(Prop->Name.c_str(), &Temp);
             }
-        }
-        break;
+            break;
+            case EType::Float:
+            {
+                float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject);
+                //cout << Temp << endl;
+            }
+            break;
+            case EType::Bool:
+            {
+                bool& Temp = static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject);
+                ImGui::Checkbox(Prop->Name.c_str(), &Temp);
+            }
+            break;
+            case EType::Vec2:
+            case EType::Vec4:
+            {
+
+            }
+            break;
+            case EType::Vec3:
+            {
+                auto& Temp = static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject);
+                float TempArr[3] = { Temp.x, Temp.y, Temp.z };
+                if (ImGui::InputFloat3(Prop->Name.c_str(), TempArr))
+                {
+                    Temp = { TempArr[0], TempArr[1], TempArr[2] };
+                }
+            }
+            break;
+            case EType::WString:
+            {
+                auto& Temp = static_cast<FFundamentalPropertyDesc<std::wstring>*>(Prop)->Get(InObject);
+                char Buff[256] = {};
+                WStringToString(Temp, Buff, 256);
+
+                if (ImGui::InputText(Prop->Name.c_str(), Buff, 256))
+                {
+
+                }
+            }
+            break;
+            default:
+            {
+                if (Prop->bContainer)
+                {
+                    DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), InObject);
+                }
+                else
+                {
+                    DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
+                }
+            }
+            break;
+            }
         }
     }
 }

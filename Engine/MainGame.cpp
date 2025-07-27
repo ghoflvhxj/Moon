@@ -156,13 +156,11 @@ const Mat4& MainGame::getMainCameraOrthographicProjectionMatrix() const
 	return (nullptr == _pMainCamera) ? IDENTITYMATRIX : _pMainCamera->getOrthographicProjectionMatrix();
 }
 
-void MainGame::Pick()
+bool MainGame::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData)
 {
-    //Vec2 GetMousePosition()
     POINT MousePos;
     GetCursorPos(&MousePos);
     ScreenToClient(g_hWnd, &MousePos);
-    std::cout << "Screen: " << MousePos.x << ", " << MousePos.y << std::endl;
 
     // 스크린 -> NDC
     UINT Width = g_pSetting->getResolutionWidth<UINT>();
@@ -180,25 +178,34 @@ void MainGame::Pick()
     XMVECTOR FarViewPos = XMVector3TransformCoord(XMLoadFloat3(&FarNdc), XMLoadFloat4x4(&getMainCamera()->getInverseProjectionMatrix()));
     XMVECTOR FarWorldPos = XMVector3TransformCoord(FarViewPos, XMLoadFloat4x4(&getMainCamera()->getInvesrViewMatrix()));
 
-    Vec3 RayDirection; 
+    Vec3 RayDirection;
     Vec3 RayStart;
     XMStoreFloat3(&RayDirection, XMVector3Normalize(FarWorldPos - NearWorldPos));
     XMStoreFloat3(&RayStart, NearWorldPos);
 
-    //std::shared_ptr<FMeshData> HitMesh = nullptr;
-    FPrimitiveData HitPrimitiveData;
-    float MinDistance = FLT_MAX;
-    XMVECTOR HitPos = XMVectorZero();
+    OutHitData = {};
+    OutHitData.Distance = FLT_MAX;
 
-    const auto& MeshPrimitives = g_pRenderer->GetRenderablePrimitiveData();
-    for (auto& PrimitiveData : MeshPrimitives)
+    uint32 DataNum = GetSize(InPrimitives);
+    for (uint32 DataIndex = 0; DataIndex < DataNum; ++DataIndex)
     {
-        if (PrimitiveData.PrimitiveType != EPrimitiveType::Mesh)
+        auto& PrimitiveData = InPrimitives[DataIndex];
+        std::shared_ptr<MPrimitiveComponent> PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock();
+
+        if (PrimitiveComponent == nullptr)
         {
             continue;
         }
 
-        std::shared_ptr<MPrimitiveComponent> PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock();
+        if (PrimitiveComponent->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)
+        {
+            continue;
+        }
+
+        if (PrimitiveData.PrimitiveType != EPrimitiveType::Mesh)
+        {
+            continue;
+        }
 
         XMMATRIX InverseWorldMat = XMLoadFloat4x4(&PrimitiveComponent->GetInverseWorldMatrix());
         XMVECTOR Start = XMVector3TransformCoord(NearWorldPos, InverseWorldMat);
@@ -208,13 +215,13 @@ void MainGame::Pick()
         const auto& MeshData = PrimitiveData.MeshData.lock();
         const auto& Vertices = MeshData->Vertices;
         const auto& Indices = MeshData->Indices;
-        uint32 Loop = GetSize(Indices) / 3;
 
         auto Lambda = [](const Vec4& Pos)->XMVECTOR {
             Vec3 OutPos = { Pos.x, Pos.y, Pos.z };
             return XMLoadFloat3(&OutPos);
         };
 
+        uint32 Loop = GetSize(Indices) / 3;
         for (uint32 i = 0; i < Loop; ++i)
         {
             float LocalDistance = 0.f;
@@ -224,34 +231,80 @@ void MainGame::Pick()
                 XMVECTOR WorldHitPos = XMVector3TransformCoord(LocalHitPos, XMLoadFloat4x4(&PrimitiveComponent->getWorldMatrix()));
 
                 float WorldDistance = XMVectorGetX(XMVector3Length(WorldHitPos - NearWorldPos));
-                if (WorldDistance > MinDistance)
+                if (WorldDistance > OutHitData.Distance)
                 {
                     continue;
                 }
 
-                HitPrimitiveData = PrimitiveData;
-                MinDistance = WorldDistance;
-                HitPos = WorldHitPos;
+                OutHitData.HitComponent = PrimitiveData.PrimitiveComponent;
+                OutHitData.Distance = WorldDistance;
+                OutHitData.PrimitiveIndex = DataIndex;
+                XMStoreFloat3(&OutHitData.HitPos, WorldHitPos);
             }
         }
     }
 
-    if (std::shared_ptr<MMeshComponent> MeshComponent = HitPrimitiveData.GetPrimitiveComponent<MMeshComponent>())
-    {
-        uint32 MeshNum = MeshComponent->GetMesh()->GetMeshNum();
-        for (uint32 i = 0; i < MeshNum; ++i)
-        {
-            if (HitPrimitiveData.MeshData.lock() == MeshComponent->GetMesh()->GetMeshData(i))
-            {
-                std::cout << "Intersect, " << "MeshIndex: " << i << std::endl;
-                break;
-            }
-        }
+    return OutHitData.HitComponent.expired() == false;
+}
 
-        // 최종적으로 HitData를 채움
-        HitData.HitComponent = HitPrimitiveData.PrimitiveComponent;
-        HitData.Distance = MinDistance;
-        XMStoreFloat3(&HitData.HitPos, HitPos);
-    }
+void MainGame::ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const
+{
+    // 스크린 -> NDC
+    UINT Width = g_pSetting->getResolutionWidth<UINT>();
+    UINT Height = g_pSetting->getResolutionHeight<UINT>();
+    
+    Vec3 NDC = {
+        InPos.x / (Width / 2.f) - 1.f,
+        InPos.y / -(Height / 2.f) + 1.f,
+        Depth
+    };
+
+    XMVECTOR ViewPos = XMVector3TransformCoord(XMLoadFloat3(&NDC), XMLoadFloat4x4(&getMainCamera()->getInverseProjectionMatrix()));
+    XMVECTOR WorldPos = XMVector3TransformCoord(ViewPos, XMLoadFloat4x4(&getMainCamera()->getInvesrViewMatrix()));
+
+    XMStoreFloat3(&OutPos, WorldPos);
+}
+
+void MainGame::WorldToScreen(const Vec3& InPos, Vec2& OutPos) const
+{
+    float Width = g_pSetting->getResolutionWidth<float>();
+    float Height = g_pSetting->getResolutionHeight<float>();
+
+    XMVECTOR ViewPos = XMVector3TransformCoord(XMLoadFloat3(&InPos), XMLoadFloat4x4(&getMainCamera()->getViewMatrix()));
+    XMVECTOR ProjectPos = XMVector3TransformCoord(ViewPos, XMLoadFloat4x4(&getMainCamera()->getProjectionMatrix()));
+    //XMVECTOR NDCPos = ProjectPos / XMVectorGetZ(ProjectPos); XMVector3TransformCoord가 z나누기 해줌
+
+    OutPos = { (XMVectorGetX(ProjectPos) + 1.f) * (Width / 2.f), (-XMVectorGetY(ProjectPos) + 1.f) * (Height / 2.f)};
+}
+
+void MainGame::ProjectVec3(const Vec3& InBase, const Vec3& InTarget, Vec3& Out) const
+{
+    XMVECTOR Base = XMVector3Normalize(XMLoadFloat3(&InBase));
+    XMVECTOR Target = XMLoadFloat3(&InTarget);
+
+    float Dot = XMVectorGetX(XMVector3Dot(Base, Target));
+
+    XMVECTOR Proj = Base * (Dot * XMVector3Length(Target));
+    XMStoreFloat3(&Out, Proj);
+}
+
+void MainGame::ProjectVec2(const Vec2& InBase, const Vec2& InTarget, Vec2& Out) const
+{
+    XMVECTOR Base = XMVector2Normalize(XMLoadFloat2(&InBase));
+    XMVECTOR Target = XMLoadFloat2(&InTarget);
+
+    float Dot = XMVectorGetX(XMVector2Dot(Base, Target));
+
+    XMVECTOR Proj = Base * (Dot * XMVector2Length(Target));
+    XMStoreFloat2(&Out, Proj);
+}
+
+const Vec2 MainGame::GetMousePos()
+{
+    POINT MousePos;
+    GetCursorPos(&MousePos);
+    ScreenToClient(g_hWnd, &MousePos);
+
+    return { static_cast<float>(MousePos.x), static_cast<float>(MousePos.y) };
 }
 

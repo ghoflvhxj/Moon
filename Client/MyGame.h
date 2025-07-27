@@ -11,6 +11,11 @@ class Player;
 class StaticMeshComponent;
 class MStaticMeshActor;
 
+enum class EAxies
+{
+    X, Y, Z
+};
+
 class MyGame : public MainGame
 {
 public:
@@ -35,16 +40,19 @@ private:
 	std::shared_ptr<Player> _pPlayer;
 
 private:
-	std::shared_ptr<TerrainComponent> _pTerrainComponent;
-
-	float time = 0.f;
+	//std::shared_ptr<TerrainComponent> _pTerrainComponent;
 	
-	bool bButtonPressed = false;
-	bool bStaticCollision = true;
 	float Force = 0.f;
 
 public:
-    virtual bool IsPickable() const override;
+    bool IsPickable() const;
+private:
+    FHitData HitData = {};
+    Vec3 GizmoOffset = VEC3ZERO;
+    EAxies GizmoAxis;
+    bool bUpdateGizmoOffset = false;
+	bool bControlGizmo = false;
+
 };
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject);
