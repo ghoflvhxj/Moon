@@ -239,6 +239,16 @@ void Renderer::initialize() noexcept
         Material->setShader(TEXT("VS_VertexColorOut.cso"), TEXT("PS_VertexColorOut.cso"));
     }
     MakeBuffer(GizmoMeshComp);
+
+	addRenderTargetForDebug(ERenderTarget::Diffuse);
+	addRenderTargetForDebug(ERenderTarget::Depth);
+	addRenderTargetForDebug(ERenderTarget::Normal);
+	addRenderTargetForDebug(ERenderTarget::Specular);
+	addRenderTargetForDebug(ERenderTarget::LightDiffuse);
+	addRenderTargetForDebug(ERenderTarget::LightSpecular);
+	//addRenderTargetForDebug(ERenderTarget::DirectionalShadowDepth);
+//	addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
+
 	ASSERT_MSG(EnumToIndex(ERenderPass::Count) == static_cast<uint32>(RenderPasses.size()), "ERenderPass::Count와 RenderPasses의 개수가 맞지 않음.");
 }
 
