@@ -3,8 +3,8 @@
 #include "Include.h"
 #include "PrimitiveComponent.h"
 #include "Core/Physics/PhysicsEnum.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
-class StaticMesh;
 class MPhysicsObject;
 
 struct FClothUpdateData
@@ -59,6 +59,7 @@ protected:
         MMeshComponent, 
         PROPERTY_DELEGATE(bPhysicsSimulate, [&](MMeshComponent* InObject) {
             InObject->SetPhysicsSimulate(InObject->IsPhysicsSimulating());
-        })
+        }),
+        PROPERTY(Mesh)
     );
 };

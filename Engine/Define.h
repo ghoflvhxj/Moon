@@ -17,9 +17,11 @@ constexpr float FLOAT3_ZERO[] = { 0.f, 0.f, 0.f };
 constexpr float FLOAT3_ONE[] = { 1.f, 1.f, 1.f };
 constexpr float FLOAT3_UP[] = { 0.f, 1.f, 0.f };
 
-constexpr Vec3 VEC3FORWARD = { 1.f, 0.f, 0.f };
+constexpr Vec3 VEC3FORWARD = { 0.f, 0.f, 1.f };
+constexpr Vec3 VEC3RIGHT = { 1.f, 0.f, 0.f };
 constexpr Vec3 VEC3UP	= { 0.f, 1.f, 0.f };
 constexpr Vec3 VEC3ZERO = { 0.f, 0.f, 0.f };
+
 constexpr Vec4 VEC4ZERO = { 0.f, 0.f, 0.f, 0.f };
 
 constexpr Vec4 IDENTITY0 = { 1.f, 0.f, 0.f, 0.f };

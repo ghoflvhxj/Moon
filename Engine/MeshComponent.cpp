@@ -1,6 +1,5 @@
 ﻿#include "MeshComponent.h"
 
-#include "Mesh/StaticMesh/StaticMesh.h"
 #include "Core/Physics/Physics.h"
 
 MMeshComponent::MMeshComponent()
