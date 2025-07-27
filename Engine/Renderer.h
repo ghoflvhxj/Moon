@@ -26,11 +26,11 @@ private:
 	void initialize() noexcept;
 private:
 	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
-    std::shared_ptr<MVertexBuffer> a;
-    std::shared_ptr<MIndexBuffer> b;
 public:
 	// 렌더할 Primitive 추가
-	void AddPrimitive(std::shared_ptr<MPrimitiveComponent> &pComponent);
+	void AddPrimitive(std::shared_ptr<MPrimitiveComponent> pComponent);
+    void MakeBuffer(FPrimitiveData& PrimitiveData);
+    void MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent);
 protected:
     // 포워드 렌더링을 위한 PrimitiveID - FPrimitiveData 쌍을 저장함
 	std::map<uint32, std::vector<FPrimitiveData>> ForwardPrimitiveDataMap;

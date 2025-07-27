@@ -89,11 +89,12 @@ void Renderer::initialize() noexcept
 {
 	ViewMeshComponent = std::make_shared<StaticMeshComponent>();
     ViewMeshComponent->SetPhysics(false);
-    ViewMeshComponent->SetMesh(TEXT("Base/Plane.fbx"));
+    ViewMeshComponent->SetMesh(TEXT("Base/Plane.json"));
 	ViewMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	ViewMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
     ViewMeshComponent->GetMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	ViewMeshComponent->SceneComponent::Update(0.f);
+    MakeBuffer(ViewMeshComponent);
 
 	// 렌더 타겟 추가
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
@@ -241,7 +242,7 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent>& InPrimitiveCom
 	}
 
 	bool bMakeBuffer = false;
-	for (int i=0; i<PrimitiveDataList.size(); ++i)
+	for (uint32 i=0; i<GetSize(PrimitiveDataList); ++i)
 	{
 		FPrimitiveData& PrimitiveData = PrimitiveDataList[i];
 		if (PrimitiveData.MeshData.expired())
@@ -259,28 +260,7 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent>& InPrimitiveCom
 
 		if (bMakeBuffer)
 		{
-			auto& MeshData = PrimitiveData.MeshData.lock();
-			uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
-			uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
-			const void* Buffer = MeshData->Vertices.data();
-
-            // 피직스 테스트용
-            std::vector<Vec4> PXVertices;
-            if (PrimitiveData.InputLayout != nullptr)
-            {
-                for (Vertex& Vtx : MeshData->Vertices)
-                {
-                    PXVertices.push_back({Vtx.Pos.x, Vtx.Pos.y, Vtx.Pos.z, 1.f});
-                }
-                VertexSize = sizeof(Graphic::VERTEX_SIMPLE);
-                Buffer = PXVertices.data();
-            }
-
-			VertexBuffers[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, Buffer));
-
-            uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
-            uint32 IndexNum = CastValue<uint32>(MeshData->Indices.size());
-            IndexBuffers[PrimitiveID].push_back(IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData->Indices.data()) : nullptr);
+			MakeBuffer(PrimitiveData);
 		}
 
 		PrimitiveData.VertexBuffer = VertexBuffers[PrimitiveID][i];
@@ -303,7 +283,31 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent>& InPrimitiveCom
 	}
 }
 
-void Renderer::addRenderTargetForDebug(const std::wstring name)
+void Renderer::MakeBuffer(FPrimitiveData& PrimitiveData)
+{
+	int32 PrimitiveID = PrimitiveData.PrimitiveComponent.lock()->GetPrimitiveID();
+
+	auto& MeshData = PrimitiveData.MeshData.lock();
+	uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
+	uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
+
+	VertexBuffers[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData->Vertices.data()));
+
+	uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
+	uint32 IndexNum = CastValue<uint32>(MeshData->Indices.size());
+	IndexBuffers[PrimitiveID].push_back(IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData->Indices.data()) : nullptr);
+}
+
+void Renderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
+{
+    std::vector<FPrimitiveData> PrimitiveDatas;
+    InComponent->GetPrimitiveData(PrimitiveDatas);
+
+    for (auto& PrimtiveData : PrimitiveDatas)
+    {
+        MakeBuffer(PrimtiveData);
+    }
+}
 
 void Renderer::addRenderTargetForDebug(ERenderTarget InRenderTarget)
 {
@@ -485,40 +489,9 @@ void Renderer::RenderScene()
 	// 혼합 패스
 	std::vector<FPrimitiveData> ViewPrimitiveData;
 	ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
-
-    if (ViewPrimitiveData.empty())
-    {
-        return;
-    }
-
-	if (a == nullptr)
-	{
-		auto& MeshData = ViewPrimitiveData[0].MeshData.lock();
-
-		uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
-		uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
-		ViewPrimitiveData[0].VertexBuffer = a = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData->Vertices.data());
-
-        uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
-        uint32 IndexNum = CastValue<uint32>(MeshData->Indices.size());
-        ViewPrimitiveData[0].IndexBuffer = b = std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData->Indices.data());
-	}
-
-    ViewPrimitiveData[0].VertexBuffer = a;
-    ViewPrimitiveData[0].IndexBuffer = b;
-
+	ViewPrimitiveData[0].VertexBuffer = VertexBuffers[ViewMeshComponent->GetPrimitiveID()][0];
+	ViewPrimitiveData[0].IndexBuffer = IndexBuffers[ViewMeshComponent->GetPrimitiveID()][0];
 	RenderPasses[CombinePass]->RenderPass(ViewPrimitiveData);
-
-	// 렌더 타겟
-#ifdef _DEBUG
-	//if (true == _drawRenderTarget)
-	//{
-	//	for each (auto pair in _renderTargetMeshMap)
-	//	{
-	//		pair.second->render();
-	//	}
-	//}
-#endif
 }
 
 void Renderer::RenderText()
