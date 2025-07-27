@@ -14,7 +14,7 @@ struct FViewBindData
 	std::shared_ptr<RenderTarget> ReourceView;
 };
 
-class ENGINE_DLL MRenderPass abstract
+class ENGINE_DLL MRenderPass
 {
 public:
 	static const int RT_COUNT = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;

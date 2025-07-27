@@ -49,6 +49,7 @@ enum class ERenderPass
 	SkyPass,
     Collision,
 	Combine,
+    Test,
 	Count
 };
 

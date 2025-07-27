@@ -220,8 +220,10 @@ void Renderer::initialize() noexcept
             ERenderTarget::PointLightDiffuse);
 	}
 
-	// 
-	//assert(e && );
+	RenderPasses.emplace_back(CreateRenderPass<MRenderPass>());
+	{
+        RenderPasses[EnumToIndex(ERenderPass::Test)]->SetDepthEnable(false);
+	}
 	ASSERT_MSG(EnumToIndex(ERenderPass::Count) == static_cast<uint32>(RenderPasses.size()), "ERenderPass::Count와 RenderPasses의 개수가 맞지 않음.");
 }
 
