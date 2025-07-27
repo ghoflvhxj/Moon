@@ -61,13 +61,10 @@ protected:
 
 	// 렌더 타겟
 public:
-	void addRenderTargetForDebug(const std::wstring name);
+	void addRenderTargetForDebug(ERenderTarget InRenderTarget);
 	std::shared_ptr<RenderTarget>& GetRenderTarget(ERenderTarget RenderTarget) { return _renderTargets[static_cast<int32>(RenderTarget)]; }
 private:
 	RenderTargets _renderTargets;
-#ifdef _DEBUG
-	std::unordered_map<std::wstring, std::shared_ptr<StaticMeshComponent>> _renderTargetMeshs;
-#endif
 
 	// 렌더 패스
 private:
@@ -86,10 +83,9 @@ public:
 	uint32 ShownPrimitiveNum = 0;
 	uint32 CulledPrimitiveNum = 0;
 
-public:
-	void toggleRenderTarget();
 private:
-	bool _drawRenderTarget;
+    std::unordered_map<ERenderTarget, std::shared_ptr<StaticMeshComponent>> DebugRenderTargetMehses;
+	bool bDebugRenderTargets = true;
 
 public:
 	const bool IsGlobalBufferDirty() const;

@@ -48,8 +48,7 @@ enum class EFrustumCascade
 };
 
 Renderer::Renderer() noexcept
-	: _drawRenderTarget{ true }
-	, _bDirtyConstant{ true }
+	: _bDirtyConstant{ true }
 	, _cascadeDistance(4, 0.f)
     , LightPosition(3, VEC3ZERO)
     , LightViewProj(3, IDENTITYMATRIX)
@@ -84,9 +83,6 @@ void Renderer::Release()
 
     IndexBuffers.clear();
 	VertexBuffers.clear();
-
-    a.reset();
-    b.reset();
 }
 
 void Renderer::initialize() noexcept
@@ -306,18 +302,35 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent>& InPrimitiveCom
 }
 
 void Renderer::addRenderTargetForDebug(const std::wstring name)
+
+void Renderer::addRenderTargetForDebug(ERenderTarget InRenderTarget)
 {
 #ifdef _DEBUG
-	//std::shared_ptr<StaticMeshComponent> pMeshComponent = std::make_shared<StaticMeshComponent>();
-	//MapUtility::FindInsert(_renderTargetMeshs, name, pMeshComponent);
-	//if (true == result)
-	//{
-	//	float scale = 200.f;
-	//	uint32 count = CastValue<uint32>(_renderTargetMeshs.size() - 1);
+	float scale = 200.f;
+	float x = (-1.f * g_pSetting->getResolutionWidth<float>() / 2.f) + (scale / 2.f);
+	float y = g_pSetting->getResolutionHeight<float>();
 
-	//	pMeshComponent->setScale(scale, scale, 0.f);
-	//	pMeshComponent->setTranslation(scale / 2.f + (count / 4 * scale), scale / 2.f + (count * scale), 0.f);
-	//}
+    auto& NewMesh = std::make_shared<StaticMeshComponent>();
+	NewMesh->SetPhysics(false);
+    NewMesh->SetMesh(TEXT("Base/Plane.json"));
+    if (MapUtility::FindInsert(DebugRenderTargetMehses, InRenderTarget, NewMesh))
+    {
+        
+        uint32 count = CastValue<uint32>(DebugRenderTargetMehses.size() - 1);
+        NewMesh->setScale(scale, scale, 0.f);
+        NewMesh->setTranslation(x + scale * count, scale, 1.f);
+        NewMesh->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, GetRenderTarget(InRenderTarget)->AsTexture());
+		NewMesh->GetMesh()->getMaterial(0)->setShader(TEXT("VS_SimpleTexture.cso"), TEXT("PS_SimpleTexture.cso"));
+        NewMesh->setRenderMode(MPrimitiveComponent::ERenderMode::Orthogonal);
+		NewMesh->SceneComponent::Update(0.f);
+
+		std::vector<FPrimitiveData> PrimitiveDatas;
+		NewMesh->GetPrimitiveData(PrimitiveDatas);
+		for (auto& PrimitiveData : PrimitiveDatas)
+		{
+			MakeBuffer(PrimitiveData);
+		}
+    }
 #endif
 }
 
@@ -427,6 +440,25 @@ void Renderer::Render()
     }
 
 	RenderScene();
+
+    std::vector<FPrimitiveData> PostRenderPrimitiveDatas;
+#ifdef _DEBUG
+    // 렌더 타겟
+    if (true == bDebugRenderTargets)
+    {
+        for (auto pair : DebugRenderTargetMehses)
+        {
+            auto& RenderTargetMesh = pair.second;
+
+            RenderTargetMesh->GetPrimitiveData(PostRenderPrimitiveDatas);
+            PostRenderPrimitiveDatas.back().VertexBuffer = VertexBuffers[RenderTargetMesh->GetPrimitiveID()][0];
+            PostRenderPrimitiveDatas.back().IndexBuffer = IndexBuffers[RenderTargetMesh->GetPrimitiveID()][0];
+        }
+    }
+#endif
+
+    RenderPasses[(int)ERenderPass::Test]->RenderPass(PostRenderPrimitiveDatas);
+
 	RenderText();
 
     g_pMainGame->render();
@@ -596,11 +628,6 @@ void Renderer::UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader)
     Shader->SetValue(TEXT("cascadeDistance"), _cascadeDistance);
     Shader->SetValue(TEXT("lightPos"), LightPosition);
     Shader->SetValue(TEXT("lightViewProjMatrix"), LightViewProj);
-}
-
-void Renderer::toggleRenderTarget()
-{
-	_drawRenderTarget = (true == _drawRenderTarget) ? false : true;
 }
 
 const bool Renderer::IsGlobalBufferDirty() const
