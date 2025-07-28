@@ -22,10 +22,20 @@
 
 #include "GameFramework/StaticMeshActor/StaticMeshActor.h"
 #include "GameFramework/PointLightActor/PointLightActor.h"
+#include "GameFramework/DirectionalLightActor/DirectionalLightActor.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
 #include "ImGui/backends/imgui_impl_dx11.h"
+
+// 파일 다이얼로그
+#include <commdlg.h>
+
+// FBX
+#include "FBXLoader.h"
+
+#define UseGround 1
+#define UseDirectionalLight 1
 
 using namespace DirectX;
 
@@ -60,10 +70,25 @@ const bool MyGame::initialize()
     LanternActor->GetStaticMeshCompoent()->SetPhysicsSimulate(false);
     LanternActor->GetStaticMeshCompoent()->RemovePhysics();
 
-    //auto b = CreateActor<MStaticMeshActor>(this);
-    //b->SetStaticMesh(TEXT("Base/axis.fbx"));
-    //b->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setShader(TEXT("VS_VertexColorOut.cso"), TEXT("PS_VertexColorOut.cso"));
-    //b->GetStaticMeshCompoent()->setScale(0.1f, 0.1f, 0.1f);
+#if UseGround == 1
+    auto Ground = CreateActor<MStaticMeshActor>(this);
+    Ground->GetStaticMeshCompoent()->SetMesh(TEXT("Base/Box.fbx"));
+    Ground->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
+    Ground->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
+    Ground->GetStaticMeshCompoent()->setScale(20.f, 1.f, 20.f);
+    Ground->GetStaticMeshCompoent()->setTranslation(1.f, -3.f, 0.f);
+#endif
+
+
+#if UseDirectionalLight == 1
+    auto DirectionalLight = CreateActor<MDirectionalLightActor>(this);
+#endif
+
+    auto Table = CreateActor<MStaticMeshActor>(this);
+    Table->GetStaticMeshCompoent()->SetMesh(TEXT("Table/Table.fbx"));
+    Table->GetStaticMeshCompoent()->setScale(Vec3{ 0.02f, 0.02f, 0.02f });
+    Table->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
+    Table->GetStaticMeshCompoent()->SetDrawCollision(true);
 
     auto a = CreateActor<MPointLightActor>(this);
 
@@ -127,10 +152,15 @@ void MyGame::Tick(const Time deltaTime)
             bControlGizmo = false;
             if (Raycast(getRenderer()->GetRenderablePrimitiveData(), HitData))
             {
-                getRenderer()->bGizmo = true;
-                getRenderer()->GizmoPos = HitData.HitComponent.lock()->getWorldTranslation();
+                ClickedComp = HitData.HitComponent;
             }
         }
+    }
+
+    if (ClickedComp.expired() == false)
+    {
+        getRenderer()->bGizmo = true;
+        getRenderer()->GizmoPos = std::static_pointer_cast<MPrimitiveComponent>(ClickedComp.lock())->getWorldTranslation();
     }
 
     if (bControlGizmo && InputManager::mouseUp(MOUSEBUTTON::LB))
@@ -138,7 +168,7 @@ void MyGame::Tick(const Time deltaTime)
         bControlGizmo = false;
     }
 
-    if (auto GizmoTargetComp = HitData.HitComponent.lock())
+    if (auto GizmoTargetComp = std::static_pointer_cast<MPrimitiveComponent>(ClickedComp.lock()))
     {
         getRenderer()->GizmoPos = GizmoTargetComp->getWorldTranslation();
 
@@ -151,7 +181,7 @@ void MyGame::Tick(const Time deltaTime)
             ScreenToWorld(Current, 1.f, Far);
 
             XMVECTOR Plane = XMVectorZero();
-            Vec3 Pos = HitData.HitComponent.lock()->getWorldTranslation();
+            Vec3 Pos = GizmoTargetComp->getWorldTranslation();
             switch (GizmoAxis)
             {
             case EAxies::X:
@@ -191,7 +221,7 @@ void MyGame::Tick(const Time deltaTime)
                 break;
             }
 
-            HitData.HitComponent.lock()->setTranslation(NewPos);
+            GizmoTargetComp->setTranslation(NewPos);
         }
     }
 
@@ -211,22 +241,8 @@ void MyGame::render()
 {
     std::shared_ptr<MLightComponent> DirectionalLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
     std::shared_ptr<MLightComponent> PointLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
-    std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(TEXT("DynamicMesh")));
+    std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(ROOT_COMPONENT));
     
-	ImGui::Text("Toatal primitive:%d", getRenderer()->TotalPrimitiveNum);
-	ImGui::Text("show primitive:%d", getRenderer()->ShownPrimitiveNum);
-	ImGui::Text("culled primitive:%d", getRenderer()->CulledPrimitiveNum);
-	ImGui::Checkbox("Debug Collision", &getRenderer()->bDrawCollision);
-
-	if (ImGui::CollapsingHeader("DirectionalLight") && DirectionalLight)
-	{
-		Vec3 rot = DirectionalLight->getRotation();
-		ImGui::SliderAngle("rotX", &rot.x);
-		ImGui::SliderAngle("rotY", &rot.y);
-		ImGui::SliderAngle("rotZ", &rot.z);
-        DirectionalLight->setRotation(rot);
-	}
-
 	if (ImGui::CollapsingHeader("Actor") && LanternActor)
 	{
         auto IsNotEqual = [](float lhs, float rhs)->bool {
@@ -269,23 +285,64 @@ void MyGame::render()
         ImGui::Indent(-20);
     }
 
-    if (DynamicMeshComp && DynamicMeshComp->PhysicsObject && ImGui::Button("DynamicMeshCloth Pos"))
+    if (ImGui::CollapsingHeader("Render"))
     {
-        DynamicMeshComp->PhysicsObject->SetPos(DynamicMeshComp->GetJointPosition("bone014"));
+        ImGui::Text("Toatal primitive:%d", getRenderer()->TotalPrimitiveNum);
+        ImGui::Text("show primitive:%d", getRenderer()->ShownPrimitiveNum);
+        ImGui::Text("culled primitive:%d", getRenderer()->CulledPrimitiveNum);
+        ImGui::Checkbox("Debug Collision", &getRenderer()->bDrawCollision);
+
+        const FTypeDesc* Current = getRenderer()->GetTypeDesc();
+        while (Current)
+        {
+            DispatchStruct(Current, getRenderer().get());
+            Current = Current->Parent;
+        }
     }
 
     if(DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
     {
         DynamicMeshComp->Clothing();
     }
-
-    if (ImGui::CollapsingHeader("Render"))
+    
+    // FBX 로드 
+    if (ImGui::CollapsingHeader("LoadFBX"))
     {
-        const FTypeDesc* Current = getRenderer()->GetTypeDesc();
-        while (Current)
+        if (ImGui::Button("Load"))
         {
-            DispatchStruct(Current, getRenderer().get());
-            Current = Current->Parent;
+            TCHAR FileName[256] = {};
+
+            OPENFILENAMEW t = {};
+            t.lStructSize = sizeof(t);
+            t.hwndOwner = NULL;
+            t.hInstance = NULL;
+            t.lpstrFilter = TEXT("FBX 파일\0*.fbx");
+            t.lpstrFile = FileName;
+            t.nMaxFile = 256;
+            t.lpstrInitialDir = TEXT(".");
+            t.lpstrTitle = TEXT("Load FBX");
+
+            if (GetOpenFileNameW(&t))
+            {
+                MFBXLoader FBXLoader;
+                FBXLoader.SaveJsonAsset(FileName);
+                wcout << FileName << endl;
+            }
+        }
+    }
+
+    // 하이어라키
+    if (ImGui::CollapsingHeader("Hierarchy"))
+    {
+        uint32 Num = GetSize(_actorList);
+        uint32 i = 0;
+        for (auto actor : _actorList)
+        {
+            std::string name = "Actor_" + std::to_string(i++) + "(" + actor->GetTypeDesc()->Name + ")";
+            if (ImGui::Selectable(name.c_str()))
+            {
+                ClickedComp = actor->getComponent(ROOT_COMPONENT);
+            }
         }
     }
 
@@ -307,7 +364,7 @@ void MyGame::render()
     }
 
     // 컴포넌트 속성 편집 기능
-    if (std::shared_ptr<MPrimitiveComponent> HitComponent = HitData.HitComponent.lock())
+    if (std::shared_ptr<MPrimitiveComponent> HitComponent = std::static_pointer_cast<MPrimitiveComponent>(ClickedComp.lock()))
     {
         const FTypeDesc* Current = HitComponent->GetTypeDesc();
         while (Current)
@@ -496,7 +553,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
             case EType::Float:
             {
                 float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject);
-                //cout << Temp << endl;
+                ImGui::InputFloat(Prop->Name.c_str(), &Temp);
             }
             break;
             case EType::Bool:

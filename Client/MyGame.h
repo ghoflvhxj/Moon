@@ -53,6 +53,8 @@ private:
     bool bUpdateGizmoOffset = false;
 	bool bControlGizmo = false;
 
+
+    std::weak_ptr<class Component> ClickedComp;
 };
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject);
