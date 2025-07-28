@@ -14,4 +14,6 @@ public:
 protected:
     std::shared_ptr<MPointLightComponent> PointLightComponent = nullptr;
     std::shared_ptr<MBillboardComponent> VisualComponent = nullptr;
+
+    REFLECT(MPointLightActor)
 };

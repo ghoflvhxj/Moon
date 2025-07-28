@@ -29,10 +29,9 @@
 
 #define UsePointLight 1
 #define UseRandomPointLight 1
-#define UseDirectionalLight 1
+
 #define UseDynamicMesh 1
 #define UseSkySphere 0
-#define UseGround 1
 
 using namespace DirectX;
 using namespace rapidjson;
@@ -49,23 +48,6 @@ Player::~Player()
 
 void Player::initialize()
 {
-#if UseGround == 1
-	_pMeshComponent = std::make_shared<StaticMeshComponent>();
-    _pMeshComponent->SetMesh(TEXT("Base/Box.fbx"));
-	_pMeshComponent->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
-    _pMeshComponent->GetMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
-	addComponent(ROOT_COMPONENT, _pMeshComponent);
-	_pMeshComponent->setScale(20.f, 1.f, 20.f);
-	_pMeshComponent->setTranslation(1.f, -3.f, 0.f);
-#endif
-
-    _pStaticMeshComponent2 = std::make_shared<StaticMeshComponent>();
-    _pStaticMeshComponent2->SetMesh(TEXT("Table/Table.fbx"));
-    _pStaticMeshComponent2->setScale(Vec3{ 0.02f, 0.02f, 0.02f });
-    _pStaticMeshComponent2->setDrawingBoundingBox(true);
-    _pStaticMeshComponent2->SetDrawCollision(true);
-    addComponent(TEXT("test2"), _pStaticMeshComponent2);
-
     LoadedMeshComponent = std::make_shared<StaticMeshComponent>();
     LoadedMeshComponent->setScale(Vec3(0.01f, 0.01f, 0.01f));
     addComponent(TEXT("Load"), LoadedMeshComponent);
@@ -79,12 +61,11 @@ void Player::initialize()
 
 #if UseDynamicMesh == 1
 	CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
-	addComponent(TEXT("DynamicMesh"), CharacterMeshComponent);
+	addComponent(ROOT_COMPONENT, CharacterMeshComponent);
     CharacterMeshComponent->SetPhysics(false);
 	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
     //CharacterMeshComponent->SetMesh(TEXT("2B/2b.json"));
- 
     CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
 	CharacterMeshComponent->GetDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
 	CharacterMeshComponent->GetDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
@@ -100,12 +81,6 @@ void Player::initialize()
 	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, SkyTexture);
 	addComponent(TEXT("Sky"), _pSkyComponent);
 	_pSkyComponent->setRotation(Vec3{ XMConvertToRadians(270.f), 0.f, 0.f });
-#endif
-
-#if UseDirectionalLight == 1
-	_pLightComponent2 = std::make_shared<DirectionalLightComponent>();
-	addComponent(TEXT("DirectionalLight"), _pLightComponent2);
-	_pLightComponent2->setTranslation(0.f, 0.f, 1000.f);
 #endif
 
 #if UseRandomPointLight == 1
@@ -231,15 +206,6 @@ void Player::tick(const Time deltaTime)
 		}
 	}
 #endif
-
-#if UseDirectionalLight == 1
-	Vec3 rotation2 = _pLightComponent2->getRotation();
-	if (InputManager::keyPress(DIK_UP))
-	{
-		rotation2.x += DirectX::XMConvertToRadians(10.f) * deltaTime;
-		_pLightComponent2->setRotation(rotation2);
-	}
-#endif
 }
 
 void Player::JsonSaveTest(bool bPretty)
@@ -297,14 +263,14 @@ void Player::JsonSaveTest(bool bPretty)
     //Serializer.Serialize(*_pStaticMeshComponent2->GetMesh()->GetMeshData(0), Path, bPretty);
      
     // ---------------------------------------- 메시 저장 테스트
-    Serializer.Serialize(_pStaticMeshComponent2->GetMesh(), Path, bPretty);
+    //Serializer.Serialize(_pStaticMeshComponent2->GetMesh(), Path, bPretty);
 
     // ---------------------------------------- 
     //Serializer.Serialize(CharacterMeshComponent->GetDynamicMesh(), Path, bPretty);
 
     // ---------------------------------------- FBX를 로드해서 Json으로 저장
     MFBXLoader FbxLoader;
-    FbxLoader.SaveJsonAsset(TEXT("Table/table.fbx"));
+    FbxLoader.SaveJsonAsset(TEXT("2B/2B.fbx"));
 }
 
 void Player::JsonLoadTest()
@@ -363,40 +329,3 @@ void Player::JsonLoadTest()
 
     std::cout << "Deserialize Finished" << std::endl;
 }
-
-//void Player::rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent)
-//{
-//	Vec3 trans	= _pMeshComponent->getTranslation();
-//	Vec3 look	= _pMeshComponent->getLook();
-//	Vec3 right	= _pMeshComponent->getRight();
-//
-//	float speed = 0.1f;
-//
-//	if (keyPress(DIK_UP))
-//	{
-//		trans.x += look.x * speed;
-//		trans.z += look.z * speed;
-//	}
-//	else if (keyPress(DIK_DOWN))
-//	{
-//		trans.x -= look.x * speed;
-//		trans.z -= look.z * speed;
-//	}
-//	else if (keyPress(DIK_RIGHT))
-//	{
-//		trans.x += right.x * speed;
-//		trans.z += right.z * speed;
-//	}
-//	else if (keyPress(DIK_LEFT))
-//	{
-//		trans.x -= right.x * speed;
-//		trans.z -= right.z * speed;
-//	}
-//
-//	float y = 0.f;
-//	if (pTerrainComponent->Test(trans, &trans.y))
-//	{
-//		_pMeshComponent->setTranslation({ trans.x, trans.y, trans.z });
-//	}
-//
-//}

@@ -26,11 +26,8 @@ protected:
 public:
     void JsonSaveTest(bool bPretty = false);
     void JsonLoadTest();
-    //void rideTerrain(std::shared_ptr<TerrainComponent> pTerrainComponent);
 
 private:
-    std::shared_ptr<StaticMeshComponent>	_pMeshComponent;
-    std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent;
     std::shared_ptr<StaticMeshComponent>	_pStaticMeshComponent2;
     std::shared_ptr<StaticMeshComponent>	LoadedMeshComponent;
     std::shared_ptr<DynamicMeshComponent>	CharacterMeshComponent;
@@ -45,4 +42,6 @@ private:
     float CameraSpeedScale = 1.f;
 
     Vec3 PreviousJointPos;
+
+    REFLECT(Player)
 };

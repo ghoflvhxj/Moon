@@ -26,6 +26,8 @@ public:
 	const bool							addComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> pComponent);
 private:
 	std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>	_components;
+
+    REFLECT_TOP(Actor)
 };
 
 template <class T>

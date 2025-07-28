@@ -14,4 +14,6 @@ public:
     std::shared_ptr<StaticMeshComponent>& GetStaticMeshCompoent() { return StaticMeshComp; }
 protected:
     std::shared_ptr<StaticMeshComponent> StaticMeshComp = nullptr;
+
+    REFLECT(MStaticMeshActor)
 };

@@ -53,7 +53,7 @@ public:
 	// 업데이트 할 액터들을 관리
 public:
 	void addActor(std::shared_ptr<Actor> pActor);
-private:
+protected:
 	std::list<std::shared_ptr<Actor>> _actorList;
 
 	//-------------------------------------------------------------------------
