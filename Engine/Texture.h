@@ -1,11 +1,9 @@
 ﻿#pragma once
 
 #include "Include.h"
+#include "Core/Asset.h"
 
-// MResource 참조용
-#include "Core/ResourceLoader.h"
-
-class ENGINE_DLL MTexture : public MResource
+class ENGINE_DLL MTexture : public MAsset
 {
 public:
 	explicit MTexture(const std::wstring& FilePath);
@@ -29,17 +27,8 @@ private:
 public:
 	const bool GetResolution(uint32& OutWidth, uint32& OutHeight);
 
-protected:
-    std::wstring Path;
-
 public:
-    //REFLECTABLE(
-    //    MTexture,
-    //    REFLECT_FIELD(Path)
-    //)
-
-    REFLECT_TOP(
+    REFLECT(
         MTexture,
-        PROPERTY(Path)
     )
 };

@@ -1,5 +1,6 @@
 ﻿#include "JsonSerializer.h"
 #include "Serializable.h"
+#include "Core/Asset.h"
 
 using namespace rapidjson;
 
@@ -11,6 +12,9 @@ MJsonSerializer::MJsonSerializer()
 
 rapidjson::Value MJsonSerializer::DispatchStruct(const FTypeDesc* InTypeDesc, void* InObject)
 {
+    std::wstring Str = TEXT("JsonSerializer 클래스,구조체[") + StringToWString(InTypeDesc->Name.data()) + TEXT("]을(를) 읽는 중...\r\n");
+    OutputDebugString(Str.c_str());
+
 	rapidjson::Value OutValue(kObjectType);
 
 	if (InObject == nullptr)
@@ -144,6 +148,10 @@ rapidjson::Value MJsonSerializer::DispatchStruct(const FTypeDesc* InTypeDesc, vo
 
 rapidjson::Value MJsonSerializer::DispatchContainer(FContainerPropertyDesc* InContainerPropDesc, void* InObject)
 {
+    std::wstring ElemTypeName = InContainerPropDesc->TypeDesc == nullptr ? TEXT("") : StringToWString(InContainerPropDesc->TypeDesc->Name.data());
+    std::wstring Str = TEXT("JsonSerializer 컨테이너 ") + StringToWString(InContainerPropDesc->Name.data()) + TEXT("<") + ElemTypeName + TEXT("> 을(를) 읽는 중...\r\n");
+    OutputDebugString(Str.c_str());
+
 	rapidjson::Value OutValue(kObjectType);
 
 	size_t Num = InContainerPropDesc->GetNum(InObject);
@@ -198,10 +206,22 @@ rapidjson::Value MJsonSerializer::DispatchContainer(FContainerPropertyDesc* InCo
 	}
 	else
 	{
-		for (size_t i = 0; i < Num; ++i)
-		{
-			OutValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), DispatchStruct(InContainerPropDesc->TypeDesc, InContainerPropDesc->Get(InObject, i)), Allocator);
-		}
+        if (InContainerPropDesc->IsA<MAsset>())
+        {
+            for (size_t i = 0; i < Num; ++i)
+            {
+                rapidjson::Value AssetValue(kObjectType);
+                AssetValue.AddMember(rapidjson::Value(MAsset::GetTypeDescStatic()->Name, Allocator), DispatchStruct(MAsset::GetTypeDescStatic(), InContainerPropDesc->Get(InObject, i)), Allocator);
+                OutValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), AssetValue, Allocator);
+            }
+        }
+        else
+        {
+            for (size_t i = 0; i < Num; ++i)
+            {
+                OutValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), DispatchStruct(InContainerPropDesc->TypeDesc, InContainerPropDesc->Get(InObject, i)), Allocator);
+            }
+        }
 	}
 
 	return OutValue;

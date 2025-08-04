@@ -44,7 +44,6 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
     shaderLoader.loadShaderFiles(ShaderManager);
 
     g_ResourceManager = std::make_unique<MResourceManager>();
-    g_ResourceManager->AddLoader(std::make_shared<MTextureLoader>());
 
     g_pGraphicDevice->BuildInputLayout();
 

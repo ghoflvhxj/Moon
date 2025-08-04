@@ -7,7 +7,7 @@ MDirectionalLightActor::MDirectionalLightActor()
     LightComponent = std::make_shared<DirectionalLightComponent>();
     addComponent(ROOT_COMPONENT, LightComponent);
 
-    VisualComponent = std::make_shared<MBillboardComponent>();
-    addComponent(TEXT("Asd"), VisualComponent);
+    //VisualComponent = std::make_shared<MBillboardComponent>();
+    //addComponent(TEXT("Asd"), VisualComponent);
 }
 

@@ -48,9 +48,12 @@ Player::~Player()
 
 void Player::initialize()
 {
-    LoadedMeshComponent = std::make_shared<StaticMeshComponent>();
-    LoadedMeshComponent->setScale(Vec3(0.01f, 0.01f, 0.01f));
-    addComponent(TEXT("Load"), LoadedMeshComponent);
+    LoadedStaticMeshComp = std::make_shared<StaticMeshComponent>();
+    LoadedStaticMeshComp->setScale(Vec3(0.01f, 0.01f, 0.01f));
+    addComponent(TEXT("LoadedStaticMesh"), LoadedStaticMeshComp);
+
+    LoadedDynamicMeshComp = std::make_shared<DynamicMeshComponent>();
+    addComponent(TEXT("LoadedDynamicMesh"), LoadedDynamicMeshComp);
 
 #if UsePointLight == 1
     _pLightComponent = std::make_shared<MPointLightComponent>();
@@ -65,7 +68,7 @@ void Player::initialize()
     CharacterMeshComponent->SetPhysics(false);
 	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
-    //CharacterMeshComponent->SetMesh(TEXT("2B/2b.json"));
+    //CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
     CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
 	CharacterMeshComponent->GetDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
 	CharacterMeshComponent->GetDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
@@ -212,7 +215,7 @@ void Player::JsonSaveTest(bool bPretty)
 {
     MJsonSerializer Serializer;
 
-    std::wstring Path = TEXT("D:\\Git\\Moon\\Client\\test.json");
+    std::wstring Path = TEXT("D:\\Git\\Moon\\Client\\test.fbx");
 
     // ----------------------------------------  int 배열 저장 테스트
     //struct FTest
@@ -276,7 +279,7 @@ void Player::JsonSaveTest(bool bPretty)
 void Player::JsonLoadTest()
 {
     MJsonDeserializer Deserializer;
-    std::wstring Path = TEXT("D:\\Git\\Moon\\Client\\test.json");
+    std::wstring Path = TEXT("D:\\Git\\Moon\\Client\\Table\\table.fbx");
 
     // ----------------------------------------  int 배열 저장 테스트
     //struct FTest
@@ -322,10 +325,10 @@ void Player::JsonLoadTest()
     //Deserializer.Deserialize(MeshData, Path);
 
     // 메시 저장 테스트
-    Deserializer.Deserialize(*LoadedMeshComponent->GetMesh(), Path);
-    LoadedMeshComponent->GetMesh()->LoadFromAsset(Path);
-
-    //LoadedMeshComponent->SetMesh(Path);
+    //Deserializer.Deserialize(*LoadedMeshComponent->GetMesh(), Path);
+    
+    //LoadedMeshComponent->GetMesh()->LoadFromAsset(Path);
+    LoadedStaticMeshComp->SetMesh(Path);
 
     std::cout << "Deserialize Finished" << std::endl;
 }

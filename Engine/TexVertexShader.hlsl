@@ -5,7 +5,7 @@ VertexOut main(VertexIn vIn)
 	VertexOut vOut;
 
 	matrix worldView = mul(worldMatrix, viewMatrix);
-	matrix worldViewProj = mul(worldView, projectionMatrix);
+	matrix worldViewProj = mul(worldView, bOrtho ? orthographicProjectionMatrix : projectionMatrix);
 	
 	//vOut.pos		= mul(float4(vIn.pos.x, vIn.pos.y, vIn.pos.z, 1.f), worldViewProj);
     vOut.pos		= mul(float4(vIn.pos.xyz, 1.f), worldViewProj);

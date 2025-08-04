@@ -13,7 +13,9 @@
 #include "Shader.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
+
 #include "Core/ResourceManager.h"
+#include "Core/Serialize/JsonDeSerializer.h"
 
 #include "MainGame.h"
 
@@ -40,6 +42,13 @@ MMaterial::~MMaterial()
 	ClearShader();
 }
 
+void MMaterial::LoadFromAsset(const std::wstring& InPath)
+{
+    MJsonDeserializer MatDeserializer;
+    MatDeserializer.Deserialize(shared_from_this(), InPath);
+    OnLoaded();
+}
+
 void MMaterial::OnLoaded()
 {
     for (auto& Texture : _textureList)
@@ -49,7 +58,7 @@ void MMaterial::OnLoaded()
             continue;
         }
 
-        Texture->Load();
+        g_ResourceManager->Load(Texture->GetAssetPath(), Texture);
     }
 }
 

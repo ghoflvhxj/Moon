@@ -122,6 +122,12 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		NewPrimitiveData.Material = dMesh->getGeometryLinkMaterialIndex().size() > 0 ? dMesh->getMaterials()[dMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : dMesh->getMaterials()[0];
         NewPrimitiveData.AnimMatrices = JointAnimMatrices;
 
+        if (geometryIndex == 7 || geometryIndex == 8 || geometryIndex == 11 || geometryIndex == 12 || geometryIndex == 13)
+        {
+            //static std::vector<Mat4> Test(200, IDENTITYMATRIX);
+            //NewPrimitiveData.AnimMatrices = Test.data();
+        }
+
         PrimitiveDataList.emplace_back(NewPrimitiveData);
 	}
 
@@ -228,11 +234,11 @@ void DynamicMeshComponent::Clothing()
 
     // 옷 바디 충돌 테스트
     {
-        FPhysicsConstructData Data;
-        Data.PrimitiveComponent = shared_from_this();
-        Data.PhysicsType = EPhysicsType::Kinematic;
-        Data.bCapsule = true;
-        g_pPhysics->AddPhysicsObject(Data, BodyTestObject);
+        //FPhysicsConstructData Data;
+        //Data.PrimitiveComponent = shared_from_this();
+        //Data.PhysicsType = EPhysicsType::Kinematic;
+        //Data.bCapsule = true;
+        //g_pPhysics->AddPhysicsObject(Data, BodyTestObject);
     }
 }
 

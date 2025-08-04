@@ -5,6 +5,7 @@
 #include "Core/ResourceManager.h"
 #include "Core/Serialize/JsonSerializer.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
+#include "Mesh/DynamicMesh/DynamicMesh.h"
 #include "Material.h"
 
 #undef min
@@ -81,11 +82,10 @@ void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
     // 조인트 T포즈 역행렬은 어떻게 구하나 ?
     // 조인트 T포즈 행렬의 역 * 클러스터의 T포즈 행렬
 
-	int AnimStackCount = _pImporter->GetAnimStackCount();
-	OutAnimationClips.resize(AnimStackCount);
+    OutAnimationClips.resize(AnimStackNum);
 
 	PerformanceTimer timer;
-	for (int AnimStackIndex = 0; AnimStackIndex < AnimStackCount; ++AnimStackIndex)
+	for (uint32 AnimStackIndex = 0; AnimStackIndex < AnimStackNum; ++AnimStackIndex)
 	{
 		_pAnimStack = _pScene->GetCurrentAnimationStack();
 		FbxString animStackName = _pAnimStack->GetName();
@@ -214,8 +214,13 @@ void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
 
 bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
 {
+    if (bool bLoaded = Path.empty() == false)
+    {
+        return true;
+    }
+
 	Path = InPath;
-	Directory = Path.substr(0, Path.find_last_of('/') + 1);
+    Directory = MFIleSystem::GetDirectory(InPath);
     std::filesystem::path PathObject(Path);
     Name = PathObject.filename().wstring();
     Name = Name.substr(0, Name.find_last_of('.'));
@@ -233,6 +238,8 @@ bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
 	MaterialNum = static_cast<uint32>(_pScene->GetMaterialCount());
 	MaterialTextures.reserve(MaterialNum);
 
+    AnimStackNum = static_cast<uint32>(_pImporter->GetAnimStackCount());
+
 	loadNode();
 	loadTexture();
 
@@ -241,18 +248,24 @@ bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
 
 void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
 {
-    Path = InPath;
-    Directory = Path.substr(0, Path.find_last_of('/') + 1);
-    std::filesystem::path PathObject(Path);
-    Name = PathObject.filename().wstring();
-    Name = Name.substr(0, Name.find_last_of('.'));
-    Extension = PathObject.extension();
+    LoadFBXMesh(InPath);
 
-    InitializeFbxSdk();
+    bool bDynamic = false;
+    if (AnimStackNum > 0)
+    {
+        for (auto& Mesh : _meshList)
+        {
+            if (Mesh->GetDeformerCount() > 0)
+            {
+                bDynamic = true;
+                break;
+            }
+        }
+    }
 
-    // StaticMesh를 FBX를 통해 생성 후 Json 저장
-    std::shared_ptr<StaticMesh> NewStaticMesh = std::make_shared<StaticMesh>();
-    NewStaticMesh->LoadFromFBX(InPath, *this);
+    std::shared_ptr<StaticMesh> NewMesh = bDynamic ? std::make_shared<DynamicMesh>() : std::make_shared<StaticMesh>();
+    
+    NewMesh->LoadFromFBX(InPath, *this);
 
     std::set<uint32> UniqueMaterialIndices;
     for (uint32 MaterialIndex : MaterialIndices)
@@ -260,34 +273,39 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
         UniqueMaterialIndices.emplace(MaterialIndex);
     }
 
-    // 매터리얼 생성 후 저장
-    uint32 MaterialNum = GetSize(UniqueMaterialIndices);
-    std::vector<std::shared_ptr<MMaterial>> Materials(MaterialNum, std::make_shared<MMaterial>());
-    for (uint32 MaterialIndex = 0; MaterialIndex < MaterialNum; ++MaterialIndex)
+    // 매터리얼 저장
+    for (auto& Material : NewMesh->getMaterials())
     {
-        std::shared_ptr<MMaterial> NewMaterial = std::make_shared<MMaterial>();
-
-        if (MaterialIndex < GetSize(MaterialTextures))
-        {
-            NewMaterial->setTextures(MaterialTextures[MaterialIndex]);
-        }
-
-        NewMaterial->SetName(GetMaterialIName(MaterialIndex));
-        NewMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso"));
-
-        std::wstring MatPath = Directory + GetMaterialIName(MaterialIndex) + TEXT(".json");
-
         MJsonSerializer MatSerializer;
-        MatSerializer.Serialize(*NewMaterial, MatPath, true);
-
-        // 메시에 매터리얼 경로를 넣어줌
-        NewStaticMesh->MaterialPaths.push_back(MatPath);
+        MatSerializer.Serialize(*Material, Material->GetAssetPath(), true);
     }
+
+    // 매터리얼 생성 후 저장
+    //uint32 MaterialNum = GetSize(UniqueMaterialIndices);
+    //for (uint32 MaterialIndex = 0; MaterialIndex < MaterialNum; ++MaterialIndex)
+    //{
+    //    std::shared_ptr<MMaterial> NewMaterial = std::make_shared<MMaterial>();
+
+    //    if (MaterialIndex < GetSize(MaterialTextures))
+    //    {
+    //        NewMaterial->setTextures(MaterialTextures[MaterialIndex]);
+    //    }
+
+    //    NewMaterial->SetName(GetMaterialIName(MaterialIndex));
+    //    NewMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso"));
+
+    //    std::wstring MatPath = Directory + GetMaterialIName(MaterialIndex) + TEXT(".json");
+    //    NewMaterial->SetAssetPath(MatPath);
+
+    //    MJsonSerializer MatSerializer;
+    //    MatSerializer.Serialize(*NewMaterial, MatPath, true);
+    //}
 
     // 이제 매터리얼 정보가 채워진 StaticMesh 저장할 수 있음.
     MJsonSerializer Serializer;
     std::wstring MeshPath = Directory + Name + TEXT(".json");
-    Serializer.Serialize(*NewStaticMesh, MeshPath, false);
+    NewMesh->SetAssetPath(MeshPath);
+    Serializer.Serialize(*NewMesh, NewMesh->GetAssetPath(), false);
 }
 
 void MFBXLoader::InitializeFbxSdk()
@@ -358,10 +376,7 @@ std::wstring MFBXLoader::GetMaterialIName(uint32 Index)
     {
         if (FbxSurfaceMaterial* Material = _pScene->GetMaterial(Index))
         {
-            const char* Name = Material->GetName();
-            std::wstring WName;
-            StringToWString(Name, WName);
-            return WName;
+            return StringToWString(Material->GetName());
         }
     }
 

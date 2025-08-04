@@ -56,6 +56,8 @@
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="SkyComponent.cpp" />
+    <ClCompile Include="Source\Core\Asset.cpp" />
+    <ClCompile Include="Source\Core\FileSystem.cpp" />
     <ClCompile Include="Source\Core\Physics\Jolt\Jolt.cpp" />
     <ClCompile Include="Source\Core\Physics\Physics.cpp" />
     <ClCompile Include="Source\Core\Physics\PhysX\MPhysX.cpp" />
@@ -135,6 +137,8 @@
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SkyComponent.h" />
+    <ClInclude Include="Source\Core\Asset.h" />
+    <ClInclude Include="Source\Core\FileSystem.h" />
     <ClInclude Include="Source\Core\Physics\Jolt\Jolt.h" />
     <ClInclude Include="Source\Core\Physics\Physics.h" />
     <ClInclude Include="Source\Core\Physics\PhysX\MPhysX.h" />

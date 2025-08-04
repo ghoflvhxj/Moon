@@ -97,6 +97,13 @@ public:
 protected:
     bool bDrawColliision = false;
 
+    // 렌더 데이터가 변경되면 Dirty
+public:
+    void SetDirty(bool bInDirty) { bDirty = bInDirty; }
+    bool IsDirty() const { return bDirty; }
+protected:
+    bool bDirty = false;
+
     REFLECT(
         MPrimitiveComponent,
         PROPERTY(RenderMode),

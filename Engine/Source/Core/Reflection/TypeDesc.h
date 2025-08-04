@@ -18,8 +18,9 @@ struct FTypeDesc
 	std::vector<FPropertyDesc*> Properties;
 };
 
+// 외부 타입의 Desc 생성을 위한 템플릿
 template <class T>
 static const FTypeDesc* GetTypeDesc()
 {
-    return &T::GetTypeDescStatic();
+    return T::GetTypeDescStatic();
 }

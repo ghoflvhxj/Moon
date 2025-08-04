@@ -20,7 +20,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
 
     if (bAlphaMask)
     {
-        clip(pOut.color.rgb - float3(0.13f, 0.13f, 0.13f));
+        clip(pOut.color.rgb - float3(0.01f, 0.01f, 0.01f));
         pOut.color.rgb = smoothstep(0.f, 1.f, pOut.color.rgb);
     }
     

@@ -7,6 +7,7 @@
 #include "Material.h"
 #include "Texture.h"
 
+#include "Core/ResourceManager.h"
 #include "Core/Serialize/JsonSerializer.h"
 #include "Core/Serialize/JsonDeserializer.h"
 
@@ -27,7 +28,6 @@ void StaticMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
     const std::vector<VertexList>& Vertices = FbxLoader.getVerticesList();
     const std::vector<IndexList>& Indices = FbxLoader.getIndicesList();
 
-    // FBX를 이용해 Serialize할 데이터들을 저장
     uint32 GeometryNum = FbxLoader.GetGeometryNum();
     for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
     {
@@ -48,20 +48,31 @@ void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
 
 void StaticMesh::LoadFromAsset(const std::wstring& Path)
 {
+    MeshDatas.clear();
+    Materials.clear();
+
     // 메시 로드
     MJsonDeserializer Deserializer;
     Deserializer.Deserialize(*this, Path);
 
-    // 매터리얼 로드
-    for (auto& MaterialPath : MaterialPaths)
+    for (auto& Material : Materials)
     {
-        std::shared_ptr<MMaterial> NewMaterial = std::make_shared<MMaterial>();
-        MJsonDeserializer MatDeserializer;
-        MatDeserializer.Deserialize(*NewMaterial, MaterialPath);
+        std::shared_ptr<MMaterial> LoadedMaterial = nullptr;
+        g_ResourceManager->Load(Material->GetAssetPath(), LoadedMaterial);
+        Material = LoadedMaterial;
+    }
 
-        NewMaterial->OnLoaded();
+    // 매터리얼 로드
+    //for (auto& MaterialPath : MaterialPaths)
+    {
+        //std::shared_ptr<MMaterial> Material = nullptr;
+        //g_ResourceManager->Load(MaterialPath, Material);
 
-        Materials.push_back(NewMaterial);
+        //MJsonDeserializer MatDeserializer;
+        //MatDeserializer.Deserialize(*NewMaterial, MaterialPath);
+        //Material->OnLoaded();
+
+        //Materials.push_back(Material);
     }
 
     OnLoaded();
@@ -131,9 +142,9 @@ void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& Fi
             NewMaterial->setTextures(Textures[MaterialIndex]);
         }
 
+        NewMaterial->SetAssetPath(FbxLoader.GetDirectory() + FbxLoader.GetMaterialIName(MaterialIndex) + TEXT(".json"));
         NewMaterial->SetName(FbxLoader.GetMaterialIName(MaterialIndex));
         NewMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso"));
-        MaterialPaths.push_back(FbxLoader.GetDirectory() + NewMaterial->GetName() + TEXT(".json"));
 
         Materials.push_back(NewMaterial);
     }

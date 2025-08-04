@@ -20,6 +20,8 @@ SerializeCustomType     - 커스텀 타입을 JsonValue로 만들어서 반환�
 
 #include "Include.h"
 
+#include "Core/FileSystem.h"
+
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -44,9 +46,23 @@ public:
 public:
     // 리플렉션에 등록된 클래스나 구조체를 Json으로 만듬.
     template <class T>
-    void Serialize(T& Object, const std::wstring& Path, bool bPretty)
+    void Serialize(T& Object, const std::wstring& InPath, bool bPretty)
     {
-        Doc.AddMember(rapidjson::Value(Object.GetTypeDesc()->Name, Allocator), DispatchStruct(Object.GetTypeDesc(), &Object), Allocator);
+        if(InPath.empty())
+        {
+            std::wstring Msg = TEXT("잘못된 경로: ") + InPath;
+            MSGBOX(Msg);
+            return;
+        }
+
+        const FTypeDesc* Current = Object.GetTypeDesc();
+        while (Current)
+        {
+            Doc.AddMember(rapidjson::Value(Current->Name, Allocator), DispatchStruct(Current, &Object), Allocator);
+            Current = Current->Parent;
+        }
+
+        std::wstring Path = MFIleSystem::CombinePath(InPath);
 
         FILE* fp = nullptr;
         _wfopen_s(&fp, Path.c_str(), TEXT("wb"));
@@ -70,12 +86,21 @@ public:
         fclose(fp);
     }
 
+    // 일반 포인터 타입 지원을 위한 오버로딩
+    template <class T>
+    void Serialize(T* InObject, const std::wstring& InPath, bool bInPretty)
+    {
+        Serialize(*InObject, InPath, bInPretty);
+    }
+
     // shared_ptr을 지원을 위한 오버로딩
     template <class T>
-    void Serialize(std::shared_ptr<T> Object, const std::wstring& Path, bool bPretty)
+    void Serialize(std::shared_ptr<T> InObject, const std::wstring& InPath, bool bInPretty)
     {
-        Serialize(*Object, Path, bPretty);
+        Serialize(*InObject, InPath, bInPretty);
     }
+
+
 
 public:
     // 일반 타입 SerializeCustomType. 실제로는 호출되지 않지만, 다른 특수화된 템플릿을 생성하기 위해 존재.

@@ -33,7 +33,7 @@
 
 #include "Camera.h"
 
-#include <tuple>
+#include "Core/ResourceManager.h"
 
 #undef max
 #undef min
@@ -91,10 +91,15 @@ void Renderer::initialize() noexcept
 {
 	ViewMeshComponent = std::make_shared<StaticMeshComponent>();
     ViewMeshComponent->SetPhysics(false);
-    ViewMeshComponent->SetMesh(TEXT("Base/Plane.json"));
+    ViewMeshComponent->SetMesh(TEXT("Base/Plane.fbx"));
 	ViewMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
 	ViewMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
     ViewMeshComponent->GetMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
+
+    std::shared_ptr<MMaterial> ViewMat = nullptr;
+    g_ResourceManager->Load(TEXT("Base/Deferred.json"), ViewMat);
+    ViewMeshComponent->SetMaterial(0, ViewMat);
+
 	ViewMeshComponent->SceneComponent::Update(0.f);
     MakeBuffer(ViewMeshComponent);
 
@@ -265,6 +270,17 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent> InPrimitiveComp
 		return;
 	}
 
+    uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
+
+    if (InPrimitiveComponent->IsDirty())
+    {
+        VertexBuffers.erase(PrimitiveID);
+        IndexBuffers.erase(PrimitiveID);
+        DeferredPrimitiveDataMap.erase(PrimitiveID);
+
+        InPrimitiveComponent->SetDirty(false);
+    }
+
 	bool bMakeBuffer = false;
 	for (uint32 i=0; i<GetSize(PrimitiveDataList); ++i)
 	{
@@ -273,8 +289,6 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent> InPrimitiveComp
 		{
 			continue;
 		}
-
-		uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
 
 		// 버텍스 버퍼 생성
 		if (bMakeBuffer == false && VertexBuffers.find(PrimitiveID) == VertexBuffers.end())
@@ -336,21 +350,28 @@ void Renderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
 void Renderer::addRenderTargetForDebug(ERenderTarget InRenderTarget)
 {
 #ifdef _DEBUG
+    std::shared_ptr<MMaterial> BaseMat = nullptr;
+    g_ResourceManager->Load(TEXT("Base/RenderTarget.json"), BaseMat);
+
 	float scale = 200.f;
 	float x = (-1.f * g_pSetting->getResolutionWidth<float>() / 2.f) + (scale / 2.f);
 	float y = g_pSetting->getResolutionHeight<float>();
 
     auto& NewMesh = std::make_shared<StaticMeshComponent>();
 	NewMesh->SetPhysics(false);
-    NewMesh->SetMesh(TEXT("Base/Plane.json"));
+    NewMesh->SetMesh(TEXT("Base/Plane.fbx"));
     if (MapUtility::FindInsert(DebugRenderTargetMehses, InRenderTarget, NewMesh))
     {
         
         uint32 count = CastValue<uint32>(DebugRenderTargetMehses.size() - 1);
         NewMesh->setScale(scale, scale, 0.f);
         NewMesh->setTranslation(x + scale * count, scale, 1.f);
-        NewMesh->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, GetRenderTarget(InRenderTarget)->AsTexture());
-		NewMesh->GetMesh()->getMaterial(0)->setShader(TEXT("VS_SimpleTexture.cso"), TEXT("PS_SimpleTexture.cso"));
+
+        std::shared_ptr<MMaterial> NewMat = std::make_shared<MMaterial>();
+        *NewMat.get() = *BaseMat.get();
+        NewMat->setTexture(ETextureType::Diffuse, GetRenderTarget(InRenderTarget)->AsTexture());
+
+		NewMesh->SetMaterial(0, NewMat);
         NewMesh->setRenderMode(MPrimitiveComponent::ERenderMode::Orthogonal);
 		NewMesh->SceneComponent::Update(0.f);
 

@@ -3,6 +3,7 @@
 #include "Include.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "DynamicMeshComponentUtility.h"
+#include "Core/ObjectPath.h"
 
 class Skeleton;
 class MFBXLoader;
@@ -21,7 +22,6 @@ public:
 private:
     std::vector<AnimationClip> _animationClipList;
 
-
 public:
     const uint32 GetJointNum() const;
     std::vector<FJoint>& GetJoints();
@@ -31,18 +31,15 @@ public:
 protected:
     std::unordered_map<std::string, uint32> NameToJointIndex;
     std::vector<FJoint> Joints;
-    uint32 _jointCount = 0;
 
 public:
     std::shared_ptr<Skeleton> _pSkeleton = nullptr;
+    FObjectPath SkeletonPath;
 
-public:
-    //REFLECTABLE(
-    //    DynamicMesh,
-    //    REFLECT_FIELD(MeshDatas),
-    //    REFLECT_FIELD(MaterialPaths),
-    //    REFLECT_FIELD(UsedMaterialIndices)
-    //);
+    REFLECT(
+        DynamicMesh,
+        PROPERTY(SkeletonPath)
+    );
 };
 
 class Skeleton
@@ -52,13 +49,6 @@ public:
 public:
     std::vector<Vertex> _vertices;
     std::vector<Index>	_indices;
-
-    //public:
-    //	std::shared_ptr<MVertexBuffer> getVertexBuffer() { return _pVertexBuffer; }
-    //	std::shared_ptr<MIndexBuffer> getIndexBuffer() { return nullptr; }
-    //protected:
-    //	std::shared_ptr<MVertexBuffer> _pVertexBuffer;
-    //	std::shared_ptr<MIndexBuffer> _pIndexBuffer = nullptr;
 
 public:
     std::shared_ptr<MMaterial> getMaterial() { return _pMaterial; }

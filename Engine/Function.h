@@ -104,11 +104,43 @@ inline void WStringToString(const std::wstring& wstr, char Buffer[], int BufferS
 	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), Length, Buffer, Length * 2, nullptr, nullptr);
 }
 
+inline std::string WStringToString(const std::wstring& InString)
+{
+    std::string Temp;
+    Temp.resize(InString.length());
+    WStringToString(InString, Temp.data(), Temp.length());
+    return Temp;
+}
+
 inline void StringToWString(const char* Buffer, std::wstring& wstr)
 {
+    /*
 	int BufferSize = static_cast<int>(strlen(Buffer));
 	wstr.resize(BufferSize);
 	MultiByteToWideChar(CP_ACP, 0, Buffer, BufferSize, wstr.data(), BufferSize * 2);
+    */
+    if (wstr.empty() == false)
+    {
+        wstr.clear();
+    }
+
+    std::string Temp = Buffer;
+    if (Temp.empty())
+    {
+        return;
+    }
+
+    wstr.assign(Temp.begin(), Temp.end());
+}
+
+inline std::wstring StringToWString(const char* Buffer)
+{
+    std::wstring NewString;
+    int BufferSize = static_cast<int>(strlen(Buffer));
+    NewString.resize(BufferSize);
+    MultiByteToWideChar(CP_ACP, 0, Buffer, BufferSize, NewString.data(), BufferSize * 2);
+
+    return std::move(NewString);
 }
 
 #define __FUNCTION_H__

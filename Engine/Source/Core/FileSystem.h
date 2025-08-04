@@ -1,0 +1,20 @@
+﻿#pragma once
+
+#include "Include.h"
+
+class ENGINE_DLL MFIleSystem
+{
+public:
+    static std::wstring RootStr;
+    static std::filesystem::path RootPath;
+
+    static std::wstring CombinePath(const std::wstring& InRelativePath);
+    static std::filesystem::path CombinePath(const std::filesystem::path InRelativePath);
+
+    // 파일 이름을 제거해, 파일이 위치한 디렉토리를 얻음
+    static std::wstring GetDirectory(const std::wstring& InPath);
+
+    // 상대 경로로 변경
+    static std::wstring RelativePath(const std::wstring& InPath);
+    static std::wstring RelativePath(const std::filesystem::path& InPath);
+};

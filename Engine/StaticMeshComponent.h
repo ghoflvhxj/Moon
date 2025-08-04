@@ -22,9 +22,6 @@ public:
 	virtual const bool GetBoundingBox(std::shared_ptr<MBoundingBox> &boundingBox) override;
 	virtual void setTranslation(const Vec3 &translation) override;
 	virtual void setScale(const Vec3& InScale) override;
-    virtual Mat4& getWorldMatrix() override;
-protected:
-    Mat4 DeformalMatrix = IDENTITYMATRIX;
 
 public:
 	virtual XMMATRIX GetRotationMatrix();
@@ -32,9 +29,6 @@ public:
 public:
 	void Temp(float y);
 	void SetGravity(bool bGravity);
-
-    // 피직스 테스트용
-
 
 public:
 	void SetMass(float NewMass);

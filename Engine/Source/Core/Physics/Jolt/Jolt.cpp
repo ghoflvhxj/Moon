@@ -41,6 +41,7 @@ constexpr float SoftBodyMagicNum = 1.f;
 constexpr char* BoneName = "bone014";
 
 #define SKIN 0
+#undef min
 
 #ifdef JPH_ENABLE_ASSERTS
     static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, uint inLine)
@@ -511,6 +512,7 @@ void MJoltPhysics::Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_
 
 void MJoltPhysics::Update(float deltaTime)
 {
+    //deltaTime = std::min(deltaTime, 0.1f);
     // 시뮬레이션
     physics_system->Update(deltaTime, 1, tempAllocator, jobSystem);
 

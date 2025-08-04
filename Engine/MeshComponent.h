@@ -2,6 +2,7 @@
 
 #include "Include.h"
 #include "PrimitiveComponent.h"
+#include "Core/ObjectPath.h"
 #include "Core/Physics/PhysicsEnum.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 
@@ -19,12 +20,25 @@ public:
 	explicit MMeshComponent();
 	virtual ~MMeshComponent();
 
+public:
+    void Reload()
+    {
+        std::wstring temp = Mesh->GetAssetPath();
+        SetMesh(temp);
+    }
+
     // 메시 관련
 public:
     void SetMesh(const std::wstring& InPath, bool bSetPhyiscs = true);
     std::shared_ptr<StaticMesh> GetMesh();
 protected:
     std::shared_ptr<StaticMesh> Mesh;
+    //FObjectPath MeshPathTest;
+
+public:
+    void SetMaterial(uint32 InIndex, std::shared_ptr<MMaterial> InMaterial) { Materials[InIndex] = InMaterial; }
+protected:
+    std::vector<std::shared_ptr<MMaterial>> Materials;
 
 public:
     void AddForce(const Vec3& InForce);
@@ -56,10 +70,15 @@ protected:
     std::vector<FClothUpdateData> ClothUpdateDatas;
 
     REFLECT(
-        MMeshComponent, 
+        MMeshComponent,
         PROPERTY_DELEGATE(bPhysicsSimulate, [&](MMeshComponent* InObject) {
             InObject->SetPhysicsSimulate(InObject->IsPhysicsSimulating());
         }),
-        PROPERTY(Mesh)
+        //PROPERTY_DELEGATE(MeshPathTest, [&](MMeshComponent* MeshComp) { 
+        //    MeshComp->SetMesh(MeshComp->MeshPathTest.Path, false);
+        //}),
+        PROPERTY_DELEGATE(Mesh, [&](MMeshComponent* InObject) {
+            InObject->Reload();
+        })
     );
 };

@@ -1,0 +1,46 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "TexVertexShader.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MAsset": {
+                    "Path": "Table\\DefaultMaterial_Base_Color.png"
+                }
+            },
+            "1": {
+                "MAsset": {
+                    "Path": ""
+                }
+            },
+            "2": {
+                "MAsset": {
+                    "Path": "Table\\DefaultMaterial_Base_Color_N.png"
+                }
+            },
+            "3": {
+                "MAsset": {
+                    "Path": "Table\\DefaultMaterial_Base_Color_S.png"
+                }
+            },
+            "4": {
+                "MAsset": {
+                    "Path": ""
+                }
+            },
+            "5": {
+                "MAsset": {
+                    "Path": ""
+                }
+            }
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 2,
+        "bUseAlpha": false,
+        "bAlphaMask": false
+    },
+    "MAsset": {
+        "Path": "Table\\Material #27.json"
+    }
+}

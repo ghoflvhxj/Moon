@@ -13,6 +13,8 @@ public:
 	explicit Actor();
 	virtual ~Actor();
 
+    void PostConstruct();
+
 public:
 	void update(const Time deltaTime);
 protected:
@@ -22,6 +24,7 @@ public:
     const Vec3 GetWorldTranslation();
 
 public:
+    std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>& GetComponents() { return _components; }
 	std::shared_ptr<SceneComponent>		getComponent(const wchar_t componentName[]);
 	const bool							addComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> pComponent);
 private:
@@ -39,6 +42,7 @@ std::shared_ptr<T> CreateActor(MainGame* InGame)
     }
 
     std::shared_ptr<T> NewActor = std::make_shared<T>();
+    NewActor->PostConstruct();
     InGame->addActor(NewActor);
 
     return NewActor;

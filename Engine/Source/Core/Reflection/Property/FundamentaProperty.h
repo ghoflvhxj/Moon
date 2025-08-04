@@ -20,6 +20,8 @@ public:
     // 배열 요소 Getter
     virtual ElemType& Get(void* InObject, uint32 InIndex) = 0;
     virtual void Set(void* InObject, const T& InT) = 0;
+
+    virtual void Set(void* InObject, std::shared_ptr<ElemType> InT) {}
 };
 
 template <class T>
@@ -119,15 +121,36 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
 
         virtual void Set(void* InObject, const ImpleType& InT) override
         {
-            //if constexpr (std::is_array_v<MemType> == false)
-            //{
-            //    ((Owner*)InObject->*TestMemPtr) = InT;
-            //}
+            if constexpr (std::is_array_v<MemType>)
+            {
+                
+            }
+            else if constexpr (is_smart_ptr_v<MemType>)
+            {
+                ((Owner*)InObject->*TestMemPtr).reset(InT);
+            }
+            else
+            {
+                ((Owner*)InObject->*TestMemPtr) = InT;
+            }
 
-            //if (Func)
-            //{
-            //    Func((Owner*)InObject);
-            //}
+            if (Func)
+            {
+                Func((Owner*)InObject);
+            }
+        }
+
+        virtual void Set(void* InObject, std::shared_ptr<ElemType> InT) override
+        {
+            if constexpr (is_smart_ptr_v<MemType>)
+            {
+                ((Owner*)InObject->*TestMemPtr) = InT;
+            }
+
+            if (Func)
+            {
+                Func((Owner*)InObject);
+            }
         }
 	};
     

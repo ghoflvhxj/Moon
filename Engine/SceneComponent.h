@@ -19,6 +19,7 @@ public:
 public:
 	virtual void setScale(const Vec3& InScale);
 	void setScale(const float scaleX, const float scaleY, const float scaleZ);
+    void AddScale(const Vec3& InAdditiveScale);
 	const Vec3& getScale() const;
 private:
 	Vec3 Scale;
@@ -26,6 +27,7 @@ private:
 public:
 	virtual XMMATRIX GetRotationMatrix();
 	void setRotation(const Vec3 &rotation);
+    void AddRotation(const Vec3& InAdditiveRot);
 	const Vec3&	getRotation() const;
 private:
 	Vec3 Rotation;
@@ -33,6 +35,7 @@ private:
 public:
 	virtual void setTranslation(const Vec3 &translation);
 	void setTranslation(const float transX, const float transY, const float transZ);
+    void AddTranslation(const Vec3& InAdditiveTrans);
 	const Vec3&	getTranslation() const;
 private:
 	Vec3 Translation;

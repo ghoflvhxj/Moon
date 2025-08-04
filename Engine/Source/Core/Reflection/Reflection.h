@@ -16,16 +16,16 @@ using Super = void; \
 using Self = MyClass; \
 virtual const FTypeDesc* GetTypeDesc() const \
 { \
-	return &Self::GetTypeDescStatic(); \
+	return Self::GetTypeDescStatic(); \
 } \
-static const FTypeDesc& GetTypeDescStatic() \
+static const FTypeDesc* GetTypeDescStatic() \
 { \
 	static FTypeDesc MyClass##_Desc = { \
     nullptr, \
 	#MyClass, \
 	sizeof(MyClass), \
 	{ __VA_ARGS__ }}; \
-	return MyClass##_Desc; \
+	return &MyClass##_Desc; \
 }
 
 #define REFLECT(MyClass, ...) \
@@ -34,16 +34,16 @@ using Super = Self; \
 using Self = MyClass; \
 virtual const FTypeDesc* GetTypeDesc() const \
 { \
-	return &Self::GetTypeDescStatic(); \
+	return Self::GetTypeDescStatic(); \
 } \
-static const FTypeDesc& GetTypeDescStatic() \
+static const FTypeDesc* GetTypeDescStatic() \
 { \
 	static FTypeDesc MyClass##_Desc = { \
-	&Super::GetTypeDescStatic(), \
+	Super::GetTypeDescStatic(), \
 	#MyClass, \
 	sizeof(MyClass), \
 	{ __VA_ARGS__ }}; \
-	return MyClass##_Desc; \
+	return &MyClass##_Desc; \
 }
 
 template <>

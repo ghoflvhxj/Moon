@@ -1,15 +1,17 @@
 ﻿#pragma once 
 
 #include "Include.h"
-#include "Core/Serialize/Serializable.h"
-// TextureList, MaterialList 참조
+#include "Core/Asset.h"
+
+// 리플렉션 등록에 필요함
+#include "Material.h"
 #include "Mesh/Mesh.h"
 
 class MFBXLoader;
 class MBoundingBox;
 class MMaterial;
 
-class ENGINE_DLL StaticMesh
+class ENGINE_DLL StaticMesh : public MAsset
 {
 public:
     StaticMesh() = default;
@@ -44,7 +46,7 @@ protected:
     MaterialList Materials;
 
 public:
-    std::vector<std::wstring> MaterialPaths;
+    //std::vector<std::wstring> MaterialPaths;
 
 public:
     const uint32 getVertexCount() const;
@@ -67,11 +69,11 @@ protected:
     std::vector<FClothData> ClothData;
 
 public:
-    REFLECT_TOP(
+    REFLECT(
         StaticMesh,
         PROPERTY(MeshDatas),
-        PROPERTY(MaterialPaths),
+        PROPERTY(Materials),
         PROPERTY(UsedMaterialIndices),
-        PROPERTY(ClothData)
+        PROPERTY(ClothData),
     )
 };

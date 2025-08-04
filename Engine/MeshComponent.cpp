@@ -1,6 +1,7 @@
 ﻿#include "MeshComponent.h"
 
 #include "Core/Physics/Physics.h"
+#include "Core/ResourceManager.h"
 
 MMeshComponent::MMeshComponent()
 	: MPrimitiveComponent()
@@ -15,14 +16,18 @@ MMeshComponent::~MMeshComponent()
 void MMeshComponent::SetMesh(const std::wstring& InPath, bool bSetPhyiscs)
 {
     std::filesystem::path Path(InPath);
+
     if (Path.extension() == TEXT(".fbx"))
     {
         Mesh->LoadFromFBX(Path);
     }
     else if (Path.extension() == TEXT(".json"))
     {
-        Mesh->LoadFromAsset(Path);
+        g_ResourceManager->Load(InPath, Mesh);
     }
+
+    Materials = Mesh->getMaterials();
+    bDirty = true;
 
     if (bPhysics && bSetPhyiscs)
     {

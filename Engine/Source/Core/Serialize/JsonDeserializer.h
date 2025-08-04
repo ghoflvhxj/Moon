@@ -15,6 +15,8 @@ DeserializeCustomType   - 커스텀 타입을 Json으로 부터 읽어오는 함
 
 #include "Include.h"
 
+#include "Core/FileSystem.h"
+
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -34,8 +36,21 @@ protected:
 public:
     // 리플렉션에 등록된 클래스나 구조체를 Json으로 부터 읽어옴.
     template <class T>
-    void Deserialize(T& OutObject, const std::wstring& Path)
+    void Deserialize(T& OutObject, const std::wstring& InPath)
     {
+        std::filesystem::path Path(InPath);
+        if (Path.is_absolute() == false)
+        {
+            Path = MFIleSystem::CombinePath(Path);
+        }
+
+        if (PathFileExists(Path.c_str()) == false)
+        {
+            std::wstring Msg = TEXT("파일이 없음: ") + Path.wstring();
+            MSGBOX(Msg);
+            return;
+        }
+
         FILE* fp = nullptr;
         _wfopen_s(&fp, Path.c_str(), TEXT("rb"));
 
@@ -46,7 +61,20 @@ public:
         fclose(fp);
 
         const FTypeDesc* TypeDesc = OutObject.GetTypeDesc();
-        PatchStruct(TypeDesc, &OutObject, Doc.FindMember(TypeDesc->Name)->value);
+        while (TypeDesc)
+        {
+            if (Doc.HasMember(TypeDesc->Name))
+            {
+                PatchStruct(TypeDesc, &OutObject, Doc.FindMember(TypeDesc->Name)->value);
+            }
+            else
+            {
+                std::wstring Msg = TEXT("Document 멤버를 찾을 수 없음: ") + StringToWString(TypeDesc->Name.data());
+                MSGBOX(Msg);
+            }
+            
+            TypeDesc = TypeDesc->Parent;
+        }
     }
 
     template <class T>

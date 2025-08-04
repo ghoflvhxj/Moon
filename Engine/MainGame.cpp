@@ -33,9 +33,6 @@ MainGame::MainGame()
 	: _deltaTime{ 0.f }
 	, _pTimerManager{ nullptr }
 	, _pFrameManager{ nullptr }
-	
-	//, _pMainGameSetting{ std::make_shared<MainGameSetting>() }
-	, _pMainCamera(std::make_shared<MCamera>(g_pSetting->getFov()))
 {
 }
 
@@ -107,6 +104,9 @@ const bool MainGame::initialize()
 {
 	_pTimerManager = std::make_shared<MTimerManager>();
 	_pFrameManager = std::make_shared<FrameManager>(_pTimerManager);
+
+    _pMainCamera = CreateActor<MCamera>(this);
+    _pMainCamera->setFov(g_pSetting->getFov());
 
 	return true;
 }
@@ -211,6 +211,11 @@ bool MainGame::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData
         XMVECTOR Start = XMVector3TransformCoord(NearWorldPos, InverseWorldMat);
         XMVECTOR End = XMVector3TransformCoord(FarWorldPos, InverseWorldMat);
         XMVECTOR Dir = XMVector3Normalize(End - Start);
+
+        if (XMVectorGetX(XMVectorIsNaN(Start)) != 0 || XMVectorGetX(XMVectorIsNaN(End)) != 0)
+        {
+            continue;
+        }
 
         const auto& MeshData = PrimitiveData.MeshData.lock();
         const auto& Vertices = MeshData->Vertices;

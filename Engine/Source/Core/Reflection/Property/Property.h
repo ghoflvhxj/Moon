@@ -24,6 +24,7 @@ struct FPropertyDesc
 	// 프로퍼티가 포인터를 저장하는 컨테이너 인지?
 	bool bPointerElements = false;
 
+    // 이 프로퍼티의 TypeDesc. 컨테이너인 경우는 요소의 TypeDesc.
 	const FTypeDesc* TypeDesc = nullptr;
 
 	// 이 프로퍼티가 저장한 항목들의 타입 정보
@@ -40,6 +41,24 @@ public:
     virtual void* GetAsVoid(const void* InObject)
     {
         return nullptr;
+    }
+
+    template <class T>
+    bool IsA()
+    {
+        const FTypeDesc* Target = T::GetTypeDescStatic();
+        const FTypeDesc* Current = TypeDesc;
+        while (Current)
+        {
+            if (Current == Target)
+            {
+                return true;
+            }
+
+            Current = Current->Parent;
+        }
+
+        return false;
     }
 };
 

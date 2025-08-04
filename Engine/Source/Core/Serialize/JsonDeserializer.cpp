@@ -1,5 +1,7 @@
 ﻿#include "JsonDeserializer.h"
 
+#include "Core/Asset.h"
+
 using namespace rapidjson;
 
 MJsonDeserializer::MJsonDeserializer()
@@ -18,7 +20,10 @@ void MJsonDeserializer::PatchStruct(const FTypeDesc* InTypeDesc, void* InObject,
     {
         if (Prop->bContainer)   // 컨테이너
         {
-            PatchContainer(Prop->GetAsVoid(InObject), static_cast<FContainerPropertyDesc*>(Prop), InValue.FindMember(Prop->Name)->value, InObject);
+            if (InValue.HasMember(Prop->Name))
+            {
+                PatchContainer(Prop->GetAsVoid(InObject), static_cast<FContainerPropertyDesc*>(Prop), InValue.FindMember(Prop->Name)->value, InObject);
+            }
         }
         else if (Prop->Num > 1) // 배열
         {
@@ -144,7 +149,15 @@ void MJsonDeserializer::PatchStruct(const FTypeDesc* InTypeDesc, void* InObject,
             }
             break;
             default:
-                PatchStruct(Prop->TypeDesc, InObject, InValue.FindMember(Prop->Name)->value);
+                if (InValue.HasMember(Prop->Name))
+                {
+                    PatchStruct(Prop->TypeDesc, InObject, InValue.FindMember(Prop->Name)->value);
+                }
+                else
+                {
+                    std::wstring Msg = TEXT("멤버[") + StringToWString(Prop->Name.data()) + TEXT("]를 찾을 수 없음");
+                    MSGBOX(Msg);
+                }
                 break;
             }
         }
@@ -153,6 +166,10 @@ void MJsonDeserializer::PatchStruct(const FTypeDesc* InTypeDesc, void* InObject,
 
 void MJsonDeserializer::PatchContainer(void* InContainer, FContainerPropertyDesc* InContainerPropDesc, rapidjson::Value& InJsonValue, void* InObject)
 {
+    std::wstring Str = TEXT("컨테이너[") + StringToWString(InContainerPropDesc->Name.data()) + TEXT("]을(를) 읽는 중...\r\n");
+    OutputDebugString(Str.c_str());
+
+
     uint32 Num = static_cast<uint32>(InJsonValue.MemberCount());
 
     if (InContainerPropDesc->GetNum(InObject) > 0)
@@ -214,6 +231,11 @@ void MJsonDeserializer::PatchContainer(void* InContainer, FContainerPropertyDesc
             }
             break;
             }
+        }
+        else if (InContainerPropDesc->IsA<MAsset>())
+        {
+            rapidjson::Value& AssetValue = Iter->value.FindMember(MAsset::GetTypeDescStatic()->Name)->value;
+            PatchStruct(MAsset::GetTypeDescStatic(), InContainerPropDesc->Get(InObject, Index), AssetValue);
         }
         else
         {

@@ -16,6 +16,14 @@ enum class EAxies
     X, Y, Z
 };
 
+enum class EGizmoMode
+{
+    Trans,
+    Rot,
+    Scale,
+    Count
+};
+
 class MyGame : public MainGame
 {
 public:
@@ -50,11 +58,17 @@ private:
     FHitData HitData = {};
     Vec3 GizmoOffset = VEC3ZERO;
     EAxies GizmoAxis;
-    bool bUpdateGizmoOffset = false;
+    bool bSetGizmoOffset = false;
 	bool bControlGizmo = false;
-
+    EGizmoMode GizmoMode = EGizmoMode::Trans;
+    Vec3 Prev = {};
 
     std::weak_ptr<class Component> ClickedComp;
+
+    // 매터리얼 에디터
+public:
+    const FTypeDesc* EditAssetDesc = nullptr;
+    class MAsset* EditAsset = nullptr;
 };
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject);

@@ -1,26 +1,29 @@
-#include "ResourceLoader.h"
+﻿#include "ResourceLoader.h"
+
+#include "Core/Reflection/TypeDesc.h"
+
 #include "Texture.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
 MResourceLoader::~MResourceLoader()
 {
 	LoadedResources.clear();
 }
 
-const std::shared_ptr<MResource>& MResourceLoader::TryLoad(const std::wstring& FilePath)
+std::shared_ptr<MAsset> MResourceLoader::TryLoad(const std::wstring& FilePath)
 {
 	if (LoadedResources.find(FilePath) != LoadedResources.end())
 	{
 		return LoadedResources[FilePath];
 	}
 
-	if (const std::shared_ptr<MResource>& NewResource = MakeResource(FilePath))
+	if (std::shared_ptr<MAsset> NewResource = MakeResource(FilePath))
 	{
 		LoadedResources[FilePath] = NewResource;
 		return LoadedResources[FilePath];
 	}
 
-	static std::shared_ptr<MResource> Empty = nullptr;
-	return Empty;
+    return nullptr;
 }
 
 MTextureLoader::MTextureLoader()
@@ -32,8 +35,37 @@ MTextureLoader::MTextureLoader()
 	Extensions.emplace(TEXT(".tga"));
 }
 
-std::shared_ptr<MResource> MTextureLoader::MakeResource(const std::wstring& FilePath)
+std::shared_ptr<MAsset> MTextureLoader::MakeResource(const std::wstring& InPath)
 {
-	return std::make_shared<MTexture>(FilePath);
+	return std::make_shared<MTexture>(InPath);
 }
 
+MMeshLoader::MMeshLoader()
+    : MResourceLoader()
+{
+    TypeDesc = StaticMesh::GetTypeDescStatic();
+}
+
+std::shared_ptr<MAsset> MMeshLoader::MakeResource(const std::wstring& InPath)
+{
+    auto& Mesh = std::make_shared<StaticMesh>();
+    Mesh->SetAssetPath(InPath);
+    Mesh->LoadFromAsset(InPath);
+
+    return Mesh;
+}
+
+MMaterialLoader::MMaterialLoader()
+    : MResourceLoader()
+{
+    TypeDesc = MMaterial::GetTypeDescStatic();
+}
+
+std::shared_ptr<MAsset> MMaterialLoader::MakeResource(const std::wstring& InPath)
+{
+    auto& Mat = std::make_shared<MMaterial>();
+    Mat->SetAssetPath(InPath);
+    Mat->LoadFromAsset(InPath);
+
+    return Mat;
+}

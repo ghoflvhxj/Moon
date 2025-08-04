@@ -5,7 +5,7 @@ VertexOut main(VertexIn vIn)
 	VertexOut vOut;
 
 	matrix worldView = mul(worldMatrix, viewMatrix);
-	matrix worldViewProj = mul(worldView, projectionMatrix);
+	matrix worldViewProj = mul(worldView, bOrtho ? orthographicProjectionMatrix : projectionMatrix);
 
 	matrix boneTransform =
 	{

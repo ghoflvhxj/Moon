@@ -43,12 +43,29 @@ PixelOut_LightPass main(PixelIn pIn)
 	float intensity = g_lightColor.w;
 
 	//-------------------------------------------------------------------------------------------------
-    float3 ambient = float3(0.2f, 0.2f, 0.2f);
+    float3 ambient = float3(0.4f, 0.4f, 0.4f);
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
     float Dot = saturate(dot(normalInWorld, -direction)); //	float으로 해도 되는데 편할려고
     pOut.lightDiffuse.xyz = color * Dot * intensity;
-    pOut.lightDiffuse.xyz = ambient + (1.f - ShadowFactor) * pOut.lightDiffuse.xyz;
+    //pOut.lightDiffuse.xyz = ambient + (1.f - ShadowFactor) * pOut.lightDiffuse.xyz;
+    // 기본 값 + (실제빛 * (1-기본값))
     
+    Dot = dot(normalInWorld, -direction);
+    float NewDot = Dot * 0.5 + 0.5;  // -1 ~ 1 -> 0 ~ 1
+    float backlightMin = 0.2f;  // 원하는 최소값
+    Dot = lerp(backlightMin, 1.0, NewDot);
+    if (NewDot <= 0.5f)
+    {
+        Dot = lerp(backlightMin, backlightMin + 0.1f, NewDot * 2.f);
+    }
+    else
+    {
+        Dot = lerp(backlightMin + 0.1f, 1.0, NewDot * 2.f - 1.f);
+    }
+    //pOut.lightDiffuse.xyz = (color * Dot * intensity);
+    //pOut.lightDiffuse.xyz = ambient +  (color * Dot * intensity);
+    pOut.lightDiffuse.xyz = ambient * (1.f - ShadowFactor) + (color * Dot * intensity);
+
 	//-------------------------------------------------------------------------------------------------
     direction = normalize(reflect(direction, normal.xyz));
     float3 toEye = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - PixelPosInLightViewProj.xyz;

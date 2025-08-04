@@ -3,15 +3,16 @@
 #include "DirectXTK/WICTextureLoader.h"
 #include "GraphicDevice.h"
 #include "Core/ResourceLoader.h"
+#include "Core/ResourceManager.h"
 
 using namespace DirectX;
 
-MTexture::MTexture(const std::wstring& FilePath)
-	: _rawTexture{ nullptr }
+MTexture::MTexture(const std::wstring& InPath)
+	: MAsset(InPath)
+    , _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
-    , Path(FilePath)
 {
-	loadTextureFile(FilePath.c_str());
+	loadTextureFile(InPath.c_str());
 }
 
 MTexture::MTexture(ID3D11Texture2D* pTexture)

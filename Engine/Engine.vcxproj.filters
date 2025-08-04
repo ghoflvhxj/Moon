@@ -224,6 +224,8 @@
     <ClCompile Include="Source\GameFramework\PointLightActor\PointLightActor.cpp" />
     <ClCompile Include="Source\Mesh\Mesh.cpp" />
     <ClCompile Include="Source\GameFramework\DirectionalLightActor\DirectionalLightActor.cpp" />
+    <ClCompile Include="Source\Core\FileSystem.cpp" />
+    <ClCompile Include="Source\Core\Asset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -476,6 +478,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\GameFramework\DirectionalLightActor\DirectionalLightActor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\FileSystem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Asset.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

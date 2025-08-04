@@ -67,7 +67,7 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		PrimitiveData.PrimitiveComponent = shared_from_this();
 		PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
         PrimitiveData.MeshData = Mesh->GetMeshData(geometryIndex);
-		PrimitiveData.Material = Mesh->getGeometryLinkMaterialIndex().size() > 0 ? Mesh->getMaterials()[Mesh->getGeometryLinkMaterialIndex()[geometryIndex]] : Mesh->getMaterials()[0];
+		PrimitiveData.Material = Mesh->getGeometryLinkMaterialIndex().size() > 0 ? Materials[Mesh->getGeometryLinkMaterialIndex()[geometryIndex]] : Materials[0];
 
 		PrimitiveDataList.push_back(PrimitiveData);
 	}
@@ -158,22 +158,6 @@ void StaticMeshComponent::setScale(const Vec3& InScale)
     {
         PhysicsObject->SetScale(InScale);
     }
-}
-
-Mat4& StaticMeshComponent::getWorldMatrix()
-{
-    // SoftBody 시뮬레이션의 경우 컴포넌트의 위치가 물리 시스템의 위치와 다르니 위치는 물리 시스템의 것을 사용해야 함. 
-    //if (DeformableSurface)
-    //{
-    //    DeformalMatrix = SceneComponent::getWorldMatrix();
-    //    DeformalMatrix.m[3][0] = 0.f;
-    //    DeformalMatrix.m[3][1] = 0.f;
-    //    DeformalMatrix.m[3][2] = 0.f;
-
-    //    return DeformalMatrix;
-    //}
-    
-    return SceneComponent::getWorldMatrix();
 }
 
 XMMATRIX StaticMeshComponent::GetRotationMatrix()

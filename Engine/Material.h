@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include "Include.h"
+#include "Core/Asset.h"
+
 #include "Vertex.h"
 #include "Shader.h"
 #include "Texture.h"
@@ -19,11 +21,11 @@ class DynamicMeshComponent;
 
 struct FShaderVariable;
 
-class ENGINE_DLL MMaterial
+class ENGINE_DLL MMaterial : public MAsset
 {
 public:
 	explicit MMaterial();
-	~MMaterial();
+	virtual ~MMaterial();
 
 public:
     void SetName(const std::wstring& InName) { Name = InName; }
@@ -32,6 +34,7 @@ protected:
     std::wstring Name;
 
 public:
+    void LoadFromAsset(const std::wstring& InPath);
     void OnLoaded();
 
 public:
@@ -54,6 +57,7 @@ public:
 	void setTextures(std::vector<std::shared_ptr<MTexture>> &textureList);
 private:
 	std::vector<std::shared_ptr<MTexture>> _textureList;
+    //std::vector<std::wstring> TexturePaths;
 
 public:
 	void setTopology(const D3D_PRIMITIVE_TOPOLOGY eTopology);
@@ -85,11 +89,12 @@ public:
 	const bool IsTextureTypeUsed(const ETextureType type);
 
 public:
-    REFLECT_TOP(
+    REFLECT(
         MMaterial,
         PROPERTY(_vertexShaderFileName),
         PROPERTY(_pixelShaderFileName),
         PROPERTY(_textureList),
+        //PROPERTY(TexturePaths),
         PROPERTY(_eTopology),
         PROPERTY(_eFillMode),
         PROPERTY(_eCullMode),

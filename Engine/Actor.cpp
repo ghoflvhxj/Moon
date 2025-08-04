@@ -16,6 +16,14 @@ Actor::~Actor()
 	_components.clear();
 }
 
+void Actor::PostConstruct()
+{
+    for (auto& [Name, Comp] : _components)
+    {
+        Comp->setOwningActor(shared_from_this());
+    }
+}
+
 void Actor::update(const Time deltaTime)
 {
 	tick(deltaTime);

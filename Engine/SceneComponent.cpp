@@ -95,6 +95,11 @@ void SceneComponent::setScale(const float scaleX, const float scaleY, const floa
 	setScale(Vec3{ scaleX, scaleY, scaleZ });
 }
 
+void SceneComponent::AddScale(const Vec3& InAdditiveScale)
+{
+    XMStoreFloat3(&Scale, XMLoadFloat3(&Scale) + XMLoadFloat3(&InAdditiveScale));
+}
+
 const Vec3& SceneComponent::getScale() const
 {
 	return Scale;
@@ -110,6 +115,11 @@ void SceneComponent::setRotation(const Vec3 &rotation)
 	Rotation = rotation;
 }
 
+void SceneComponent::AddRotation(const Vec3& InAdditiveRot)
+{
+    XMStoreFloat3(&Rotation, XMLoadFloat3(&Rotation) + XMLoadFloat3(&InAdditiveRot));
+}
+
 const Vec3& SceneComponent::getRotation() const
 {
 	return Rotation;
@@ -123,6 +133,11 @@ void SceneComponent::setTranslation(const Vec3 &translation)
 void SceneComponent::setTranslation(const float transX, const float transY, const float transZ)
 {
 	setTranslation(Vec3{ transX, transY, transZ });
+}
+
+void SceneComponent::AddTranslation(const Vec3& InAdditiveTrans)
+{
+    XMStoreFloat3(&Translation, XMLoadFloat3(&Translation) + XMLoadFloat3(&InAdditiveTrans));
 }
 
 const Vec3& SceneComponent::getTranslation() const
