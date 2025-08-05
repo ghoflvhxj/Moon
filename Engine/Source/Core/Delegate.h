@@ -7,10 +7,30 @@ template <class ReturnType, class... ParamTypes>
 struct ENGINE_DLL FDelegate
 {
 public:
+    FDelegate() = default;
+    FDelegate(const FDelegate&) = delete;
+    FDelegate& operator=(const FDelegate&) = delete;
+
+public:
     struct FDelegateData
     {
         std::weak_ptr<MObject> Object;
         std::function<ReturnType(ParamTypes...)> Func;
+    };
+    struct FRawDelegateData
+    {
+        virtual ReturnType Execute(ParamTypes... args) {}
+    };
+    template <class T>
+    struct FRawDelegateDataProxy : public FRawDelegateData
+    {
+        T* Object;
+        ReturnType (T::*Func)(ParamTypes...);
+
+        virtual ReturnType Execute(ParamTypes... args) override
+        {
+            return (Object->*Func)(args...);
+        }
     };
 
 public:
@@ -36,6 +56,16 @@ public:
         );
     }
 
+    template <class T>
+    void Add(T* InObject, ReturnType(T::* InFunc)(ParamTypes...))
+    {
+        auto NewData = std::make_unique<FRawDelegateDataProxy<T>>();
+        NewData->Object = InObject;
+        NewData->Func = InFunc;
+
+        RawDelegateDatas.push_back(std::move(NewData));
+    }
+
     void Broadcast(ParamTypes... args)
     {
         for (auto& DelegateData : DelegateDatas)
@@ -45,8 +75,14 @@ public:
                 DelegateData.Func(args...);
             }
         }
+
+        for (auto& DelegateData : RawDelegateDatas)
+        {
+            DelegateData->Execute(args...);
+        }
     }
 
 protected:
     std::vector<FDelegateData> DelegateDatas;
+    std::vector<std::unique_ptr<FRawDelegateData>> RawDelegateDatas;
 };

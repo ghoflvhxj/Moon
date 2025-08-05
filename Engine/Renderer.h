@@ -26,16 +26,20 @@ private:
 	void initialize() noexcept;
 private:
 	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
+
 public:
-	// 렌더할 Primitive 추가
 	void AddPrimitive(std::shared_ptr<MPrimitiveComponent> pComponent);
+protected:
+	// 렌더할 Primitive 추가
+    void MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponent);
     void MakeBuffer(FPrimitiveData& PrimitiveData);
     void MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent);
 protected:
-    // 포워드 렌더링을 위한 PrimitiveID - FPrimitiveData 쌍을 저장함
-	std::map<uint32, std::vector<FPrimitiveData>> ForwardPrimitiveDataMap;
-    // 디퍼드 렌더링을 위한 PrimitiveID - FPrimitiveData 쌍을 저장함
-	std::map<uint32, std::vector<FPrimitiveData>> DeferredPrimitiveDataMap;
+    // 모든 PrimitiveComponent
+	std::map<uint32, std::shared_ptr<MPrimitiveComponent>> PrimitiveComponents;
+    // PrimitiveID, PrimitiveDatas 쌍
+    std::map<uint32, std::vector<FPrimitiveData>> IdToPrimitiveDatas;
+
     // PrimitiveID - 버텍스 버퍼 쌍을 저장함, ConstantBuffer는 쉐이더에서 하는데 모든 버퍼를 Renderer가 관리할지, Shader가 할지 
     std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBuffers;
     std::map<uint32, std::vector<std::shared_ptr<MIndexBuffer>>> IndexBuffers;
@@ -47,9 +51,9 @@ public:
     }
 
 public:
-    const std::vector<FPrimitiveData>& GetPrimitives(EPrimitiveType InPrimitiveType) { return Primitives[InPrimitiveType]; }
+    const std::vector<FPrimitiveData>& GetPrimitives(EPrimitiveType InPrimitiveType) { return PrimitiveDatasPerType[InPrimitiveType]; }
     // PrimitiveType - PrimitiveData 쌍을 저장함
-    std::map<EPrimitiveType, std::vector<FPrimitiveData>> Primitives;
+    std::map<EPrimitiveType, std::vector<FPrimitiveData>> PrimitiveDatasPerType;
 
 private:
     void FrustumCulling();

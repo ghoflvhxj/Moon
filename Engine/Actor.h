@@ -13,6 +13,7 @@ public:
 	explicit Actor();
 	virtual ~Actor();
 
+    // 생성자 호출 후 처리할 작업
     void PostConstruct();
 
 public:

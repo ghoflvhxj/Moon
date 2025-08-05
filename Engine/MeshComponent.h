@@ -31,8 +31,10 @@ public:
 public:
     void SetMesh(const std::wstring& InPath, bool bSetPhyiscs = true);
     std::shared_ptr<StaticMesh> GetMesh();
+    FDelegate<void, std::shared_ptr<MPrimitiveComponent>>& GetMeshChangedDelegate() { return OnMeshChangedDelegate; }
 protected:
     std::shared_ptr<StaticMesh> Mesh;
+    FDelegate<void, std::shared_ptr<MPrimitiveComponent>> OnMeshChangedDelegate;
     //FObjectPath MeshPathTest;
 
 public:
@@ -74,9 +76,7 @@ protected:
         PROPERTY_DELEGATE(bPhysicsSimulate, [&](MMeshComponent* InObject) {
             InObject->SetPhysicsSimulate(InObject->IsPhysicsSimulating());
         }),
-        //PROPERTY_DELEGATE(MeshPathTest, [&](MMeshComponent* MeshComp) { 
-        //    MeshComp->SetMesh(MeshComp->MeshPathTest.Path, false);
-        //}),
+        //PROPERTY(Mesh)
         PROPERTY_DELEGATE(Mesh, [&](MMeshComponent* InObject) {
             InObject->Reload();
         })

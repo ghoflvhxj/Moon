@@ -2,6 +2,7 @@
 
 #include "SceneComponent.h"
 #include "Vertex.h"
+#include "Core/Delegate.h"
 
 struct FPrimitiveData;
 struct FMeshData;
@@ -27,13 +28,6 @@ protected:
 	std::vector<Index>		_indices;
 
 public:
-	std::shared_ptr<MVertexBuffer> getVertexBuffer();
-	std::shared_ptr<MIndexBuffer> getIndexBuffer();
-protected:
-	std::shared_ptr<MVertexBuffer> _pVertexBuffer;
-	std::shared_ptr<MIndexBuffer> _pIndexBuffer = nullptr;
-
-public:
 	std::shared_ptr<MMaterial> getMaterial();
 protected:
 	std::shared_ptr<MMaterial> _pMaterial = nullptr;
@@ -55,6 +49,11 @@ public:
 public:
 	explicit MPrimitiveComponent();
 	virtual ~MPrimitiveComponent();
+
+public:
+    FDelegate<void, std::shared_ptr<MPrimitiveComponent>>& GetPrimitiveChangedDelegate() { return OnPrimitiveChangedDelegate; }
+protected:
+    FDelegate<void, std::shared_ptr<MPrimitiveComponent>> OnPrimitiveChangedDelegate;
 
 public:
 	const uint32 GetPrimitiveID() const { return PrimitiveID; }
@@ -79,7 +78,7 @@ public:
 	void SetRendering(bool bNewRendering);
     bool IsRendering() const { return bRendering; }
 protected:
-	bool bRendering;
+	bool bRendering = true;
 
 public:
     void setDrawingBoundingBox(const bool bDraw);

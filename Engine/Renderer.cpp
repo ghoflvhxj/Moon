@@ -78,10 +78,9 @@ void Renderer::Release()
 	ViewMeshComponent.reset();
 
     RenderablePrimitiveData.clear();
-    Primitives.clear();
+    PrimitiveDatasPerType.clear();
 
-	ForwardPrimitiveDataMap.clear();
-	DeferredPrimitiveDataMap.clear();
+	PrimitiveComponents.clear();
 
     IndexBuffers.clear();
 	VertexBuffers.clear();
@@ -264,61 +263,51 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent> InPrimitiveComp
 		return;
 	}
 
-	std::vector<FPrimitiveData> PrimitiveDataList;
-	if (InPrimitiveComponent->GetPrimitiveData(PrimitiveDataList) == false)
-	{
-		return;
-	}
-
     uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
 
-    if (InPrimitiveComponent->IsDirty())
-    {
-        VertexBuffers.erase(PrimitiveID);
-        IndexBuffers.erase(PrimitiveID);
-        DeferredPrimitiveDataMap.erase(PrimitiveID);
+    PrimitiveComponents[PrimitiveID] = InPrimitiveComponent;
+    //Primitives[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
 
-        InPrimitiveComponent->SetDirty(false);
+    MakeBuffer(InPrimitiveComponent);
+    if (std::shared_ptr<MMeshComponent> MeshComp = InPrimitiveComponent->CastTo<MMeshComponent>())
+    {
+        MeshComp->GetMeshChangedDelegate().Add(this, &Renderer::MakeBuffer);
     }
 
-	bool bMakeBuffer = false;
-	for (uint32 i=0; i<GetSize(PrimitiveDataList); ++i)
-	{
-		FPrimitiveData& PrimitiveData = PrimitiveDataList[i];
-		if (PrimitiveData.MeshData.expired())
-		{
-			continue;
-		}
+    MakePrimitiveData(InPrimitiveComponent);
+    InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &Renderer::MakePrimitiveData);
+}
 
-		// 버텍스 버퍼 생성
-		if (bMakeBuffer == false && VertexBuffers.find(PrimitiveID) == VertexBuffers.end())
-		{
-			bMakeBuffer = true;
-		}
+void Renderer::MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponent)
+{
+    if (InComponent == nullptr)
+    {
+        return;
+    }
 
-		if (bMakeBuffer)
-		{
-			MakeBuffer(PrimitiveData);
-		}
+    int32 PrimitiveID = InComponent->GetPrimitiveID();
+    IdToPrimitiveDatas.erase(PrimitiveID);
 
-		PrimitiveData.VertexBuffer = VertexBuffers[PrimitiveID][i];
+    std::vector<FPrimitiveData> MyPrimitiveDatas;
+    if (InComponent->GetPrimitiveData(MyPrimitiveDatas) == false)
+    {
+        return;
+    }
+
+    for (uint32 i = 0; i < GetSize(MyPrimitiveDatas); ++i)
+    {
+        FPrimitiveData& PrimitiveData = MyPrimitiveDatas[i];
+        PrimitiveData.VertexBuffer = VertexBuffers[PrimitiveID][i];
         PrimitiveData.IndexBuffer = IndexBuffers[PrimitiveID][i];
 
-		// 매터리얼 타입에 따라 어느 렌더링에 들어갈지 결정
-		if (bMakeBuffer)
-		{
-			//if (PrimitiveData._pMaterial->IsUseAlpha())
-			//{
-			//	ForwardPrimitiveDataMap[PrimitiveKey].push_back(PrimitiveData);
-			//}
-			//else
-			{
-				DeferredPrimitiveDataMap[PrimitiveID].push_back(PrimitiveData);
-			}
-		}
+        if (PrimitiveData.MeshData.expired())
+        {
+            continue;
+        }
 
-        Primitives[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
-	}
+        IdToPrimitiveDatas[PrimitiveID].push_back(PrimitiveData);
+        PrimitiveDatasPerType[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
+    }
 }
 
 void Renderer::MakeBuffer(FPrimitiveData& PrimitiveData)
@@ -327,17 +316,26 @@ void Renderer::MakeBuffer(FPrimitiveData& PrimitiveData)
 
 	auto& MeshData = PrimitiveData.MeshData.lock();
 	uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
-	uint32 VertexNum = CastValue<uint32>(MeshData->Vertices.size());
-
+	uint32 VertexNum = GetSize(MeshData->Vertices);
 	VertexBuffers[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData->Vertices.data()));
 
 	uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
-	uint32 IndexNum = CastValue<uint32>(MeshData->Indices.size());
+	uint32 IndexNum = GetSize(MeshData->Indices);
 	IndexBuffers[PrimitiveID].push_back(IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData->Indices.data()) : nullptr);
 }
 
 void Renderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
 {
+    if (InComponent == nullptr)
+    {
+        return;
+    }
+
+    int32 PrimitiveID = InComponent->GetPrimitiveID();
+
+    VertexBuffers.erase(PrimitiveID);
+    IndexBuffers.erase(PrimitiveID);
+
     std::vector<FPrimitiveData> PrimitiveDatas;
     InComponent->GetPrimitiveData(PrimitiveDatas);
 
@@ -538,12 +536,12 @@ void Renderer::Render()
 
     // 전부 삭제하는 것이 아니라 삭제된 것만 제거 되도록 변경하기
     //DeferredPrimitiveDataMap.clear(); -> 버퍼가 한번 생성되면, 재추가 되지는 않아서 비우지 않아도 됨
-    Primitives.clear();
+    PrimitiveDatasPerType.clear();
 }
 
 void Renderer::RenderScene()
 {
-	TotalPrimitiveNum = CastValue<uint32>(DeferredPrimitiveDataMap.size() + ForwardPrimitiveDataMap.size());
+	TotalPrimitiveNum = GetSize(PrimitiveComponents);
 	FrustumCulling();
 
 	// 기본 패스
@@ -633,11 +631,11 @@ void Renderer::FrustumCulling()
     CulledPrimitiveNum = 0;
     ShownPrimitiveNum = 0;
 
-    for (auto& Pair : DeferredPrimitiveDataMap)
+    for (auto& [Id, PrimitiveDatas] : IdToPrimitiveDatas)
     {
-        TotalPrimitiveNum += static_cast<uint32>(Pair.second.size());
+        TotalPrimitiveNum += GetSize(PrimitiveDatas);
 
-        const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = Pair.second[0].PrimitiveComponent.lock();
+        const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = PrimitiveDatas[0].PrimitiveComponent.lock();
 
         std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
         // 바운딩 박스가 없으면 일단 무조건 렌더링
@@ -646,13 +644,13 @@ void Renderer::FrustumCulling()
             // 컬링
             if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
             {
-                CulledPrimitiveNum += static_cast<uint32>(Pair.second.size());
+                CulledPrimitiveNum += GetSize(PrimitiveDatas);
                 continue;
             }
         }
 
-        RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), Pair.second.begin(), Pair.second.end());
-        ShownPrimitiveNum += static_cast<uint32>(Pair.second.size());
+        RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), PrimitiveDatas.begin(), PrimitiveDatas.end());
+        ShownPrimitiveNum += GetSize(PrimitiveDatas);
     }
 }
 

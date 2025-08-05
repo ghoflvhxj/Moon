@@ -83,11 +83,6 @@ MBoundingBox::MBoundingBox(const Vec3 &min, const Vec3 &max)
     MeshDatas.push_back(MeshData);
 }
 
-std::shared_ptr<MVertexBuffer> MBoundingBox::getVertexBuffer()
-{
-	return _pVertexBuffer;
-}
-
 std::shared_ptr<MMaterial> MBoundingBox::getMaterial()
 {
 	return _pMaterial;
@@ -150,9 +145,9 @@ MPrimitiveComponent::~MPrimitiveComponent()
 
 void MPrimitiveComponent::Update(const Time deltaTime)
 {
-	SceneComponent::Update(deltaTime);
+	Super::Update(deltaTime);
 
-	g_pRenderer->AddPrimitive(shared_from_this());
+	//g_pRenderer->AddPrimitive(GetShared());
 }
 
 const bool MPrimitiveComponent::GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList)

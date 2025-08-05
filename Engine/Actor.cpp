@@ -1,6 +1,6 @@
-﻿#include "Include.h"
-#include "Actor.h"
+﻿#include "Actor.h"
 
+#include "MoonEngine.h"
 #include "MapUtility.h"
 
 #include "Component.h"
@@ -20,6 +20,7 @@ void Actor::PostConstruct()
 {
     for (auto& [Name, Comp] : _components)
     {
+        RegisterComponent(Comp);
         Comp->setOwningActor(shared_from_this());
     }
 }

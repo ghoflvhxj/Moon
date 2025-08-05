@@ -29,5 +29,7 @@ const bool createMainGame(std::shared_ptr<T> &pGame)
 
 ENGINE_DLL const bool setGame(std::unique_ptr<MainGame>&& pGame);
 
+void RegisterComponent(std::shared_ptr<class Component> InComponent);
+
 #define __MOON_ENGINE_H__
 #endif

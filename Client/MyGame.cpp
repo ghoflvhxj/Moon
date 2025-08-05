@@ -835,8 +835,9 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                         if (GetOpenFileNameW(&t))
                         {
                             wcout << FileName << endl;
-                            std::shared_ptr<MAsset> NewAsset = g_ResourceManager->Load(FileName, Asset->GetTypeDesc());
 
+                            // Asset 부분만 불러와 Path를 세팅하도록
+                            std::shared_ptr<MAsset> NewAsset = g_ResourceManager->Load(FileName, Asset->GetTypeDesc());
                             static_cast<FFundamentalPropertyDesc<MAsset>*>(Prop)->Set(InObject, NewAsset);
                         }
                     }

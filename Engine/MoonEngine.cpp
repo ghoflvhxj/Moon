@@ -15,6 +15,9 @@
 #include "Core/ResourceManager.h"
 #include "Core/ResourceLoader.h"
 
+#include "Component.h"
+#include "PrimitiveComponent.h"
+
 HINSTANCE g_hInstance;
 HWND g_hWnd;
 
@@ -46,6 +49,9 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
     g_ResourceManager = std::make_unique<MResourceManager>();
 
     g_pGraphicDevice->BuildInputLayout();
+
+    g_pPhysics = std::make_unique<MJoltPhysics>();
+    g_pRenderer = std::make_unique<Renderer>();
 
 	return true;
 }
@@ -93,13 +99,13 @@ const bool setGame(std::unique_ptr<MainGame>&& pGame)
 	g_pMainGame = std::move(pGame);
     g_pMainGame->initialize();
 
-
-
-    //g_pPhysics = std::make_unique<MPhysX>();
-    g_pPhysics = std::make_unique<MJoltPhysics>();
-    g_pRenderer = std::make_unique<Renderer>();
-
-
-
 	return true;
+}
+
+void RegisterComponent(std::shared_ptr<class Component> InComponent)
+{
+    if (InComponent->IsA<MPrimitiveComponent>())
+    {
+        getRenderer()->AddPrimitive(std::static_pointer_cast<MPrimitiveComponent>(InComponent));
+    }
 }

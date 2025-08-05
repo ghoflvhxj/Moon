@@ -1,5 +1,6 @@
 ﻿#include "MeshComponent.h"
 
+#include "Renderer.h"
 #include "Core/Physics/Physics.h"
 #include "Core/ResourceManager.h"
 
@@ -34,6 +35,9 @@ void MMeshComponent::SetMesh(const std::wstring& InPath, bool bSetPhyiscs)
         SetPhysics(bPhysics, true);
         SetPhysicsSimulate(bPhysicsSimulate);
     }
+
+    OnMeshChangedDelegate.Broadcast(GetShared());
+    OnPrimitiveChangedDelegate.Broadcast(GetShared());
 }
 
 std::shared_ptr<StaticMesh> MMeshComponent::GetMesh()
@@ -77,7 +81,7 @@ void MMeshComponent::SetPhysics(bool bInPhysics, bool bForce)
     {
         FPhysicsConstructData Data;
         Data.Mesh = Mesh;
-        Data.PrimitiveComponent = shared_from_this();
+        Data.PrimitiveComponent = GetShared();
         Data.PhysicsType = PhysicsType;
         g_pPhysics->AddPhysicsObject(Data, PhysicsObject);
     }
