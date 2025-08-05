@@ -44,7 +44,7 @@ protected:
     std::vector<std::shared_ptr<FMeshData>> MeshDatas;
 };
 
-class ENGINE_DLL MPrimitiveComponent abstract : public SceneComponent, public std::enable_shared_from_this<MPrimitiveComponent>
+class ENGINE_DLL MPrimitiveComponent abstract : public SceneComponent
 {
 public:
 	enum class ERenderMode

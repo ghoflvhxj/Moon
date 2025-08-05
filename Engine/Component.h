@@ -1,13 +1,17 @@
 ﻿#pragma once
 #include "Include.h"
+#include "Core/Object.h"
 
 class Actor;
 
-class ENGINE_DLL Component abstract
+class ENGINE_DLL Component abstract : public MObject
 {
 public:
 	explicit Component();
 	virtual ~Component();
+
+public:
+    virtual void Register() {}
 
 public:
 	void setOwningActor(std::shared_ptr<Actor> &actor);
@@ -15,5 +19,5 @@ public:
 private:
 	std::weak_ptr<Actor> _pOwningActor;
 
-    REFLECT_TOP(Component);
+    REFLECT(Component);
 };

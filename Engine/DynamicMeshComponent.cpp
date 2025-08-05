@@ -116,7 +116,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)
 	{
 		FPrimitiveData NewPrimitiveData = {};
-		NewPrimitiveData.PrimitiveComponent = shared_from_this();
+		NewPrimitiveData.PrimitiveComponent = GetShared();
 		NewPrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		NewPrimitiveData.MeshData = dMesh->GetMeshData(geometryIndex);
 		NewPrimitiveData.Material = dMesh->getGeometryLinkMaterialIndex().size() > 0 ? dMesh->getMaterials()[dMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : dMesh->getMaterials()[0];
@@ -156,7 +156,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
     if (BoundingBox && _bDrawBoundingBox)
     {
         FPrimitiveData PrimitiveData = {};
-        PrimitiveData.PrimitiveComponent = shared_from_this();
+        PrimitiveData.PrimitiveComponent = GetShared();
         PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
         PrimitiveData.MeshData = BoundingBox->GetMeshData();
         PrimitiveData.Material = BoundingBox->getMaterial();
@@ -181,7 +181,7 @@ void DynamicMeshComponent::Clothing()
 
         FPhysicsConstructData Data;
         Data.Mesh = Mesh;
-        Data.PrimitiveComponent = shared_from_this();
+        Data.PrimitiveComponent = GetShared();
         Data.PhysicsType = EPhysicsType::Dynamic;
         Data.Pos = GetJointPosition("bone001");
 

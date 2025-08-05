@@ -138,7 +138,9 @@
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SkyComponent.h" />
     <ClInclude Include="Source\Core\Asset.h" />
+    <ClInclude Include="Source\Core\Delegate.h" />
     <ClInclude Include="Source\Core\FileSystem.h" />
+    <ClInclude Include="Source\Core\Object.h" />
     <ClInclude Include="Source\Core\Physics\Jolt\Jolt.h" />
     <ClInclude Include="Source\Core\Physics\Physics.h" />
     <ClInclude Include="Source\Core\Physics\PhysX\MPhysX.h" />

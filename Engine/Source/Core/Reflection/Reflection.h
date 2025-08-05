@@ -44,6 +44,10 @@ static const FTypeDesc* GetTypeDescStatic() \
 	sizeof(MyClass), \
 	{ __VA_ARGS__ }}; \
 	return &MyClass##_Desc; \
+} \
+std::shared_ptr<Self> GetShared() \
+{ \
+    return static_pointer_cast<Self>(shared_from_this()); \
 }
 
 template <>

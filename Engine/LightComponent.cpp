@@ -39,7 +39,7 @@ void MLightComponent::Update(const Time deltaTime)
 const bool MLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
 	FPrimitiveData primitiveData        = {};
-	primitiveData.PrimitiveComponent	= shared_from_this();
+	primitiveData.PrimitiveComponent	= GetShared();
 	primitiveData.MeshData              = _pStaticMesh->GetMeshData(0);
     primitiveData.Material              = getMesh()->getMaterials()[0];
 
