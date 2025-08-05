@@ -146,8 +146,6 @@ MPrimitiveComponent::~MPrimitiveComponent()
 void MPrimitiveComponent::Update(const Time deltaTime)
 {
 	Super::Update(deltaTime);
-
-	//g_pRenderer->AddPrimitive(GetShared());
 }
 
 const bool MPrimitiveComponent::GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList)

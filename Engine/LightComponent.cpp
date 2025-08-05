@@ -31,7 +31,7 @@ MLightComponent::~MLightComponent(void)
 
 void MLightComponent::Update(const Time deltaTime)
 {
-    MPrimitiveComponent::Update(deltaTime);
+    Super::Update(deltaTime);
 
     Direction = GetForward();
 }

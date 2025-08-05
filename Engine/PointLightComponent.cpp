@@ -20,7 +20,7 @@ MPointLightComponent::~MPointLightComponent(void)
 
 void MPointLightComponent::Update(const Time deltaTime)
 {
-	MPrimitiveComponent::Update(deltaTime);
+	Super::Update(deltaTime);
 
 	Vec3 trans = { 0.f, 0.f, 1.f };
 
