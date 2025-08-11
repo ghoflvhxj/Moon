@@ -65,11 +65,16 @@ private:
 
     std::weak_ptr<class Component> ClickedComp;
 
-    // 매터리얼 에디터
 public:
     const FTypeDesc* EditAssetDesc = nullptr;
     class MAsset* EditAsset = nullptr;
+
+    
 };
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject);
+void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InPropertyDesc, void* InObject);
 void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject);
+
+
+void HandleProperty(EType InType, const char* DisplayName, void* InData);

@@ -304,10 +304,6 @@ void MyGame::PostUpdate(const Time deltaTime)
 
 void MyGame::render()
 {
-    std::shared_ptr<MLightComponent> DirectionalLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("DirectionalLight")));
-    std::shared_ptr<MLightComponent> PointLight = std::static_pointer_cast<MLightComponent>(_pPlayer->getComponent(TEXT("PointLight")));
-    std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(ROOT_COMPONENT));
-    
     if (ImGui::CollapsingHeader("Test Functions"))
     {
         if (ImGui::CollapsingHeader("Actor") && LanternActor)
@@ -378,12 +374,38 @@ void MyGame::render()
             }
         }
 
+        std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(ROOT_COMPONENT));
         if (DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
         {
             DynamicMeshComp->Clothing();
         }
+
+        if (ImGui::Button("Jolt Save"))
+        {
+            if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp.lock()->CastTo<MMeshComponent>())
+            {
+                if (MeshComp->GetMesh())
+                {
+                    FPhysicsConstructData Data;
+                    Data.Mesh = MeshComp->GetMesh();
+                    Data.PrimitiveComponent = MeshComp;
+                    Data.PhysicsType = EPhysicsType::Static;
+                    GetPhysics()->MakeConvexHull(Data);
+                }
+            }
+        }
     }
 
+    // 게임
+    if (ImGui::CollapsingHeader("Game"))
+    {
+        if (ImGui::Button("Play"))
+        {
+            getMainGame()->PlayGame();
+        }
+    }
+
+    // 기즈모 컨트롤
     for (int i = 0; i < (int)EGizmoMode::Count; ++i)
     {
         bool bHighlight = (int)GizmoMode == i;
@@ -427,9 +449,9 @@ void MyGame::render()
     // 하이어라키
     if (ImGui::CollapsingHeader("Hierarchy"))
     {
-        uint32 Num = GetSize(_actorList);
+        uint32 Num = GetSize(Actors);
         uint32 i = 0;
-        for (auto actor : _actorList)
+        for (auto actor : Actors)
         {
             std::string name = "Actor_" + std::to_string(i++) + "(" + actor->GetTypeDesc()->Name + ")";
 
@@ -496,24 +518,7 @@ void MyGame::render()
         }
     }
 
-    // 메시 편집 기능. 일단 임시로 컴포넌트에서 메시를 가져옴
-    if (std::shared_ptr<MMeshComponent> HitComponent = std::static_pointer_cast<MMeshComponent>(HitData.HitComponent.lock()))
-    {
-        if (auto TestMesh = HitComponent->GetMesh())
-        {
-            if (ImGui::CollapsingHeader("Mesh Edit"))
-            {
-                const FTypeDesc* Current = TestMesh->GetTypeDesc();
-                while (Current)
-                {
-                    DispatchStruct(Current, TestMesh.get());
-                    Current = Current->Parent;
-                }
-            }
-        }
-    }
-
-    // 매터리얼 에디트
+    // 애셋 편집
     if (EditAsset)
     {
         std::string Name = EditAssetDesc->Name + " Edit";
@@ -535,9 +540,8 @@ void MyGame::render()
                 DispatchStruct(Current, EditAsset);
                 Current = Current->Parent;
             }
-
-            ImGui::End();
         }
+        ImGui::End();
     }
 
 	ImGui::End();
@@ -548,7 +552,7 @@ void MyGame::render()
 
 bool MyGame::IsPickable() const
 {
-    return ImGui::IsWindowHovered() == false;
+    return ImGui::GetIO().WantCaptureMouse == false;
 }
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject)
@@ -558,115 +562,120 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDes
         return;
     }
 
-    uint32 ElementNum = InContainerDesc->GetNum(InObject);
+    ImGui::PushID(InContainerDesc->GetAsVoid(InObject));
 
-    if (InContainerDesc->IsA<MAsset>() && InContainerDesc->bPointerElements)
+    if (ImGui::CollapsingHeader(InContainerDesc->GetDisplayName().c_str()))
     {
-        if (ImGui::CollapsingHeader(InContainerDesc->Name.c_str()))
+        uint32 ElementNum = InContainerDesc->GetNum(InObject);
+
+        // 추가 버튼
+        if (ImGui::Button("Add"))
         {
-            for (uint32 i = 0; i < ElementNum; ++i)
-            {
-                auto Asset = static_cast<MAsset*>(InContainerDesc->Get(InObject, i));
-                std::string Path = Asset == nullptr ? "" : WStringToString(Asset->GetAssetPath());
-
-                ImGui::Text(Path.c_str());
-
-                ImGui::SameLine(300);
-                if (ImGui::Button("Edit"))
-                {
-                    static_cast<MyGame*>(getMainGame().get())->EditAsset = Asset;
-                    static_cast<MyGame*>(getMainGame().get())->EditAssetDesc = InContainerDesc->TypeDesc;
-                }
-
-                ImGui::SameLine(350);
-                if (ImGui::Button("..."))
-                {
-                    TCHAR FileName[256] = {};
-
-                    OPENFILENAMEW t = {};
-                    t.lStructSize = sizeof(t);
-                    t.hwndOwner = NULL;
-                    t.hInstance = NULL;
-                    t.lpstrFilter = TEXT("json 파일\0*.fbx");
-                    t.lpstrFile = FileName;
-                    t.nMaxFile = 256;
-                    t.lpstrInitialDir = TEXT(".");
-                    t.lpstrTitle = TEXT("Load FBX");
-
-                    if (GetOpenFileNameW(&t))
-                    {
-                        wcout << FileName << endl;
-                    }
-                }
-
-                ImGui::NewLine();
-            }
+            InContainerDesc->Resize(InObject, ElementNum + 1);
         }
-    }
-    else
-    {
-        for (int i = 0; i < ElementNum; ++i)
-        {
-            if (InElementTypeDesc)
-            {
-                for (auto& Prop : InElementTypeDesc->Properties)
-                {
-                    switch (Prop->Type)
-                    {
-                    case EType::Int:
-                    {
-                        int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InContainerDesc->Get(InObject, i));
-                    }
-                    break;
-                    case EType::Float:
-                    {
-                        float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InContainerDesc->Get(InObject, i));
-                    }
-                    break;
-                    case EType::Vec2:
-                    case EType::Vec3:
-                    case EType::Vec4:
-                    {
 
-                    }
-                    break;
-                    default:
+        // 컨테이너 요소들 표시
+        for (uint32 i = 0; i < ElementNum; ++i)
+        {
+            if (InContainerDesc->IsA<MAsset>())
+            {
+                if (InContainerDesc->bPointerElements)
+                {
+                    auto Asset = static_cast<MAsset*>(InContainerDesc->Get(InObject, i));
+                    std::string Path = Asset == nullptr ? "" : WStringToString(Asset->GetAssetPath());
+
+                    ImGui::Text(Path.c_str());
+
+                    ImGui::SameLine(300);
+                    if (ImGui::Button("Edit"))
                     {
-                        size_t num = InContainerDesc->GetNum(InObject);
-                        if (Prop->bContainer)
+                        static_cast<MyGame*>(getMainGame().get())->EditAsset = Asset;
+                        static_cast<MyGame*>(getMainGame().get())->EditAssetDesc = InContainerDesc->TypeDesc;
+                    }
+
+                    ImGui::SameLine(350);
+                    if (ImGui::Button("..."))
+                    {
+                        TCHAR FileName[256] = {};
+
+                        OPENFILENAMEW t = {};
+                        t.lStructSize = sizeof(t);
+                        t.hwndOwner = NULL;
+                        t.hInstance = NULL;
+                        t.lpstrFilter = TEXT("json 파일\0*.fbx");
+                        t.lpstrFile = FileName;
+                        t.nMaxFile = 256;
+                        t.lpstrInitialDir = TEXT(".");
+                        t.lpstrTitle = TEXT("Load Asset");
+
+                        if (GetOpenFileNameW(&t))
                         {
-                            DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), InContainerDesc->Get(InObject, i));
-                        }
-                        else
-                        {
-                            DispatchStruct(Prop->TypeDesc, InContainerDesc->Get(InObject, i));
+                            wcout << FileName << endl;
                         }
                     }
-                    break;
-                    }
+
+                    ImGui::NewLine();
                 }
             }
             else
             {
-                switch (InContainerDesc->Type)
+                void* ContainerElement = InContainerDesc->Get(InObject, i);
+                std::string DisplayNameStr = std::to_string(i);
+                const char* DisplayName = DisplayNameStr.c_str();
+
+                if (InElementTypeDesc)
                 {
-                case EType::Int:
-                case EType::Enum:
-                {
-                    int& Temp = *(int*)InContainerDesc->Get(InObject, i);
-                    ImGui::InputInt((InContainerDesc->Name + std::to_string(i)).c_str(), &Temp);
+                    DispatchStruct(InElementTypeDesc, ContainerElement);
                 }
-                break;
-                case EType::Float:
+                else
                 {
-                    float& Temp = *(float*)InContainerDesc->Get(InObject, i);
-                    ImGui::InputFloat((InContainerDesc->Name + std::to_string(i)).c_str(), &Temp);
-                }
+                    HandleProperty(InContainerDesc->Type, DisplayName, ContainerElement);
                 }
             }
         }
     }
 
+    ImGui::PopID();
+
+}
+
+void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InPropertyDesc, void* InObject)
+{
+    if (InObject == nullptr)
+    {
+        return;
+    }
+
+    if (ImGui::CollapsingHeader(InPropertyDesc->GetDisplayName().c_str()))
+    {
+        uint32 Num = InPropertyDesc->Num;
+
+        // Array는 추가, 삭제할 수가 없는 고정된 사이즈임
+
+        // Array 요소 표시
+        for (uint32 i = 0; i < Num; ++i)
+        {
+            if (InPropertyDesc->IsA<MAsset>())
+            {
+
+            }
+            else
+            {
+                void* ArrayElem = InPropertyDesc->GetAsVoid(InObject, i);
+                std::string DisplayNameStr = InPropertyDesc->Name + std::to_string(i);
+                const char* DisplayName = DisplayNameStr.c_str();
+
+                if (InElementTypeDesc)
+                {
+                    DispatchStruct(InElementTypeDesc, ArrayElem);
+                }
+                else
+                {
+                    HandleProperty(InPropertyDesc->Type, DisplayName, ArrayElem);
+                }
+            }
+        }
+    }
 }
 
 void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
@@ -678,132 +687,23 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
 
     for (FPropertyDesc* Prop : InStructDesc->Properties)
     {
-        if (Prop->bContainer)
+        if (Prop->IsContainer())
         {
             DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), InObject);
         }
-        else if (Prop->Num > 1) // 배열
+        else if (Prop->IsArray()) // 배열
         {
-            uint32 Num = Prop->Num;
-            if (ImGui::CollapsingHeader(Prop->Name.c_str()))
-            {
-                for (uint32 i = 0; i < Num; ++i)
-                {
-                    std::string NameString = Prop->Name + std::to_string(i);
-                    const char* Name = NameString.c_str();
-                    switch (Prop->Type)
-                    {
-                        case EType::Int:
-                        case EType::Enum:
-                        {
-                            int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject, i);
-                            ImGui::InputInt(Name, &Temp);
-                        }
-                        break;
-                        case EType::Float:
-                        {
-                            float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject, i);
-                            ImGui::InputFloat(Name, &Temp);
-                        }
-                        break;
-                        case EType::Bool:
-                        {
-                            bool& Temp = static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject, i);
-                            ImGui::Checkbox(Name, &Temp);
-                        }
-                        case EType::Vec2:
-                        case EType::Vec4:
-                        {
-
-                        }
-                        break;
-                        case EType::Vec3:
-                        {
-                            auto& Temp = static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject, i);
-                            float TempArr[3] = { Temp.x, Temp.y, Temp.z };
-                            if (ImGui::InputFloat3(Name, TempArr))
-                            {
-                                Temp = { TempArr[0], TempArr[1], TempArr[2] };
-                            }
-                        }
-                        break;
-                        case EType::WString:
-                        {
-                            auto& Temp = static_cast<FFundamentalPropertyDesc<std::wstring>*>(Prop)->Get(InObject, i);
-                            char Buff[256] = {};
-                            WStringToString(Temp, Buff, 256);
-
-                            if (ImGui::InputText(Name, Buff, 256))
-                            {
-
-                            }
-                        }
-                        break;
-                        default:
-                        {
-                            uint64 Base = (uint64)Prop->GetAsVoid(InObject);
-                            uint64 MemoryPos = Base + (Prop->GetSize() * i);
-                            DispatchStruct(Prop->TypeDesc, (void*)MemoryPos);
-                        }
-                        break;
-                    }
-                }
-            }
+            DispatchArray(Prop->TypeDesc, Prop, InObject);
         }
         else
         {
-            switch (Prop->Type)
+            if (Prop->TypeDesc == nullptr)
             {
-            case EType::Int:
-            case EType::Enum:
-            {
-                int& Temp = static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject);
-                ImGui::InputInt(Prop->Name.c_str(), &Temp);
+                HandleProperty(Prop->Type, Prop->Name.c_str(), Prop->GetAsVoid(InObject));
             }
-            break;
-            case EType::Float:
+            else 
             {
-                float& Temp = static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject);
-                ImGui::InputFloat(Prop->Name.c_str(), &Temp);
-            }
-            break;
-            case EType::Bool:
-            {
-                bool& Temp = static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject);
-                ImGui::Checkbox(Prop->Name.c_str(), &Temp);
-            }
-            break;
-            case EType::Vec2:
-            case EType::Vec4:
-            {
-
-            }
-            break;
-            case EType::Vec3:
-            {
-                auto& Temp = static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject);
-                float TempArr[3] = { Temp.x, Temp.y, Temp.z };
-                if (ImGui::InputFloat3(Prop->Name.c_str(), TempArr))
-                {
-                    Temp = { TempArr[0], TempArr[1], TempArr[2] };
-                }
-            }
-            break;
-            case EType::WString:
-            {
-                auto& Temp = static_cast<FFundamentalPropertyDesc<std::wstring>*>(Prop)->Get(InObject);
-                char Buff[256] = {};
-                WStringToString(Temp, Buff, 256);
-
-                if (ImGui::InputText(Prop->Name.c_str(), Buff, 256))
-                {
-
-                }
-            }
-            break;
-            default:
-            {
-                if (Prop->TypeDesc && Prop->IsA<MAsset>())
+                if(Prop->IsA<MAsset>())
                 {
                     MAsset* Asset = static_cast<MAsset*>(Prop->GetAsVoid(InObject));
                     std::string Path = Asset == nullptr ? "" : WStringToString(Asset->GetAssetPath());
@@ -849,8 +749,57 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                     DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
                 }
             }
-            break;
-            }
         }
+    }
+}
+
+void HandleProperty(EType InType, const char* DisplayName, void* InData)
+{
+    switch (InType)
+    {
+    case EType::Int:
+    case EType::Enum:
+    {
+        ImGui::InputInt(DisplayName, static_cast<int*>(InData));
+    }
+    break;
+    case EType::Float:
+    {
+        ImGui::InputFloat(DisplayName, static_cast<float*>(InData));
+    }
+    break;
+    case EType::Bool:
+    {
+        ImGui::Checkbox(DisplayName, static_cast<bool*>(InData));
+    }
+    break;
+    case EType::Vec2:
+    case EType::Vec4:
+    {
+
+    }
+    break;
+    case EType::Vec3:
+    {
+        auto Temp = static_cast<Vec3*>(InData);
+        float TempArr[3] = { Temp->x, Temp->y, Temp->z };
+        if (ImGui::InputFloat3(DisplayName, TempArr))
+        {
+            *Temp = { TempArr[0], TempArr[1], TempArr[2] };
+        }
+    }
+    break;
+    case EType::WString:
+    {
+        auto Temp = static_cast<std::wstring*>(InData);
+        char Buff[256] = {};
+        WStringToString(*Temp, Buff, 256);
+
+        if (ImGui::InputText(DisplayName, Buff, 256))
+        {
+
+        }
+    }
+    break;
     }
 }
