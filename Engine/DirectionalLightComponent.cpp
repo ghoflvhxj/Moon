@@ -12,7 +12,7 @@ using namespace DirectX;
 DirectionalLightComponent::DirectionalLightComponent(void)
 	: MLightComponent()
 {
-	getMesh()->getMaterial(0)->setShader(TEXT("Light.cso"), TEXT("DirectionalLightShader.cso"));
+    Material->setShader(TEXT("Light.cso"), TEXT("DirectionalLightShader.cso"));
 }
 
 DirectionalLightComponent::~DirectionalLightComponent(void)

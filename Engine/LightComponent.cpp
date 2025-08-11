@@ -14,12 +14,9 @@ MLightComponent::MLightComponent(void)
 	, bShow { true }
 {
 	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->LoadFromFBX(TEXT("Base/Plane.fbx"));
+	_pStaticMesh->LoadFromAsset(TEXT("Base/Plane.json"));
 
-	if (_pStaticMesh->GetMaterialNum() == 0)
-	{
-		
-	}
+    Material = std::make_shared<MMaterial>();
 
 	setScale(g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f);
 	setTranslation(0.f, 0.f, 1.f);
@@ -41,7 +38,7 @@ const bool MLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primit
 	FPrimitiveData primitiveData        = {};
 	primitiveData.PrimitiveComponent	= GetShared();
 	primitiveData.MeshData              = _pStaticMesh->GetMeshData(0);
-    primitiveData.Material              = getMesh()->getMaterials()[0];
+    primitiveData.Material              = Material;
 
 	primitiveDataList.emplace_back(primitiveData);
 

@@ -53,6 +53,9 @@ protected:
 private:
 	std::shared_ptr<StaticMesh> _pStaticMesh;
 
+protected:
+    std::shared_ptr<MMaterial> Material;
+
     REFLECT(
         MLightComponent,
         PROPERTY(Color),

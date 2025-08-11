@@ -11,7 +11,7 @@ MPointLightComponent::MPointLightComponent(void)
 	: MLightComponent()
 	, Range{ 1.f }
 {
-	getMesh()->getMaterial(0)->setShader(TEXT("Light.cso"), TEXT("PointLightShader.cso"));
+    Material->setShader(TEXT("Light.cso"), TEXT("PointLightShader.cso"));
 }
 
 MPointLightComponent::~MPointLightComponent(void)
