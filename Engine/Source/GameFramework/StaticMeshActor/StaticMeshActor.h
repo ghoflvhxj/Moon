@@ -4,7 +4,7 @@
 
 class StaticMeshComponent;
 
-class ENGINE_DLL MStaticMeshActor : public Actor
+class ENGINE_DLL MStaticMeshActor : public MActor
 {
 public:
     MStaticMeshActor();

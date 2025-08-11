@@ -5,7 +5,7 @@
 
 class SceneComponent;
 
-class ENGINE_DLL MCamera : public Actor
+class ENGINE_DLL MCamera : public MActor
 {
 public:
 	enum class ProjectMode

@@ -6,7 +6,7 @@
 class DirectionalLightComponent;
 class MBillboardComponent;
 
-class ENGINE_DLL MDirectionalLightActor : public Actor
+class ENGINE_DLL MDirectionalLightActor : public MActor
 {
 public:
     MDirectionalLightActor();

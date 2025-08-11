@@ -6,26 +6,26 @@
 #include "Component.h"
 #include "SceneComponent.h"
 
-Actor::Actor()
+MActor::MActor()
 	: _components()
 {
 }
 
-Actor::~Actor()
+MActor::~MActor()
 {
 	_components.clear();
 }
 
-void Actor::PostConstruct()
+void MActor::PostConstruct()
 {
     for (auto& [Name, Comp] : _components)
     {
         RegisterComponent(Comp);
-        Comp->setOwningActor(shared_from_this());
+        Comp->setOwningActor(GetShared());
     }
 }
 
-void Actor::update(const Time deltaTime)
+void MActor::update(const Time deltaTime)
 {
 	tick(deltaTime);
 
@@ -43,11 +43,11 @@ void Actor::update(const Time deltaTime)
 	}
 }
 
-void Actor::tick(const Time deltaTime)
+void MActor::tick(const Time deltaTime)
 {
 }
 
-const Vec3 Actor::GetWorldTranslation()
+const Vec3 MActor::GetWorldTranslation()
 {
     if (auto& RootComp = getComponent(ROOT_COMPONENT))
     {
@@ -57,7 +57,7 @@ const Vec3 Actor::GetWorldTranslation()
     return VEC3ZERO;
 }
 
-std::shared_ptr<SceneComponent> Actor::getComponent(const wchar_t componentName[])
+std::shared_ptr<SceneComponent> MActor::getComponent(const wchar_t componentName[])
 {
 	std::shared_ptr<SceneComponent> pComponent = nullptr;
 	MapUtility::FindGet(_components, componentName, pComponent);
@@ -65,7 +65,7 @@ std::shared_ptr<SceneComponent> Actor::getComponent(const wchar_t componentName[
 	return pComponent;
 }
 
-const bool Actor::addComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> pComponent)
+const bool MActor::addComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> pComponent)
 {
 	return MapUtility::FindInsert(_components, componentName, pComponent);
 }

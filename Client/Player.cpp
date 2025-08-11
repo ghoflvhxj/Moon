@@ -37,7 +37,7 @@ using namespace DirectX;
 using namespace rapidjson;
 
 Player::Player()
-	: Actor()
+	: MActor()
 {
 	initialize();
 }

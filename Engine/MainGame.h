@@ -8,7 +8,7 @@ class FrameManager;
 
 class MMeshComponent;
 
-class Actor;
+class MActor;
 class MCamera;
 
 class MPhysX;
@@ -52,9 +52,9 @@ public:
 
 	// 업데이트 할 액터들을 관리
 public:
-	void addActor(std::shared_ptr<Actor> pActor);
+	void addActor(std::shared_ptr<MActor> pActor);
 protected:
-	std::list<std::shared_ptr<Actor>> _actorList;
+	std::list<std::shared_ptr<MActor>> Actors;
 
 	//-------------------------------------------------------------------------
 public:

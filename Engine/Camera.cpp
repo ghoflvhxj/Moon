@@ -12,7 +12,7 @@
 using namespace DirectX;
 
 MCamera::MCamera()
-	: Actor()
+	: MActor()
 	, _viewMatrix()
 	, _perspectiveProjectionMatrix()
 	, _eProjection{ ProjectMode::Perspective }
@@ -24,7 +24,7 @@ MCamera::MCamera()
 }
 
 MCamera::MCamera(const float fov)
-	: Actor()
+	: MActor()
 	, _viewMatrix()
 	, _perspectiveProjectionMatrix()
 	, _eProjection{ ProjectMode::Perspective }

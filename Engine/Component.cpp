@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "Component.h"
 
 Component::Component()
@@ -10,12 +10,12 @@ Component::~Component()
 {
 }
 
-void Component::setOwningActor(std::shared_ptr<Actor> &actor)
+void Component::setOwningActor(std::shared_ptr<MActor> &actor)
 {
 	_pOwningActor = actor;
 }
 
-std::shared_ptr<Actor> Component::getOwningActor() const
+std::shared_ptr<MActor> Component::getOwningActor() const
 {
 	return _pOwningActor.lock();
 }

@@ -6,7 +6,7 @@
 class MPointLightComponent;
 class MBillboardComponent;
 
-class ENGINE_DLL MPointLightActor : public Actor
+class ENGINE_DLL MPointLightActor : public MActor
 {
 public:
     MPointLightActor();

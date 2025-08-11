@@ -1,11 +1,13 @@
+﻿/*
 #include "Include.h"
 #include "World.h"
 
 #include "Actor.h"
 
-std::shared_ptr<Actor> World::SpawnActor()
+std::shared_ptr<MActor> World::SpawnActor()
 {
-	Actor* p = new Actor();
-	std::shared_ptr<Actor> p2(p );
+	MActor* p = new MActor();
+	std::shared_ptr<MActor> p2(p );
 	return p2;
 }
+*/

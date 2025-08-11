@@ -1,13 +1,11 @@
+﻿/*
 #pragma once
-#ifndef __WORLD_H__
-#define __WORLD_H__
 
-class Actor;
+class MActor;
 
 class ENGINE_DLL World : std::enable_shared_from_this<World>
 {
 public:
-	std::shared_ptr<Actor> SpawnActor();
+	std::shared_ptr<MActor> SpawnActor();
 };
-
-#endif
+*/

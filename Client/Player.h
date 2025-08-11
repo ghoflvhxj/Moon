@@ -11,7 +11,7 @@ class MPointLightComponent;
 class DirectionalLightComponent;
 class SkyComponent;
 
-class Player : public Actor
+class Player : public MActor
 {
 public:
     explicit Player();

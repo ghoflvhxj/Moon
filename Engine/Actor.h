@@ -1,17 +1,19 @@
 ﻿#pragma once
 
 #include "Include.h"
+#include "Core/Object.h"
+#include "Core/Delegate.h"
 
 class Component;
 class SceneComponent;
 class MPrimitiveComponent;
 class MainGame;
 
-class ENGINE_DLL Actor : public std::enable_shared_from_this<Actor>
+class ENGINE_DLL MActor : public MObject
 {
 public:
-	explicit Actor();
-	virtual ~Actor();
+	explicit MActor();
+	virtual ~MActor();
 
     // 생성자 호출 후 처리할 작업
     void PostConstruct();
@@ -31,7 +33,7 @@ public:
 private:
 	std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>	_components;
 
-    REFLECT_TOP(Actor)
+    REFLECT(MActor)
 };
 
 template <class T>

@@ -2,7 +2,7 @@
 #include "StaticMeshComponent.h"
 
 MStaticMeshActor::MStaticMeshActor()
-    : Actor()
+    : MActor()
 {
     StaticMeshComp = std::make_shared<StaticMeshComponent>();
     addComponent(ROOT_COMPONENT, StaticMeshComp);

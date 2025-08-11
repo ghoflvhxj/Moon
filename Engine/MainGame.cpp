@@ -76,11 +76,12 @@ const bool MainGame::Loop()
 
 void MainGame::Tick(const Time deltaTime)
 {
+
 }
 
 void MainGame::Update(const Time deltaTime)
 {
-	for (auto pActor : _actorList)
+	for (auto pActor : Actors)
 	{
 		pActor->update(deltaTime);
 	}
@@ -90,9 +91,14 @@ void MainGame::render()
 {
 }
 
-void MainGame::addActor(std::shared_ptr<Actor> pActor)
+void MainGame::addActor(std::shared_ptr<MActor> pActor)
 {
-	_actorList.push_back(pActor);
+	Actors.push_back(pActor);
+
+    if (HasBegan)
+    {
+        pActor->BeginPlay();
+    }
 }
 
 const Time MainGame::getDeltaTime() const
