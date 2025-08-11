@@ -19,6 +19,12 @@ public:
     void PostConstruct();
 
 public:
+    virtual void BeginPlay();
+    FDelegate<void, std::shared_ptr<MActor>>& GetBeganPlayDelegate() { return OnBeganPlayDelegate; }
+protected:
+    FDelegate<void, std::shared_ptr<MActor>> OnBeganPlayDelegate;
+
+public:
 	void update(const Time deltaTime);
 protected:
 	virtual void tick(const Time deltaTime);

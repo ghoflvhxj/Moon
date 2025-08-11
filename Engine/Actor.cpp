@@ -25,6 +25,11 @@ void MActor::PostConstruct()
     }
 }
 
+void MActor::BeginPlay()
+{
+    OnBeganPlayDelegate.Broadcast(GetShared());
+}
+
 void MActor::update(const Time deltaTime)
 {
 	tick(deltaTime);

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Include.h"
+#include "Core/Delegate.h"
 
 class Window;
 class MTimerManager;
@@ -45,6 +46,13 @@ protected:
 private:
     void Update(const Time deltaTime);
     virtual void PostUpdate(const Time deltaTime) {}
+
+public:
+    virtual void PlayGame();
+    FDelegate<void>& GetGamePlayedDelegate() { return OnGamePlayedDelegate; }
+protected:
+    bool HasBegan = false;
+    FDelegate<void> OnGamePlayedDelegate;
 
 public:	
 	// 디버깅 할 때 쓰는 용도

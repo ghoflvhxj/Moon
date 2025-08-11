@@ -99,6 +99,10 @@ const bool setGame(std::unique_ptr<MainGame>&& pGame)
 	g_pMainGame = std::move(pGame);
     g_pMainGame->initialize();
 
+    g_pMainGame->GetGamePlayedDelegate().Add([&]() {
+        GetPhysics()->PlaySimulate();
+    });
+
 	return true;
 }
 

@@ -87,6 +87,24 @@ void MainGame::Update(const Time deltaTime)
 	}
 }
 
+void MainGame::PlayGame()
+{
+    if (HasBegan)
+    {
+        return;
+    }
+
+    if (HasBegan == false)
+    {
+        HasBegan = true;
+
+        for (auto& Actor : Actors)
+        {
+            Actor->BeginPlay();
+        }
+    }
+}
+
 void MainGame::render()
 {
 }
