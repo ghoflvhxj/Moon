@@ -68,7 +68,6 @@ void Player::initialize()
     CharacterMeshComponent->SetPhysics(false);
 	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
-    //CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
     CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
 	CharacterMeshComponent->GetDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
 	CharacterMeshComponent->GetDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
@@ -151,7 +150,10 @@ void Player::tick(const Time deltaTime)
             trans.z -= right.z * speed;
         }
 
-        CameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
+        if (getMainGame()->IsMouseInViewport())
+        {
+            CameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
+        }
         CameraSpeedScale = CameraSpeedScale >= 1.f ? CameraSpeedScale : 1.f;
 
         CameraComponent->setTranslation(trans);
