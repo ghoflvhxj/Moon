@@ -28,7 +28,6 @@ void MMeshComponent::SetMesh(const std::wstring& InPath, bool bSetPhyiscs)
     }
 
     Materials = Mesh->getMaterials();
-    bDirty = true;
 
     if (bPhysics && bSetPhyiscs)
     {
@@ -77,14 +76,14 @@ void MMeshComponent::SetPhysics(bool bInPhysics, bool bForce)
 
     bPhysics = bInPhysics;
 
-    if (g_pPhysics && bPhysics)
-    {
-        FPhysicsConstructData Data;
-        Data.Mesh = Mesh;
-        Data.PrimitiveComponent = GetShared();
-        Data.PhysicsType = PhysicsType;
-        g_pPhysics->AddPhysicsObject(Data, PhysicsObject);
-    }
+    //if (g_pPhysics && bPhysics)
+    //{
+    //    FPhysicsConstructData Data;
+    //    Data.Mesh = Mesh;
+    //    Data.PrimitiveComponent = GetShared();
+    //    Data.PhysicsType = PhysicsType;
+    //    g_pPhysics->AddPhysicsObject(Data, PhysicsObject);
+    //}
 }
 
 void MMeshComponent::SetPhysicsSimulate(bool bInSimulate, bool bForce /*= false*/)

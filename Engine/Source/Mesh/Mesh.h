@@ -20,6 +20,8 @@ struct ENGINE_DLL FMeshData
 struct FClothData
 {
     uint32 MeshIndex;
+
+    // 각 버텍스들의 역질량
     std::vector<float> InvMass;
 
     // 옷감이 붙는 조인트 인덱스

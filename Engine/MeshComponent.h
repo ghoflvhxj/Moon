@@ -54,6 +54,7 @@ public:
     void SetPhysicsSimulate(bool bInSimulate, bool bForce = false);
     void SetPhysicsType(EPhysicsType InPhysicsType) { PhysicsType = InPhysicsType; }
     bool IsPhysicsSimulating() const { return bPhysicsSimulate; }
+    bool IsPhysicsEnable() const { return bPhysics; }
 protected:
     bool bPhysics = true;
     bool bPhysicsSimulate = false;

@@ -280,27 +280,6 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
         MatSerializer.Serialize(*Material, Material->GetAssetPath(), true);
     }
 
-    // 매터리얼 생성 후 저장
-    //uint32 MaterialNum = GetSize(UniqueMaterialIndices);
-    //for (uint32 MaterialIndex = 0; MaterialIndex < MaterialNum; ++MaterialIndex)
-    //{
-    //    std::shared_ptr<MMaterial> NewMaterial = std::make_shared<MMaterial>();
-
-    //    if (MaterialIndex < GetSize(MaterialTextures))
-    //    {
-    //        NewMaterial->setTextures(MaterialTextures[MaterialIndex]);
-    //    }
-
-    //    NewMaterial->SetName(GetMaterialIName(MaterialIndex));
-    //    NewMaterial->setShader(TEXT("TexVertexShader.cso"), TEXT("TexPixelShader.cso"));
-
-    //    std::wstring MatPath = Directory + GetMaterialIName(MaterialIndex) + TEXT(".json");
-    //    NewMaterial->SetAssetPath(MatPath);
-
-    //    MJsonSerializer MatSerializer;
-    //    MatSerializer.Serialize(*NewMaterial, MatPath, true);
-    //}
-
     // 이제 매터리얼 정보가 채워진 StaticMesh 저장할 수 있음.
     MJsonSerializer Serializer;
     std::wstring MeshPath = Directory + Name + TEXT(".json");
