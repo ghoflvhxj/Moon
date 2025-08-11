@@ -32,13 +32,40 @@ struct FPropertyDesc
 	std::vector<const FTypeDesc*> ElementsDesc;
 
 public:
+    std::string GetDisplayName() const
+    {
+        if (IsContainer())
+        {
+            return Name + "- Container";
+        }
+        else if (IsArray())
+        {
+            return Name + "- Array";
+        }
+        else
+        {
+            return Name;
+        }
+    }
+
+    bool IsContainer() const
+    {
+        return bContainer;
+    }
+
+    bool IsArray() const
+    {
+        return Num > 1;
+    }
+
+public:
 	virtual size_t GetSize() 
     { 
         return Size; 
     }
 
     // 프로퍼티를 void* 로 반환하는 함수
-    virtual void* GetAsVoid(const void* InObject)
+    virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0)
     {
         return nullptr;
     }

@@ -103,18 +103,20 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
             }
 		}
 
-        virtual void* GetAsVoid(const void* InObject) override
+        virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
         {
             if constexpr (std::is_array_v<MemType>)
             {
-                return ((Owner*)InObject->*TestMemPtr);
+                return &((Owner*)InObject->*TestMemPtr)[InIndex];
             }
             if constexpr (is_smart_ptr_v<MemType>)
             {
+                if (InIndex != 0) { MSGBOX(TEXT("배열 멤버가 아님!")); }
                 return ((Owner*)InObject->*TestMemPtr).get();
             }
             else
             {
+                if (InIndex != 0) { MSGBOX(TEXT("배열 멤버가 아님!")); }
                 return &((Owner*)InObject->*TestMemPtr);
             }
         }

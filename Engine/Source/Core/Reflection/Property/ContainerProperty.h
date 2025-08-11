@@ -59,7 +59,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<MemType> O
                     ((Owner*)InObject->*TestMemPtr).push_back(std::make_shared<ElemType>());
                 }
             }
-            else if (std::is_pointer_v<MemType>)
+            else if constexpr (std::is_pointer_v<MemType>)
             {
                 for (size_t i = GetNum(InObject); i < InSize; ++i)
                 {
@@ -102,7 +102,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<MemType> O
             }
 		}
 
-        virtual void* GetAsVoid(const void* InObject) override
+        virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
         {
             if constexpr (std::is_pointer_v<MemType>)
             {
