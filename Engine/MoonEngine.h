@@ -7,7 +7,7 @@ class Window;
 class MainGame;
 class GraphicDevice;
 class Renderer;
-class MPhysics;
+class MPhysicsEngine;
 
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow);
 ENGINE_DLL const bool EngineLoop();
@@ -16,6 +16,7 @@ ENGINE_DLL std::unique_ptr<GraphicDevice>& getGraphicDevice();
 ENGINE_DLL std::unique_ptr<Renderer>& getRenderer();
 ENGINE_DLL std::unique_ptr<MainGame>& getMainGame();
 ENGINE_DLL std::unique_ptr<MainGameSetting>& getSetting();
+ENGINE_DLL std::unique_ptr<MPhysicsEngine>& GetPhysics();
 
 template <class T>
 const bool createMainGame(std::shared_ptr<T> &pGame)
@@ -25,6 +26,12 @@ const bool createMainGame(std::shared_ptr<T> &pGame)
 	pGame = pMainGame;
 
 	return true;
+}
+
+template <class T>
+T* GetGame()
+{
+    return static_cast<T*>(getMainGame().get());
 }
 
 ENGINE_DLL const bool setGame(std::unique_ptr<MainGame>&& pGame);

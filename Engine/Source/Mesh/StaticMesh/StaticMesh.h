@@ -10,6 +10,7 @@
 class MFBXLoader;
 class MBoundingBox;
 class MMaterial;
+class MPhysics;
 
 class ENGINE_DLL StaticMesh : public MAsset
 {
@@ -68,12 +69,16 @@ public:
 protected:
     std::vector<FClothData> ClothData;
 
+    // 피직스 데이터, 메시 컴포너트는 이것의 사본을 생성해야 함
+    std::shared_ptr<MPhysics> DefaultPhysics = nullptr;
+
 public:
     REFLECT(
         StaticMesh,
         PROPERTY(MeshDatas),
         PROPERTY(Materials),
         PROPERTY(UsedMaterialIndices),
-        PROPERTY(ClothData),
+        PROPERTY(ClothData)
+        //PROPERTY(DefaultPhysicsObject)
     )
 };

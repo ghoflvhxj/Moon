@@ -7,7 +7,7 @@
 #include "NvidiaPhysX/extensions/PxDefaultAllocator.h"
 using namespace physx;
 
-class ENGINE_DLL MPhysX : public MPhysics
+class ENGINE_DLL MPhysX : public MPhysicsEngine
 {
 public:
 	PxFoundation* Foundation = nullptr;

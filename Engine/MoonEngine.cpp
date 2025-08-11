@@ -28,7 +28,7 @@ std::unique_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
 std::unique_ptr<MShaderManager> ShaderManager		= nullptr;
 std::unique_ptr<Renderer> g_pRenderer				= nullptr;
 std::unique_ptr<MainGame> g_pMainGame				= nullptr;
-std::unique_ptr<MPhysics> g_pPhysics				= nullptr;
+std::unique_ptr<MPhysicsEngine> g_pPhysics				= nullptr;
 ENGINE_DLL std::unique_ptr<MResourceManager> g_ResourceManager	= nullptr;
 		
 
@@ -58,6 +58,11 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 const bool EngineLoop()
 {
+    //if (g_pPhysics)
+    //{
+    //    g_pPhysics->Update(_deltaTime);
+    //}
+
 	return g_pMainGame->Loop();
 }
 
@@ -92,6 +97,11 @@ std::unique_ptr<MainGame>& getMainGame()
 std::unique_ptr<MainGameSetting>& getSetting()
 {
 	return g_pSetting;
+}
+
+ENGINE_DLL std::unique_ptr<MPhysicsEngine>& GetPhysics()
+{
+    return g_pPhysics;
 }
 
 const bool setGame(std::unique_ptr<MainGame>&& pGame)

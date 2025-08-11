@@ -20,6 +20,7 @@
 #include "Jolt/Physics/SoftBody/SoftBodyShape.h"
 #include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
 #include "Jolt/Physics/Constraints/FixedConstraint.h"
+#include "Jolt/ObjectStream/ObjectStreamTextOut.h"
 
 #include "Renderer.h"
 #include "Vertex.h"
@@ -247,6 +248,54 @@ MJoltPhysics::MJoltPhysics()
     physics_system->SetContactListener(&contact_listener);
 }
 
+void MJoltPhysics::PlaySimulate()
+{
+    while (true)
+    {
+        // 메시 컴포넌트를 얻어와서 피직스 세팅이 되어있다면, 피직스 오브젝트를 만들어 주자...
+        std::shared_ptr<MMeshComponent> MeshComp = nullptr;
+        if (MeshComp == nullptr)
+        {
+            continue;
+        }
+
+        std::shared_ptr<StaticMesh> Mesh = MeshComp->GetMesh();
+        if (Mesh == nullptr)
+        {
+            continue;
+        }
+
+
+    }
+}
+
+void MJoltPhysics::MakeConvexHull(FPhysicsConstructData& InData)
+{
+    uint32 PrimitiveID = InData.PrimitiveComponent->GetPrimitiveID();
+
+    BodyInterface& bodyInterface = physics_system->GetBodyInterface();
+
+    const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
+    const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0)->Indices;
+
+    std::vector<JPH::Vec3> JPHVertices(Vertices.size());
+    for (int i = 0; i < Vertices.size(); ++i)
+    {
+        JPHVertices[i].SetX(Vertices[i].x);
+        JPHVertices[i].SetY(Vertices[i].y);
+        JPHVertices[i].SetZ(Vertices[i].z);
+        JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
+    }
+    Ref<Shape> NewShape = ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)).Create().Get();
+    EMotionType MotionType = InData.PhysicsType == EPhysicsType::Static ? EMotionType::Static : EMotionType::Dynamic;
+    BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), RVec3(0.f, 0.f, 0.f), QuatArg::sIdentity(), MotionType, Layers::NON_MOVING), EActivation::Activate);
+
+    // ① 데이터를 받을 std::ostream (여기서는 stringstream 사용)
+    std::stringstream ss;
+    JPH::ObjectStreamOut* streamOut = new JPH::ObjectStreamTextOut(ss);
+    streamOut->sWriteObject("D:\\Git\\Moon\\JoltTest.txt", JPH::ObjectStream::EStreamType::Text, ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)));
+}
+
 bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
 {
     BodyInterface& bodyInterface = physics_system->GetBodyInterface();
@@ -257,29 +306,29 @@ bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_p
     {
 
 
-    const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
-    const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0)->Indices;
+        const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
+        const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0)->Indices;
 
-    //if (Vertices.empty())
-    //{
-    //    return false;
-    //}
+        //if (Vertices.empty())
+        //{
+        //    return false;
+        //}
 
 
-    // Make ConvexHull
-    {
-        std::vector<JPH::Vec3> JPHVertices(Vertices.size());
-        for (int i = 0; i < Vertices.size(); ++i)
+        // Make ConvexHull
         {
-            JPHVertices[i].SetX(Vertices[i].x);
-            JPHVertices[i].SetY(Vertices[i].y);
-            JPHVertices[i].SetZ(Vertices[i].z);
-            JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
+            std::vector<JPH::Vec3> JPHVertices(Vertices.size());
+            for (int i = 0; i < Vertices.size(); ++i)
+            {
+                JPHVertices[i].SetX(Vertices[i].x);
+                JPHVertices[i].SetY(Vertices[i].y);
+                JPHVertices[i].SetZ(Vertices[i].z);
+                JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
+            }
+            NewShape = ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)).Create().Get();
+            EMotionType MotionType = InData.PhysicsType == EPhysicsType::Static ? EMotionType::Static : EMotionType::Dynamic;
+            NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), RVec3(0.f, 0.f, 0.f), QuatArg::sIdentity(), MotionType, Layers::NON_MOVING), EActivation::Activate);
         }
-        NewShape = ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)).Create().Get();
-        EMotionType MotionType = InData.PhysicsType == EPhysicsType::Static ? EMotionType::Static : EMotionType::Dynamic;
-        NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), RVec3(0.f, 0.f, 0.f), QuatArg::sIdentity(), MotionType, Layers::NON_MOVING), EActivation::Activate);
-    }
     }
 
     // MeshShape

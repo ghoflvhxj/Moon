@@ -53,11 +53,18 @@ namespace std
     };
 };
 
-class ENGINE_DLL MJoltPhysics : public MPhysics
+class ENGINE_DLL MJoltPhysics : public MPhysicsEngine
 {
 public:
     MJoltPhysics();
     virtual ~MJoltPhysics() = default;
+
+public:
+    virtual void PlaySimulate() override;
+
+public:
+    virtual void MakeConvexHull(FPhysicsConstructData& InData) override;
+    
 
 public:
     virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;

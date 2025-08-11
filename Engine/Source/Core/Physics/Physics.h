@@ -4,6 +4,8 @@
 #include "Vertex.h"
 #include "PhysicsEnum.h"
 
+#include "Core/Asset.h"
+
 // 임시, FTest 참조
 #include "Mesh/Mesh.h"
 
@@ -21,15 +23,24 @@ struct FPhysicsConstructData
     bool bCapsule = false;
 };
 
-class ENGINE_DLL MPhysics
+class ENGINE_DLL MPhysics : public MAsset
+{
+
+};
+
+class ENGINE_DLL MPhysicsEngine
 {
 public:
-    MPhysics() = default;
-    ~MPhysics() = default;
+    MPhysicsEngine() = default;
+    ~MPhysicsEngine() = default;
 
 public:
+    virtual void PlaySimulate() {}
     virtual void Update(float deltaTime) = 0;
     virtual void Release() = 0;
+
+public:
+    virtual void MakeConvexHull(FPhysicsConstructData& InData) {}
 
 public:
     virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) = 0;
@@ -38,6 +49,9 @@ public:
 
 protected:
     std::vector<std::weak_ptr<MPhysicsObject>> SoftBodyObjects;
+
+    // 프리미티브ID - 피직스 오브젝트 쌍
+    std::map<uint32, std::shared_ptr<MPhysicsObject>> PhysicsObjects;
 };
 
 class ENGINE_DLL MPhysicsObject
