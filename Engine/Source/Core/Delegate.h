@@ -45,6 +45,11 @@ public:
         DelegateDatas.push_back(NewData);
     }
 
+    void Add(std::function<ReturnType(ParamTypes...)> InFunc)
+    {
+        Lambdas.push_back(InFunc);
+    }
+
     template <class T>
     void Add(std::shared_ptr<T> InObject, ReturnType(T::* InFunc)(ParamTypes...))
     {
@@ -80,9 +85,15 @@ public:
         {
             DelegateData->Execute(args...);
         }
+
+        for (auto& Lambda : Lambdas)
+        {
+            Lambda(args...);
+        }
     }
 
 protected:
     std::vector<FDelegateData> DelegateDatas;
     std::vector<std::unique_ptr<FRawDelegateData>> RawDelegateDatas;
+    std::vector<std::function<ReturnType(ParamTypes...)>> Lambdas;
 };
