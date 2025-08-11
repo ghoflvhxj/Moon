@@ -258,6 +258,15 @@ bool MainGame::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData
     return OutHitData.HitComponent.expired() == false;
 }
 
+bool MainGame::IsMouseInViewport() const
+{
+    float Width = g_pSetting->getResolutionWidth<float>();
+    float Height = g_pSetting->getResolutionHeight<float>();
+
+    Vec2 MousePos = GetMousePos();
+    return MousePos.x >= 0.f && MousePos.x <= Width && MousePos.y >= 0.f && MousePos.y <= Height;
+}
+
 void MainGame::ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const
 {
     // 스크린 -> NDC
@@ -310,7 +319,7 @@ void MainGame::ProjectVec2(const Vec2& InBase, const Vec2& InTarget, Vec2& Out) 
     XMStoreFloat2(&Out, Proj);
 }
 
-const Vec2 MainGame::GetMousePos()
+const Vec2 MainGame::GetMousePos() const
 {
     POINT MousePos;
     GetCursorPos(&MousePos);

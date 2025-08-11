@@ -95,10 +95,11 @@ public:
     bool Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData);
 
 public:
+    bool IsMouseInViewport() const;
     void ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const;
     void WorldToScreen(const Vec3& InPos, Vec2& OutPos) const;
     void ProjectVec3(const Vec3& InBase, const Vec3& InTarget, Vec3& Out) const;
     void ProjectVec2(const Vec2& InBase, const Vec2& InTarget, Vec2& Out) const;
 
-    const Vec2 GetMousePos();
+    const Vec2 GetMousePos() const;
 };
