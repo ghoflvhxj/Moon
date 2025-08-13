@@ -103,6 +103,11 @@ void MainGame::PlayGame()
             Actor->BeginPlay();
         }
     }
+
+    std::wstring Message = TEXT("PlayGame");
+    LOG(Message);
+
+    GetGameStartedDelegate().Broadcast();
 }
 
 void MainGame::render()

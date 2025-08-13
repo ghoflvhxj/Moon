@@ -386,11 +386,18 @@ void MyGame::render()
             {
                 if (MeshComp->GetMesh())
                 {
-                    FPhysicsConstructData Data;
-                    Data.Mesh = MeshComp->GetMesh();
-                    Data.PrimitiveComponent = MeshComp;
-                    Data.PhysicsType = EPhysicsType::Static;
-                    GetPhysics()->MakeConvexHull(Data);
+                    GetPhysics()->SaveTest(MeshComp->GetMesh());
+                }
+            }
+        }
+
+        if (ImGui::Button("Jolt Load"))
+        {
+            if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp.lock()->CastTo<MMeshComponent>())
+            {
+                if (MeshComp->GetMesh())
+                {
+                    GetPhysics()->LoadTest();
                 }
             }
         }
@@ -540,6 +547,17 @@ void MyGame::render()
                 DispatchStruct(Current, EditAsset);
                 Current = Current->Parent;
             }
+
+            // 애셋 타입에 따라 추가 처리
+            if (EditAsset->IsA<StaticMesh>())
+            {
+                //std::shared_ptr<StaticMesh> Mesh = nullptr;
+                //g_ResourceManager->Load(EditAsset->GetAssetPath(), Mesh);
+                if (ImGui::Button("Make Collision"))
+                {
+                    GetPhysics()->SaveTest(EditAsset->CastTo<StaticMesh>());
+                }
+            }
         }
         ImGui::End();
     }
@@ -566,7 +584,7 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDes
 
     if (ImGui::CollapsingHeader(InContainerDesc->GetDisplayName().c_str()))
     {
-        uint32 ElementNum = InContainerDesc->GetNum(InObject);
+        uint32 ElementNum = static_cast<uint32>(InContainerDesc->GetNum(InObject));
 
         // 추가 버튼
         if (ImGui::Button("Add"))
@@ -589,8 +607,8 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDes
                     ImGui::SameLine(300);
                     if (ImGui::Button("Edit"))
                     {
-                        static_cast<MyGame*>(getMainGame().get())->EditAsset = Asset;
-                        static_cast<MyGame*>(getMainGame().get())->EditAssetDesc = InContainerDesc->TypeDesc;
+                        GetGame<MyGame>()->EditAsset = Asset;
+                        GetGame<MyGame>()->EditAssetDesc = InContainerDesc->TypeDesc;
                     }
 
                     ImGui::SameLine(350);
@@ -648,7 +666,7 @@ void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InProperty
 
     if (ImGui::CollapsingHeader(InPropertyDesc->GetDisplayName().c_str()))
     {
-        uint32 Num = InPropertyDesc->Num;
+        uint32 Num = static_cast<uint32>(InPropertyDesc->Num);
 
         // Array는 추가, 삭제할 수가 없는 고정된 사이즈임
 
@@ -701,53 +719,53 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
             {
                 HandleProperty(Prop->Type, Prop->Name.c_str(), Prop->GetAsVoid(InObject));
             }
-            else 
+            else if (Prop->IsA<MAsset>())
             {
-                if(Prop->IsA<MAsset>())
-                {
-                    MAsset* Asset = static_cast<MAsset*>(Prop->GetAsVoid(InObject));
-                    std::string Path = Asset == nullptr ? "" : WStringToString(Asset->GetAssetPath());
+                MAsset* Asset = static_cast<MAsset*>(Prop->GetAsVoid(InObject));
 
-                    ImGui::Text(Path.c_str());
+                ImGui::Text(Prop->GetDisplayName().c_str());
+
+                ImGui::SameLine(100);
+                std::string Path = Asset == nullptr ? "Empty" : WStringToString(Asset->GetAssetPath());
+                ImGui::Text(Path.c_str());
                     
-                    ImGui::SameLine(300);
-                    if (ImGui::Button("Edit"))
-                    {
-                        static_cast<MyGame*>(getMainGame().get())->EditAsset = Asset;
-                        static_cast<MyGame*>(getMainGame().get())->EditAssetDesc = Prop->TypeDesc;
-                    }
-
-                    ImGui::SameLine(350);
-                    if (ImGui::Button("..."))
-                    {
-                        TCHAR FileName[256] = {};
-
-                        OPENFILENAMEW t = {};
-                        t.lStructSize = sizeof(t);
-                        t.hwndOwner = NULL;
-                        t.hInstance = NULL;
-                        t.lpstrFilter = TEXT("json 파일\0*.json");
-                        t.lpstrFile = FileName;
-                        t.nMaxFile = 256;
-                        t.lpstrInitialDir = TEXT(".");
-                        t.lpstrTitle = TEXT("Load FBX");
-
-                        if (GetOpenFileNameW(&t))
-                        {
-                            wcout << FileName << endl;
-
-                            // Asset 부분만 불러와 Path를 세팅하도록
-                            std::shared_ptr<MAsset> NewAsset = g_ResourceManager->Load(FileName, Asset->GetTypeDesc());
-                            static_cast<FFundamentalPropertyDesc<MAsset>*>(Prop)->Set(InObject, NewAsset);
-                        }
-                    }
-
-                    ImGui::NewLine();
-                }
-                else
+                ImGui::SameLine(300);
+                if (ImGui::Button("Edit"))
                 {
-                    DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
+                    static_cast<MyGame*>(getMainGame().get())->EditAsset = Asset;
+                    static_cast<MyGame*>(getMainGame().get())->EditAssetDesc = Prop->TypeDesc;
                 }
+
+                ImGui::SameLine(350);
+                if (ImGui::Button("..."))
+                {
+                    TCHAR FileName[256] = {};
+
+                    OPENFILENAMEW t = {};
+                    t.lStructSize = sizeof(t);
+                    t.hwndOwner = NULL;
+                    t.hInstance = NULL;
+                    t.lpstrFilter = TEXT("json 파일\0*.json");
+                    t.lpstrFile = FileName;
+                    t.nMaxFile = 256;
+                    t.lpstrInitialDir = TEXT(".");
+                    t.lpstrTitle = TEXT("Load FBX");
+
+                    if (GetOpenFileNameW(&t))
+                    {
+                        wcout << FileName << endl;
+
+                        // Asset 부분만 불러와 Path를 세팅하도록
+                        std::shared_ptr<MAsset> NewAsset = g_ResourceManager->Load(FileName, Asset->GetTypeDesc());
+                        static_cast<FFundamentalPropertyDesc<MAsset>*>(Prop)->Set(InObject, NewAsset);
+                    }
+                }
+
+                ImGui::NewLine();
+            }
+            else
+            {
+                DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
             }
         }
     }

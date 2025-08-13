@@ -43,7 +43,7 @@ StaticMeshComponent::~StaticMeshComponent()
 
 void StaticMeshComponent::Update(const Time deltaTime)
 {
-	if (PhysicsObject && PhysicsObject->IsSimulating())
+	if (PhysicsObject)
 	{
 		setTranslation(PhysicsObject->GetPhysicsPos());
 	}

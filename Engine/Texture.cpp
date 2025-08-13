@@ -58,14 +58,15 @@ MTexture::~MTexture()
 	SafeRelease(_rawTexture);
 }
 
-void MTexture::Load()
+bool MTexture::Load()
 {
-    if (Path.empty())
+    if (Super::Load())
     {
-        return;
+        loadTextureFile(Path.c_str());
+        return true;
     }
 
-    loadTextureFile(Path.c_str());
+    return false;
 }
 
 const bool MTexture::loadTextureFile(const wchar_t *fileName)

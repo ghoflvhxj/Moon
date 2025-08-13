@@ -34,8 +34,8 @@ protected:
     std::wstring Name;
 
 public:
-    void LoadFromAsset(const std::wstring& InPath);
-    void OnLoaded();
+    virtual bool Load() override;
+    virtual void OnLoaded() override;
 
 public:
 	void SetTexturesToDevice();

@@ -15,39 +15,40 @@ public:
 	~MResourceManager() = default;
 
 public:
-    std::shared_ptr<MAsset> Load(const std::wstring& InPath, const FTypeDesc* InTypeDesc)
-    {
-        std::filesystem::path Path(InPath);
+    //void Load(MAsset* InAsset)
+    //{
+    //    std::filesystem::path Path(InAsset->GetAssetPath());
 
-        if (Path.empty())
-        {
-            return nullptr;
-        }
+    //    if (Path.empty())
+    //    {
+    //        return;
+    //    }
 
-        if (Path.is_absolute() == false)
-        {
-            Path = MFIleSystem::CombinePath(Path);
-        }
+    //    if (Path.is_absolute() == false)
+    //    {
+    //        Path = MFIleSystem::CombinePath(Path);
+    //    }
 
-        if (std::filesystem::exists(Path) == false)
-        {
-            std::wstring Msg = TEXT("파일이 없음: ") + Path.wstring();
-            MSGBOX(Msg);
-            return nullptr;
-        }
+    //    if (std::filesystem::exists(Path) == false)
+    //    {
+    //        std::wstring Msg = TEXT("파일이 없음: ") + Path.wstring();
+    //        MSGBOX(Msg);
+    //        return;
+    //    }
 
-        if (ResourceLoaders2.find(InTypeDesc) != ResourceLoaders2.end())
-        {
-            return ResourceLoaders2[InTypeDesc]->TryLoad(InPath);
-        }
+    //    if (ResourceLoaders2.find(InTypeDesc) != ResourceLoaders2.end())
+    //    {
+    //        return ResourceLoaders2[InTypeDesc]->TryLoad(InPath);
+    //    }
+    //}
 
-        return nullptr;
-    }
+    std::shared_ptr<MAsset> Load(const std::wstring& InPath, const FTypeDesc* InTypeDesc);
 
 	template <class T>
 	bool Load(const std::wstring& InPath, std::shared_ptr<T>& OutResource)
 	{
         std::filesystem::path Path(InPath);
+        Path = Path.make_preferred();
 
         if (Path.empty())
         {
@@ -56,7 +57,7 @@ public:
 
         if (Path.is_absolute() == false)
         {
-            Path = MFIleSystem::CombinePath(Path);
+            Path = MFIleSystem::AbsolutePath(Path);
         }
 
         if (std::filesystem::exists(Path) == false)
@@ -74,7 +75,7 @@ public:
 
         if (ResourceLoaders2.find(TypeDesc) != ResourceLoaders2.end())
         {
-            OutResource = std::static_pointer_cast<T>(ResourceLoaders2[TypeDesc]->TryLoad(InPath));
+            OutResource = std::static_pointer_cast<T>(ResourceLoaders2[TypeDesc]->TryLoad(Path));
         }
         else
         {

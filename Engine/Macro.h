@@ -14,8 +14,6 @@
 	#define ENGINE_DLL __declspec(dllimport)
 #endif
 
-#define ToUint32(x) static_cast<uint32>(x)
-
 #define SAFE_ADDREF(x)		if( nullptr != x )											\
 	{ x->AddRef(); }	
 
@@ -66,4 +64,15 @@
 		{ assert(false && TEXT(_msg)); }														
 #else																					
 	#define DEV_ASSERT_MSG(_msg)														
-#endif																							
+#endif									
+
+#ifdef DEBUG
+#define LOG(InMessage) \
+{ \
+    std::wcout << InMessage << std::endl; \
+    OutputDebugStringW(InMessage.c_str()); \
+}
+#else
+#define LOG(InMessage) \
+{   /*DoNothing*/  }
+#endif

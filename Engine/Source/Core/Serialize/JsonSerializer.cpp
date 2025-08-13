@@ -30,7 +30,7 @@ rapidjson::Value MJsonSerializer::DispatchStruct(const FTypeDesc* InTypeDesc, vo
         }
         else if (Prop->Num > 1) // 배열
         {
-			uint32 Num = Prop->Num;
+            size_t Num = Prop->Num;
             switch (Prop->Type)
             {
             case EType::Int:
@@ -93,52 +93,61 @@ rapidjson::Value MJsonSerializer::DispatchStruct(const FTypeDesc* InTypeDesc, vo
         {
             switch (Prop->Type)
             {
-            case EType::Int:
-            case EType::Enum:
-            {
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject)), Allocator);
-            }
-            break;
-            case EType::Float:
-            {
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject)), Allocator);
-            }
-            break;
-            case EType::Vec2:
-            {
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec2>*>(Prop)->Get(InObject)), Allocator);
-            }
-            break;
-            case EType::Vec3:
-            {
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject)), Allocator);
-            }
-            break;
-            case EType::Vec4:
-            {
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec4>*>(Prop)->Get(InObject)), Allocator);
-            }
-            break;
-			case EType::String:
-			{
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<std::string>*>(Prop)->Get(InObject)), Allocator);
-			}
-			break;
-			case EType::WString:
-			{
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<std::wstring>*>(Prop)->Get(InObject)), Allocator);
-			}
-			break;
-			case EType::Bool:
-			{
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject)), Allocator);
-			}
-			break;
-            default:
-            {
-				OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject)), Allocator);
-            }
-            break;
+                case EType::Int:
+                case EType::Enum:
+                {
+				    OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<int>*>(Prop)->Get(InObject)), Allocator);
+                }
+                break;
+                case EType::Float:
+                {
+				    OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<float>*>(Prop)->Get(InObject)), Allocator);
+                }
+                break;
+                case EType::Vec2:
+                {
+				    OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec2>*>(Prop)->Get(InObject)), Allocator);
+                }
+                break;
+                case EType::Vec3:
+                {
+				    OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec3>*>(Prop)->Get(InObject)), Allocator);
+                }
+                break;
+                case EType::Vec4:
+                {
+				    OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec4>*>(Prop)->Get(InObject)), Allocator);
+                }
+                break;
+			    case EType::String:
+			    {
+				    OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<std::string>*>(Prop)->Get(InObject)), Allocator);
+			    }
+			    break;
+			    case EType::WString:
+			    {
+				    OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<std::wstring>*>(Prop)->Get(InObject)), Allocator);
+			    }
+			    break;
+			    case EType::Bool:
+			    {
+				    OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), ToJsonValue(static_cast<FFundamentalPropertyDesc<bool>*>(Prop)->Get(InObject)), Allocator);
+			    }
+			    break;
+                default:
+                {
+                    if (Prop->IsA<MAsset>())
+                    {
+                        rapidjson::Value AssetValue(kObjectType);
+                        AssetValue.AddMember(rapidjson::Value(MAsset::GetTypeDescStatic()->Name, Allocator), DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject)), Allocator);
+                        OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), AssetValue, Allocator);
+                    }
+                    else
+                    {
+				        OutValue.AddMember(rapidjson::Value(Prop->Name, Allocator), DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject)), Allocator);
+                    }
+                }
+                break;
             }
         }
     }

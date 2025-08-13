@@ -21,6 +21,7 @@
 #include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
 #include "Jolt/Physics/Constraints/FixedConstraint.h"
 #include "Jolt/ObjectStream/ObjectStreamTextOut.h"
+#include "Jolt/ObjectStream/ObjectStreamTextIn.h"
 
 #include "Renderer.h"
 #include "Vertex.h"
@@ -31,6 +32,7 @@
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 #include "DynamicMeshComponent.h"
 #include "MainGame.h"
+#include "Core/FileSystem.h"
 #include <DirectXMath.h>
 
 using namespace JPH;
@@ -248,16 +250,13 @@ MJoltPhysics::MJoltPhysics()
     physics_system->SetContactListener(&contact_listener);
 }
 
-void MJoltPhysics::PlaySimulate()
+void MJoltPhysics::StartSimulate()
 {
-    while (true)
+    MPhysicsEngine::StartSimulate();
+
+    for (auto WeakMeshComp : MeshComponents)
     {
-        // 메시 컴포넌트를 얻어와서 피직스 세팅이 되어있다면, 피직스 오브젝트를 만들어 주자...
-        std::shared_ptr<MMeshComponent> MeshComp = nullptr;
-        if (MeshComp == nullptr)
-        {
-            continue;
-        }
+        auto MeshComp = WeakMeshComp.lock();
 
         std::shared_ptr<StaticMesh> Mesh = MeshComp->GetMesh();
         if (Mesh == nullptr)
@@ -265,8 +264,95 @@ void MJoltPhysics::PlaySimulate()
             continue;
         }
 
+        std::shared_ptr<MPhysics> Physics = Mesh->GetPhysics();
+        if (Physics == nullptr)
+        {
+            continue;
+        }
 
+        std::string Path = WStringToString(Physics->GetAssetPath());
+
+        BodyInterface& bodyInterface = physics_system->GetBodyInterface();
+
+        ConvexHullShapeSettings* Test = nullptr;
+        std::stringstream ss;
+        ObjectStreamTextIn StreamIn = JPH::ObjectStreamTextIn(ss);
+        StreamIn.sReadObject(Path.c_str(), Test);
+
+        ::Vec3 CompPos = MeshComp->getWorldTranslation();
+        ::Vec3 CompRot = MeshComp->getRotation();
+        ::Vec3 CompScale = MeshComp->getScale();
+
+        Ref<Shape> NewShape = Test->Create().Get();
+        JPH::Vec3 Pos = { CompPos.x, CompPos.y, CompPos.z };
+        Quat Rot = Quat::sEulerAngles(Vec3Arg{ CompRot.x, CompRot.y, CompRot.z });
+
+        EMotionType MotionType = ConvertPhysicsType(MeshComp->GetPhysicsType());
+
+        ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
+        EActivation Activation = EActivation::DontActivate;
+        if (MeshComp->IsPhysicsEnable() && bSimulating)
+        {
+            Activation = EActivation::Activate;
+        }
+        BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape, Pos, Rot, MotionType, Layer), Activation);
+
+        FPhysicsConstructData Data;
+        Data.Mesh = Mesh;
+        Data.PrimitiveComponent = MeshComp;
+
+        std::shared_ptr<MJoltPhysicsObject> NewPhysicsObject = std::make_shared<MJoltPhysicsObject>(Data);
+        NewPhysicsObject->SetBodyID(NewBodyID);
+        NewPhysicsObject->SetScale(CompScale);
+
+        MeshComp->PhysicsObject = NewPhysicsObject;
     }
+}
+
+void MJoltPhysics::LoadTest()
+{
+    ConvexHullShapeSettings* Test = nullptr;
+
+    std::stringstream ss;
+    JPH::ObjectStreamTextIn StreamIn = JPH::ObjectStreamTextIn(ss);
+    StreamIn.sReadObject("D:\\Git\\Moon\\JoltTest.physics", Test);
+
+    Ref<Shape> NewShape = Test->Create().Get();
+}
+
+void MJoltPhysics::SaveTest(std::shared_ptr<StaticMesh> InMesh)
+{
+    if (InMesh == nullptr)
+    {
+        return;
+    }
+
+    BodyInterface& bodyInterface = physics_system->GetBodyInterface();
+
+    const std::vector<::Vec3>& Vertices = InMesh->GetAllVertexPosition();
+    const std::vector<uint32>& Indices = InMesh->GetMeshData(0)->Indices;
+
+    std::vector<JPH::Vec3> JPHVertices(Vertices.size());
+    for (int i = 0; i < Vertices.size(); ++i)
+    {
+        JPHVertices[i].SetX(Vertices[i].x);
+        JPHVertices[i].SetY(Vertices[i].y);
+        JPHVertices[i].SetZ(Vertices[i].z);
+        JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
+    }
+
+    std::filesystem::path Path = MFIleSystem::AbsolutePath(InMesh->GetAssetPath());
+    Path.replace_extension("physics");
+
+    // 저장 테스트
+    std::stringstream ss;
+    JPH::ObjectStreamTextOut streamOut = JPH::ObjectStreamTextOut(ss);
+    streamOut.sWriteObject(Path.string().c_str(), JPH::ObjectStream::EStreamType::Text, ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)));
+    
+    std::shared_ptr<MPhysics> NewPhysics = std::make_shared<MPhysics>();
+    NewPhysics->SetAssetPath(Path);
+
+    InMesh->SetPhysics(NewPhysics);
 }
 
 void MJoltPhysics::MakeConvexHull(FPhysicsConstructData& InData)
@@ -286,14 +372,29 @@ void MJoltPhysics::MakeConvexHull(FPhysicsConstructData& InData)
         JPHVertices[i].SetZ(Vertices[i].z);
         JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
     }
-    Ref<Shape> NewShape = ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)).Create().Get();
-    EMotionType MotionType = InData.PhysicsType == EPhysicsType::Static ? EMotionType::Static : EMotionType::Dynamic;
-    BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), RVec3(0.f, 0.f, 0.f), QuatArg::sIdentity(), MotionType, Layers::NON_MOVING), EActivation::Activate);
 
-    // ① 데이터를 받을 std::ostream (여기서는 stringstream 사용)
-    std::stringstream ss;
-    JPH::ObjectStreamOut* streamOut = new JPH::ObjectStreamTextOut(ss);
-    streamOut->sWriteObject("D:\\Git\\Moon\\JoltTest.txt", JPH::ObjectStream::EStreamType::Text, ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)));
+    Ref<Shape> NewShape = ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)).Create().Get();
+    JPH::Vec3 Pos = { InData.Pos.x, InData.Pos.y, InData.Pos.z };
+    JPH::Quat Rot = QuatArg::sIdentity();
+    EMotionType MotionType = ConvertPhysicsType(InData.PhysicsType);
+    JPH::ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
+    JPH::EActivation Activation = bSimulating ? EActivation::Activate : EActivation::DontActivate;
+    BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), Pos, Rot, MotionType, Layer), EActivation::DontActivate);
+}
+
+JPH::EMotionType MJoltPhysics::ConvertPhysicsType(EPhysicsType InType)
+{
+    switch (InType)
+    {
+    case EPhysicsType::Static:
+        return JPH::EMotionType::Static;
+    case EPhysicsType::Dynamic:
+        return JPH::EMotionType::Dynamic;
+    case EPhysicsType::Kinematic:
+        return JPH::EMotionType::Kinematic;
+    default:
+        return JPH::EMotionType::Static;
+    }
 }
 
 bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
@@ -561,8 +662,6 @@ void MJoltPhysics::Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_
 
 void MJoltPhysics::Update(float deltaTime)
 {
-    //deltaTime = std::min(deltaTime, 0.1f);
-    // 시뮬레이션
     physics_system->Update(deltaTime, 1, tempAllocator, jobSystem);
 
     // SoftBody의 정점위치 갱신

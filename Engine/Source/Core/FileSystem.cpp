@@ -3,14 +3,24 @@
 std::filesystem::path MFIleSystem::RootPath = std::filesystem::current_path();
 std::wstring MFIleSystem::RootStr = MFIleSystem::RootPath.wstring();
 
-std::wstring MFIleSystem::CombinePath(const std::wstring& InRelativePath)
+std::wstring MFIleSystem::AbsolutePath(const std::wstring& InRelativePath)
 {
-    return RootStr + TEXT("/") + InRelativePath;
+    std::filesystem::path Path(InRelativePath);
+    Path = Path.make_preferred();
+
+    return AbsolutePath(Path);
 }
 
-std::filesystem::path MFIleSystem::CombinePath(const std::filesystem::path InRelativePath)
+std::filesystem::path MFIleSystem::AbsolutePath(const std::filesystem::path InRelativePath)
 {
-    return RootPath / InRelativePath;
+    if (InRelativePath.is_absolute() == false)
+    {
+        return RootPath / InRelativePath;
+    }
+    else
+    {
+        return InRelativePath;
+    }
 }
 
 std::wstring MFIleSystem::GetDirectory(const std::wstring& InPath)

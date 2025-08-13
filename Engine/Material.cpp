@@ -29,8 +29,6 @@ MMaterial::MMaterial()
 	, _eTopology{ D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST }
 	, _eFillMode{ FillMode::Solid }
 	, _eCullMode{ CullMode::Backface }
-	//, _eDepthWriteMode{ DepthWriteMode::Enable }
-	//, _eBlend{ Blend::Object }
 	, bUseAlpha{ false }
 	, bAlphaMask{ false }
 {
@@ -42,15 +40,17 @@ MMaterial::~MMaterial()
 	ClearShader();
 }
 
-void MMaterial::LoadFromAsset(const std::wstring& InPath)
+bool MMaterial::Load()
 {
-    MJsonDeserializer MatDeserializer;
-    MatDeserializer.Deserialize(shared_from_this(), InPath);
-    OnLoaded();
+    Super::Load();
+
+    return true;
 }
 
 void MMaterial::OnLoaded()
 {
+    Super::OnLoaded();
+
     for (auto& Texture : _textureList)
     {
         if (Texture == nullptr)

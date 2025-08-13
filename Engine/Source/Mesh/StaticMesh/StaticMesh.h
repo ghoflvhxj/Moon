@@ -6,6 +6,7 @@
 // 리플렉션 등록에 필요함
 #include "Material.h"
 #include "Mesh/Mesh.h"
+#include "Core/Physics/Physics.h"
 
 class MFBXLoader;
 class MBoundingBox;
@@ -18,13 +19,16 @@ public:
     StaticMesh() = default;
     virtual ~StaticMesh() = default;
 
+    // Fbx
 public:
-    // Fbx 전달 버전
     void LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader);
     void LoadFromFBX(const std::wstring& Path);
-    void LoadFromAsset(const std::wstring& Path);
-    void OnLoaded();
     virtual void InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath);
+
+public:
+    virtual bool Load() override;
+    virtual void OnLoaded() override;
+
 public:
     const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
     const std::vector<::Vec3>& GetAllVertexPosition() const;
@@ -69,8 +73,12 @@ public:
 protected:
     std::vector<FClothData> ClothData;
 
-    // 피직스 데이터, 메시 컴포너트는 이것의 사본을 생성해야 함
-    std::shared_ptr<MPhysics> DefaultPhysics = nullptr;
+    // 피직스 데이터
+public:
+    void SetPhysics(std::shared_ptr<MPhysics> InPhysics) { Physics = InPhysics; }
+    std::shared_ptr<MPhysics> GetPhysics() { return Physics; }
+protected:
+    std::shared_ptr<MPhysics> Physics = nullptr;
 
 public:
     REFLECT(
@@ -78,7 +86,7 @@ public:
         PROPERTY(MeshDatas),
         PROPERTY(Materials),
         PROPERTY(UsedMaterialIndices),
-        PROPERTY(ClothData)
-        //PROPERTY(DefaultPhysicsObject)
+        PROPERTY(ClothData),
+        PROPERTY(Physics)
     )
 };

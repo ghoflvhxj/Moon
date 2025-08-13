@@ -20,7 +20,7 @@ void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& F
     _pSkeleton = std::make_shared<Skeleton>(this);
 }
 
-bool DynamicMesh::getAnimationClip(const int index, AnimationClip& OutAnimationClip)
+bool DynamicMesh::getAnimationClip(const uint32 index, AnimationClip& OutAnimationClip)
 {
     if (GetSize(_animationClipList) > index)
     {

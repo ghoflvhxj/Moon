@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __MOON_ENGINE_H__
 
 #include "Include.h"
 
@@ -37,6 +36,3 @@ T* GetGame()
 ENGINE_DLL const bool setGame(std::unique_ptr<MainGame>&& pGame);
 
 void RegisterComponent(std::shared_ptr<class Component> InComponent);
-
-#define __MOON_ENGINE_H__
-#endif

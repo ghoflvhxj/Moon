@@ -12,9 +12,10 @@ using namespace DirectX;
 
 MBillboardComponent::MBillboardComponent()
 {
-    Mesh = std::make_shared<StaticMesh>();
-    Mesh->LoadFromAsset(TEXT("Base/Plane.fbx"));
+    //Mesh = std::make_shared<StaticMesh>();
+    //Mesh->LoadFromDisk(TEXT("Base/Plane.fbx"));
 
+    g_ResourceManager->Load(TEXT("Base/Plane.json"), Mesh);
     g_ResourceManager->Load(TEXT("Resources/Texture/Player.jpeg"), Texture);
     if (Mesh->getMaterial(0))
     {

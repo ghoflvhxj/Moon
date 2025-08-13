@@ -49,10 +49,10 @@ private:
 
 public:
     virtual void PlayGame();
-    FDelegate<void>& GetGamePlayedDelegate() { return OnGamePlayedDelegate; }
+    FDelegate<void>& GetGameStartedDelegate() { return OnGameStartedDelegate; }
 protected:
     bool HasBegan = false;
-    FDelegate<void> OnGamePlayedDelegate;
+    FDelegate<void> OnGameStartedDelegate;
 
 public:	
 	// 디버깅 할 때 쓰는 용도

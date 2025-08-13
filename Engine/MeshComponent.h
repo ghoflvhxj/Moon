@@ -53,6 +53,7 @@ public:
     virtual void SetPhysics(bool bInPhysics, bool bForce = false);
     void SetPhysicsSimulate(bool bInSimulate, bool bForce = false);
     void SetPhysicsType(EPhysicsType InPhysicsType) { PhysicsType = InPhysicsType; }
+    EPhysicsType GetPhysicsType() const { return PhysicsType; }
     bool IsPhysicsSimulating() const { return bPhysicsSimulate; }
     bool IsPhysicsEnable() const { return bPhysics; }
 protected:
@@ -80,6 +81,7 @@ protected:
         //PROPERTY(Mesh)
         PROPERTY_DELEGATE(Mesh, [&](MMeshComponent* InObject) {
             InObject->Reload();
-        })
+        }),
+        PROPERTY(PhysicsType)
     );
 };

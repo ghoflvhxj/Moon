@@ -68,8 +68,6 @@ private:
 public:
     const FTypeDesc* EditAssetDesc = nullptr;
     class MAsset* EditAsset = nullptr;
-
-    
 };
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject);

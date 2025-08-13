@@ -9,6 +9,7 @@
 #include "Jolt/Physics/Collision/Shape/Shape.h"
 #include "Jolt/Physics/Body/BodyID.h"
 
+class MMeshComponent;
 class StaticMesh;
 
 namespace JPH
@@ -60,11 +61,17 @@ public:
     virtual ~MJoltPhysics() = default;
 
 public:
-    virtual void PlaySimulate() override;
+    virtual void StartSimulate() override;
 
 public:
+    // 메시의 ConvexHull을 만들어 저장함
+    virtual void LoadTest() override;
+    virtual void SaveTest(std::shared_ptr<StaticMesh> Mesh) override;
+
     virtual void MakeConvexHull(FPhysicsConstructData& InData) override;
     
+public:
+    JPH::EMotionType ConvertPhysicsType(EPhysicsType InType);
 
 public:
     virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
@@ -98,9 +105,6 @@ public:
     {
         return Get()->physics_system;
     }
-
-public:
-    void PostUpdate();
 
 public:
     virtual void UpdateVertices(std::vector<::Vertex>& InVertices) override;

@@ -41,7 +41,7 @@ public:
         std::filesystem::path Path(InPath);
         if (Path.is_absolute() == false)
         {
-            Path = MFIleSystem::CombinePath(Path);
+            Path = MFIleSystem::AbsolutePath(Path);
         }
 
         if (PathFileExists(Path.c_str()) == false)
@@ -69,8 +69,8 @@ public:
             }
             else
             {
-                std::wstring Msg = TEXT("Document 멤버를 찾을 수 없음: ") + StringToWString(TypeDesc->Name.data());
-                MSGBOX(Msg);
+                //std::wstring Msg = TEXT("Document 멤버를 찾을 수 없음: ") + StringToWString(TypeDesc->Name.data());
+                //MSGBOX(Msg);
             }
             
             TypeDesc = TypeDesc->Parent;
@@ -151,13 +151,13 @@ public:
 
     // T*, T[N]
     template <class T>
-    void GetObjectFromJson(rapidjson::Value& InJsonValue, T* OutObject, uint32 Num)
+    void GetObjectFromJson(rapidjson::Value& InJsonValue, T* OutObject, size_t Num)
     {
         if constexpr (std::is_arithmetic_v<T>)
         {
-            for (uint32 i = 0; i < Num; ++i)
+            for (size_t i = 0; i < Num; ++i)
             {
-                OutObject[i] = InJsonValue[i].Get<T>();
+                OutObject[i] = InJsonValue[static_cast<rapidjson::SizeType>(i)].Get<T>();
             }
 
             // 컨테이너 버전
@@ -169,9 +169,9 @@ public:
         }
         else
         {
-            for (uint32 i = 0; i < Num; ++i)
+            for (size_t i = 0; i < Num; ++i)
             {
-                DeserializeCustomType(InJsonValue[i], OutObject[i]);
+                DeserializeCustomType(InJsonValue[static_cast<rapidjson::SizeType>(i)], OutObject[i]);
             }
         }
     }

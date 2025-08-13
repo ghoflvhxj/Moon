@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "MainGameSetting.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
+#include "Core/ResourceManager.h"
 
 using namespace DirectX;
 
@@ -13,8 +14,7 @@ MLightComponent::MLightComponent(void)
 	, Intensity { 1.f }
 	, bShow { true }
 {
-	_pStaticMesh = std::make_shared<StaticMesh>();
-	_pStaticMesh->LoadFromAsset(TEXT("Base/Plane.json"));
+    g_ResourceManager->Load(TEXT("Base/Plane.json"), _pStaticMesh);
 
     Material = std::make_shared<MMaterial>();
 

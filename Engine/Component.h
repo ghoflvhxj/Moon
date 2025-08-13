@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Include.h"
 #include "Core/Object.h"
+#include "Core/Delegate.h"
 
 class MActor;
 
@@ -11,7 +12,13 @@ public:
 	virtual ~Component();
 
 public:
+    virtual void BeginPlay();
     virtual void Register() {}
+
+public:
+    FDelegate<void>& GetBeganPlay() { return OnBeganPlayDelegate; }
+protected:
+    FDelegate<void> OnBeganPlayDelegate;
 
 public:
 	void setOwningActor(std::shared_ptr<MActor> &actor);

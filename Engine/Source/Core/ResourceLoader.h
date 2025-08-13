@@ -19,7 +19,7 @@ protected:
     std::unordered_map<std::wstring, std::shared_ptr<MAsset>> LoadedResources;
 	
 protected:
-	virtual std::shared_ptr<MAsset> MakeResource(const std::wstring& InPath) = 0;
+	virtual std::shared_ptr<MAsset> LoadAsset(const std::wstring& InPath) = 0;
 
     // 지원하는 확장자
 public:
@@ -32,6 +32,9 @@ public:
     const FTypeDesc* GetSupportType() const { return TypeDesc; }
 protected:
     const FTypeDesc* TypeDesc = nullptr;
+
+protected:
+    std::wstring DisplayName;
 };
 
 class ENGINE_DLL MTextureLoader : public MResourceLoader
@@ -40,7 +43,7 @@ public:
 	MTextureLoader();
 	MTextureLoader(const MTextureLoader& Rhs) = default;
 protected:
-	virtual std::shared_ptr<MAsset> MakeResource(const std::wstring& InPath) override;
+	virtual std::shared_ptr<MAsset> LoadAsset(const std::wstring& InPath) override;
 };
 
 class ENGINE_DLL MMeshLoader : public MResourceLoader
@@ -49,7 +52,7 @@ public:
     MMeshLoader();
 
 protected:
-    virtual std::shared_ptr<MAsset> MakeResource(const std::wstring& InPath) override;
+    virtual std::shared_ptr<MAsset> LoadAsset(const std::wstring& InPath) override;
 };
 
 class ENGINE_DLL MMaterialLoader : public MResourceLoader
@@ -58,5 +61,5 @@ public:
     MMaterialLoader();
 
 protected:
-    virtual std::shared_ptr<MAsset> MakeResource(const std::wstring& InPath) override;
+    virtual std::shared_ptr<MAsset> LoadAsset(const std::wstring& InPath) override;
 };

@@ -151,12 +151,25 @@ void MJsonDeserializer::PatchStruct(const FTypeDesc* InTypeDesc, void* InObject,
             default:
                 if (InValue.HasMember(Prop->Name))
                 {
-                    PatchStruct(Prop->TypeDesc, InObject, InValue.FindMember(Prop->Name)->value);
+                    if (Prop->IsA<MAsset>())
+                    {
+                        const auto& Iter = InValue.FindMember(Prop->Name);
+                        if (Iter != InValue.MemberEnd())
+                        {
+                            Prop->Alloc(InObject);
+                            rapidjson::Value& AssetValue = Iter->value.FindMember(MAsset::GetTypeDescStatic()->Name)->value;
+                            PatchStruct(MAsset::GetTypeDescStatic(), Prop->GetAsVoid(InObject), AssetValue);
+                        }
+                    }
+                    else
+                    {
+                        PatchStruct(Prop->TypeDesc, InObject, InValue.FindMember(Prop->Name)->value);
+                    }
                 }
                 else
                 {
-                    std::wstring Msg = TEXT("멤버[") + StringToWString(Prop->Name.data()) + TEXT("]를 찾을 수 없음");
-                    MSGBOX(Msg);
+                    //std::wstring Msg = TEXT("멤버[") + StringToWString(Prop->Name.data()) + TEXT("]를 찾을 수 없음");
+                    //MSGBOX(Msg);
                 }
                 break;
             }

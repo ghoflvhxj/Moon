@@ -62,7 +62,7 @@ public:
             Current = Current->Parent;
         }
 
-        std::wstring Path = MFIleSystem::CombinePath(InPath);
+        std::wstring Path = MFIleSystem::AbsolutePath(InPath);
 
         FILE* fp = nullptr;
         _wfopen_s(&fp, Path.c_str(), TEXT("wb"));
@@ -180,21 +180,21 @@ public:
 
     // ToJson T*
     template <class T>
-    rapidjson::Value ToJsonValue(T* InValue, uint32 Num, bool bContainer = false)
+    rapidjson::Value ToJsonValue(T* InValue, size_t Num, bool bContainer = false)
     {
         if (bContainer)
         {
             rapidjson::Value ObjectValue(rapidjson::kObjectType);
             if constexpr (std::is_arithmetic_v<T>)
             {
-                for (uint32 i = 0; i < Num; ++i)
+                for (size_t i = 0; i < Num; ++i)
                 {
                     ObjectValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), rapidjson::Value(InValue[i]), Allocator);
                 }
             }
             else
             {
-                for (uint32 i = 0; i < Num; ++i)
+                for (size_t i = 0; i < Num; ++i)
                 {
                     ObjectValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), SerializeCustomType(InValue[i]), Allocator);
                 }
@@ -206,14 +206,14 @@ public:
             rapidjson::Value ArrayValue(rapidjson::kArrayType);
             if constexpr (std::is_arithmetic_v<T>)
             {
-                for (uint32 i = 0; i < Num; ++i)
+                for (size_t i = 0; i < Num; ++i)
                 {
                     ArrayValue.PushBack(rapidjson::Value(InValue[i]), Allocator);
                 }
             }
             else
             {
-                for (uint32 i = 0; i < Num; ++i)
+                for (size_t i = 0; i < Num; ++i)
                 {
                     ArrayValue.PushBack(SerializeCustomType(InValue[i]), Allocator);
                 }

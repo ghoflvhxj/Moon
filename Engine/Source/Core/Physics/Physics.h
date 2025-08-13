@@ -12,6 +12,7 @@
 class StaticMesh;
 class MPhysicsObject;
 class MPrimitiveComponent;
+class MMeshComponent;
 
 struct FPhysicsConstructData
 {
@@ -35,14 +36,20 @@ public:
     ~MPhysicsEngine() = default;
 
 public:
-    virtual void PlaySimulate() {}
+    virtual void LoadTest() {}
+    virtual void SaveTest(std::shared_ptr<StaticMesh> Mesh) {}
+
+public:
+    virtual void StartSimulate();
     virtual void Update(float deltaTime) = 0;
     virtual void Release() = 0;
 
 public:
+    virtual void Temp(std::shared_ptr<MMeshComponent> InMeshComp) { MeshComponents.push_back(InMeshComp);  }
     virtual void MakeConvexHull(FPhysicsConstructData& InData) {}
 
 public:
+    // Component를 받도록 변경
     virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) = 0;
     virtual bool AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) { return false; }
     virtual void AddCloth(FPhysicsConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) {}
@@ -52,6 +59,12 @@ protected:
 
     // 프리미티브ID - 피직스 오브젝트 쌍
     std::map<uint32, std::shared_ptr<MPhysicsObject>> PhysicsObjects;
+
+protected:
+    bool bSimulating = false;
+
+    // 임시. 시뮬레이션 등록 컴포넌트
+    std::vector<std::weak_ptr<MMeshComponent>> MeshComponents;
 };
 
 class ENGINE_DLL MPhysicsObject

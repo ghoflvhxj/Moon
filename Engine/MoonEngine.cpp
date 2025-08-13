@@ -17,6 +17,7 @@
 
 #include "Component.h"
 #include "PrimitiveComponent.h"
+#include "MeshComponent.h"
 
 HINSTANCE g_hInstance;
 HWND g_hWnd;
@@ -58,6 +59,8 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow
 
 const bool EngineLoop()
 {
+    // 피직스, 오디오 엔진 등이 Game의 Loop가 아니라 이곳에서 동작하도록 구조를 개선해야 함.
+     
     //if (g_pPhysics)
     //{
     //    g_pPhysics->Update(_deltaTime);
@@ -109,8 +112,8 @@ const bool setGame(std::unique_ptr<MainGame>&& pGame)
 	g_pMainGame = std::move(pGame);
     g_pMainGame->initialize();
 
-    g_pMainGame->GetGamePlayedDelegate().Add([&]() {
-        GetPhysics()->PlaySimulate();
+    g_pMainGame->GetGameStartedDelegate().Add([&]() {
+        GetPhysics()->StartSimulate();
     });
 
 	return true;
@@ -118,8 +121,15 @@ const bool setGame(std::unique_ptr<MainGame>&& pGame)
 
 void RegisterComponent(std::shared_ptr<class Component> InComponent)
 {
-    if (InComponent->IsA<MPrimitiveComponent>())
+    if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = InComponent->CastTo<MPrimitiveComponent>())
     {
         getRenderer()->AddPrimitive(std::static_pointer_cast<MPrimitiveComponent>(InComponent));
+    }
+
+    if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
+    {
+        MeshComp->GetBeganPlay().Add([=]() {
+            GetPhysics()->Temp(MeshComp);
+        });
     }
 }

@@ -10,6 +10,11 @@ Component::~Component()
 {
 }
 
+void Component::BeginPlay()
+{
+    GetBeganPlay().Broadcast();
+}
+
 void Component::setOwningActor(std::shared_ptr<MActor> &actor)
 {
 	_pOwningActor = actor;

@@ -17,7 +17,10 @@ std::shared_ptr<MAsset> MResourceLoader::TryLoad(const std::wstring& FilePath)
 		return LoadedResources[FilePath];
 	}
 
-	if (std::shared_ptr<MAsset> NewResource = MakeResource(FilePath))
+    std::wstring Msg = DisplayName + TEXT(" Asset Loading : ") + FilePath + TEXT("\r\n");
+    LOG(Msg);
+
+	if (std::shared_ptr<MAsset> NewResource = LoadAsset(FilePath))
 	{
 		LoadedResources[FilePath] = NewResource;
 		return LoadedResources[FilePath];
@@ -29,13 +32,14 @@ std::shared_ptr<MAsset> MResourceLoader::TryLoad(const std::wstring& FilePath)
 MTextureLoader::MTextureLoader()
 	: MResourceLoader()
 {
+    DisplayName = TEXT("Texture");
 	Extensions.emplace(TEXT(".png"));
 	Extensions.emplace(TEXT(".jpg"));
 	Extensions.emplace(TEXT(".jpeg"));
 	Extensions.emplace(TEXT(".tga"));
 }
 
-std::shared_ptr<MAsset> MTextureLoader::MakeResource(const std::wstring& InPath)
+std::shared_ptr<MAsset> MTextureLoader::LoadAsset(const std::wstring& InPath)
 {
 	return std::make_shared<MTexture>(InPath);
 }
@@ -43,14 +47,14 @@ std::shared_ptr<MAsset> MTextureLoader::MakeResource(const std::wstring& InPath)
 MMeshLoader::MMeshLoader()
     : MResourceLoader()
 {
+    DisplayName = TEXT("Mesh");
     TypeDesc = StaticMesh::GetTypeDescStatic();
 }
 
-std::shared_ptr<MAsset> MMeshLoader::MakeResource(const std::wstring& InPath)
+std::shared_ptr<MAsset> MMeshLoader::LoadAsset(const std::wstring& InPath)
 {
     auto& Mesh = std::make_shared<StaticMesh>();
-    Mesh->SetAssetPath(InPath);
-    Mesh->LoadFromAsset(InPath);
+    Mesh->LoadFromDisk(InPath);
 
     return Mesh;
 }
@@ -58,14 +62,14 @@ std::shared_ptr<MAsset> MMeshLoader::MakeResource(const std::wstring& InPath)
 MMaterialLoader::MMaterialLoader()
     : MResourceLoader()
 {
+    DisplayName = TEXT("Material");
     TypeDesc = MMaterial::GetTypeDescStatic();
 }
 
-std::shared_ptr<MAsset> MMaterialLoader::MakeResource(const std::wstring& InPath)
+std::shared_ptr<MAsset> MMaterialLoader::LoadAsset(const std::wstring& InPath)
 {
     auto& Mat = std::make_shared<MMaterial>();
-    Mat->SetAssetPath(InPath);
-    Mat->LoadFromAsset(InPath);
+    Mat->LoadFromDisk(InPath);
 
     return Mat;
 }

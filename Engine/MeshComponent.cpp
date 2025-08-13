@@ -44,7 +44,6 @@ std::shared_ptr<StaticMesh> MMeshComponent::GetMesh()
     return Mesh;
 }
 
-
 void MMeshComponent::AddForce(const Vec3& InForce)
 {
     if (PhysicsObject)

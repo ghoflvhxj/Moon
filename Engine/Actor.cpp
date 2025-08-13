@@ -28,6 +28,11 @@ void MActor::PostConstruct()
 void MActor::BeginPlay()
 {
     OnBeganPlayDelegate.Broadcast(GetShared());
+
+    for (auto& [Name, Comp] : _components)
+    {
+        Comp->BeginPlay();
+    }
 }
 
 void MActor::update(const Time deltaTime)
