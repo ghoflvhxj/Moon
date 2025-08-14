@@ -1,4 +1,9 @@
 ﻿#pragma once
+#include <string>
+#include <set>
+#include <vector>
+
+#include "Macro.h"
 
 /*
 클래스, 구조체 같은 커스텀 자료형을 설명하는 구조체
@@ -18,9 +23,13 @@ struct FTypeDesc
 	std::vector<FPropertyDesc*> Properties;
 };
 
-// 외부 타입의 Desc 생성을 위한 템플릿
+// TypeDesc를 저장하는 컨테이너 반환 
+ENGINE_DLL std::set<const FTypeDesc*>& GetTypeDescs();
+
+// 외부 타입의 Desc 생성을 위한 템플릿. 특수화하여 작업해야 함
 template <class T>
-static const FTypeDesc* GetTypeDesc()
+const FTypeDesc* GetTypeDesc()
 {
     return T::GetTypeDescStatic();
 }
+

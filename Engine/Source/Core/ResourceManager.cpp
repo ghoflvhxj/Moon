@@ -77,4 +77,5 @@ void MResourceManager::AddLoader(const std::shared_ptr<MResourceLoader>& InLoade
 void MResourceManager::Release()
 {
 	ResourceLoaders.clear();
+    ResourceLoaders2.clear();
 }

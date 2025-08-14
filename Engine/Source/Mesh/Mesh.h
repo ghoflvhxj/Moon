@@ -8,16 +8,10 @@ struct ENGINE_DLL FMeshData
     VertexList		Vertices;
     IndexList 		Indices;
 
-    //REFLECTABLE(
-    //    FMeshData,
-    //    REFLECT_FIELD(Vertices),
-    //    REFLECT_FIELD(Indices)
-    //);
-
     REFLECT_TOP(FMeshData, PROPERTY(Vertices), PROPERTY(Indices));
 };
 
-struct FClothData
+struct ENGINE_DLL FClothData
 {
     uint32 MeshIndex;
 

@@ -8,8 +8,7 @@
 using namespace DirectX;
 
 MTexture::MTexture(const std::wstring& InPath)
-	: MAsset(InPath)
-    , _rawTexture{ nullptr }
+	: _rawTexture{ nullptr }
 	, _pResourceView{ nullptr }
 {
 	loadTextureFile(InPath.c_str());
@@ -53,7 +52,7 @@ MTexture::MTexture(const MTexture& Rhs)
 
 MTexture::~MTexture()
 {
-	OutputDebugStringW(TEXT("Release Texture\n"));
+	OutputDebugStringW((TEXT("Release Texture: ") + GetAssetPath() + TEXT("\n")).c_str());
 	SafeRelease(_pResourceView);
 	SafeRelease(_rawTexture);
 }
@@ -71,6 +70,8 @@ bool MTexture::Load()
 
 const bool MTexture::loadTextureFile(const wchar_t *fileName)
 {
+    SetAssetPath(fileName);
+
 	if(nullptr != _pResourceView)
 		SafeRelease(_pResourceView);
 	if (nullptr != _rawTexture)

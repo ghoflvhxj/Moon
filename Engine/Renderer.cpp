@@ -75,7 +75,10 @@ void Renderer::Release()
 {
 	_renderTargets.clear();
 	RenderPasses.clear();
-	ViewMeshComponent.reset();
+
+    // 객체가 삭제되는 것이 아니기에 여기서 직접 해제해줘야 메모리 로그가 안남음
+    ViewMeshComponent.reset();
+    GizmoMeshComp.reset();
 
     RenderablePrimitiveData.clear();
     PrimitiveDatasPerType.clear();
@@ -244,14 +247,14 @@ void Renderer::initialize() noexcept
     }
     MakeBuffer(GizmoMeshComp);
 
-	addRenderTargetForDebug(ERenderTarget::Diffuse);
-	addRenderTargetForDebug(ERenderTarget::Depth);
-	addRenderTargetForDebug(ERenderTarget::Normal);
-	addRenderTargetForDebug(ERenderTarget::Specular);
-	addRenderTargetForDebug(ERenderTarget::LightDiffuse);
-	addRenderTargetForDebug(ERenderTarget::LightSpecular);
+	//addRenderTargetForDebug(ERenderTarget::Diffuse);
+	//addRenderTargetForDebug(ERenderTarget::Depth);
+	//addRenderTargetForDebug(ERenderTarget::Normal);
+	//addRenderTargetForDebug(ERenderTarget::Specular);
+	//addRenderTargetForDebug(ERenderTarget::LightDiffuse);
+	//addRenderTargetForDebug(ERenderTarget::LightSpecular);
 	//addRenderTargetForDebug(ERenderTarget::DirectionalShadowDepth);
-//	addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
+    //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
 
 	ASSERT_MSG(EnumToIndex(ERenderPass::Count) == static_cast<uint32>(RenderPasses.size()), "ERenderPass::Count와 RenderPasses의 개수가 맞지 않음.");
 }

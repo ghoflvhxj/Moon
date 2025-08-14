@@ -14,7 +14,7 @@ MMeshComponent::~MMeshComponent()
 {
 }
 
-void MMeshComponent::SetMesh(const std::wstring& InPath, bool bSetPhyiscs)
+void MMeshComponent::SetMesh(const std::wstring& InPath)
 {
     std::filesystem::path Path(InPath);
 
@@ -28,12 +28,6 @@ void MMeshComponent::SetMesh(const std::wstring& InPath, bool bSetPhyiscs)
     }
 
     Materials = Mesh->getMaterials();
-
-    if (bPhysics && bSetPhyiscs)
-    {
-        SetPhysics(bPhysics, true);
-        SetPhysicsSimulate(bPhysicsSimulate);
-    }
 
     OnMeshChangedDelegate.Broadcast(GetShared());
     OnPrimitiveChangedDelegate.Broadcast(GetShared());

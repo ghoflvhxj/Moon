@@ -2,6 +2,7 @@
 
 #include "Include.h"
 #include "Core/Delegate.h"
+#include "Core/Object.h"
 
 class Window;
 class MTimerManager;
@@ -25,13 +26,13 @@ struct FHitData
     uint32 PrimitiveIndex = 0;
 };
 
-class ENGINE_DLL MainGame : public std::enable_shared_from_this<MainGame>
+class ENGINE_DLL MainGame : public MObject
 {
 public:
 	explicit MainGame();
 	MainGame(const MainGame &ref) = delete;
 	MainGame(MainGame &&ref) = delete;
-	virtual ~MainGame() = default;
+	virtual ~MainGame();
 
 	MainGame &operator=(const MainGame &ref) = delete;
 
@@ -96,7 +97,7 @@ public:
 	const Mat4& getMainCameraProjectioinMatrix() const;
 	const Mat4& getMainCameraOrthographicProjectionMatrix() const;
 private:
-	std::shared_ptr<MCamera> _pMainCamera;
+	std::shared_ptr<MCamera> _pMainCamera = nullptr;
 
 public:
     virtual bool IsPickable() const { return true; }

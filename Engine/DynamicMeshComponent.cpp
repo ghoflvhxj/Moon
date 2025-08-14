@@ -26,7 +26,7 @@ DynamicMeshComponent::DynamicMeshComponent(const std::wstring& FilePath)
 	: MMeshComponent()
 {
 	Mesh = std::make_shared<DynamicMesh>();
-    SetMesh(FilePath, false);
+    SetMesh(FilePath);
 }
 
 DynamicMeshComponent::~DynamicMeshComponent()
@@ -40,12 +40,6 @@ void DynamicMeshComponent::Update(const Time deltaTime)
     if (IsAnimPlaying())
     {
         playAnimation(AinmClipIndex, deltaTime);
-    }
-
-    // 옷과 바디 충돌 테스트
-    if (BodyTestObject)
-    {
-        BodyTestObject->SetPos(GetJointPosition("bone014"));
     }
     
     uint32 ClothPhysicsObjectNum = GetSize(ClothPhysicsObjects);

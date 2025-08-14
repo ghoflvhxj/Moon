@@ -38,6 +38,7 @@ MMaterial::MMaterial()
 MMaterial::~MMaterial()
 {
 	ClearShader();
+    LOG(std::wstring(TEXT("Destroy MMaterial!!!")));
 }
 
 bool MMaterial::Load()

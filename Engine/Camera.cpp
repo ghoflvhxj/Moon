@@ -43,8 +43,6 @@ void MCamera::initialize()
 {
 	_pSceneComponent = CreateDefaultSubObject<SceneComponent>();
 	addComponent(ROOT_COMPONENT, _pSceneComponent);
-	//_pSceneComponent->setTranslation({ 0.f, 0.f, -1.f });
-
 	_pSceneComponent->Update(0.f);
 }
 

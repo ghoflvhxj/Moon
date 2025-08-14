@@ -13,7 +13,7 @@ MActor::MActor()
 
 MActor::~MActor()
 {
-	_components.clear();
+    // DoNothing
 }
 
 void MActor::PostConstruct()

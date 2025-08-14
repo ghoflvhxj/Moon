@@ -36,6 +36,12 @@ MainGame::MainGame()
 {
 }
 
+MainGame::~MainGame()
+{
+    std::wstring Msg = TEXT("MainGame Destroy");
+    LOG(Msg);
+}
+
 const bool MainGame::Loop()
 {
 	_pTimerManager->Tick();

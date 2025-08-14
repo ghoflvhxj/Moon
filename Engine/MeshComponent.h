@@ -29,13 +29,12 @@ public:
 
     // 메시 관련
 public:
-    void SetMesh(const std::wstring& InPath, bool bSetPhyiscs = true);
+    void SetMesh(const std::wstring& InPath);
     std::shared_ptr<StaticMesh> GetMesh();
     FDelegate<void, std::shared_ptr<MPrimitiveComponent>>& GetMeshChangedDelegate() { return OnMeshChangedDelegate; }
 protected:
     std::shared_ptr<StaticMesh> Mesh;
     FDelegate<void, std::shared_ptr<MPrimitiveComponent>> OnMeshChangedDelegate;
-    //FObjectPath MeshPathTest;
 
 public:
     void SetMaterial(uint32 InIndex, std::shared_ptr<MMaterial> InMaterial) { Materials[InIndex] = InMaterial; }
@@ -60,12 +59,9 @@ protected:
     bool bPhysics = true;
     bool bPhysicsSimulate = false;
     EPhysicsType PhysicsType = EPhysicsType::Static;
-    //std::shared_ptr<MPhysicsObject> PhysicsObject;
 
 public:
     std::shared_ptr<MPhysicsObject> PhysicsObject;
-    // 바디 테스트
-    std::shared_ptr<MPhysicsObject> BodyTestObject;
 
 protected:
     // 옷감 피직스 오브젝트

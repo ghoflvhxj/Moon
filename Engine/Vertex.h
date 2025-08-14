@@ -90,27 +90,9 @@ namespace Graphic
 }
 
 // VERTEX_COMMON 리플렉션
+struct FTypeDesc;
 template <>
-static const FTypeDesc* GetTypeDesc<Graphic::VERTEX_COMMON>()
-{
-    static FTypeDesc NewTypeDesc = {
-        nullptr,
-        "VERTEX_COMMON",
-        sizeof(Graphic::VERTEX_COMMON),
-        {
-            MakeProp("Pos", &Graphic::VERTEX_COMMON::Pos, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
-            MakeProp("Color", &Graphic::VERTEX_COMMON::Color, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
-            MakeProp("Tex0", &Graphic::VERTEX_COMMON::Tex0, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
-            MakeProp("Normal", &Graphic::VERTEX_COMMON::Normal, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
-            MakeProp("Tangent", &Graphic::VERTEX_COMMON::Tangent, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
-            MakeProp("Binormal", &Graphic::VERTEX_COMMON::Binormal, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
-            MakeProp("BlendIndex", &Graphic::VERTEX_COMMON::BlendIndex, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
-            MakeProp("BlendWeight", &Graphic::VERTEX_COMMON::BlendWeight, std::function<void(Graphic::VERTEX_COMMON * InObject)>()),
-        }
-    };
-
-    return &NewTypeDesc;
-}
+const FTypeDesc* GetTypeDesc<Graphic::VERTEX_COMMON>();
 
 using Vertex	= Graphic::VERTEX_COMMON;
 using Index		= uint32;

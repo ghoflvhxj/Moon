@@ -58,6 +58,11 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		return false;
 	}
 
+    if (Materials.empty())
+    {
+        return false;
+    }
+
 	uint32 geometryCount = Mesh->GetMeshNum();
 	PrimitiveDataList.reserve(geometryCount);
 

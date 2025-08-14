@@ -52,9 +52,9 @@ MyGame::MyGame()
 
 MyGame::~MyGame()
 {
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 }
 
 const bool MyGame::initialize()
@@ -77,7 +77,13 @@ const bool MyGame::initialize()
 #if UseGround == 1
     auto Ground = CreateActor<MStaticMeshActor>(this);
     Ground->GetStaticMeshCompoent()->SetMesh(TEXT("Base/Box.json"));
-    Ground->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, std::make_shared<MTexture>(TEXT("./Resources/Texture/stone_01_albedo.jpg")));
+    
+    std::shared_ptr<MTexture> Diffuse = nullptr;
+    if (g_ResourceManager->Load(TEXT("./Resources/Texture/stone_01_albedo.jpg"), Diffuse))
+    {
+        //Ground->GetStaticMeshCompoent()->GetMesh()->getMaterial(0);
+        Ground->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, Diffuse);
+    }
     Ground->GetStaticMeshCompoent()->GetMesh()->getMaterial(0)->setTexture(ETextureType::Normal, std::make_shared<MTexture>(TEXT("./Resources/Texture/Stone_01_normal.jpg")));
     Ground->GetStaticMeshCompoent()->setScale(20.f, 1.f, 20.f);
     Ground->GetStaticMeshCompoent()->setTranslation(1.f, -3.f, 0.f);
@@ -115,12 +121,11 @@ void MyGame::intializeImGui()
 	ImGui::StyleColorsDark();
 	ImGui_ImplWin32_Init(g_hWnd);
 	ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
-
-    //io.WantCaptureKeyboard = true;
 }
 
 void MyGame::Tick(const Time deltaTime)
 {
+    
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();

@@ -3,6 +3,9 @@
 #include "Property/FundamentaProperty.h"
 #include "Property/ContainerProperty.h"
 #include "TypeDesc.h"
+#include "Macro.h"
+
+void ReleaseReflection();
 
 #define PROPERTY(Prop) \
 MakeProp(#Prop, &Self::Prop, std::function<void(Self* InObject)>())
@@ -25,6 +28,9 @@ static const FTypeDesc* GetTypeDescStatic() \
 	#MyClass, \
 	sizeof(MyClass), \
 	{ __VA_ARGS__ }}; \
+    \
+    GetTypeDescs().emplace(&MyClass##_Desc); \
+    \
 	return &MyClass##_Desc; \
 }
 
@@ -43,6 +49,9 @@ static const FTypeDesc* GetTypeDescStatic() \
 	#MyClass, \
 	sizeof(MyClass), \
 	{ __VA_ARGS__ }}; \
+    \
+    GetTypeDescs().emplace(&MyClass##_Desc); \
+    \
 	return &MyClass##_Desc; \
 } \
 std::shared_ptr<Self> GetShared() \
@@ -51,51 +60,11 @@ std::shared_ptr<Self> GetShared() \
 }
 
 template <>
-const FTypeDesc* GetTypeDesc<Vec2>()
-{
-    static FTypeDesc NewTypeDesc = {
-        nullptr,
-        "Vec2",
-        sizeof(Vec2),
-        { 
-            MakeProp("x", &Vec2::x, nullptr),
-            MakeProp("y", &Vec2::y, nullptr)
-        }
-    };
-
-    return &NewTypeDesc;
-}
-
+const FTypeDesc* GetTypeDesc<Vec2>();
 template <>
-const FTypeDesc* GetTypeDesc<Vec3>()
-{
-    static FTypeDesc NewTypeDesc = {
-        nullptr,
-        "Vec3",
-        sizeof(Vec3),
-        {
-            MakeProp("x", &Vec3::x, nullptr),
-            MakeProp("y", &Vec3::y, nullptr),
-            MakeProp("z", &Vec3::z, nullptr)
-        }
-    };
-}
-
+const FTypeDesc* GetTypeDesc<Vec3>();
 template <>
-const FTypeDesc* GetTypeDesc<Vec4>()
-{
-    static FTypeDesc NewTypeDesc = {
-        nullptr,
-        "Vec4",
-        sizeof(Vec4),
-        {
-            MakeProp("x", &Vec4::x, nullptr),
-            MakeProp("y", &Vec4::y, nullptr),
-            MakeProp("z", &Vec4::z, nullptr),
-            MakeProp("w", &Vec4::w, nullptr)
-        }
-    };
-}
+const FTypeDesc* GetTypeDesc<Vec4>();
 
 /*
 template <>

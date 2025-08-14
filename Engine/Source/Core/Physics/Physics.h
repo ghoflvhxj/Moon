@@ -33,7 +33,7 @@ class ENGINE_DLL MPhysicsEngine
 {
 public:
     MPhysicsEngine() = default;
-    ~MPhysicsEngine() = default;
+    virtual ~MPhysicsEngine() = default;
 
 public:
     virtual void LoadTest() {}
@@ -42,10 +42,10 @@ public:
 public:
     virtual void StartSimulate();
     virtual void Update(float deltaTime) = 0;
-    virtual void Release() = 0;
+    virtual void Release() { MeshComponents.clear(); }
 
 public:
-    virtual void Temp(std::shared_ptr<MMeshComponent> InMeshComp) { MeshComponents.push_back(InMeshComp);  }
+    virtual void Temp(std::shared_ptr<MMeshComponent> InMeshComp) { /*MeshComponents.push_back(InMeshComp); */ }
     virtual void MakeConvexHull(FPhysicsConstructData& InData) {}
 
 public:

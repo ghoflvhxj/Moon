@@ -70,6 +70,7 @@
 #define LOG(InMessage) \
 { \
     std::wcout << InMessage << std::endl; \
+    InMessage += TEXT("\n"); \
     OutputDebugStringW(InMessage.c_str()); \
 }
 #else

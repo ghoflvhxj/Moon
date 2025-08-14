@@ -736,6 +736,8 @@ void MJoltPhysics::Update(float deltaTime)
 
 void MJoltPhysics::Release()
 {
+    MPhysicsEngine::Release();
+
     delete physics_system;
     delete jobSystemValidating;
     delete jobSystem;

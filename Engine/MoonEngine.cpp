@@ -71,13 +71,17 @@ const bool EngineLoop()
 
 const bool EngineRelease()
 {
+    LOG(std::wstring(TEXT("Game Reset Start")));
 	g_pMainGame.reset();
+    LOG(std::wstring(TEXT("Game Reset Finish")));
 
 	ShaderManager->Release();
-	g_ResourceManager->Release();
 	g_pRenderer->Release();
-	g_pGraphicDevice->Release();
+	g_ResourceManager->Release();
     g_pPhysics->Release();
+	g_pGraphicDevice->Release();
+
+    ReleaseReflection();
 
 	return true;
 }
@@ -113,7 +117,10 @@ const bool setGame(std::unique_ptr<MainGame>&& pGame)
     g_pMainGame->initialize();
 
     g_pMainGame->GetGameStartedDelegate().Add([&]() {
-        GetPhysics()->StartSimulate();
+        if (GetPhysics())
+        {
+            GetPhysics()->StartSimulate();
+        }
     });
 
 	return true;
@@ -128,7 +135,7 @@ void RegisterComponent(std::shared_ptr<class Component> InComponent)
 
     if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
     {
-        MeshComp->GetBeganPlay().Add([=]() {
+        MeshComp->GetBeganPlay().Add([&]() {
             GetPhysics()->Temp(MeshComp);
         });
     }

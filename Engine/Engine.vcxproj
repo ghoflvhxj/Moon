@@ -61,6 +61,8 @@
     <ClCompile Include="Source\Core\Physics\Jolt\Jolt.cpp" />
     <ClCompile Include="Source\Core\Physics\Physics.cpp" />
     <ClCompile Include="Source\Core\Physics\PhysX\MPhysX.cpp" />
+    <ClCompile Include="Source\Core\Reflection\Reflection.cpp" />
+    <ClCompile Include="Source\Core\Reflection\TypeDesc.cpp" />
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
     <ClCompile Include="Source\Core\ResourceManager.cpp" />
     <ClCompile Include="Source\Core\Serialize\JsonDeserializer.cpp" />
@@ -82,6 +84,7 @@
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TimerManager.cpp" />
+    <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="VertexShader.cpp" />
     <ClCompile Include="Window.cpp" />

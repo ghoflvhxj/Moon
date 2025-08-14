@@ -79,7 +79,7 @@ private:
     float Far = 1000.f;
 
 private:
-	std::shared_ptr<SceneComponent> _pSceneComponent;
+	std::shared_ptr<SceneComponent> _pSceneComponent = nullptr;
 };
 
 #define __CAMERA_H__

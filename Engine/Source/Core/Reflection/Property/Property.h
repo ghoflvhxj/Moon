@@ -2,8 +2,10 @@
 
 #include <iostream>
 #include <vector>
+#include <functional>
 #include "Type.h"
-#include "TypeDesc.h"
+#include "Core/Reflection/TypeDesc.h"
+#include "Macro.h"
 
 using namespace std;
 
@@ -174,5 +176,8 @@ void SetType(FPropertyDesc* InDesc)
     else if constexpr (std::is_fundamental_v<Type> == false)
     {
         InDesc->TypeDesc = GetTypeDesc<Type>();
+
+        // 외부 타입일 경우 매번 특수화한 함수에 작성해야 하는데, 이 코드로 피할 수 있음.
+        GetTypeDescs().emplace(InDesc->TypeDesc);
     }
 }
