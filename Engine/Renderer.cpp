@@ -87,6 +87,8 @@ void Renderer::Release()
 
     IndexBuffers.clear();
 	VertexBuffers.clear();
+
+    IdToPrimitiveDatas.clear();
 }
 
 void Renderer::initialize() noexcept
