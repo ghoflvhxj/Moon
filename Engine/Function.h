@@ -1,5 +1,8 @@
 ﻿#pragma once
-#ifndef __FUNCTION_H__
+#include "Define.h"
+#include <string>
+
+#include <Shlwapi.h>
 
 inline void GetResourceDirectory(WCHAR buffer[])
 {
@@ -142,6 +145,3 @@ inline std::wstring StringToWString(const char* Buffer)
 
     return std::move(NewString);
 }
-
-#define __FUNCTION_H__
-#endif

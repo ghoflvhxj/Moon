@@ -100,7 +100,7 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
     for (uint32 PointLightIndex = 0; PointLightIndex < PointLightNum; ++PointLightIndex)
     {
         const FPrimitiveData& PrimitiveData = PointLightPrimitives[PointLightIndex];
-        const std::shared_ptr<MLightComponent>& LightComponent = PrimitiveData.GetPrimitiveComponent<MLightComponent>();
+        std::shared_ptr<MLightComponent>& LightComponent = PrimitiveData.GetPrimitiveComponent<MLightComponent>();
 
         // 콘스탄트 버퍼 업데이트
         Vec3 Position = LightComponent->getTranslation();

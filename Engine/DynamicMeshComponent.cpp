@@ -20,6 +20,11 @@ DynamicMeshComponent::DynamicMeshComponent()
 	: MMeshComponent()
 {
     Mesh = std::make_shared<DynamicMesh>();
+
+    for (auto& AnimMatrix : JointAnimMatrices)
+    {
+        AnimMatrix = IDENTITYMATRIX;
+    }
 }
 
 DynamicMeshComponent::DynamicMeshComponent(const std::wstring& FilePath)
@@ -27,6 +32,11 @@ DynamicMeshComponent::DynamicMeshComponent(const std::wstring& FilePath)
 {
 	Mesh = std::make_shared<DynamicMesh>();
     SetMesh(FilePath);
+
+    for (auto& AnimMatrix : JointAnimMatrices)
+    {
+        AnimMatrix = IDENTITYMATRIX;
+    }
 }
 
 DynamicMeshComponent::~DynamicMeshComponent()
@@ -39,6 +49,35 @@ void DynamicMeshComponent::Update(const Time deltaTime)
 
     if (IsAnimPlaying())
     {
+        std::shared_ptr<DynamicMesh> dMesh = GetDynamicMesh();
+
+        uint32 JointNum = dMesh->GetJointNum();
+        AnimationClip CurrentAnimClip;
+        if (dMesh->getAnimationClip(AinmClipIndex, CurrentAnimClip))
+        {
+            for (int32 JointIndex = 0; JointIndex < CastValue<int32>(JointNum); ++JointIndex)
+            {
+                float RealFrame = AnimTime * 24.f;
+                uint32 Frame = CastValue<uint32>(RealFrame);
+
+                XMMATRIX JointMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
+
+                // 다음 프레임과 블렌딩
+                if (Frame < CurrentAnimClip.TotalFrame - 1)
+                {
+                    float currentFrameFactor = 1.f - (RealFrame - CastValue<float>(Frame));
+                    float nextFrameFactor = 1.f - currentFrameFactor;
+                    XMMATRIX CurrentMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
+                    XMMATRIX NextMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
+                    JointMatrix = (NextMat * nextFrameFactor) + (CurrentMat * currentFrameFactor);
+                }
+
+                // 현재 프레임에서 조인트 행렬들
+                XMMATRIX BindPoseInverseMatrix = XMLoadFloat4x4(&dMesh->GetJoint(JointIndex)._globalBindPoseInverseMatrix);
+                XMStoreFloat4x4(&JointAnimMatrices[JointIndex], XMMatrixMultiply(BindPoseInverseMatrix, JointMatrix));
+            }
+        }
+
         playAnimation(AinmClipIndex, deltaTime);
     }
     
@@ -75,36 +114,9 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		return false;
 	}
 
-    std::shared_ptr<DynamicMesh> dMesh = GetDynamicMesh();
+     std::shared_ptr<DynamicMesh>dMesh = GetDynamicMesh();
 
 	uint32 geometryCount = dMesh->GetMeshNum();
-	uint32 jointCount	 = dMesh->GetJointNum();
-
-    AnimationClip CurrentAnimClip;
-    if (dMesh->getAnimationClip(AinmClipIndex, CurrentAnimClip))
-    {
-        for (int32 JointIndex = 0; JointIndex < CastValue<int32>(jointCount); ++JointIndex)
-        {
-            float RealFrame = AnimTime * 24.f;
-            uint32 Frame = CastValue<uint32>(RealFrame);
-
-            XMMATRIX JointMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
-
-            // 다음 프레임과 블렌딩
-            if (Frame < CurrentAnimClip.TotalFrame - 1)
-            {
-                float currentFrameFactor = 1.f - (RealFrame - CastValue<float>(Frame));
-                float nextFrameFactor = 1.f - currentFrameFactor;
-                XMMATRIX CurrentMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
-                XMMATRIX NextMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
-                JointMatrix = (NextMat * nextFrameFactor) + (CurrentMat * currentFrameFactor);
-            }
-
-            // 현재 프레임에서 조인트 행렬들
-            XMMATRIX BindPoseInverseMatrix = XMLoadFloat4x4(&dMesh->GetJoint(JointIndex)._globalBindPoseInverseMatrix);
-            XMStoreFloat4x4(&JointAnimMatrices[JointIndex], XMMatrixMultiply(BindPoseInverseMatrix, JointMatrix));
-        }
-    }
 	
     PrimitiveDataList.reserve(geometryCount);
 	for (uint32 geometryIndex = 0; geometryIndex < geometryCount; ++geometryIndex)

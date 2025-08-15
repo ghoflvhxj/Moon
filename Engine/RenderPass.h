@@ -1,6 +1,6 @@
 ﻿#pragma once
-#ifndef __RENDER_PASS_H__
-#define __RENDER_PASS_H__
+
+#include "Include.h"
 
 #include "Render.h"
 #include "PrimitiveComponent.h"
@@ -123,5 +123,3 @@ private:
 public:
 	DirectX::XMVECTORF32 Color = EngineColors::Black;
 };
-
-#endif

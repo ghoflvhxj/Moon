@@ -4,6 +4,12 @@
 #include "Core/Serialize/JsonDeserializer.h"
 #include "Core/ResourceManager.h"
 
+MAsset::~MAsset()
+{
+    std::wstring Msg = TEXT("Release Asset") + GetAssetPath();
+    LOG(Msg);
+}
+
 void MAsset::LoadFromDisk(const std::wstring& InPath)
 {
     SetAssetPath(InPath);

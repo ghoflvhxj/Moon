@@ -293,15 +293,15 @@ void Renderer::MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponen
     int32 PrimitiveID = InComponent->GetPrimitiveID();
     IdToPrimitiveDatas.erase(PrimitiveID);
 
-    std::vector<FPrimitiveData> MyPrimitiveDatas;
-    if (InComponent->GetPrimitiveData(MyPrimitiveDatas) == false)
+    std::vector<FPrimitiveData> PrimitiveDatas;
+    if (InComponent->GetPrimitiveData(PrimitiveDatas) == false)
     {
         return;
     }
 
-    for (uint32 i = 0; i < GetSize(MyPrimitiveDatas); ++i)
+    for (uint32 i = 0; i < GetSize(PrimitiveDatas); ++i)
     {
-        FPrimitiveData& PrimitiveData = MyPrimitiveDatas[i];
+        FPrimitiveData& PrimitiveData = PrimitiveDatas[i];
         PrimitiveData.VertexBuffer = VertexBuffers[PrimitiveID][i];
         PrimitiveData.IndexBuffer = IndexBuffers[PrimitiveID][i];
 

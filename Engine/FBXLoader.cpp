@@ -839,7 +839,7 @@ void MFBXLoader::LoadTexturesFromFBXMaterial(FbxSurfaceMaterial* SurfaceMaterial
 		// 텍스쳐를 불러옴
 		int TextureNum = Property.GetSrcObjectCount<FbxTexture>();
 		std::wstring DebugString = TEXT("TextureNum: ") + std::to_wstring(TextureNum);
-		OutputDebugString(DebugString.c_str());
+		LOG(DebugString);
 		for (int TextureIndex = 0; TextureIndex < TextureNum; ++TextureIndex)
 		{
 			FbxFileTexture* FileTexture = FbxCast<FbxFileTexture>(Property.GetSrcObject<FbxTexture>(TextureIndex));

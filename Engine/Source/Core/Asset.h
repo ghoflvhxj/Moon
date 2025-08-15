@@ -22,7 +22,7 @@ public:
     {
         SetAssetPath(InPath);
     }
-    virtual ~MAsset() = default;
+    virtual ~MAsset();
 
 protected:
     EResourceType ResourceType = EResourceType::None;

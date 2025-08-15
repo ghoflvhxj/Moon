@@ -1,11 +1,15 @@
 ﻿#include "Reflection.h"
+#include "Function.h"
 
 void ReleaseReflection()
 {
+    std::wstring Msg = TEXT("Release Reflection");
+    LOG(Msg);
+
     for (auto TypeDesc : GetTypeDescs())
     {
-        std::string str = TypeDesc->Name + " Release";
-        OutputDebugStringA(str.c_str());
+        std::wstring str = StringToWString(TypeDesc->Name.c_str()) + TEXT(" Release");
+        LOG(str.c_str());
 
         for (FPropertyDesc* Prop : TypeDesc->Properties)
         {

@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __DEFINE_H__
 
 constexpr wchar_t DEFAULT_CLASSNAME[]	= TEXT("DefaultClass");
 constexpr wchar_t ROOT_COMPONENT[]		= TEXT("RootComponent");
@@ -39,8 +38,6 @@ constexpr Mat4 ZEROMATRIX = {	0.f, 0.f, 0.f, 0.f,
 								0.f, 0.f, 0.f, 0.f,
 								0.f, 0.f, 0.f, 0.f };
 
-constexpr uint32 TEXTURE_COUNT = static_cast<uint32>(ETextureType::End);
-
 namespace EngineColors
 {
 	XMGLOBALCONST DirectX::XMVECTORF32 White		= { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -55,6 +52,3 @@ namespace EngineColors
 	XMGLOBALCONST DirectX::XMVECTORF32 Silver	= { 0.75f, 0.75f, 0.75f, 1.0f };
 	XMGLOBALCONST DirectX::XMVECTORF32 LightSteelBlue = { 0.69f, 0.77f, 0.87f, 1.0f };
 }
-
-#define __DEFINE_H__
-#endif

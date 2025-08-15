@@ -38,7 +38,7 @@ MMaterial::MMaterial()
 MMaterial::~MMaterial()
 {
 	ClearShader();
-    LOG(std::wstring(TEXT("Destroy MMaterial!!!")));
+    //LOG(std::wstring(TEXT("Destroy MMaterial!!!")));
 }
 
 bool MMaterial::Load()
@@ -51,16 +51,6 @@ bool MMaterial::Load()
 void MMaterial::OnLoaded()
 {
     Super::OnLoaded();
-
-    for (auto& Texture : _textureList)
-    {
-        if (Texture == nullptr)
-        {
-            continue;
-        }
-
-        g_ResourceManager->Load(Texture->GetAssetPath(), Texture);
-    }
 }
 
 void MMaterial::SetTexturesToDevice()

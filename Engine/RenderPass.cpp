@@ -1,5 +1,4 @@
-﻿#include "Include.h"
-#include "RenderPass.h"
+﻿#include "RenderPass.h"
 
 #include "MainGameSetting.h"
 #include "Renderer.h"
@@ -22,6 +21,8 @@
 #include "Camera.h"
 
 #include "Texture.h"
+
+#include "DynamicMeshComponent.h"
 
 MRenderPass::MRenderPass()
 	: _pOldRenderTargetView{ nullptr }
@@ -174,12 +175,22 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
     Material->getVertexShader()->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
     bool b = Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal;
 	// 애님 관련 변수
-	BOOL animated = PrimitiveData.AnimMatrices != nullptr;
-	Material->getVertexShader()->SetValue(TEXT("animated"), animated);
-	if (animated == TRUE)
-	{
-		Material->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), PrimitiveData.AnimMatrices);
-	}
+	//BOOL animated = PrimitiveData.AnimMatrices != nullptr;
+	//Material->getVertexShader()->SetValue(TEXT("animated"), animated);
+	//if (animated == TRUE)
+	//{
+	//	Material->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), PrimitiveData.AnimMatrices);
+	//}
+
+    BOOL animated = FALSE;
+    if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastTo<DynamicMeshComponent>())
+    {
+        animated = TRUE;
+        Material->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
+
+    }
+    Material->getVertexShader()->SetValue(TEXT("animated"), animated);
+
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer

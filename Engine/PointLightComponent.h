@@ -7,8 +7,8 @@ struct FPrimitiveData;
 class ENGINE_DLL MPointLightComponent : public MLightComponent
 {
 public:
-	explicit MPointLightComponent(void);
-	virtual ~MPointLightComponent(void);
+	explicit MPointLightComponent();
+	virtual ~MPointLightComponent();
 
 public:
 	virtual void Update(const Time deltaTime) override;

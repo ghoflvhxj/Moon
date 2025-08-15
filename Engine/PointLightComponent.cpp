@@ -7,14 +7,14 @@
 
 using namespace DirectX;
 
-MPointLightComponent::MPointLightComponent(void)
+MPointLightComponent::MPointLightComponent()
 	: MLightComponent()
 	, Range{ 1.f }
 {
     Material->setShader(TEXT("Light.cso"), TEXT("PointLightShader.cso"));
 }
 
-MPointLightComponent::~MPointLightComponent(void)
+MPointLightComponent::~MPointLightComponent()
 {
 }
 
@@ -40,10 +40,13 @@ void MPointLightComponent::Update(const Time deltaTime)
 
 const bool MPointLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
-	MLightComponent::GetPrimitiveData(primitiveDataList);
-    primitiveDataList[0].PrimitiveType = EPrimitiveType::PointLight;
+    if (Super::GetPrimitiveData(primitiveDataList))
+    {
+        primitiveDataList[0].PrimitiveType = EPrimitiveType::PointLight;
+	    return true;
+    }
 
-	return true;
+    return false;
 }
 
 void MPointLightComponent::addRange(float addRange)

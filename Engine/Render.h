@@ -88,18 +88,18 @@ class MShader;
 struct FPrimitiveData
 {
     FPrimitiveData()
-        : PrimitiveType(EPrimitiveType::Count), _jointCount(0), AnimMatrices(nullptr) 
-    {}
+    {
+    }
 
     template <class T>
-    const std::shared_ptr<T> GetPrimitiveComponent() const
+    std::shared_ptr<T> GetPrimitiveComponent() const
     {
-        return std::static_pointer_cast<T>(PrimitiveComponent.lock());
+        return PrimitiveComponent.lock()->template CastTo<T>();
     }
 
 	std::weak_ptr<MPrimitiveComponent>			PrimitiveComponent;
 	std::weak_ptr<MMaterial>					Material;
-	EPrimitiveType PrimitiveType;
+	EPrimitiveType PrimitiveType = EPrimitiveType::Count;
 
 	// 메시가 채우는 데이터
 	std::weak_ptr<FMeshData> MeshData;
@@ -110,7 +110,7 @@ struct FPrimitiveData
 
 	// 다이나믹 메쉬용
 	Mat4* AnimMatrices = nullptr;
-	uint32 _jointCount;
+	uint32 _jointCount = 0;
 
     struct ID3D11InputLayout* InputLayout = nullptr;
 };
