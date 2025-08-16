@@ -306,6 +306,9 @@ void MJoltPhysics::StartSimulate()
         NewPhysicsObject->SetScale(CompScale);
 
         MeshComp->PhysicsObject = NewPhysicsObject;
+
+        // ReadObject가 new를 이용해 Object를 생성하니, 삭제도 해줘야 함
+        delete Test;
     }
 }
 

@@ -42,10 +42,10 @@ public:
 public:
     virtual void StartSimulate();
     virtual void Update(float deltaTime) = 0;
-    virtual void Release() { MeshComponents.clear(); }
+    virtual void Release();
 
 public:
-    virtual void Temp(std::shared_ptr<MMeshComponent> InMeshComp) { /*MeshComponents.push_back(InMeshComp); */ }
+    virtual void Temp(std::shared_ptr<MMeshComponent> InMeshComp);
     virtual void MakeConvexHull(FPhysicsConstructData& InData) {}
 
 public:

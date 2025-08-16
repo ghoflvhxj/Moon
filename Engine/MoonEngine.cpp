@@ -126,7 +126,7 @@ const bool setGame(std::unique_ptr<MainGame>&& pGame)
 	return true;
 }
 
-void RegisterComponent(std::shared_ptr<class Component> InComponent)
+void RegisterComponent(std::shared_ptr<Component> InComponent)
 {
     if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = InComponent->CastTo<MPrimitiveComponent>())
     {
@@ -135,8 +135,9 @@ void RegisterComponent(std::shared_ptr<class Component> InComponent)
 
     if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
     {
-        MeshComp->GetBeganPlay().Add([&]() {
-            GetPhysics()->Temp(MeshComp);
+        std::weak_ptr<MMeshComponent> WeakMeshComp = MeshComp;
+        MeshComp->GetBeganPlay().Add([WeakMeshComp]() {
+            GetPhysics()->Temp(WeakMeshComp.lock());
         });
     }
 }
