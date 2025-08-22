@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 /*
-일반 자료형, C 스타일 배열 멤버를 설명하는 구조체
-
-FPropertyDesc*을 FFundamentalPropertyDesc*<type> 으로 변환하여 Get, Set 기능을 사용할 수 있음
+fundamental 타입인 멤버를 설명하는 구조체.
+int, float 등이 해당되며 C배열 타입도 여기에 해당됨.
+FPropertyDesc*을 FFundamentalPropertyDesc*<type> 으로 변환하여 Get, Set 기능을 사용할 수 있음.
 */
 
 #include <iostream>
@@ -18,9 +18,9 @@ public:
     using ElemType = std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, T>;
 public:
     // 프로퍼티 자체를 얻는 Getter
-	virtual PropType Get(void* InObject) = 0;
+	virtual PropType Get(const void* InObject) = 0;
     // 배열 요소 Getter
-    virtual ElemType& Get(void* InObject, size_t InIndex) = 0;
+    virtual ElemType& Get(const void* InObject, size_t InIndex) = 0;
 
     // Setter
     virtual void Set(void* InObject, const T& InT) = 0;
@@ -77,7 +77,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
         // 델리게이트
         std::function<void(Owner* InObject)> Func;
 
-        virtual PropType Get(void* InObject) override
+        virtual PropType Get(const void* InObject) override
         {
             if constexpr (std::is_array_v<MemType>)
             {
@@ -94,7 +94,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
         }
 
         // 타입이 지정된 Getter
-		virtual ElemType& Get(void* InObject, size_t InIndex = 0) override
+		virtual ElemType& Get(const void* InObject, size_t InIndex = 0) override
 		{
             if constexpr (std::is_array_v<MemType>)
             {
@@ -130,19 +130,29 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
         }
 
         // 부모 클래스 주석 참고
-        virtual void SetAsVoid(void* InObject, void* InData, size_t InIndex = 0) override
+        virtual void SetAsVoid(void* InObject, void*& InData, size_t InIndex = 0) override
         {
-            if constexpr (std::is_array_v<MemType>)
+            if constexpr (is_smart_ptr_v<MemType>)
+            {
+                MemType* Data = static_cast<MemType*>(InData);
+                ((Owner*)InObject->*TestMemPtr) = *Data;
+            }
+            else if constexpr (std::is_pointer_v<MemType>)
+            {
+                // 지원 안함
+                InData = nullptr;
+            }
+            else if constexpr (std::is_array_v<MemType>)
             {
                 ((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<ElemType*>(InData);
             }
-            else if constexpr (is_smart_ptr_v<MemType>)
-            {
-                ((Owner*)InObject->*TestMemPtr) = *static_cast<std::shared_ptr<ElemType>*>(InData);
-            }
             else
             {
-                ((Owner*)InObject->*TestMemPtr) = *static_cast<ElemType*>(InData);
+                // 복사 대입
+                MemType* Ptr = static_cast<MemType*>(InData);
+                ((Owner*)InObject->*TestMemPtr) = *Ptr;
+                delete Ptr;
+                InData = nullptr;
             }
         }
 
@@ -204,10 +214,9 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
 	NewDesc->Name = InName;
 	NewDesc->Size = sizeof(Type);
 	NewDesc->Num = std::is_array_v<MemType> ? sizeof(MemType) / sizeof(Type) : 1;
-	NewDesc->bContainer = false;
 	NewDesc->Offset = OffsetOf(MemPtr);
 
-    SetType<ElemType>(NewDesc);
+    SetType<ElemType>(NewDesc->Type, NewDesc->TypeDesc);
 
 	//cout << "Make Prop" << endl;
 

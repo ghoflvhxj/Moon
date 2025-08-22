@@ -44,4 +44,6 @@ private:
     std::shared_ptr<MMaterial> MaterialForPhysX = nullptr;
     // 피직스 렌더링을 위한 임시 메시데이터
     std::shared_ptr<FMeshData> MeshDataForPhysX = nullptr;
+
+    REFLECT(StaticMeshComponent)
 };

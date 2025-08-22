@@ -6,7 +6,12 @@ void ReleaseReflection()
     std::wstring Msg = TEXT("Release Reflection");
     LOG(Msg);
 
-    for (auto TypeDesc : GetTypeDescs())
+    for (auto& [TypeDesc, Factory] : GetFactory())
+    {
+        delete Factory;
+    }
+
+    for (auto& [Name, TypeDesc] : GetTypeDescs())
     {
         std::wstring str = StringToWString(TypeDesc->Name.c_str()) + TEXT(" Release");
         LOG(str.c_str());

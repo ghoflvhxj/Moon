@@ -49,7 +49,7 @@ const bool MBillboardComponent::GetPrimitiveData(std::vector<FPrimitiveData>& Pr
     {
         FPrimitiveData NewPrimitiveData = {};
         NewPrimitiveData.PrimitiveComponent = GetShared();
-        NewPrimitiveData.MeshData = Mesh->GetMeshData(0);
+        NewPrimitiveData.MeshData = &Mesh->GetMeshData(0);
         NewPrimitiveData.Material = Mesh->getGeometryLinkMaterialIndex().size() > 0 ? Mesh->getMaterials()[Mesh->getGeometryLinkMaterialIndex()[0]] : Mesh->getMaterials()[0];
         NewPrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 

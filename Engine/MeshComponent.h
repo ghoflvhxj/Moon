@@ -78,6 +78,7 @@ protected:
         PROPERTY_DELEGATE(Mesh, [&](MMeshComponent* InObject) {
             InObject->Reload();
         }),
-        PROPERTY(PhysicsType)
+        PROPERTY(PhysicsType),
+        PROPERTY(Materials)
     );
 };

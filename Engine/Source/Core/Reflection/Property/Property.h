@@ -7,6 +7,9 @@
 #include "Core/Reflection/TypeDesc.h"
 #include "Macro.h"
 
+#include <map>
+#include <unordered_map>
+
 using namespace std;
 
 struct FTypeDesc;
@@ -18,20 +21,20 @@ struct FPropertyDesc
 	size_t Offset = 0;
 	size_t Size = 0;
 	size_t Num = 0;
-	EType Type = EType::None;
 
 	// 프로퍼티가 vector, map 같은 컨테이너 인지?
-	bool bContainer = false;
+    EContainerType ContainerType = EContainerType::None;
 
 	// 프로퍼티가 포인터를 저장하는 컨테이너 인지?
 	bool bPointerElements = false;
 
     // 이 프로퍼티의 TypeDesc. 컨테이너인 경우는 요소의 TypeDesc.
 	const FTypeDesc* TypeDesc = nullptr;
+	EType Type = EType::None;
 
 	// 이 프로퍼티가 저장한 항목들의 타입 정보
 	// ex) vector<A*> = { A, B, ... } 같이 다형성으로 인해 항목들이 정보가 다를 수 있음.
-	std::vector<const FTypeDesc*> ElementsDesc;
+	// std::vector<const FTypeDesc*> ElementsDesc;
 
 public:
     std::string GetDisplayName() const
@@ -52,7 +55,7 @@ public:
 
     bool IsContainer() const
     {
-        return bContainer;
+        return ContainerType != EContainerType::None;
     }
 
     bool IsArray() const
@@ -73,7 +76,7 @@ public:
     }
 
     // 프로퍼티를 void* 를 이용해 설정하는 함수
-    virtual void SetAsVoid(void* InObject, void* InData, size_t InIndex = 0)
+    virtual void SetAsVoid(void* InObject, void*& InData, size_t InIndex = 0)
     {
 
     }
@@ -121,6 +124,15 @@ struct is_smart_ptr<std::shared_ptr<U>> : std::true_type {};
 template<typename T>
 inline constexpr bool is_smart_ptr_v = is_smart_ptr<T>::value;
 
+template <class T>
+struct is_map : std::false_type {};
+
+template <class T, class V>
+struct is_map<std::map<T, V>> : std::true_type {};
+
+template <class T, class V>
+inline constexpr bool is_map_v = is_map<T, V>::value;
+
 template<typename T>
 struct remove_smart_pointer {
     using type = T;
@@ -134,50 +146,50 @@ struct remove_smart_pointer<std::shared_ptr<U>> {
 template<typename T>
 using remove_smart_pointer_t = typename remove_smart_pointer<T>::type;
 
-template <class Type>
-void SetType(FPropertyDesc* InDesc)
+template <class T>
+void SetType(EType& InType, const FTypeDesc* &InTypeDesc)
 {
-    if constexpr (std::is_same_v<int, Type> || std::is_same_v<uint32, Type>)
+    if constexpr (std::is_same_v<int, T> || std::is_same_v<uint32, T>)
     {
-        InDesc->Type = EType::Int;
+        InType = EType::Int;
     }
-    else if constexpr (std::is_same_v<float, Type>)
+    else if constexpr (std::is_same_v<float, T>)
     {
-        InDesc->Type = EType::Float;
+        InType = EType::Float;
     }
-    else if constexpr (std::is_same_v<bool, Type>)
+    else if constexpr (std::is_same_v<bool, T>)
     {
-        InDesc->Type = EType::Bool;
+        InType = EType::Bool;
     }
-    else if constexpr (std::is_same_v<::Vec2, Type>)
+    else if constexpr (std::is_same_v<::Vec2, T>)
     {
-        InDesc->Type = EType::Vec2;
+        InType = EType::Vec2;
     }
-    else if constexpr (std::is_same_v<::Vec3, Type>)
+    else if constexpr (std::is_same_v<::Vec3, T>)
     {
-        InDesc->Type = EType::Vec3;
+        InType = EType::Vec3;
     }
-    else if constexpr (std::is_same_v<::Vec4, Type>)
+    else if constexpr (std::is_same_v<::Vec4, T>)
     {
-        InDesc->Type = EType::Vec4;
+        InType = EType::Vec4;
     }
-    else if constexpr (std::is_same_v<std::string, Type>)
+    else if constexpr (std::is_same_v<std::string, T>)
     {
-        InDesc->Type = EType::String;
+        InType = EType::String;
     }
-    else if constexpr (std::is_same_v<std::wstring, Type>)
+    else if constexpr (std::is_same_v<std::wstring, T>)
     {
-        InDesc->Type = EType::WString;
+        InType = EType::WString;
     }
-    else if constexpr (std::is_enum_v<Type>)
+    else if constexpr (std::is_enum_v<T>)
     {
-        InDesc->Type = EType::Enum;
+        InType = EType::Enum;
     }
-    else if constexpr (std::is_fundamental_v<Type> == false)
+    else if constexpr (std::is_fundamental_v<T> == false)
     {
-        InDesc->TypeDesc = GetTypeDesc<Type>();
+        InTypeDesc = GetTypeDesc<T>();
 
         // 외부 타입일 경우 매번 특수화한 함수에 작성해야 하는데, 이 코드로 피할 수 있음.
-        GetTypeDescs().emplace(InDesc->TypeDesc);
+        AddTypeDesc<T>(InTypeDesc);
     }
 }

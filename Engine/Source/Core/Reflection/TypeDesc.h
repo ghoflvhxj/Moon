@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <string>
-#include <set>
+#include <map>
 #include <vector>
-
+#include <functional>
 #include "Macro.h"
 
 /*
@@ -21,10 +21,61 @@ struct FTypeDesc
 
     // 멤버 정의를 담음
 	std::vector<FPropertyDesc*> Properties;
+
+    template <class T>
+    bool IsA() const
+    {
+        const FTypeDesc* Current = this;
+
+        while (Current)
+        {
+            if (Current == T::GetTypeDescStatic())
+            {
+                return true;
+            }
+            Current = Current->Parent;
+        }
+
+        return false;
+    }
+};
+
+struct FFactoryBase
+{
+    virtual void* Create() { return nullptr; }
+};
+
+template <class T>
+struct FFactorProxy : public FFactoryBase
+{
+    virtual void* Create() override
+    {
+        return new T();
+    }
 };
 
 // TypeDesc를 저장하는 컨테이너 반환 
-ENGINE_DLL std::set<const FTypeDesc*>& GetTypeDescs();
+ENGINE_DLL std::map<std::string, const FTypeDesc*>& GetTypeDescs();
+ENGINE_DLL std::map<const FTypeDesc*, FFactoryBase*>& GetFactory();
+
+// 인스턴스 생성
+ENGINE_DLL void* Create(const FTypeDesc* InTypeDesc);
+
+// TypeDesc 컨테이너에 추가
+template <class T>
+void AddTypeDesc(const FTypeDesc* InTypeDesc)
+{
+    if (GetTypeDescs().find(InTypeDesc->Name) == GetTypeDescs().end())
+    {
+        GetTypeDescs().emplace(InTypeDesc->Name, InTypeDesc);
+
+        if constexpr (std::is_abstract_v<T> == false)
+        {
+            FFactoryBase* NewFactory = new FFactorProxy<T>();
+            GetFactory()[InTypeDesc] = NewFactory;
+        }
+    }
+}
 
 // 외부 타입의 Desc 생성을 위한 템플릿. 특수화하여 작업해야 함
 template <class T>

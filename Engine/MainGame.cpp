@@ -77,6 +77,10 @@ const bool MainGame::Loop()
 
     _deltaTime = 0.f;
 
+    std::shared_ptr<int> t;
+    int* p = new int;
+    t.reset(p);
+
 	return true;
 }
 
@@ -87,9 +91,9 @@ void MainGame::Tick(const Time deltaTime)
 
 void MainGame::Update(const Time deltaTime)
 {
-	for (auto pActor : Actors)
+	for (auto& [Name, Actor] : Actors)
 	{
-		pActor->update(deltaTime);
+        Actor->update(deltaTime);
 	}
 }
 
@@ -104,7 +108,7 @@ void MainGame::PlayGame()
     {
         HasBegan = true;
 
-        for (auto& Actor : Actors)
+        for (auto& [Name, Actor] : Actors)
         {
             Actor->BeginPlay();
         }
@@ -122,7 +126,8 @@ void MainGame::render()
 
 void MainGame::addActor(std::shared_ptr<MActor> pActor)
 {
-	Actors.push_back(pActor);
+    std::string Name = "Actor" + std::to_string(ActorIndexer++);
+	Actors.emplace(Name, pActor);
 
     if (HasBegan)
     {
@@ -140,8 +145,9 @@ const bool MainGame::initialize()
 	_pTimerManager = std::make_shared<MTimerManager>();
 	_pFrameManager = std::make_shared<FrameManager>(_pTimerManager);
 
-    _pMainCamera = CreateActor<MCamera>(this);
+    _pMainCamera = CreateActor<MCamera>(GetShared());
     _pMainCamera->setFov(g_pSetting->getFov());
+    _pMainCamera->setLookMode(MCamera::LookMode::To);
 
 	return true;
 }
@@ -252,9 +258,9 @@ bool MainGame::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData
             continue;
         }
 
-        const auto& MeshData = PrimitiveData.MeshData.lock();
-        const auto& Vertices = MeshData->Vertices;
-        const auto& Indices = MeshData->Indices;
+        const auto& MeshData = *PrimitiveData.MeshData;
+        const auto& Vertices = MeshData.Vertices;
+        const auto& Indices = MeshData.Indices;
 
         auto Lambda = [](const Vec4& Pos)->XMVECTOR {
             Vec3 OutPos = { Pos.x, Pos.y, Pos.z };

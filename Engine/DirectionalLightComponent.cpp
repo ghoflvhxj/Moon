@@ -9,18 +9,18 @@
 
 using namespace DirectX;
 
-DirectionalLightComponent::DirectionalLightComponent(void)
+MDirectionalLightComponent::MDirectionalLightComponent(void)
 	: MLightComponent()
 {
     Material->setShader(TEXT("Light.cso"), TEXT("DirectionalLightShader.cso"));
 }
 
-DirectionalLightComponent::~DirectionalLightComponent(void)
+MDirectionalLightComponent::~MDirectionalLightComponent(void)
 {
 
 }
 
-void DirectionalLightComponent::Update(const Time deltaTime)
+void MDirectionalLightComponent::Update(const Time deltaTime)
 {
     MLightComponent::Update(deltaTime);
 
@@ -43,7 +43,7 @@ void DirectionalLightComponent::Update(const Time deltaTime)
     XMStoreFloat4x4(&LightWorldMatrix, matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
 }
 
-const bool DirectionalLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
+const bool MDirectionalLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
 {
 	MLightComponent::GetPrimitiveData(primitiveDataList);
 

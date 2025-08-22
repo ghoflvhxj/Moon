@@ -1126,6 +1126,7 @@
         },
         "Materials": {
             "0": {
+                "MMaterial" : {},
                 "MAsset": {
                     "Path": "Base\\DefulatMaterial.json"
                 }
@@ -1136,6 +1137,7 @@
         },
         "ClothData": {},
         "Physics": {
+            "MPhysics" : {},
             "MAsset": {
                 "Path": "Base\\Box.physics"
             }

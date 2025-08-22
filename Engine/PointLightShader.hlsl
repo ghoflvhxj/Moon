@@ -70,13 +70,13 @@ PixelOut_LightPass main(PixelIn pIn)
         for (int y = -temp; y <= temp; ++y)
         {
             // distance가 ShadowMap보다 큰가?
-            ShadowFactor += T_PointLightDepth.SampleCmpLevelZero(g_SamplerLess, float4(normalize(BaseDir + float3(x / 2048.f, y / 2048.f, 0.f)), PointLightIndex), distance - 0.005f).x;
+            ShadowFactor += T_PointLightDepth.SampleCmpLevelZero(g_SamplerGreater, float4(normalize(BaseDir + float3(x / 2048.f, y / 2048.f, 0.f)), PointLightIndex), distance - 0.005f).x;
         }
     }
     ShadowFactor /= sampleCount * sampleCount;
 
     pOut.lightDiffuse.xyz = (1.f - ShadowFactor) * pOut.lightDiffuse.xyz;
     pOut.lightDiffuse.xyz *= Dot * attenuation;
-    
+
 	return pOut;
 }

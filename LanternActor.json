@@ -1,0 +1,47 @@
+{
+    "MStaticMeshActor": {},
+    "MActor": {
+        "_components": [
+            {
+                "Key": "RootComponent",
+                "Value": {
+                    "StaticMeshComponent": {},
+                    "MMeshComponent": {
+                        "bPhysicsSimulate": false,
+                        "Mesh": {
+                            "MAsset": {
+                                "Path": "Lantern\\Lantern.json"
+                            }
+                        },
+                        "PhysicsType": 1
+                    },
+                    "MPrimitiveComponent": {
+                        "RenderMode": 0,
+                        "bRendering": true
+                    },
+                    "SceneComponent": {
+                        "Scale": [
+                            0.00999,
+                            0.00999,
+                            0.00999
+                        ],
+                        "Rotation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "Translation": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "bUpdated": false
+                    },
+                    "Component": {},
+                    "MObject": {}
+                }
+            }
+        ]
+    },
+    "MObject": {}
+}

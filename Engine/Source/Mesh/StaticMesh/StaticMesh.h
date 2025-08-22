@@ -26,7 +26,7 @@ public:
     virtual void InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath);
 
 public:
-    virtual bool Load() override;
+    virtual bool Load(const std::wstring& InPath) override;
     virtual void OnLoaded() override;
 
 public:
@@ -38,10 +38,10 @@ public:
     std::vector<Vec3>			AllVertexPosition;
 
 public:
-    std::shared_ptr<FMeshData> GetMeshData(const uint32 Index) const;
+    FMeshData& GetMeshData(const uint32 Index);
     const uint32 GetMeshNum() const { return GetSize(MeshDatas); }
 protected:
-    std::vector<std::shared_ptr<FMeshData>> MeshDatas;
+    std::vector<FMeshData> MeshDatas;
 
 public:
     MaterialList& getMaterials();

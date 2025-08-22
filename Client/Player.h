@@ -8,7 +8,7 @@ class DynamicMeshComponent;
 class TerrainComponent;
 class MTexture;
 class MPointLightComponent;
-class DirectionalLightComponent;
+class MDirectionalLightComponent;
 class SkyComponent;
 
 class Player : public MActor
@@ -30,7 +30,7 @@ public:
 private:
     std::shared_ptr<DynamicMeshComponent>	CharacterMeshComponent;
     std::shared_ptr<MPointLightComponent>	_pLightComponent;
-    std::shared_ptr<DirectionalLightComponent>	_pLightComponent2;
+    std::shared_ptr<MDirectionalLightComponent>	_pLightComponent2;
 
     std::shared_ptr<SkyComponent>			_pSkyComponent;
 

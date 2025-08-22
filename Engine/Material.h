@@ -34,7 +34,6 @@ protected:
     std::wstring Name;
 
 public:
-    virtual bool Load() override;
     virtual void OnLoaded() override;
 
 public:

@@ -5,7 +5,7 @@ MStaticMeshActor::MStaticMeshActor()
     : MActor()
 {
     StaticMeshComp = std::make_shared<StaticMeshComponent>();
-    addComponent(ROOT_COMPONENT, StaticMeshComp);
+    AddComponent(ROOT_COMPONENT, StaticMeshComp);
 }
 
 void MStaticMeshActor::SetStaticMesh(const std::wstring& Path)

@@ -91,6 +91,13 @@ public:
             Lambda(args...);
         }
     }
+    
+    void Clear()
+    {
+        DelegateDatas.clear();
+        RawDelegateDatas.clear();
+        Lambdas.clear();
+    }
 
 protected:
     std::vector<FDelegateData> DelegateDatas;

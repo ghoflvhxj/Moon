@@ -21,6 +21,7 @@ void MActor::PostConstruct()
     for (auto& [Name, Comp] : _components)
     {
         RegisterComponent(Comp);
+        Comp->SetOwner(GetShared());
         Comp->setOwningActor(GetShared());
     }
 }
@@ -75,7 +76,7 @@ std::shared_ptr<SceneComponent> MActor::getComponent(const wchar_t componentName
 	return pComponent;
 }
 
-const bool MActor::addComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> pComponent)
+const bool MActor::AddComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> InComponent)
 {
-	return MapUtility::FindInsert(_components, componentName, pComponent);
+	return MapUtility::FindInsert(_components, componentName, InComponent);
 }

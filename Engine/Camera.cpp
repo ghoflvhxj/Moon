@@ -42,7 +42,7 @@ MCamera::~MCamera()
 void MCamera::initialize()
 {
 	_pSceneComponent = CreateDefaultSubObject<SceneComponent>();
-	addComponent(ROOT_COMPONENT, _pSceneComponent);
+	AddComponent(ROOT_COMPONENT, _pSceneComponent);
 	_pSceneComponent->Update(0.f);
 }
 

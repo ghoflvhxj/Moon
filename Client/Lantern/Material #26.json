@@ -36,5 +36,6 @@
     },
     "MAsset": {
         "Path": "Lantern\\Material #26.json"
-    }
+    },
+    "MObject": {}
 }

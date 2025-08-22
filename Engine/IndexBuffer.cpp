@@ -3,7 +3,7 @@
 #include "GraphicDevice.h"
 #include "WindowException.h"
 
-MIndexBuffer::MIndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, void *buffer)
+MIndexBuffer::MIndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, const void *buffer)
 	: _pBuffer		{ nullptr }
 	, _indexCount	{ indexCount }
 {

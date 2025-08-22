@@ -31,9 +31,9 @@ void StaticMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
     uint32 GeometryNum = FbxLoader.GetGeometryNum();
     for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
     {
-        auto NewMeshData = std::make_shared<FMeshData>();
-        NewMeshData->Vertices = Vertices[GeometryIndex];
-        NewMeshData->Indices = Indices[GeometryIndex];
+        FMeshData NewMeshData;
+        NewMeshData.Vertices = Vertices[GeometryIndex];
+        NewMeshData.Indices = Indices[GeometryIndex];
         MeshDatas.push_back(NewMeshData);
     }
 
@@ -46,12 +46,12 @@ void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
     LoadFromFBX(FilePath, FbxLoader);
 }
 
-bool StaticMesh::Load()
+bool StaticMesh::Load(const std::wstring& InPath)
 {
     MeshDatas.clear();
     Materials.clear();
 
-    return Super::Load();
+    return Super::Load(InPath);
 }
 
 void StaticMesh::OnLoaded()
@@ -60,7 +60,7 @@ void StaticMesh::OnLoaded()
     TotalVertexNum = 0;
     for (auto& MeshData : MeshDatas)
     {
-        TotalVertexNum += GetSize(MeshData->Vertices);
+        TotalVertexNum += GetSize(MeshData.Vertices);
     }
 
     AllVertexPosition.clear();
@@ -69,9 +69,9 @@ void StaticMesh::OnLoaded()
     CenterPos = { 0.f, 0.f, 0.f };
     for (auto& MeshData : MeshDatas)
     {
-        for (uint32 i = 0; i < GetSize(MeshData->Vertices); ++i)
+        for (uint32 i = 0; i < GetSize(MeshData.Vertices); ++i)
         {
-            Vec4& Pos = MeshData->Vertices[i].Pos;
+            Vec4& Pos = MeshData.Vertices[i].Pos;
 
             AllVertexPosition[VertexCounter].x = Pos.x;
             AllVertexPosition[VertexCounter].y = Pos.y;
@@ -144,14 +144,15 @@ const std::vector<::Vec3>& StaticMesh::GetAllVertexPosition() const
     return AllVertexPosition;
 }
 
-std::shared_ptr<FMeshData> StaticMesh::GetMeshData(const uint32 Index) const
+FMeshData& StaticMesh::GetMeshData(const uint32 Index)
 {
     if (Index < GetMeshNum())
     {
         return MeshDatas[Index];
     }
 
-    return nullptr;
+    static FMeshData Empty;
+    return Empty;
 }
 
 MaterialList& StaticMesh::getMaterials()

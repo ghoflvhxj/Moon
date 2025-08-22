@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <iostream>
+
 // 가변인자 매크로
 //#define EXPAND (x) x
 //#define F(x, ...) X = x and VA_ARGS = __VA_ARGS__

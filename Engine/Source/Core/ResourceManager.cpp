@@ -47,9 +47,11 @@ std::shared_ptr<MAsset> MResourceManager::Load(const std::wstring& InPath, const
         MSGBOX(TEXT("지원되지 않은 파일 확장자(") + FileExtension + TEXT(")"));
 
         // 피직스 임시
-        std::shared_ptr<MAsset> Asset = std::make_shared<MAsset>();
-        Asset->SetAssetPath(InPath);
-        return Asset;
+        std::shared_ptr<MAsset> Asset(static_cast<MAsset*>(Create(InTypeDesc)));
+        Asset->SetAssetPath(Path);
+        TempCache.emplace(Path, Asset);
+
+        return TempCache[Path];
     }
 
     return nullptr;

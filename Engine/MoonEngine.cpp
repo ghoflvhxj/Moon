@@ -28,9 +28,11 @@ std::unique_ptr<DirectInput> g_pDirectInput			= nullptr;
 std::unique_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
 std::unique_ptr<MShaderManager> ShaderManager		= nullptr;
 std::unique_ptr<Renderer> g_pRenderer				= nullptr;
-std::unique_ptr<MainGame> g_pMainGame				= nullptr;
-std::unique_ptr<MPhysicsEngine> g_pPhysics				= nullptr;
+std::shared_ptr<MainGame> g_pMainGame				= nullptr;
+std::unique_ptr<MPhysicsEngine> g_pPhysics			= nullptr;
 ENGINE_DLL std::unique_ptr<MResourceManager> g_ResourceManager	= nullptr;
+FDelegate<void> PostLoopDeleagate;
+FDelegate<void> OnLevelChangedDelegate;
 		
 
 const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow)
@@ -69,6 +71,12 @@ const bool EngineLoop()
 	return g_pMainGame->Loop();
 }
 
+ENGINE_DLL void EnginePostLoop()
+{
+    PostLoopDeleagate.Broadcast();
+    PostLoopDeleagate.Clear();
+}
+
 const bool EngineRelease()
 {
     LOG(std::wstring(TEXT("Game Reset Start")));
@@ -96,7 +104,7 @@ std::unique_ptr<Renderer>& getRenderer()
 	return g_pRenderer;
 }
 
-std::unique_ptr<MainGame>& getMainGame()
+std::shared_ptr<MainGame>& getMainGame()
 {
 	return g_pMainGame;
 }
@@ -135,9 +143,19 @@ void RegisterComponent(std::shared_ptr<Component> InComponent)
 
     if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
     {
-        std::weak_ptr<MMeshComponent> WeakMeshComp = MeshComp;
-        MeshComp->GetBeganPlay().Add([WeakMeshComp]() {
-            GetPhysics()->Temp(WeakMeshComp.lock());
-        });
+        //std::weak_ptr<MMeshComponent> WeakMeshComp = MeshComp;
+        //MeshComp->GetBeganPlay().Add([WeakMeshComp]() {
+        //    GetPhysics()->Temp(WeakMeshComp.lock());
+        //});
     }
+}
+
+ENGINE_DLL FDelegate<void>& GetPostLoopDelegate()
+{
+    return PostLoopDeleagate;
+}
+
+ENGINE_DLL FDelegate<void>& GetLevelChangedDelegate()
+{
+    return OnLevelChangedDelegate;
 }

@@ -33,6 +33,14 @@ class MSerializable;
 
 class ENGINE_DLL MJsonSerializer
 {
+    rapidjson::Value HandleData(EType InType, const void* InData);
+    rapidjson::Value HandleData(const FTypeDesc* InTypeDesc, const void* InData);
+    template <class T>
+    T CastData(const void* InData)
+    {
+        return *static_cast<const T*>(InData);
+    }
+
 public:
     MJsonSerializer();
 protected:
@@ -40,8 +48,11 @@ protected:
     rapidjson::MemoryPoolAllocator<>& Allocator;
 
 public:
-    rapidjson::Value DispatchStruct(const FTypeDesc* InTypeDesc, void* InObject);
-    rapidjson::Value DispatchContainer(FContainerPropertyDesc* InContainerPropDesc, void* InObject);
+    rapidjson::Value DispatchStruct(const FTypeDesc* InTypeDesc, const void* InData);
+    rapidjson::Value DispatchVector(FVectorPropertyDesc* InContainerPropDesc, const void* InData);
+    rapidjson::Value DispatchMap(FMapPropertyDesc* InContainerPropDesc, const void* InData);
+
+
 
 public:
     // 리플렉션에 등록된 클래스나 구조체를 Json으로 만듬.
@@ -58,7 +69,7 @@ public:
         const FTypeDesc* Current = Object.GetTypeDesc();
         while (Current)
         {
-            Doc.AddMember(rapidjson::Value(Current->Name, Allocator), DispatchStruct(Current, &Object), Allocator);
+            Doc.AddMember(ToJsonValue(Current->Name), DispatchStruct(Current, &Object), Allocator);
             Current = Current->Parent;
         }
 
@@ -180,7 +191,7 @@ public:
 
     // ToJson T*
     template <class T>
-    rapidjson::Value ToJsonValue(T* InValue, size_t Num, bool bContainer = false)
+    rapidjson::Value ToJsonValue(const T* InValue, size_t Num, bool bContainer = false)
     {
         if (bContainer)
         {

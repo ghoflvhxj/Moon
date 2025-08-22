@@ -43,3 +43,11 @@ enum class EType
     Vec4,
     Enum,
 };
+
+enum class EContainerType
+{
+    None,
+    Map,
+    Unordered_map,
+    Vector,
+};

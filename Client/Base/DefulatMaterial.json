@@ -4,21 +4,27 @@
         "_pixelShaderFileName": "TexPixelShader.cso",
         "_textureList": {
             "0": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "1": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "2": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "3": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "4": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "5": {
+                "MTexture": {},
                 "MAsset": {}
             }
         },

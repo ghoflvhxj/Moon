@@ -37,7 +37,7 @@ const bool MLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primit
 {
 	FPrimitiveData primitiveData        = {};
 	primitiveData.PrimitiveComponent	= GetShared();
-	primitiveData.MeshData              = _pStaticMesh->GetMeshData(0);
+	primitiveData.MeshData              = &_pStaticMesh->GetMeshData(0);
     primitiveData.Material              = Material;
 
 	primitiveDataList.emplace_back(primitiveData);

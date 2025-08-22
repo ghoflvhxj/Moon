@@ -58,6 +58,7 @@
     <ClCompile Include="SkyComponent.cpp" />
     <ClCompile Include="Source\Core\Asset.cpp" />
     <ClCompile Include="Source\Core\FileSystem.cpp" />
+    <ClCompile Include="Source\Core\Object.cpp" />
     <ClCompile Include="Source\Core\Physics\Jolt\Jolt.cpp" />
     <ClCompile Include="Source\Core\Physics\Physics.cpp" />
     <ClCompile Include="Source\Core\Physics\PhysX\MPhysX.cpp" />

@@ -11,6 +11,8 @@ class ENGINE_DLL MPointLightActor : public MActor
 public:
     MPointLightActor();
 
+public:
+    std::shared_ptr<MPointLightComponent> GetPointLightComponent() const { return PointLightComponent; }
 protected:
     std::shared_ptr<MPointLightComponent> PointLightComponent = nullptr;
     std::shared_ptr<MBillboardComponent> VisualComponent = nullptr;

@@ -12,7 +12,10 @@
 
 #include "MainGameSetting.h"
 
+#include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
+#include "ImGui/backends/imgui_impl_dx11.h"
+
 
 LPCWSTR title = TEXT("ShootingGame");
 HWND g_hWnd;
@@ -28,6 +31,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	#else
 	#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 	#endif
+
+    setlocale(LC_ALL, "");
 
 	std::shared_ptr<Window> pWindow = nullptr;
 	try
@@ -54,6 +59,17 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 		EngineInit(hInstance, pWindow);
 		setGame(std::make_unique<MyGame>());
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.Fonts->AddFontFromFileTTF("Resources/Fonts/NanumSquareRoundR.ttf", 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
+
+        ImGui::StyleColorsDark();
+        ImGui_ImplWin32_Init(g_hWnd);
+        ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
 	}
 	catch (const EngineException &e)
 	{
@@ -69,18 +85,19 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		else
-		{
-			if (!EngineLoop())
-			{
-				continue;
-			}
+        else
+        {
+            EngineLoop();
+            EnginePostLoop();
 
-			std::wostringstream out;
-			out << getMainGame()->getFrame();
-			SetWindowText(pWindow->getHandle(), out.str().c_str());
-		}
+            //std::wstring Frame = std::to_wstring(getMainGame()->getFrame());
+            //SetWindowText(pWindow->getHandle(), Frame.c_str());
+        }
 	}
+
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 
 	EngineRelease();
 

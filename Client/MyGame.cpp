@@ -6,6 +6,7 @@
 #include "Core/ObjectPath.h"
 #include "Core/Asset.h"
 #include "Core/Serialize/JsonSerializer.h"
+#include "Core/Serialize/JsonDeSerializer.h"
 
 #include "Renderer.h"
 #include "GraphicDevice.h"
@@ -47,27 +48,21 @@ MyGame::MyGame()
 	: MainGame()
 	, _pPlayer{ nullptr }
 {
-	intializeImGui();
 }
 
 MyGame::~MyGame()
 {
-    ImGui_ImplDX11_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
 }
 
 const bool MyGame::initialize()
 {
     MainGame::initialize();
 
-	getMainCamera()->setLookMode(MCamera::LookMode::To);
+	_pPlayer = CreateActor<Player>(GetShared());
 
-	_pPlayer = CreateActor<Player>(this);
-
-    LanternActor = CreateActor<MStaticMeshActor>(this);
+    LanternActor = CreateActor<MStaticMeshActor>(GetShared());
     LanternActor->GetStaticMeshCompoent()->SetPhysicsType(EPhysicsType::Dynamic);
-    LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.fbx"));
+    LanternActor->SetStaticMesh(TEXT("Lantern/Lantern.json"));
     LanternActor->GetStaticMeshCompoent()->setScale(Vec3{ 0.01f, 0.01f, 0.01f });
     LanternActor->GetStaticMeshCompoent()->SetDrawCollision(true);
     LanternActor->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
@@ -75,7 +70,7 @@ const bool MyGame::initialize()
     LanternActor->GetStaticMeshCompoent()->RemovePhysics();
 
 #if UseGround == 1
-    auto Ground = CreateActor<MStaticMeshActor>(this);
+    auto Ground = CreateActor<MStaticMeshActor>(GetShared());
     Ground->GetStaticMeshCompoent()->SetMesh(TEXT("Base/Box.json"));
     
     std::shared_ptr<MTexture> Diffuse = nullptr;
@@ -91,41 +86,32 @@ const bool MyGame::initialize()
 
 
 #if UseDirectionalLight == 1
-    auto DirectionalLight = CreateActor<MDirectionalLightActor>(this);
+    auto DirectionalLight = CreateActor<MDirectionalLightActor>(GetShared());
 #endif
 
-    auto Table = CreateActor<MStaticMeshActor>(this);
+    auto Table = CreateActor<MStaticMeshActor>(GetShared());
     Table->GetStaticMeshCompoent()->SetMesh(TEXT("Table/Table.json"));
     Table->GetStaticMeshCompoent()->setScale(Vec3{ 0.02f, 0.02f, 0.02f });
     Table->GetStaticMeshCompoent()->setDrawingBoundingBox(true);
     Table->GetStaticMeshCompoent()->SetDrawCollision(true);
 
-    auto a = CreateActor<MPointLightActor>(this);
+    auto a = CreateActor<MPointLightActor>(GetShared());
+    a->GetPointLightComponent()->setRange(10.f);
 
-    std::filesystem::path CurrentPath = std::filesystem::current_path();
-    wcout << CurrentPath.wstring() << endl;
-
+    for (auto& [Name, Desc] : GetTypeDescs())
+    {
+        std::wcout << StringToWString(Desc->Name.c_str()) << std::endl;
+    }
 	return true;
-}
-
-void MyGame::intializeImGui()
-{
-	// ImGui
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.Fonts->AddFontFromFileTTF("Resources/Fonts/NanumSquareRoundR.ttf", 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
-
-	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(g_hWnd);
-	ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
 }
 
 void MyGame::Tick(const Time deltaTime)
 {
-    
+    if (getRenderer() == nullptr)
+    {
+        return;
+    }
+
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
@@ -309,13 +295,18 @@ void MyGame::PostUpdate(const Time deltaTime)
 
 void MyGame::render()
 {
+    if (getRenderer() == nullptr)
+    {
+        return;
+    }
+
     if (ImGui::CollapsingHeader("Test Functions"))
     {
         if (ImGui::CollapsingHeader("Actor") && LanternActor)
         {
             auto IsNotEqual = [](float lhs, float rhs)->bool {
                 return std::fabsf(lhs - rhs) > 0.00001;
-                };
+            };
 
             ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
             if (ImGui::Button("AddForce"))
@@ -333,6 +324,28 @@ void MyGame::render()
             {
                 LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 5.f, 0.f);
             }
+        }
+
+        if (ImGui::CollapsingHeader("Level"))
+        {
+            ImGui::Indent(20);
+            if (ImGui::Button("Save"))
+            {
+                MJsonSerializer Serializer;
+                Serializer.Serialize(this, TEXT("D:\\Git\\Moon\\TestLevel.json"), true);
+            }
+            if (ImGui::Button("Load"))
+            {
+                GetLevelChangedDelegate().Broadcast();
+                GetPostLoopDelegate().Add([]() {
+                    std::unique_ptr<MainGame> NewGame = std::make_unique<MainGame>();
+                    MJsonDeserializer Deserializer;
+                    Deserializer.Deserialize(*NewGame.get(), TEXT("D:\\Git\\Moon\\TestLevel.json"));
+                    setGame(std::move(NewGame));
+                });
+
+            }
+            ImGui::Indent(-20);
         }
 
         if (ImGui::CollapsingHeader("JsonTest"))
@@ -379,10 +392,13 @@ void MyGame::render()
             }
         }
 
-        std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(ROOT_COMPONENT));
-        if (DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
+        if (_pPlayer)
         {
-            DynamicMeshComp->Clothing();
+            std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(ROOT_COMPONENT));
+            if (DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
+            {
+                DynamicMeshComp->Clothing();
+            }
         }
 
         if (ImGui::Button("Jolt Save"))
@@ -463,20 +479,18 @@ void MyGame::render()
     {
         uint32 Num = GetSize(Actors);
         uint32 i = 0;
-        for (auto actor : Actors)
+        for (auto& [Name, Actor] : Actors)
         {
-            std::string name = "Actor_" + std::to_string(i++) + "(" + actor->GetTypeDesc()->Name + ")";
-
-            bool bHighlight = ClickedComp.expired() ? false : ClickedComp.lock()->getOwningActor() == actor;
+            bool bHighlight = ClickedComp.expired() ? false : ClickedComp.lock()->getOwningActor() == Actor;
 
             if (bHighlight)
             {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
             }
 
-            if (ImGui::Selectable(name.c_str()))
+            if (ImGui::Selectable(Name.c_str()))
             {
-                ClickedComp = actor->getComponent(ROOT_COMPONENT);
+                ClickedComp = Actor->getComponent(ROOT_COMPONENT);
             }
 
             if (bHighlight)
@@ -543,8 +557,8 @@ void MyGame::render()
                     MJsonSerializer Serializer;
                     Serializer.Serialize(EditAsset, EditAsset->GetAssetPath(), true);
                 }
-                ImGui::EndMenu();
             }
+            ImGui::EndMenu();
 
             const FTypeDesc* Current = EditAssetDesc;
             while (Current)
@@ -568,7 +582,6 @@ void MyGame::render()
     }
 
 	ImGui::End();
-
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
@@ -578,7 +591,7 @@ bool MyGame::IsPickable() const
     return ImGui::GetIO().WantCaptureMouse == false;
 }
 
-void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject)
+void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* InContainerDesc, void* InObject)
 {
     if (InObject == nullptr)
     {
@@ -712,7 +725,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
     {
         if (Prop->IsContainer())
         {
-            DispatchContainer(Prop->TypeDesc, static_cast<FContainerPropertyDesc*>(Prop), InObject);
+            DispatchContainer(Prop->TypeDesc, static_cast<FVectorPropertyDesc*>(Prop), InObject);
         }
         else if (Prop->IsArray()) // 배열
         {

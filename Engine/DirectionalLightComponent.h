@@ -4,13 +4,15 @@
 
 class MTexture;
 
-class ENGINE_DLL DirectionalLightComponent : public MLightComponent
+class ENGINE_DLL MDirectionalLightComponent : public MLightComponent
 {
 public:
-	explicit DirectionalLightComponent(void);
-	virtual ~DirectionalLightComponent(void);
+	explicit MDirectionalLightComponent(void);
+	virtual ~MDirectionalLightComponent(void);
 
 public:
     virtual void Update(const Time deltaTime) override;
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
+
+    REFLECT(MDirectionalLightComponent)
 };

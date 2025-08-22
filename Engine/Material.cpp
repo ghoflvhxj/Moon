@@ -41,13 +41,6 @@ MMaterial::~MMaterial()
     //LOG(std::wstring(TEXT("Destroy MMaterial!!!")));
 }
 
-bool MMaterial::Load()
-{
-    Super::Load();
-
-    return true;
-}
-
 void MMaterial::OnLoaded()
 {
     Super::OnLoaded();
@@ -59,7 +52,16 @@ void MMaterial::SetTexturesToDevice()
 	rawData.reserve(_textureList.size());
 	for (auto &texture : _textureList)
 	{
-		rawData.emplace_back(texture ? texture->getRawResourceViewPointer() : nullptr);
+        if (texture.get() == nullptr)
+        {
+            rawData.push_back(nullptr);
+        }
+        else
+        {
+            rawData.push_back(texture->getRawResourceViewPointer());
+        }
+
+		//rawData.push_back(texture != nullptr ? texture->getRawResourceViewPointer() : nullptr);
 	}
 
 	g_pGraphicDevice->getContext()->PSSetShaderResources(0, CastValue<UINT>(rawData.size()), &rawData[0]);

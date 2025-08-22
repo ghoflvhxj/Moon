@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Include.h"
+#include "Core/Delegate.h"
 
 class Window;
 class MainGame;
@@ -10,12 +11,16 @@ class MPhysicsEngine;
 
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<Window> pWindow);
 ENGINE_DLL const bool EngineLoop();
+ENGINE_DLL void EnginePostLoop();
 ENGINE_DLL const bool EngineRelease();
 ENGINE_DLL std::unique_ptr<GraphicDevice>& getGraphicDevice();
 ENGINE_DLL std::unique_ptr<Renderer>& getRenderer();
-ENGINE_DLL std::unique_ptr<MainGame>& getMainGame();
+ENGINE_DLL std::shared_ptr<MainGame>& getMainGame();
 ENGINE_DLL std::unique_ptr<MainGameSetting>& getSetting();
 ENGINE_DLL std::unique_ptr<MPhysicsEngine>& GetPhysics();
+ENGINE_DLL const bool setGame(std::unique_ptr<MainGame>&& pGame);
+ENGINE_DLL FDelegate<void>& GetPostLoopDelegate();
+ENGINE_DLL FDelegate<void>& GetLevelChangedDelegate();
 
 template <class T>
 const bool createMainGame(std::shared_ptr<T> &pGame)
@@ -28,11 +33,13 @@ const bool createMainGame(std::shared_ptr<T> &pGame)
 }
 
 template <class T>
-T* GetGame()
+std::shared_ptr<T> GetGame()
 {
-    return static_cast<T*>(getMainGame().get());
+    return std::static_pointer_cast<T>(getMainGame());
 }
 
-ENGINE_DLL const bool setGame(std::unique_ptr<MainGame>&& pGame);
+
 
 void RegisterComponent(std::shared_ptr<class Component> InComponent);
+
+

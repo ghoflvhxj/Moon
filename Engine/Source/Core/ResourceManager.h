@@ -100,4 +100,8 @@ protected:
 	std::map<std::wstring, std::shared_ptr<MResourceLoader>> ResourceLoaders;
     // TypeDesc, 리소스 로더 쌍의 맵
     std::map<const FTypeDesc*, std::shared_ptr<MResourceLoader>> ResourceLoaders2;
+
+    // 아직 지원하지 않은 애셋들을 매니저가 직접 관리
+    // TODO
+    std::map<std::wstring, std::shared_ptr<MAsset>> TempCache;
 };

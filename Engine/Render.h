@@ -102,7 +102,7 @@ struct FPrimitiveData
 	EPrimitiveType PrimitiveType = EPrimitiveType::Count;
 
 	// 메시가 채우는 데이터
-	std::weak_ptr<FMeshData> MeshData;
+	const FMeshData* MeshData = nullptr;
 
 	// 렌더러가 채워줘야 하는 데이터
 	std::shared_ptr<MVertexBuffer>				VertexBuffer;

@@ -26,7 +26,7 @@ struct FPhysicsConstructData
 
 class ENGINE_DLL MPhysics : public MAsset
 {
-
+    REFLECT_TOP(MPhysics)
 };
 
 class ENGINE_DLL MPhysicsEngine

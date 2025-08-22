@@ -4,7 +4,7 @@
 class MIndexBuffer
 {
 public:
-	explicit MIndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, void *buffer);
+	explicit MIndexBuffer(const uint32 elementTypeSize, const uint32 indexCount, const void *buffer);
 	~MIndexBuffer();
 
 public:

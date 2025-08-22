@@ -1,9 +1,12 @@
 ﻿#pragma once
 
-#include "Property/FundamentaProperty.h"
-#include "Property/ContainerProperty.h"
-#include "TypeDesc.h"
 #include "Macro.h"
+#include "TypeDesc.h"
+
+#include "Property/FundamentaProperty.h"
+#include "Property/VectorProperty.h"
+#include "Property/MapProperty.h"
+
 
 void ReleaseReflection();
 
@@ -29,10 +32,12 @@ static const FTypeDesc* GetTypeDescStatic() \
 	sizeof(MyClass), \
 	{ __VA_ARGS__ }}; \
     \
-    GetTypeDescs().emplace(&MyClass##_Desc); \
+    AddTypeDesc<Self>(&MyClass##_Desc); \
     \
 	return &MyClass##_Desc; \
-}
+} \
+private: \
+inline static const FTypeDesc* MyClass##_Desc = GetTypeDescStatic(); 
 
 #define REFLECT(MyClass, ...) \
 public: \
@@ -50,14 +55,16 @@ static const FTypeDesc* GetTypeDescStatic() \
 	sizeof(MyClass), \
 	{ __VA_ARGS__ }}; \
     \
-    GetTypeDescs().emplace(&MyClass##_Desc); \
+    AddTypeDesc<Self>(&MyClass##_Desc); \
     \
 	return &MyClass##_Desc; \
 } \
 std::shared_ptr<Self> GetShared() \
 { \
     return static_pointer_cast<Self>(shared_from_this()); \
-}
+} \
+private: \
+inline static const FTypeDesc* MyClass##_Desc = GetTypeDescStatic(); 
 
 template <>
 const FTypeDesc* GetTypeDesc<Vec2>();

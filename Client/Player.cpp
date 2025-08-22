@@ -27,10 +27,10 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/filereadstream.h"
 
-#define UsePointLight 1
+#define UsePointLight 0
 #define UseRandomPointLight 1
 
-#define UseDynamicMesh 1
+#define UseDynamicMesh 0
 #define UseSkySphere 0
 
 using namespace DirectX;
@@ -50,21 +50,21 @@ void Player::initialize()
 {
     LoadedStaticMeshComp = std::make_shared<StaticMeshComponent>();
     LoadedStaticMeshComp->setScale(Vec3(0.01f, 0.01f, 0.01f));
-    addComponent(TEXT("LoadedStaticMesh"), LoadedStaticMeshComp);
+    AddComponent(TEXT("LoadedStaticMesh"), LoadedStaticMeshComp);
 
     LoadedDynamicMeshComp = std::make_shared<DynamicMeshComponent>();
-    addComponent(TEXT("LoadedDynamicMesh"), LoadedDynamicMeshComp);
+    AddComponent(TEXT("LoadedDynamicMesh"), LoadedDynamicMeshComp);
 
 #if UsePointLight == 1
     _pLightComponent = std::make_shared<MPointLightComponent>();
     _pLightComponent->setRange(10.f);
     _pLightComponent->setTranslation(0.f, 0.f, 0.f);
-    addComponent(TEXT("PointLight"), _pLightComponent);
+    AddComponent(TEXT("PointLight"), _pLightComponent);
 #endif
 
 #if UseDynamicMesh == 1
 	CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
-	addComponent(ROOT_COMPONENT, CharacterMeshComponent);
+	AddComponent(ROOT_COMPONENT, CharacterMeshComponent);
     CharacterMeshComponent->SetPhysics(false);
 	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
@@ -81,7 +81,7 @@ void Player::initialize()
 	std::shared_ptr<MTexture> SkyTexture = std::make_shared<MTexture>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
 	_pSkyComponent = std::make_shared<SkyComponent>();
 	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, SkyTexture);
-	addComponent(TEXT("Sky"), _pSkyComponent);
+	AddComponent(TEXT("Sky"), _pSkyComponent);
 	_pSkyComponent->setRotation(Vec3{ XMConvertToRadians(270.f), 0.f, 0.f });
 #endif
 
@@ -101,7 +101,7 @@ void Player::initialize()
 		_pLightComponentList.push_back(pLight);
 
 		std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
-		addComponent(tag.c_str(), pLight);
+		AddComponent(tag.c_str(), pLight);
 	}
 #endif
 }
@@ -169,7 +169,6 @@ void Player::tick(const Time deltaTime)
             rot.y = rot.y + (((rot.y + mouseX) - rot.y) * 0.005f);
             CameraComponent->setRotation(rot);
         }
-
     }
 
 #if UseDynamicMesh == 1
@@ -208,6 +207,7 @@ void Player::tick(const Time deltaTime)
 			_pLightComponentList[i]->setTranslation(trans);
 
             _pLightComponentList[i]->setTranslation(std::cosf(DeltaTime + 2.f) * 5.f, 2.f, std::sinf(DeltaTime + 2.f) * 5.f);
+            _pLightComponentList[0]->setIntensity(6.f + 2.f * sinf(DeltaTime * 2.f));
 		}
 	}
 #endif

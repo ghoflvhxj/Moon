@@ -1,5 +1,7 @@
 ﻿#include "Renderer.h"
 
+#include "MoonEngine.h"
+
 #include "MapUtility.h"
 
 // DirectXTK
@@ -63,7 +65,31 @@ Renderer::Renderer() noexcept
 	_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
 	RenderPasses.reserve(CastValue<size_t>(ERenderPass::Count));
 
-	initialize();
+    GetLevelChangedDelegate().Add([&]() {
+        RenderablePrimitiveData.clear();
+        PrimitiveDatasPerType.clear();
+
+        PrimitiveComponents.clear();
+
+        IndexBuffers.clear();
+        VertexBuffers.clear();
+
+        IdToPrimitiveDatas.clear();
+
+        ViewPrimitiveData.clear();
+        if (ViewMeshComponent)
+        {
+            ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
+            MakeBuffer(ViewMeshComponent);
+        }
+
+        if (GizmoMeshComp)
+        {
+            MakeBuffer(GizmoMeshComp);
+        }
+    });
+
+    initialize();
 }
 
 Renderer::~Renderer() noexcept
@@ -93,18 +119,19 @@ void Renderer::Release()
 
 void Renderer::initialize() noexcept
 {
-	ViewMeshComponent = std::make_shared<StaticMeshComponent>();
+    ViewMeshComponent = std::make_shared<StaticMeshComponent>();
     ViewMeshComponent->SetPhysics(false);
     ViewMeshComponent->SetMesh(TEXT("Base/Plane.fbx"));
-	ViewMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
-	ViewMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
+    ViewMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
+    ViewMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
     ViewMeshComponent->GetMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 
     std::shared_ptr<MMaterial> ViewMat = nullptr;
     g_ResourceManager->Load(TEXT("Base/Deferred.json"), ViewMat);
     ViewMeshComponent->SetMaterial(0, ViewMat);
 
-	ViewMeshComponent->SceneComponent::Update(0.f);
+    ViewMeshComponent->SceneComponent::Update(0.f);
+    ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
     MakeBuffer(ViewMeshComponent);
 
 	// 렌더 타겟 추가
@@ -305,7 +332,7 @@ void Renderer::MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponen
         PrimitiveData.VertexBuffer = VertexBuffers[PrimitiveID][i];
         PrimitiveData.IndexBuffer = IndexBuffers[PrimitiveID][i];
 
-        if (PrimitiveData.MeshData.expired())
+        if (PrimitiveData.MeshData == nullptr)
         {
             continue;
         }
@@ -319,14 +346,14 @@ void Renderer::MakeBuffer(FPrimitiveData& PrimitiveData)
 {
 	int32 PrimitiveID = PrimitiveData.PrimitiveComponent.lock()->GetPrimitiveID();
 
-	auto& MeshData = PrimitiveData.MeshData.lock();
+	auto& MeshData = *PrimitiveData.MeshData;
 	uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
-	uint32 VertexNum = GetSize(MeshData->Vertices);
-	VertexBuffers[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData->Vertices.data()));
+	uint32 VertexNum = GetSize(MeshData.Vertices);
+	VertexBuffers[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData.Vertices.data()));
 
 	uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
-	uint32 IndexNum = GetSize(MeshData->Indices);
-	IndexBuffers[PrimitiveID].push_back(IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData->Indices.data()) : nullptr);
+	uint32 IndexNum = GetSize(MeshData.Indices);
+	IndexBuffers[PrimitiveID].push_back(IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData.Indices.data()) : nullptr);
 }
 
 void Renderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
@@ -506,7 +533,7 @@ void Renderer::Render()
         GizmoMeshComp->setScale(0.001f * DistToScale, 0.001f * DistToScale, 0.001f * DistToScale);
         GizmoMeshComp->GetPrimitiveData(GizmoPrimitives);
         GizmoMeshComp->SceneComponent::Update(0.f);
-        
+
         for (uint32 i = 0; i < GetSize(GizmoPrimitives); ++i)
         {
             uint32 PrimitiveID = GizmoMeshComp->GetPrimitiveID();
@@ -541,7 +568,6 @@ void Renderer::Render()
 
     // 전부 삭제하는 것이 아니라 삭제된 것만 제거 되도록 변경하기
     //DeferredPrimitiveDataMap.clear(); -> 버퍼가 한번 생성되면, 재추가 되지는 않아서 비우지 않아도 됨
-    PrimitiveDatasPerType.clear();
 }
 
 void Renderer::RenderScene()
@@ -557,11 +583,9 @@ void Renderer::RenderScene()
 	}
 
 	// 혼합 패스
-	std::vector<FPrimitiveData> ViewPrimitiveData;
-	ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
-	ViewPrimitiveData[0].VertexBuffer = VertexBuffers[ViewMeshComponent->GetPrimitiveID()][0];
-	ViewPrimitiveData[0].IndexBuffer = IndexBuffers[ViewMeshComponent->GetPrimitiveID()][0];
-	RenderPasses[CombinePass]->RenderPass(ViewPrimitiveData);
+    ViewPrimitiveData[0].VertexBuffer = VertexBuffers[ViewMeshComponent->GetPrimitiveID()][0];
+    ViewPrimitiveData[0].IndexBuffer = IndexBuffers[ViewMeshComponent->GetPrimitiveID()][0];
+    RenderPasses[CombinePass]->RenderPass(ViewPrimitiveData);
 }
 
 void Renderer::RenderText()

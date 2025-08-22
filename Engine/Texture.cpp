@@ -57,9 +57,9 @@ MTexture::~MTexture()
 	SafeRelease(_rawTexture);
 }
 
-bool MTexture::Load()
+bool MTexture::Load(const std::wstring& InPath)
 {
-    if (Super::Load())
+    if (Super::Load(InPath))
     {
         loadTextureFile(Path.c_str());
         return true;

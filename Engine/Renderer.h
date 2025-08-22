@@ -26,6 +26,7 @@ private:
 	void initialize() noexcept;
 private:
 	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
+    std::vector<FPrimitiveData> ViewPrimitiveData;
 
 public:
 	void AddPrimitive(std::shared_ptr<MPrimitiveComponent> pComponent);

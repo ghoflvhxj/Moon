@@ -4,6 +4,9 @@
 #include "Core/Delegate.h"
 #include "Core/Object.h"
 
+// 리플렉션을 위한 include
+#include "Actor.h"
+
 class Window;
 class MTimerManager;
 class FrameManager;
@@ -36,13 +39,24 @@ public:
 
 	MainGame &operator=(const MainGame &ref) = delete;
 
-	//-------------------------------------------------------------------------
+    // 임시
+public:
+    virtual void OnLoaded() override
+    {
+        LOG(std::wstring(TEXT("Game Loaded!!!")));
+
+        for (auto& [Name, Actor] : Actors)
+        {
+            Actor->PostConstruct();
+        }
+    }
+
 public:
 	virtual const bool initialize();
 
 public:
 	const bool Loop();
-protected:
+protected:  
 	virtual void Tick(const Time deltaTime);
 private:
     void Update(const Time deltaTime);
@@ -63,7 +77,9 @@ public:
 public:
 	void addActor(std::shared_ptr<MActor> pActor);
 protected:
-	std::list<std::shared_ptr<MActor>> Actors;
+	//std::list<std::shared_ptr<MActor>> Actors;
+    std::unordered_map<std::string, std::shared_ptr<MActor>> Actors;
+    uint32 ActorIndexer = 0;
 
 	//-------------------------------------------------------------------------
 public:
@@ -111,4 +127,25 @@ public:
     void ProjectVec2(const Vec2& InBase, const Vec2& InTarget, Vec2& Out) const;
 
     const Vec2 GetMousePos() const;
+
+    REFLECT(
+        MainGame
+        , PROPERTY(Actors)
+    );
 };
+
+template <class T>
+std::shared_ptr<T> CreateActor(std::shared_ptr<MainGame> InGame)
+{
+    if (InGame == nullptr)
+    {
+        return nullptr;
+    }
+
+    std::shared_ptr<T> NewActor = std::make_shared<T>();
+    NewActor->SetOwner(InGame);
+    NewActor->PostConstruct();
+    InGame->addActor(NewActor);
+
+    return NewActor;
+}

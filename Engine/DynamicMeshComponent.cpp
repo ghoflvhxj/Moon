@@ -124,7 +124,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		FPrimitiveData NewPrimitiveData = {};
 		NewPrimitiveData.PrimitiveComponent = GetShared();
 		NewPrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
-		NewPrimitiveData.MeshData = dMesh->GetMeshData(geometryIndex);
+		NewPrimitiveData.MeshData = &dMesh->GetMeshData(geometryIndex);
 		NewPrimitiveData.Material = dMesh->getGeometryLinkMaterialIndex().size() > 0 ? dMesh->getMaterials()[dMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : dMesh->getMaterials()[0];
         NewPrimitiveData.AnimMatrices = JointAnimMatrices;
 
@@ -164,7 +164,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
         FPrimitiveData PrimitiveData = {};
         PrimitiveData.PrimitiveComponent = GetShared();
         PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
-        PrimitiveData.MeshData = BoundingBox->GetMeshData();
+        PrimitiveData.MeshData = BoundingBox->GetMeshData().get();
         PrimitiveData.Material = BoundingBox->getMaterial();
 
         PrimitiveDataList.emplace_back(PrimitiveData);
@@ -195,35 +195,35 @@ void DynamicMeshComponent::Clothing()
         {
             FClothData a;
             a.MeshIndex = 7;
-            a.InvMass.resize(Mesh->GetMeshData(7)->Vertices.size(), 1.f);
+            a.InvMass.resize(Mesh->GetMeshData(7).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             t.push_back(a);
         }
         {
             FClothData a;
             a.MeshIndex = 8;
-            a.InvMass.resize(Mesh->GetMeshData(8)->Vertices.size(), 1.f);
+            a.InvMass.resize(Mesh->GetMeshData(8).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             t.push_back(a);
         }
         {
             FClothData a;
             a.MeshIndex = 11;
-            a.InvMass.resize(Mesh->GetMeshData(11)->Vertices.size(), 1.f);
+            a.InvMass.resize(Mesh->GetMeshData(11).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             t.push_back(a);
         }
         {
             FClothData a;
             a.MeshIndex = 12;
-            a.InvMass.resize(Mesh->GetMeshData(12)->Vertices.size(), 1.f);
+            a.InvMass.resize(Mesh->GetMeshData(12).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             t.push_back(a);
         }
         {
             FClothData a;
             a.MeshIndex = 13;
-            a.InvMass.resize(Mesh->GetMeshData(13)->Vertices.size(), 1.f);
+            a.InvMass.resize(Mesh->GetMeshData(13).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             t.push_back(a);
         }

@@ -4,6 +4,9 @@
 #include "Core/Object.h"
 #include "Core/Delegate.h"
 
+// 리플렉션을 위한 include
+#include "SceneComponent.h"
+
 class Component;
 class SceneComponent;
 class MPrimitiveComponent;
@@ -35,24 +38,12 @@ public:
 public:
     std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>& GetComponents() { return _components; }
 	std::shared_ptr<SceneComponent>		getComponent(const wchar_t componentName[]);
-	const bool							addComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> pComponent);
+	const bool							AddComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> InComponent);
 protected:
 	std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>	_components;
 
-    REFLECT(MActor)
+    REFLECT(
+        MActor
+        , PROPERTY(_components)
+    );
 };
-
-template <class T>
-std::shared_ptr<T> CreateActor(MainGame* InGame)
-{
-    if (InGame == nullptr)
-    {
-        return nullptr;
-    }
-
-    std::shared_ptr<T> NewActor = std::make_shared<T>();
-    NewActor->PostConstruct();
-    InGame->addActor(NewActor);
-
-    return NewActor;
-}

@@ -229,6 +229,7 @@
     <ClCompile Include="Source\Core\Reflection\Reflection.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Source\Core\Reflection\TypeDesc.cpp" />
+    <ClCompile Include="Source\Core\Object.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">

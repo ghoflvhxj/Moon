@@ -1,0 +1,184 @@
+﻿#pragma once
+
+#include "ContainerProperty.h"
+#include <vector>
+
+struct FVectorPropertyDesc : public FPropertyDesc, public FContainerPropertyInterface
+{
+    virtual void* Get(const void* InObject, const size_t InIndex) = 0;
+    virtual void Set(const void* InObject, const size_t InIndex, void*& InData) = 0;
+    virtual void PushBack(const void* InObject, void*& InData) = 0;
+};
+
+template <class Owner, class ElemType, class F >
+static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> Owner::* MemPtr, F InFunc)
+{
+    // 스마트 포인터면 언랩해서 포인터로, 아니면 그대로
+    using NoSmartElemType = std::conditional_t<
+        is_smart_ptr_v<ElemType>,
+        std::add_pointer_t<remove_smart_pointer_t<ElemType>>,
+        ElemType
+    >;
+
+    // 스마트 포인터 제거 타입
+    // T*               -> T*
+    // shared_ptr<T>    -> T*
+    using ImpleType = NoSmartElemType;
+
+    // 포인터, 스마트 포인터, 배열 등을 제거한 순수 타입
+    // T*               -> T
+    // shared_ptr<T>    -> T
+    using PureType = std::conditional_t<std::is_pointer_v<ImpleType>, std::remove_pointer_t<ImpleType>, ImpleType>;
+
+    struct FContainerDescImple : public FVectorPropertyDesc
+    {
+        FContainerDescImple(std::vector<ElemType> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
+            : TestMemPtr(MemPtr), Func(InFunc)
+        {
+        }
+        std::vector<ElemType> Owner::* TestMemPtr = nullptr;
+        std::function<void(Owner* InObject)> Func;
+
+        std::vector<ElemType>& GetVector(const void* InObject) const
+        {
+            return (Owner*)InObject->*TestMemPtr;
+        }
+
+        // --------------------------------------------------------------------------------------------
+        // FProperty
+        virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
+        {
+            return &GetVector(InObject);
+        }
+
+        // --------------------------------------------------------------------------------------------
+        // FContainerProperty
+        virtual void Resize(const void* InObject, const size_t InSize) override
+        {
+            auto& Vector = GetVector(InObject);
+            if constexpr (is_smart_ptr_v<ElemType>)
+            {
+                for (size_t i = GetNum(InObject); i < InSize; ++i)
+                {
+                    Vector.push_back(std::make_shared<PureType>());
+                }
+            }
+            else if constexpr (std::is_pointer_v<ElemType>)
+            {
+                for (size_t i = GetNum(InObject); i < InSize; ++i)
+                {
+                    Vector.push_back(new ElemType());
+                }
+            }
+            else
+            {
+                Vector.resize(InSize);
+            }
+        }
+
+        virtual void Clear(const void* InObject) override
+        {
+            GetVector(InObject).clear();
+        }
+
+        virtual size_t GetNum(const void* InObject) const override
+        {
+            return GetVector(InObject).size();
+        }
+
+        // --------------------------------------------------------------------------------------------
+        // FVectorProperty
+        virtual void* Get(const void* InObject, const size_t InIndex) override
+        {
+            auto& Vector = GetVector(InObject);
+            if constexpr (is_smart_ptr_v<ElemType>)
+            {
+                if (Vector[InIndex])
+                {
+                    return Vector[InIndex].get();
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+            else if constexpr (std::is_pointer_v<ElemType>)
+            {
+                return Vector[InIndex];
+            }
+            else
+            {
+                return &Vector[InIndex];
+            }
+        }
+
+        virtual void Set(const void* InObject, const size_t InIndex, void*& InData) override
+        {
+            auto& Vector = GetVector(InObject);
+            if constexpr (is_smart_ptr_v<ElemType>)
+            {
+                // shared_ptr이 관리, 포인터 이동
+                Vector[InIndex].reset(static_cast<PureType*>(InData));
+                InData = nullptr;
+            }
+            else if constexpr (std::is_pointer_v<ElemType>)
+            {
+                // 포인터 이동
+                Vector[InIndex] = static_cast<PureType*>(InData);
+                InData = nullptr;
+            }
+            else
+            {
+                // 복사 대입
+                Vector[InIndex] = *static_cast<PureType*>(InData);
+            }
+        }
+
+        virtual void PushBack(const void* InObject, void*& InData) override
+        {
+            auto& Vector = GetVector(InObject);
+
+            if constexpr (is_smart_ptr_v<ElemType>)
+            {
+                // 복사 생성
+                if (InData == nullptr)
+                {
+                    Vector.push_back(nullptr);
+                }
+                else
+                {
+                    ElemType Elem = *static_cast<ElemType*>(InData);
+                    Vector.push_back(Elem);
+                }
+            }
+            else if constexpr (std::is_pointer_v<ElemType>)
+            {
+                // 포인터 이동
+                Vector.push_back(static_cast<PureType*>(InData));
+                InData = nullptr;
+            }
+            else
+            {
+                ElemType* Elem = static_cast<ElemType*>(InData);
+                Vector.push_back(*Elem);
+
+                delete Elem;
+                InData = nullptr;
+            }
+        }
+    };
+
+    using Type = std::conditional_t<std::is_array_v<ElemType>, std::remove_extent_t<ElemType>, ElemType>;
+
+    std::function<void(Owner* InObject)> Func = InFunc;
+    FVectorPropertyDesc* NewDesc = new FContainerDescImple(MemPtr, Func);
+    NewDesc->Name = InName;
+    NewDesc->Size = sizeof(PureType);
+    NewDesc->ContainerType = EContainerType::Vector;
+    NewDesc->ContainerKeyType = EType::Int;
+    NewDesc->bPointerElements = std::is_pointer_v<NoSmartElemType>;
+
+    SetType<PureType>(NewDesc->Type, NewDesc->TypeDesc);
+
+    return NewDesc;
+}

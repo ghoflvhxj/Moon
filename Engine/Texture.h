@@ -14,7 +14,7 @@ public:
 	virtual ~MTexture();
 
 public:
-    virtual bool Load() override;
+    virtual bool Load(const std::wstring& InPath) override;
 	const bool loadTextureFile(const wchar_t *fileName);
 	void setTexture(const uint32 index = 0);
 	ID3D11Texture2D*& GetTextureResource();

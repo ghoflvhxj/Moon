@@ -333,7 +333,7 @@ void MJoltPhysics::SaveTest(std::shared_ptr<StaticMesh> InMesh)
     BodyInterface& bodyInterface = physics_system->GetBodyInterface();
 
     const std::vector<::Vec3>& Vertices = InMesh->GetAllVertexPosition();
-    const std::vector<uint32>& Indices = InMesh->GetMeshData(0)->Indices;
+    const std::vector<uint32>& Indices = InMesh->GetMeshData(0).Indices;
 
     std::vector<JPH::Vec3> JPHVertices(Vertices.size());
     for (int i = 0; i < Vertices.size(); ++i)
@@ -365,7 +365,7 @@ void MJoltPhysics::MakeConvexHull(FPhysicsConstructData& InData)
     BodyInterface& bodyInterface = physics_system->GetBodyInterface();
 
     const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
-    const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0)->Indices;
+    const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0).Indices;
 
     std::vector<JPH::Vec3> JPHVertices(Vertices.size());
     for (int i = 0; i < Vertices.size(); ++i)
@@ -411,7 +411,7 @@ bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_p
 
 
         const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
-        const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0)->Indices;
+        const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0).Indices;
 
         //if (Vertices.empty())
         //{
@@ -475,7 +475,7 @@ bool MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhys
     BodyInterface& bodyInterface = physics_system->GetBodyInterface();
 
     const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
-    const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0)->Indices;
+    const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0).Indices;
 
     SoftBodySharedSettings* NewSharedSettings = new SoftBodySharedSettings();
 
@@ -529,11 +529,11 @@ void MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::vector<FClothDat
     for (const FClothData& ClothData : ClothDatas)
     {
         MeshIndices.push_back(ClothData.MeshIndex);
-        std::shared_ptr<FMeshData> MeshData = InData.Mesh->GetMeshData(ClothData.MeshIndex);
+        const FMeshData& MeshData = InData.Mesh->GetMeshData(ClothData.MeshIndex);
         
-        for (uint32 i = 0; i < GetSize(MeshData->Vertices); ++i)
+        for (uint32 i = 0; i < GetSize(MeshData.Vertices); ++i)
         {
-            const ::Vec4& VtxPos = MeshData->Vertices[i].Pos;
+            const ::Vec4& VtxPos = MeshData.Vertices[i].Pos;
             FVertexKey VertexKey = { VtxPos.x, VtxPos.y, VtxPos.z };
 
             if (VertexIndex.find(VertexKey) != VertexIndex.end())
@@ -549,15 +549,15 @@ void MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::vector<FClothDat
             NewSharedSettings->mVertices.push_back(NewVertex);
         }
 
-        uint32 IndexLoopNum = GetSize(MeshData->Indices) / 3;
+        uint32 IndexLoopNum = GetSize(MeshData.Indices) / 3;
         for (uint32 i = 0; i < IndexLoopNum; ++i)
         {
             SoftBodySharedSettings::Face NewFace;
 
             for (uint32 j = 0; j < 3; ++j)
             {
-                uint32 Index = MeshData->Indices[i * 3 + j];
-                const ::Vec4& VtxPos = MeshData->Vertices[Index].Pos;
+                uint32 Index = MeshData.Indices[i * 3 + j];
+                const ::Vec4& VtxPos = MeshData.Vertices[Index].Pos;
 
                 FVertexKey VertexKey = { VtxPos.x, VtxPos.y, VtxPos.z };
                 Index = VertexIndex[VertexKey];
@@ -698,7 +698,7 @@ void MJoltPhysics::Update(float deltaTime)
         JPH::Vec3 ToLocal = PhysicObject->CachePos;
         for (uint32 MeshIndex : PhysicObject->GetMeshIndices())
         {
-            std::vector<::Vertex> Vertices = PhysicObject->GetMesh()->GetMeshData(MeshIndex)->Vertices;
+            std::vector<::Vertex>& Vertices = PhysicObject->GetMesh()->GetMeshData(MeshIndex).Vertices;
             uint32 VertexNum = GetSize(Vertices);
             for (uint32 i = 0; i < VertexNum; ++i)
             {
@@ -706,14 +706,6 @@ void MJoltPhysics::Update(float deltaTime)
                 Vertices[i].Pos.x = BodyPos.GetX() - ToLocal.GetX() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetX();
                 Vertices[i].Pos.y = BodyPos.GetY() - ToLocal.GetY() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetY();
                 Vertices[i].Pos.z = BodyPos.GetZ() - ToLocal.GetZ() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ();
-
-                //Vertices[i].Pos.x = BodyPos.GetX() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetX();
-                //Vertices[i].Pos.y = BodyPos.GetY() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetY();
-                //Vertices[i].Pos.z = BodyPos.GetZ() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ();
-
-                //Vertices[i].Pos.x = BodyPos.GetX();
-                //Vertices[i].Pos.y = BodyPos.GetY();
-                //Vertices[i].Pos.z = BodyPos.GetZ();
 
                 if (test == -1 && SoftBodyVertices[SoftBodyVertexIndex].mInvMass == 0.f)
                 {

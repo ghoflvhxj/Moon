@@ -70,7 +70,7 @@ public:
     class MAsset* EditAsset = nullptr;
 };
 
-void DispatchContainer(const FTypeDesc* InElementTypeDesc, FContainerPropertyDesc* InContainerDesc, void* InObject);
+void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* InContainerDesc, void* InObject);
 void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InPropertyDesc, void* InObject);
 void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject);
 
