@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __CAMERA_H__
 
 #include "Actor.h"
 
@@ -80,7 +79,6 @@ private:
 
 private:
 	std::shared_ptr<SceneComponent> _pSceneComponent = nullptr;
-};
 
-#define __CAMERA_H__
-#endif
+    REFLECT(MCamera)
+};

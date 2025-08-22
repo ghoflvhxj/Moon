@@ -9,11 +9,6 @@
 
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 
-#include "MainGame.h"
-#include "Camera.h"
-
-#include "Core/Physics/Jolt/Jolt.h"
-
 using namespace DirectX;
 
 DynamicMeshComponent::DynamicMeshComponent()

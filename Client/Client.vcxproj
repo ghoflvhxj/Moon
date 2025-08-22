@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Launch.cpp" />
-    <ClCompile Include="MyGame.cpp" />
+    <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
@@ -31,7 +31,7 @@
     <ClCompile Include="Source\ThirdParty\ImGui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MyGame.h" />
+    <ClInclude Include="Editor.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.h" />

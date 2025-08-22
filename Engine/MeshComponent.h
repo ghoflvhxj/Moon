@@ -79,6 +79,8 @@ protected:
             InObject->Reload();
         }),
         PROPERTY(PhysicsType),
-        PROPERTY(Materials)
+        PROPERTY_DELEGATE(Materials, [&](MMeshComponent* InObject) {
+            InObject->UpdatePrimitive();
+        })
     );
 };

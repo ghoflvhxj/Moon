@@ -22,7 +22,7 @@
     <ClCompile Include="Launch.cpp">
       <Filter>etc</Filter>
     </ClCompile>
-    <ClCompile Include="MyGame.cpp" />
+    <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Player.cpp">
       <Filter>Actor\Player</Filter>
     </ClCompile>
@@ -36,7 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="MyGame.h" />
+    <ClInclude Include="Editor.h" />
     <ClInclude Include="Player.h">
       <Filter>Actor\Player</Filter>
     </ClInclude>

@@ -51,6 +51,12 @@ public:
 	virtual ~MPrimitiveComponent();
 
 public:
+    void UpdatePrimitive()
+    {
+        GetPrimitiveChangedDelegate().Broadcast(GetShared());
+    }
+
+public:
     FDelegate<void, std::shared_ptr<MPrimitiveComponent>>& GetPrimitiveChangedDelegate() { return OnPrimitiveChangedDelegate; }
 protected:
     FDelegate<void, std::shared_ptr<MPrimitiveComponent>> OnPrimitiveChangedDelegate;

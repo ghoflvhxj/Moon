@@ -12,7 +12,7 @@
 #include "Material.h"
 
 // Game
-#include "MainGame.h"
+#include "World.h"
 
 // Actor
 #include "Camera.h"
@@ -181,8 +181,8 @@ void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &Prim
 	Material->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
 	Material->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
 
-	Material->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
-	Material->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
+	Material->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_World->getMainCamera()->getInvesrViewMatrix());
+	Material->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_World->getMainCamera()->getInversePerspectiveProjectionMatrix());
 
 	MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }
@@ -254,8 +254,8 @@ void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveD
 
     Material->getPixelShader()->SetValue(TEXT("PointLightIndex"), PointLightIndex++);
 
-    Material->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_pMainGame->getMainCamera()->getInvesrViewMatrix());
-    Material->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_pMainGame->getMainCamera()->getInversePerspectiveProjectionMatrix());
+    Material->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_World->getMainCamera()->getInvesrViewMatrix());
+    Material->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_World->getMainCamera()->getInversePerspectiveProjectionMatrix());
 
     MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }

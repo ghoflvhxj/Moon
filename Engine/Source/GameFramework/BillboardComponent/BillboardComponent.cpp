@@ -1,7 +1,7 @@
 ﻿#include "BillboardComponent.h"
 
 #include "Render.h"
-#include "MainGame.h"
+#include "World.h"
 #include "Camera.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Core/ResourceManager.h"
@@ -28,7 +28,7 @@ MBillboardComponent::MBillboardComponent()
 
 Mat4& MBillboardComponent::getWorldMatrix()
 {
-    XMVECTOR Look = XMVector3Normalize(XMLoadFloat3(&getWorldTranslation()) - XMLoadFloat3(&g_pMainGame->getMainCamera()->GetWorldTranslation()));
+    XMVECTOR Look = XMVector3Normalize(XMLoadFloat3(&getWorldTranslation()) - XMLoadFloat3(&g_World->getMainCamera()->GetWorldTranslation()));
     XMVECTOR Right = XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&VEC3UP), Look));
     XMVECTOR Up = XMVector3Normalize(XMVector3Cross(Look, Right));
 

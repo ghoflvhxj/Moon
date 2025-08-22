@@ -8,7 +8,7 @@
 
 #include "Renderer.h"
 
-#include "MyGame.h"
+#include "Editor.h"
 
 #include "MainGameSetting.h"
 
@@ -19,6 +19,13 @@
 
 LPCWSTR title = TEXT("ShootingGame");
 HWND g_hWnd;
+
+void Test()
+{
+    ImGui::Begin("Editor");
+
+    ImGui::End();
+}
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -32,9 +39,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 	#endif
 
+    // wcout를 위한 코드.
     setlocale(LC_ALL, "");
 
-	std::shared_ptr<Window> pWindow = nullptr;
+	std::shared_ptr<MWindow> pWindow = nullptr;
 	try
 	{
 		auto pWindowManager = std::make_shared<WindowManager>(hInstance);
@@ -58,7 +66,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		g_hWnd = pWindow->getHandle();
 
 		EngineInit(hInstance, pWindow);
-		setGame(std::make_unique<MyGame>());
+		SetModule(std::make_unique<MEditor>());
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -70,6 +78,20 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         ImGui::StyleColorsDark();
         ImGui_ImplWin32_Init(g_hWnd);
         ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
+
+        GetRenderStartedDelegate().Add([]() {
+            ImGui_ImplDX11_NewFrame();
+            ImGui_ImplWin32_NewFrame();
+            ImGui::NewFrame();
+        });
+
+        GetRenderFinishedDelegate().Add([&]() {
+            Test();
+
+            ImGui::Render();
+            ImGui::EndFrame();
+            ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        });
 	}
 	catch (const EngineException &e)
 	{

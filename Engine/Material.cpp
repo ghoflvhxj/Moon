@@ -17,8 +17,6 @@
 #include "Core/ResourceManager.h"
 #include "Core/Serialize/JsonDeSerializer.h"
 
-#include "MainGame.h"
-
 #include "PrimitiveComponent.h"
 #include "DynamicMeshComponent.h"
 

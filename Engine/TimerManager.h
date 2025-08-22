@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef __TIMER_MANAGER_H__
 
 #include "Manager.h"
@@ -23,7 +23,7 @@ struct TimerData
 	}
 };
 
-class MainGame;
+class MWorld;
 class ENGINE_DLL MTimerManager : public Manager<MTimerManager>
 {
 	//--------------------------------------------------
@@ -51,7 +51,7 @@ public:
 	//TimeClock m_deltaCount;
 
 private:
-	std::weak_ptr<MainGame> m_pOwningGame;
+	std::weak_ptr<MWorld> m_pOwningGame;
 };
 
 #define __TIMER_MANAGER_H__

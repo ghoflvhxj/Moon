@@ -23,7 +23,7 @@
 #include "Mesh/StaticMesh/StaticMesh.h"
 
 // Framework
-#include "MainGame.h"
+#include "World.h"
 #include "MainGameSetting.h"
 
 #include "PrimitiveComponent.h"
@@ -425,7 +425,7 @@ void Renderer::Render()
 
         float tanHalfVertical = tan(XMConvertToRadians(g_pSetting->getFov() / 2.f));
         float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();
-        XMMATRIX cameraWorldMatrix = XMLoadFloat4x4(&g_pMainGame->getMainCamera()->getInvesrViewMatrix());
+        XMMATRIX cameraWorldMatrix = XMLoadFloat4x4(&g_World->getMainCamera()->getInvesrViewMatrix());
 
         for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Far); ++cascadeIndex)
         {
@@ -526,7 +526,7 @@ void Renderer::Render()
 
     if (bGizmo)
     {
-        float DistToScale = XMVectorGetX(XMVector3Length(XMLoadFloat3(&g_pMainGame->getMainCamera()->GetWorldTranslation()) - XMLoadFloat3(&GizmoPos))) / 10.f;
+        float DistToScale = XMVectorGetX(XMVector3Length(XMLoadFloat3(&g_World->getMainCamera()->GetWorldTranslation()) - XMLoadFloat3(&GizmoPos))) / 10.f;
 
         std::vector<FPrimitiveData> GizmoPrimitives;
         GizmoMeshComp->setTranslation(GizmoPos);
@@ -564,7 +564,7 @@ void Renderer::Render()
 
 	RenderText();
 
-    g_pMainGame->render();
+    g_World->render();
 
     // 전부 삭제하는 것이 아니라 삭제된 것만 제거 되도록 변경하기
     //DeferredPrimitiveDataMap.clear(); -> 버퍼가 한번 생성되면, 재추가 되지는 않아서 비우지 않아도 됨
@@ -597,9 +597,9 @@ void Renderer::FrustumCulling()
 {
     RenderablePrimitiveData.clear();
 
-    const std::shared_ptr<MCamera>& Camera = g_pMainGame->getMainCamera();
+    const std::shared_ptr<MCamera>& Camera = g_World->getMainCamera();
 
-	XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&g_pMainGame->getMainCameraProjectioinMatrix()));
+	XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&g_World->getMainCameraProjectioinMatrix()));
 
 	XMFLOAT4X4 ViewProjectMatrix;
 	XMStoreFloat4x4(&ViewProjectMatrix, ViewProj);

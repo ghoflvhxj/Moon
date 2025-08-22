@@ -11,7 +11,7 @@ void MPhysicsEngine::Release()
     MeshComponents.clear();
 }
 
-void MPhysicsEngine::Temp(std::shared_ptr<MMeshComponent> InMeshComp)
+void MPhysicsEngine::AddMeshComponent(std::shared_ptr<MMeshComponent> InMeshComp)
 {
     if (InMeshComp)
     {

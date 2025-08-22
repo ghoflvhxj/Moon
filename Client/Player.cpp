@@ -1,7 +1,7 @@
 ﻿#include "MoonEngine.h"
 
 #include "DirectInput.h"
-#include "MainGame.h"
+#include "World.h"
 #include "Camera.h"
 #include "Player.h"
 #include "Material.h"
@@ -113,64 +113,6 @@ void Player::initializeImGui()
 
 void Player::tick(const Time deltaTime)
 {
-    if (auto CameraComponent = getMainGame()->getMainCamera()->getComponent(TEXT("RootComponent")))
-    {
-        Vec3 trans = CameraComponent->getTranslation();
-        Vec3 look = CameraComponent->GetForward();
-        Vec3 right = CameraComponent->getRight();
-        float speed = CameraSpeedScale * 1.f * deltaTime;
-
-        if (InputManager::keyPress(DIK_LSHIFT))
-        {
-            speed *= 5.f;
-        }
-
-        if (InputManager::keyPress(DIK_W))
-        {
-            trans.x += look.x * speed;
-            trans.y += look.y * speed;
-            trans.z += look.z * speed;
-        }
-        else if (InputManager::keyPress(DIK_S))
-        {
-            trans.x -= look.x * speed;
-            trans.y -= look.y * speed;
-            trans.z -= look.z * speed;
-        }
-        else if (InputManager::keyPress(DIK_D))
-        {
-            trans.x += right.x * speed;
-            trans.y += right.y * speed;
-            trans.z += right.z * speed;
-        }
-        else if (InputManager::keyPress(DIK_A))
-        {
-            trans.x -= right.x * speed;
-            trans.y -= right.y * speed;
-            trans.z -= right.z * speed;
-        }
-
-        if (getMainGame()->IsMouseInViewport())
-        {
-            CameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
-        }
-        CameraSpeedScale = CameraSpeedScale >= 1.f ? CameraSpeedScale : 1.f;
-
-        CameraComponent->setTranslation(trans);
-
-        if (InputManager::mousePress(MOUSEBUTTON::RB))
-        {
-            Vec3 rot = CameraComponent->getRotation();
-
-            float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
-            float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
-
-            rot.x = rot.x + (((rot.x + mouseY) - rot.x) * 0.005f);
-            rot.y = rot.y + (((rot.y + mouseX) - rot.y) * 0.005f);
-            CameraComponent->setRotation(rot);
-        }
-    }
-
 #if UseDynamicMesh == 1
 	if (InputManager::keyPress(DIK_E))
 	{

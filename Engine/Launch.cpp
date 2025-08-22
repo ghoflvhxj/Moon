@@ -1,7 +1,6 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "WindowManager.h"
 #include "Window.h"
-#include "MainGame.h"
 
 #include "FrameManager.h"
 

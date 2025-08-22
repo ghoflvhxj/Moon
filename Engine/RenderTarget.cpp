@@ -7,7 +7,6 @@
 #include "MeshComponent.h"
 #include "Texture.h"
 
-#include "MainGame.h"
 #include "MainGameSetting.h"
 
 RenderTarget::RenderTarget()

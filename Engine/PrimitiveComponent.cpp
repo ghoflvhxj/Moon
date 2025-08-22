@@ -8,7 +8,6 @@
 
 #include "Renderer.h"
 
-#include "MainGame.h"
 #include "MainGameSetting.h"
 #include "Camera.h"
 

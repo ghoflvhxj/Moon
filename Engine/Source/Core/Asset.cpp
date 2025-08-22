@@ -4,7 +4,7 @@
 
 MAsset::~MAsset()
 {
-    std::wstring Msg = TEXT("Release Asset") + GetAssetPath();
+    std::wstring Msg = TEXT("Release Asset: ") + GetAssetPath();
     LOG(Msg);
 }
 
@@ -17,7 +17,7 @@ void MAsset::LoadFromDisk(const std::wstring& InPath)
 
 void MAsset::OnLoaded()
 {
-    std::wstring Msg = TEXT("Loaded: ") + Path;
+    std::wstring Msg = TEXT("Asset Loaded: ") + GetAssetPath();
     LOG(Msg);
 }
 

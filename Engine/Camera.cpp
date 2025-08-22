@@ -5,7 +5,6 @@
 #include "Factory.h"
 
 // Framework
-#include "MainGame.h"
 #include "MainGameSetting.h"
 #include "SceneComponent.h"
 
@@ -16,7 +15,7 @@ MCamera::MCamera()
 	, _viewMatrix()
 	, _perspectiveProjectionMatrix()
 	, _eProjection{ ProjectMode::Perspective }
-	, _eLookMode{ LookMode::At }
+	, _eLookMode{ LookMode::To }
 	, _fov{ g_pSetting->getFov() }
 	, _pSceneComponent{ nullptr }
 {
@@ -28,7 +27,7 @@ MCamera::MCamera(const float fov)
 	, _viewMatrix()
 	, _perspectiveProjectionMatrix()
 	, _eProjection{ ProjectMode::Perspective }
-	, _eLookMode{ LookMode::At }
+	, _eLookMode{ LookMode::To }
 	, _fov{ fov }
 	, _pSceneComponent{ nullptr }
 {

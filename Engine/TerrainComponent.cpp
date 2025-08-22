@@ -9,9 +9,6 @@
 
 #include "Texture.h"
 
-#include "MainGame.h"
-#include "Camera.h"
-
 using namespace DirectX;
 
 TerrainComponent::TerrainComponent()

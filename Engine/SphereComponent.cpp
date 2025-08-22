@@ -1,8 +1,6 @@
 ﻿#include "Include.h"
 #include "SphereComponent.h"
 
-#include "MainGame.h"
-
 using namespace physx;
 
 SphereComponent::SphereComponent()

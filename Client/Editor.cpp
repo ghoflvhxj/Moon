@@ -1,5 +1,7 @@
-﻿#include "MyGame.h"
+﻿#include "Editor.h"
 #include "MoonEngine.h"
+
+#include "Window.h"
 
 #include "Core/ResourceManager.h"
 #include "Core/Physics/Physics.h"
@@ -8,6 +10,7 @@
 #include "Core/Serialize/JsonSerializer.h"
 #include "Core/Serialize/JsonDeSerializer.h"
 
+#include "World.h"
 #include "Renderer.h"
 #include "GraphicDevice.h"
 #include "Texture.h"
@@ -44,20 +47,26 @@ using namespace DirectX;
 
 const ImVec4 HighlightColor = { 1.f, 1.f, 0.f, 1.f };
 
-MyGame::MyGame()
-	: MainGame()
-	, _pPlayer{ nullptr }
+MEditor::MEditor()
 {
 }
 
-MyGame::~MyGame()
+MEditor::~MEditor()
 {
 }
 
-const bool MyGame::initialize()
+bool MEditor::Initialize()
 {
-    MainGame::initialize();
+    std::wstring Str = TEXT("에디터 모듈 초기화");
+    LOG(Str);
 
+    GetRenderFinishedDelegate().Add([&]() {
+        Render();
+    });
+
+    return true;
+
+    /*
 	_pPlayer = CreateActor<Player>(GetShared());
 
     LanternActor = CreateActor<MStaticMeshActor>(GetShared());
@@ -103,20 +112,71 @@ const bool MyGame::initialize()
         std::wcout << StringToWString(Desc->Name.c_str()) << std::endl;
     }
 	return true;
+    */
 }
 
-void MyGame::Tick(const Time deltaTime)
+void MEditor::Update()
 {
-    if (getRenderer() == nullptr)
+    std::shared_ptr<MWorld> World = GetWorld<MWorld>();
+
+    if (auto CameraComponent = GetMainWorld()->getMainCamera()->getComponent(TEXT("RootComponent")))
     {
-        return;
+        float DeltaTime = World->getDeltaTime();
+        Vec3 trans = CameraComponent->getTranslation();
+        Vec3 look = CameraComponent->GetForward();
+        Vec3 right = CameraComponent->getRight();
+        float speed = CameraSpeedScale * DeltaTime;
+
+        if (InputManager::keyPress(DIK_LSHIFT))
+        {
+            speed *= 5.f;
+        }
+
+        if (InputManager::keyPress(DIK_W))
+        {
+            trans.x += look.x * speed;
+            trans.y += look.y * speed;
+            trans.z += look.z * speed;
+        }
+        else if (InputManager::keyPress(DIK_S))
+        {
+            trans.x -= look.x * speed;
+            trans.y -= look.y * speed;
+            trans.z -= look.z * speed;
+        }
+        else if (InputManager::keyPress(DIK_D))
+        {
+            trans.x += right.x * speed;
+            trans.y += right.y * speed;
+            trans.z += right.z * speed;
+        }
+        else if (InputManager::keyPress(DIK_A))
+        {
+            trans.x -= right.x * speed;
+            trans.y -= right.y * speed;
+            trans.z -= right.z * speed;
+        }
+
+        if (GetMainWorld()->IsMouseInViewport())
+        {
+            CameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
+        }
+        CameraSpeedScale = CameraSpeedScale >= 1.f ? CameraSpeedScale : 1.f;
+
+        CameraComponent->setTranslation(trans);
+
+        if (InputManager::mousePress(MOUSEBUTTON::RB))
+        {
+            Vec3 rot = CameraComponent->getRotation();
+
+            float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
+            float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
+
+            rot.x = rot.x + (((rot.x + mouseY) - rot.x) * DeltaTime * 0.1f);
+            rot.y = rot.y + (((rot.y + mouseX) - rot.y) * DeltaTime * 0.1f);
+            CameraComponent->setRotation(rot);
+        }
     }
-
-    ImGui_ImplDX11_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::Begin("Hello, world!");
 
     if (InputManager::keyDown(DIK_1))
     {
@@ -133,11 +193,11 @@ void MyGame::Tick(const Time deltaTime)
 
     if (InputManager::mouseDown(MOUSEBUTTON::LB) && IsPickable())
     {
-        FHitData GizmoHitData = {};
+        FHitData HitData = {};
         std::vector<FPrimitiveData> GizmoPrimitiveDatas;
         getRenderer()->GizmoMeshComp->GetPrimitiveData(GizmoPrimitiveDatas);
 
-        if (Raycast(GizmoPrimitiveDatas, GizmoHitData))
+        if (World->Raycast(GizmoPrimitiveDatas, HitData))
         {
             if (bControlGizmo == false)
             {
@@ -145,7 +205,7 @@ void MyGame::Tick(const Time deltaTime)
                 bControlGizmo = true;
             }
 
-            switch (GizmoHitData.PrimitiveIndex)
+            switch (HitData.PrimitiveIndex)
             {
             case 0:
                 GizmoAxis = EAxies::Z;
@@ -161,7 +221,7 @@ void MyGame::Tick(const Time deltaTime)
         else
         {
             bControlGizmo = false;
-            if (Raycast(getRenderer()->GetRenderablePrimitiveData(), HitData))
+            if (World->Raycast(getRenderer()->GetRenderablePrimitiveData(), HitData))
             {
                 ClickedComp = HitData.HitComponent;
             }
@@ -187,9 +247,9 @@ void MyGame::Tick(const Time deltaTime)
         {
             Vec3 Near = {};
             Vec3 Far = {};
-            Vec2 Current = GetMousePos();
-            ScreenToWorld(Current, 0.f, Near);
-            ScreenToWorld(Current, 1.f, Far);
+            Vec2 Current = GetMainWindow()->GetMousePos();
+            World->ScreenToWorld(Current, 0.f, Near);
+            World->ScreenToWorld(Current, 1.f, Far);
 
             XMVECTOR Plane = XMVectorZero();
             Vec3 Pos = GizmoTargetComp->getWorldTranslation();
@@ -283,46 +343,40 @@ void MyGame::Tick(const Time deltaTime)
 
     if (InputManager::keyDown(DIK_ESCAPE))
     {
-        HitData.HitComponent.reset();
-        HitData.Distance = FLT_MAX;
+        ClickedComp.reset();
     }
 }
 
-void MyGame::PostUpdate(const Time deltaTime)
+void MEditor::Render()
 {
+    std::shared_ptr<MWorld> World = GetWorld<MWorld>();
 
-}
+    ImGui::Begin("World");
 
-void MyGame::render()
-{
-    if (getRenderer() == nullptr)
-    {
-        return;
-    }
-
+    auto SelectedComp = ClickedComp.expired() ? nullptr : ClickedComp.lock()->CastTo<StaticMeshComponent>();
     if (ImGui::CollapsingHeader("Test Functions"))
     {
-        if (ImGui::CollapsingHeader("Actor") && LanternActor)
+        if (ImGui::CollapsingHeader("Actor") && SelectedComp)
         {
             auto IsNotEqual = [](float lhs, float rhs)->bool {
                 return std::fabsf(lhs - rhs) > 0.00001;
             };
 
-            ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
-            if (ImGui::Button("AddForce"))
-            {
-                LanternActor->GetStaticMeshCompoent()->Temp(Force);
-            }
+            //ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
+            //if (ImGui::Button("AddForce"))
+            //{
+            //    SelectedComp->Temp(Force);
+            //}
 
             if (ImGui::Button("ResetVelocity"))
             {
-                LanternActor->GetStaticMeshCompoent()->SetVelocity(0.f, 0.f, 0.f);
-                LanternActor->GetStaticMeshCompoent()->SetAngularVelocity(0.f, 0.f, 0.f);
+                SelectedComp->SetVelocity(0.f, 0.f, 0.f);
+                SelectedComp->SetAngularVelocity(0.f, 0.f, 0.f);
             }
 
             if (ImGui::Button("ResetPos"))
             {
-                LanternActor->GetStaticMeshCompoent()->setTranslation(0.f, 5.f, 0.f);
+                SelectedComp->setTranslation(0.f, 5.f, 0.f);
             }
         }
 
@@ -332,39 +386,38 @@ void MyGame::render()
             if (ImGui::Button("Save"))
             {
                 MJsonSerializer Serializer;
-                Serializer.Serialize(this, TEXT("D:\\Git\\Moon\\TestLevel.json"), true);
+                Serializer.Serialize(GetMainWorld(), TEXT("D:\\Git\\Moon\\TestLevel.json"), true);
             }
             if (ImGui::Button("Load"))
             {
                 GetLevelChangedDelegate().Broadcast();
                 GetPostLoopDelegate().Add([]() {
-                    std::unique_ptr<MainGame> NewGame = std::make_unique<MainGame>();
+                    GetMainWorld()->GetActors().clear();
                     MJsonDeserializer Deserializer;
-                    Deserializer.Deserialize(*NewGame.get(), TEXT("D:\\Git\\Moon\\TestLevel.json"));
-                    setGame(std::move(NewGame));
+                    Deserializer.Deserialize(GetMainWorld(), TEXT("D:\\Git\\Moon\\TestLevel.json"));
                 });
 
             }
             ImGui::Indent(-20);
         }
 
-        if (ImGui::CollapsingHeader("JsonTest"))
-        {
-            ImGui::Indent(20);
-            if (ImGui::Button("SaveJson"))
-            {
-                _pPlayer->JsonSaveTest();
-            }
-            if (ImGui::Button("SaveJsonPretty"))
-            {
-                _pPlayer->JsonSaveTest(true);
-            }
-            if (ImGui::Button("LoadJson"))
-            {
-                _pPlayer->JsonLoadTest();
-            }
-            ImGui::Indent(-20);
-        }
+        //if (ImGui::CollapsingHeader("JsonTest"))
+        //{
+        //    ImGui::Indent(20);
+        //    if (ImGui::Button("SaveJson"))
+        //    {
+        //        _pPlayer->JsonSaveTest();
+        //    }
+        //    if (ImGui::Button("SaveJsonPretty"))
+        //    {
+        //        _pPlayer->JsonSaveTest(true);
+        //    }
+        //    if (ImGui::Button("LoadJson"))
+        //    {
+        //        _pPlayer->JsonLoadTest();
+        //    }
+        //    ImGui::Indent(-20);
+        //}
 
         // FBX 로드 
         if (ImGui::CollapsingHeader("LoadFBX"))
@@ -392,14 +445,14 @@ void MyGame::render()
             }
         }
 
-        if (_pPlayer)
-        {
-            std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(ROOT_COMPONENT));
-            if (DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
-            {
-                DynamicMeshComp->Clothing();
-            }
-        }
+        //if (_pPlayer)
+        //{
+        //    std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(ROOT_COMPONENT));
+        //    if (DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
+        //    {
+        //        DynamicMeshComp->Clothing();
+        //    }
+        //}
 
         if (ImGui::Button("Jolt Save"))
         {
@@ -429,7 +482,7 @@ void MyGame::render()
     {
         if (ImGui::Button("Play"))
         {
-            getMainGame()->PlayGame();
+            World->PlayGame();
         }
     }
 
@@ -477,8 +530,8 @@ void MyGame::render()
     // 하이어라키
     if (ImGui::CollapsingHeader("Hierarchy"))
     {
+        auto& Actors = World->GetActors();
         uint32 Num = GetSize(Actors);
-        uint32 i = 0;
         for (auto& [Name, Actor] : Actors)
         {
             bool bHighlight = ClickedComp.expired() ? false : ClickedComp.lock()->getOwningActor() == Actor;
@@ -497,6 +550,34 @@ void MyGame::render()
             {
                 ImGui::PopStyleColor(1);
             }
+        }
+
+        // 액터 생성       
+        auto& TypeDescs = GetTypeDescs();
+        static const char* ActorClassName = nullptr;
+        if (ImGui::BeginCombo("Actor Class", ActorClassName))
+        {
+            for (auto& [Name, TypeDesc] : TypeDescs)
+            {
+                if (TypeDesc->IsA<MActor>() == false)
+                {
+                    continue;
+                }
+
+                if (ImGui::Selectable(Name.c_str()))
+                {
+                    ActorClassName = Name.c_str();
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Add Actor") && TypeDescs.find(ActorClassName) != TypeDescs.end())
+        {
+            CreateActor(GetMainWorld(), TypeDescs[ActorClassName]);
         }
     }
 
@@ -557,8 +638,25 @@ void MyGame::render()
                     MJsonSerializer Serializer;
                     Serializer.Serialize(EditAsset, EditAsset->GetAssetPath(), true);
                 }
+                if (ImGui::MenuItem("Save As"))
+                {
+                    wchar_t FileName[256] = {};
+                    OPENFILENAMEW OpenFile = {};
+                    OpenFile.lStructSize = sizeof(OPENFILENAMEW);
+                    OpenFile.lpstrFilter = TEXT("json파일\0*.json\0");
+                    OpenFile.lpstrFile = FileName;
+                    OpenFile.nMaxFile = MAX_PATH;
+                    OpenFile.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+                    OpenFile.lpstrDefExt = TEXT("json");
+                    if (GetSaveFileNameW(&OpenFile))
+                    {
+                        MJsonSerializer Serializer;
+                        Serializer.Serialize(EditAsset, FileName, true);
+                    }
+                }
+
+                ImGui::EndMenu();
             }
-            ImGui::EndMenu();
 
             const FTypeDesc* Current = EditAssetDesc;
             while (Current)
@@ -577,21 +675,19 @@ void MyGame::render()
                     GetPhysics()->SaveTest(EditAsset->CastTo<StaticMesh>());
                 }
             }
+            ImGui::End();
         }
-        ImGui::End();
     }
 
 	ImGui::End();
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
-bool MyGame::IsPickable() const
+bool MEditor::IsPickable() const
 {
     return ImGui::GetIO().WantCaptureMouse == false;
 }
 
-void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* InContainerDesc, void* InObject)
+void MEditor::DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* InContainerDesc, void* InObject)
 {
     if (InObject == nullptr)
     {
@@ -615,43 +711,57 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
         {
             if (InContainerDesc->IsA<MAsset>())
             {
-                if (InContainerDesc->bPointerElements)
+                auto Asset = static_cast<MAsset*>(InContainerDesc->Get(InObject, i));
+                std::string Path = Asset == nullptr ? "" : WStringToString(Asset->GetAssetPath());
+                ImGui::Text(Path.c_str());
+
+                const FTypeDesc* AssetTypeDesc = InContainerDesc->TypeDesc;
+
+                std::wstring Filter;
+                if (AssetTypeDesc->IsA<MTexture>())
                 {
-                    auto Asset = static_cast<MAsset*>(InContainerDesc->Get(InObject, i));
-                    std::string Path = Asset == nullptr ? "" : WStringToString(Asset->GetAssetPath());
+                    Filter = TEXT("텍스쳐\0*.png\0");
+                }
+                else
+                {
+                    Filter = TEXT("애셋\0*.json\0");
+                }
 
-                    ImGui::Text(Path.c_str());
+                ImGui::PushID((int)InObject + i);
+                ImGui::SameLine(300);
+                if (ImGui::Button("Edit"))
+                {
+                    EditAsset = Asset;
+                    EditAssetDesc = InContainerDesc->TypeDesc;
+                }
 
-                    ImGui::SameLine(300);
-                    if (ImGui::Button("Edit"))
+                ImGui::SameLine(350);
+                if (ImGui::Button("..."))
+                {
+                    TCHAR FileName[256] = {};
+
+                    OPENFILENAMEW t = {};
+                    t.lStructSize = sizeof(t);
+                    t.hwndOwner = NULL;
+                    t.hInstance = NULL;
+                    t.lpstrFilter = Filter.c_str();
+                    t.lpstrFile = FileName;
+                    t.nMaxFile = 256;
+                    t.lpstrInitialDir = TEXT(".");
+                    t.lpstrTitle = TEXT("Load Asset");
+
+                    if (GetOpenFileNameW(&t))
                     {
-                        GetGame<MyGame>()->EditAsset = Asset;
-                        GetGame<MyGame>()->EditAssetDesc = InContainerDesc->TypeDesc;
-                    }
-
-                    ImGui::SameLine(350);
-                    if (ImGui::Button("..."))
-                    {
-                        TCHAR FileName[256] = {};
-
-                        OPENFILENAMEW t = {};
-                        t.lStructSize = sizeof(t);
-                        t.hwndOwner = NULL;
-                        t.hInstance = NULL;
-                        t.lpstrFilter = TEXT("json 파일\0*.fbx");
-                        t.lpstrFile = FileName;
-                        t.nMaxFile = 256;
-                        t.lpstrInitialDir = TEXT(".");
-                        t.lpstrTitle = TEXT("Load Asset");
-
-                        if (GetOpenFileNameW(&t))
+                        if (std::shared_ptr<MAsset> Asset = g_ResourceManager->Load(FileName, AssetTypeDesc))
                         {
-                            wcout << FileName << endl;
+                            void* AssetPtr = &Asset;
+                            InContainerDesc->Set(InObject, i, AssetPtr);
                         }
                     }
-
-                    ImGui::NewLine();
                 }
+
+                ImGui::PopID();
+                ImGui::NewLine();
             }
             else
             {
@@ -675,7 +785,7 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
 
 }
 
-void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InPropertyDesc, void* InObject)
+void MEditor::DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InPropertyDesc, void* InObject)
 {
     if (InObject == nullptr)
     {
@@ -714,7 +824,7 @@ void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InProperty
     }
 }
 
-void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
+void MEditor::DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
 {
     if (InObject == nullptr)
     {
@@ -750,11 +860,13 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    static_cast<MyGame*>(getMainGame().get())->EditAsset = Asset;
-                    static_cast<MyGame*>(getMainGame().get())->EditAssetDesc = Prop->TypeDesc;
+                    EditAsset = Asset;
+                    EditAssetDesc = Prop->TypeDesc;
                 }
 
                 ImGui::SameLine(350);
+
+                ImGui::PushID(Prop);
                 if (ImGui::Button("..."))
                 {
                     TCHAR FileName[256] = {};
@@ -778,6 +890,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                         static_cast<FFundamentalPropertyDesc<MAsset>*>(Prop)->Set(InObject, NewAsset);
                     }
                 }
+                ImGui::PopID();
 
                 ImGui::NewLine();
             }
@@ -789,7 +902,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
     }
 }
 
-void HandleProperty(EType InType, const char* DisplayName, void* InData)
+void MEditor::HandleProperty(EType InType, const char* DisplayName, void* InData)
 {
     switch (InType)
     {

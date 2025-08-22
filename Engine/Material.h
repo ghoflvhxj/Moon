@@ -93,7 +93,6 @@ public:
         PROPERTY(_vertexShaderFileName),
         PROPERTY(_pixelShaderFileName),
         PROPERTY(_textureList),
-        //PROPERTY(TexturePaths),
         PROPERTY(_eTopology),
         PROPERTY(_eFillMode),
         PROPERTY(_eCullMode),

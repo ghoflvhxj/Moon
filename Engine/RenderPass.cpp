@@ -15,7 +15,7 @@
 #include "RenderTarget.h"
 
 // Game
-#include "MainGame.h"
+#include "World.h"
 
 // Actor
 #include "Camera.h"
@@ -156,11 +156,11 @@ void MRenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
 
     //------------------------------------------------------------------------------------------------------------------
     // 버텍스 쉐이더 CBuffer
-    Material->getVertexShader()->SetValue(TEXT("viewMatrix"), g_pMainGame->getMainCameraViewMatrix());
-    Material->getVertexShader()->SetValue(TEXT("projectionMatrix"), g_pMainGame->getMainCameraProjectioinMatrix());
+    Material->getVertexShader()->SetValue(TEXT("viewMatrix"), g_World->getMainCameraViewMatrix());
+    Material->getVertexShader()->SetValue(TEXT("projectionMatrix"), g_World->getMainCameraProjectioinMatrix());
     Material->getVertexShader()->SetValue(TEXT("identityMatrix"), IDENTITYMATRIX);
-    Material->getVertexShader()->SetValue(TEXT("orthographicProjectionMatrix"), g_pMainGame->getMainCameraOrthographicProjectionMatrix());
-    Material->getVertexShader()->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_pMainGame->getMainCamera()->getInverseOrthographicProjectionMatrix());
+    Material->getVertexShader()->SetValue(TEXT("orthographicProjectionMatrix"), g_World->getMainCameraOrthographicProjectionMatrix());
+    Material->getVertexShader()->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_World->getMainCamera()->getInverseOrthographicProjectionMatrix());
 }
 
 void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)

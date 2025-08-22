@@ -31,7 +31,6 @@
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 #include "DynamicMeshComponent.h"
-#include "MainGame.h"
 #include "Core/FileSystem.h"
 #include <DirectXMath.h>
 
@@ -270,7 +269,7 @@ void MJoltPhysics::StartSimulate()
             continue;
         }
 
-        std::string Path = WStringToString(Physics->GetAssetPath());
+        std::string Path = WStringToString(MFIleSystem::AbsolutePath(Physics->GetAssetPath()));
 
         BodyInterface& bodyInterface = physics_system->GetBodyInterface();
 
@@ -754,7 +753,7 @@ void MJoltPhysicsObject::UpdateVertices(std::vector<::Vertex>& InVertices)
 
 void MJoltPhysicsObject::MoveTo(const ::Vec3& TargetPos)
 {
-    GetPhysicsSystem()->GetBodyInterface().MoveKinematic(BodyIDCache, RVec3Arg(TargetPos.x, TargetPos.y, TargetPos.z), Quat::sIdentity(), g_pMainGame->getDeltaTime());
+    //GetPhysicsSystem()->GetBodyInterface().MoveKinematic(BodyIDCache, RVec3Arg(TargetPos.x, TargetPos.y, TargetPos.z), Quat::sIdentity(), g_World->getDeltaTime());
 }
 
 void MJoltPhysicsObject::Remove()

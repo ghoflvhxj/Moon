@@ -26,7 +26,7 @@ struct FPhysicsConstructData
 
 class ENGINE_DLL MPhysics : public MAsset
 {
-    REFLECT_TOP(MPhysics)
+    REFLECT(MPhysics)
 };
 
 class ENGINE_DLL MPhysicsEngine
@@ -45,7 +45,7 @@ public:
     virtual void Release();
 
 public:
-    virtual void Temp(std::shared_ptr<MMeshComponent> InMeshComp);
+    virtual void AddMeshComponent(std::shared_ptr<MMeshComponent> InMeshComp);
     virtual void MakeConvexHull(FPhysicsConstructData& InData) {}
 
 public:

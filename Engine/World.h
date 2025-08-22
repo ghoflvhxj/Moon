@@ -1,11 +1,170 @@
-﻿/*
-#pragma once
+﻿#pragma once
+
+#include "Include.h"
+#include "Core/Delegate.h"
+#include "Core/Object.h"
+
+// 리플렉션을 위한 include
+#include "Actor.h"
+
+class MWindow;
+class MTimerManager;
+class FrameManager;
+
+class MMeshComponent;
 
 class MActor;
+class MCamera;
 
-class ENGINE_DLL World : std::enable_shared_from_this<World>
+class MPhysX;
+
+struct FPrimitiveData;
+
+// 피킹 --------------------------------------------------------------------------
+struct FHitData
+{
+    std::weak_ptr<class MPrimitiveComponent> HitComponent;
+    Vec3 HitPos = VEC3ZERO;
+    float Distance = 0.f;
+    uint32 PrimitiveIndex = 0;
+};
+
+class ENGINE_DLL MWorld : public MObject
 {
 public:
-	std::shared_ptr<MActor> SpawnActor();
+	explicit MWorld();
+	MWorld(const MWorld &ref) = delete;
+	MWorld(MWorld &&ref) = delete;
+	virtual ~MWorld();
+
+	MWorld &operator=(const MWorld &ref) = delete;
+
+    // 임시
+public:
+    virtual void OnLoaded() override
+    {
+        LOG(std::wstring(TEXT("World Loaded!!!")));
+
+        for (auto& [Name, Actor] : Actors)
+        {
+            Actor->PostConstruct();
+        }
+    }
+
+public:
+	virtual const bool Initialize();
+
+public:
+	const bool Loop();
+protected:  
+	virtual void Tick(const Time deltaTime);
+private:
+    void Update(const Time deltaTime);
+    virtual void PostUpdate(const Time deltaTime) {}
+
+public:
+    virtual void PlayGame();
+    FDelegate<void>& GetGameStartedDelegate() { return OnGameStartedDelegate; }
+protected:
+    bool HasBegan = false;
+    FDelegate<void> OnGameStartedDelegate;
+
+public:	
+	// 디버깅 할 때 쓰는 용도
+	virtual void render();	
+
+	// 업데이트 할 액터들을 관리
+public:
+	void addActor(std::shared_ptr<MActor> pActor);
+    std::unordered_map<std::string, std::shared_ptr<MActor>>& GetActors() { return Actors; }
+protected:
+    std::unordered_map<std::string, std::shared_ptr<MActor>> Actors;
+
+    // 액터 이름용
+    std::unordered_map<const FTypeDesc*, uint32> Indexer;
+    //uint32 ActorIndexer = 0;
+
+	//-------------------------------------------------------------------------
+public:
+	const Time getDeltaTime() const;
+private:
+	Time _deltaTime;
+
+public:
+	const std::shared_ptr<MTimerManager> getTimerManager() const;
+private:
+	mutable std::shared_ptr<MTimerManager> _pTimerManager;
+
+public:
+	const std::shared_ptr<FrameManager> getFrameManager() const;
+	const Frame getFrame() const;
+private:
+	std::shared_ptr<FrameManager> _pFrameManager;
+
+public:
+	void SetMainCamera(std::shared_ptr<MCamera> pCamera);
+	std::shared_ptr<MCamera> getMainCamera() const;
+public:
+	const Mat4& getMainCameraViewMatrix() const;
+	const Mat4& getMainCameraProjectioinMatrix() const;
+	const Mat4& getMainCameraOrthographicProjectionMatrix() const;
+private:
+	std::shared_ptr<MCamera> _pMainCamera = nullptr;
+
+public:
+    virtual bool IsPickable() const { return true; }
+    bool Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData);
+
+public:
+    bool IsMouseInViewport() const;
+    void ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const;
+    void WorldToScreen(const Vec3& InPos, Vec2& OutPos) const;
+    void ProjectVec3(const Vec3& InBase, const Vec3& InTarget, Vec3& Out) const;
+    void ProjectVec2(const Vec2& InBase, const Vec2& InTarget, Vec2& Out) const;
+
+    REFLECT(
+        MWorld
+        , PROPERTY(Actors)
+    );
 };
-*/
+
+template <class T>
+std::shared_ptr<T> CreateActor(std::shared_ptr<MWorld> InGame)
+{
+    if (InGame == nullptr)
+    {
+        return nullptr;
+    }
+
+    std::shared_ptr<T> NewActor = std::make_shared<T>();
+    NewActor->SetOwner(InGame);
+    NewActor->PostConstruct();
+    InGame->addActor(NewActor);
+
+    return NewActor;
+}
+
+inline std::shared_ptr<MActor> CreateActor(std::shared_ptr<MWorld> InGame, const FTypeDesc* InTypeDesc)
+{
+    if (InGame == nullptr)
+    {
+        return nullptr;
+    }
+
+    if (InTypeDesc == nullptr)
+    {
+        return nullptr;
+    }
+
+    if (InTypeDesc->IsA<MActor>() == false)
+    {
+        return nullptr;
+    }
+
+    std::shared_ptr<MActor> NewActor(static_cast<MActor*>(Create(InTypeDesc)));
+    NewActor->SetOwner(InGame);
+    NewActor->PostConstruct();
+    InGame->addActor(NewActor);
+
+    return NewActor;
+}

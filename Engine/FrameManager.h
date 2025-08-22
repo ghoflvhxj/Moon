@@ -1,6 +1,6 @@
-#pragma once
-#ifndef __FRAME_MANAGER_H__
+﻿#pragma once
 
+#include "Include.h"
 #include "Manager.h"
 
 class MTimerManager;
@@ -37,6 +37,3 @@ private:
 private:
 	std::weak_ptr<MTimerManager> TimerManager;
 };
-
-#define __FRAME_MANAGER_H__
-#endif

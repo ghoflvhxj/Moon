@@ -1,8 +1,8 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "Window.h"
 #include "WindowException.h"
 
-LRESULT Window::DefaultWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+LRESULT MWindow::DefaultWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMessage)
 	{
@@ -17,7 +17,7 @@ LRESULT Window::DefaultWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM l
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
-Window::Window(const std::wstring &title, const int width, const int height, std::wstring &className)
+MWindow::MWindow(const std::wstring &title, const int width, const int height, std::wstring &className)
 	: m_hWnd{ 0 }
 {
 	RECT rt = { 0, 0, width, height };
@@ -30,7 +30,7 @@ Window::Window(const std::wstring &title, const int width, const int height, std
 	ShowWindow(m_hWnd, SW_SHOW);
 }
 
-Window::Window(LPCWSTR title, const int width, const int height, LPCWSTR className)
+MWindow::MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
 	: m_hWnd{ 0 }
 {
 	RECT rt = { 0, 0, width, height };
@@ -42,12 +42,12 @@ Window::Window(LPCWSTR title, const int width, const int height, LPCWSTR classNa
 	ShowWindow(m_hWnd, SW_SHOW);
 }
 
-void Window::SetTitle(const std::wstring title)
+void MWindow::SetTitle(const std::wstring title)
 {
 	SetWindowText(getHandle(), title.c_str());
 }
 
-const HWND Window::getHandle() const
+const HWND MWindow::getHandle() const
 {
 	return m_hWnd;
 }

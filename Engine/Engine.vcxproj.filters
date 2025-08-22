@@ -175,7 +175,7 @@
     <ClCompile Include="InputLayout.cpp" />
     <ClCompile Include="Launch.cpp" />
     <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="MainGame.cpp" />
+    <ClCompile Include="World.cpp" />
     <ClCompile Include="MainGameSetting.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
@@ -205,7 +205,6 @@
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowException.cpp" />
     <ClCompile Include="WindowManager.cpp" />
-    <ClCompile Include="World.cpp" />
     <ClCompile Include="AnimationController.cpp">
       <Filter>Module\Test</Filter>
     </ClCompile>
@@ -313,7 +312,7 @@
     <ClInclude Include="Macro.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="MainGame.h">
+    <ClInclude Include="World.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="MainGameSetting.h">
@@ -424,9 +423,6 @@
     <ClInclude Include="WindowManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="World.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\ResourceManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -494,6 +490,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\Delegate.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Module\Module.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -40,7 +40,7 @@
     <ClCompile Include="InputLayout.cpp" />
     <ClCompile Include="Launch.cpp" />
     <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="MainGame.cpp" />
+    <ClCompile Include="World.cpp" />
     <ClCompile Include="MainGameSetting.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
@@ -91,7 +91,6 @@
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowException.cpp" />
     <ClCompile Include="WindowManager.cpp" />
-    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
@@ -121,7 +120,7 @@
     <ClInclude Include="InputLayout.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Macro.h" />
-    <ClInclude Include="MainGame.h" />
+    <ClInclude Include="World.h" />
     <ClInclude Include="MainGameSetting.h" />
     <ClInclude Include="Manager.h" />
     <ClInclude Include="MapUtility.h" />
@@ -144,6 +143,7 @@
     <ClInclude Include="Source\Core\Asset.h" />
     <ClInclude Include="Source\Core\Delegate.h" />
     <ClInclude Include="Source\Core\FileSystem.h" />
+    <ClInclude Include="Source\Core\Module\Module.h" />
     <ClInclude Include="Source\Core\Object.h" />
     <ClInclude Include="Source\Core\Physics\Jolt\Jolt.h" />
     <ClInclude Include="Source\Core\Physics\Physics.h" />
@@ -181,7 +181,6 @@
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowException.h" />
     <ClInclude Include="WindowManager.h" />
-    <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Bone.hlsl">

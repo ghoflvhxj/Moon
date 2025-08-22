@@ -118,8 +118,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             if constexpr (is_smart_ptr_v<ElemType>)
             {
                 // shared_ptr이 관리, 포인터 이동
-                Vector[InIndex].reset(static_cast<PureType*>(InData));
-                InData = nullptr;
+                Vector[InIndex] = *static_cast<ElemType*>(InData);
             }
             else if constexpr (std::is_pointer_v<ElemType>)
             {
@@ -131,6 +130,11 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             {
                 // 복사 대입
                 Vector[InIndex] = *static_cast<PureType*>(InData);
+            }
+
+            if (Func)
+            {
+                Func((Owner*)InObject);
             }
         }
 

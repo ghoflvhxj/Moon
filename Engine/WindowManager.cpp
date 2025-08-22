@@ -1,4 +1,4 @@
-#include "Include.h"
+Ôªø#include "Include.h"
 
 #include "WindowManager.h"
 #include "Window.h"
@@ -14,7 +14,7 @@ WindowManager::WindowManager(const HINSTANCE hInstance)
 	g_hInstance = hInstance;
 
 	WNDCLASS wndClass = { 0, };
-	wndClass.lpfnWndProc = Window::DefaultWndProc;
+	wndClass.lpfnWndProc = MWindow::DefaultWndProc;
 	wndClass.lpszClassName = DEFAULT_CLASSNAME;
 	wndClass.hInstance = g_hInstance;
 	wndClass.cbClsExtra = 0;
@@ -27,26 +27,26 @@ WindowManager::WindowManager(const HINSTANCE hInstance)
 
 	if (AddWindowClass(wndClass) == false)
 	{
-		MessageBox(0, TEXT("ø¿∑˘"), TEXT("WNDCLASS µÓ∑œ Ω«∆–"), MB_OK);
+		MessageBox(0, TEXT("Ïò§Î•ò"), TEXT("WNDCLASS Îì±Î°ù Ïã§Ìå®"), MB_OK);
 		exit(0);
 	}
 }
 
 const bool WindowManager::AddWindowClass(const WNDCLASS &wndClass)
 {
-	// RegisterClass¥¬ Ω«∆–Ω√ 0¿ª π›»Ø«‘
+	// RegisterClassÎäî Ïã§Ìå®Ïãú 0ÏùÑ Î∞òÌôòÌï®
 	return RegisterClass(&wndClass);
 }
 
-const std::shared_ptr<Window> WindowManager::CreateWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
+const std::shared_ptr<MWindow> WindowManager::CreateWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
 {
-	auto pWindow = std::make_shared<Window>(title, width, height, className);
+	auto pWindow = std::make_shared<MWindow>(title, width, height, className);
 	return pWindow;
 }
 
-const std::shared_ptr<Window> WindowManager::GetWindow(const HWND hWnd)
+const std::shared_ptr<MWindow> WindowManager::GetWindow(const HWND hWnd)
 {
-	std::shared_ptr<Window> pWindow = nullptr;
+	std::shared_ptr<MWindow> pWindow = nullptr;
 	MapUtility::FindGet(m_windowMap, hWnd, pWindow);
 
 	return pWindow;
@@ -57,18 +57,18 @@ const bool WindowManager::FindWindow(const HWND hWnd)
 	return MapUtility::Find(m_windowMap, hWnd);
 }
 
-const bool WindowManager::AddWindow(const HWND hWnd, const std::shared_ptr<Window> pWindow)
+const bool WindowManager::AddWindow(const HWND hWnd, const std::shared_ptr<MWindow> pWindow)
 {
 	return MapUtility::FindInsert(m_windowMap, hWnd, pWindow);
 }
 
-const bool WindowManager::SetMainWindow(const std::shared_ptr<Window> pWindow)
+const bool WindowManager::SetMainWindow(const std::shared_ptr<MWindow> pWindow)
 {
 	m_pMainWindow = pWindow;
 	return true;
 }
 
-const std::shared_ptr<Window> WindowManager::GetMainWindow()
+const std::shared_ptr<MWindow> WindowManager::GetMainWindow()
 {
 	return m_pMainWindow;
 }

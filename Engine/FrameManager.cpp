@@ -1,8 +1,7 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "FrameManager.h"
 
 #include "TimerManager.h"
-#include "MainGame.h"
 
 FrameManager::FrameManager(std::shared_ptr<MTimerManager>& InTimermanager)
 	: Manager<FrameManager>()

@@ -10,7 +10,7 @@
 class Component;
 class SceneComponent;
 class MPrimitiveComponent;
-class MainGame;
+class MWorld;
 
 class ENGINE_DLL MActor : public MObject
 {
