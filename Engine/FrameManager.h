@@ -23,6 +23,7 @@ private:
 public:
 	const Frame GetFrame() const;
 	const bool IsLock() const;
+    Time GetFrameTime() const { return m_timePerFrame; }
 private:
 	Frame m_currentFrame;
 	Frame m_frameCounter;

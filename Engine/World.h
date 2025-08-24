@@ -55,12 +55,8 @@ public:
 	virtual const bool Initialize();
 
 public:
-	const bool Loop();
-protected:  
-	virtual void Tick(const Time deltaTime);
-private:
-    void Update(const Time deltaTime);
-    virtual void PostUpdate(const Time deltaTime) {}
+	bool Loop();
+	virtual void Tick();
 
 public:
     virtual void PlayGame();
@@ -87,7 +83,7 @@ protected:
 	//-------------------------------------------------------------------------
 public:
 	const Time getDeltaTime() const;
-private:
+public:
 	Time _deltaTime;
 
 public:

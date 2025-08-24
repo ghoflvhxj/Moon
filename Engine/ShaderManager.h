@@ -1,5 +1,6 @@
 ﻿#pragma once
-#ifndef __SHADER_MANAGER_H__
+
+#include "Include.h"
 
 #include "Shader.h"
 
@@ -16,10 +17,7 @@ class MShaderManager
 
 public:
 	explicit MShaderManager();
-	~MShaderManager();
-
-public:
-	void							Release();
+	~MShaderManager() = default;
 
 public:		
 	const bool						getVertexShader(const wchar_t *fileName, std::shared_ptr<VertexShader> &vertexShader);
@@ -51,6 +49,3 @@ public:
 //private:
 //	std::vector<ShaderReflectionMap> _reflectionMapList;
 };
-
-#define __SHADER_MANAGER_H__
-#endif

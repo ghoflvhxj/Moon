@@ -1,14 +1,18 @@
-#pragma once
-#ifndef __DIRECT_INPUT_H__
+﻿#pragma once
 
-class ENGINE_DLL DirectInput
+#include "Core/Module/Module.h"
+
+class ENGINE_DLL MDirectInput : public MModule
 {
 public:
-	explicit DirectInput();
-	~DirectInput();
+	explicit MDirectInput();
+	virtual ~MDirectInput() = default;
 
 public:
-	void update();
+    virtual bool Initialize() override;
+    virtual void Update() override;
+    virtual void Release() override;
+
 private:
 	void updateKeyboard();
 	void updateMouse();
@@ -37,6 +41,8 @@ private:
 
 private:
 	bool bFocused;
+
+    REFLECT(MDirectInput)
 };
 
 class ENGINE_DLL InputManager
@@ -51,6 +57,3 @@ public:
 	static const bool mousePress(const MOUSEBUTTON button);
 	static const LONG mouseMove(const MOUSEAXIS axis);
 };
-
-#define __DIRECT_INPUT_H__
-#endif

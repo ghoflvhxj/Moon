@@ -5,7 +5,7 @@
 
 #include "Window.h"
 
-DirectInput::DirectInput()
+MDirectInput::MDirectInput()
 	: _pDirectInput{ nullptr }
 	, _pKeyboard{ nullptr }
 	, _pMouse{ nullptr }
@@ -15,26 +15,31 @@ DirectInput::DirectInput()
 	, _prevMouseState{ 0, }
 	, bFocused{ false }
 {
-	WINDOW_EXCEPTION(DirectInput8Create(g_hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void **)&_pDirectInput, nullptr))
-
-	// 키보드
-	WINDOW_EXCEPTION(_pDirectInput->CreateDevice(GUID_SysKeyboard, &_pKeyboard, nullptr))
-	WINDOW_EXCEPTION(_pKeyboard->SetDataFormat(&c_dfDIKeyboard))
-	WINDOW_EXCEPTION(_pKeyboard->SetCooperativeLevel(g_pMainWindow->getHandle(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))
-	WINDOW_EXCEPTION(_pKeyboard->Acquire())
-
-	// 마우스
-	WINDOW_EXCEPTION(_pDirectInput->CreateDevice(GUID_SysMouse, &_pMouse, nullptr))
-	WINDOW_EXCEPTION(_pMouse->SetDataFormat(&c_dfDIMouse))
-	WINDOW_EXCEPTION(_pMouse->SetCooperativeLevel(g_pMainWindow->getHandle(), DISCL_BACKGROUND | DISCL_NONEXCLUSIVE))
-	WINDOW_EXCEPTION(_pMouse->Acquire())
 }
 
-DirectInput::~DirectInput()
+
+bool MDirectInput::Initialize()
 {
+    Super::Initialize();
+
+    WINDOW_EXCEPTION(DirectInput8Create(g_hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&_pDirectInput, nullptr));
+
+    // 키보드
+    WINDOW_EXCEPTION(_pDirectInput->CreateDevice(GUID_SysKeyboard, &_pKeyboard, nullptr));
+    WINDOW_EXCEPTION(_pKeyboard->SetDataFormat(&c_dfDIKeyboard));
+    WINDOW_EXCEPTION(_pKeyboard->SetCooperativeLevel(g_pMainWindow->getHandle(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE));
+    WINDOW_EXCEPTION(_pKeyboard->Acquire());
+
+    // 마우스
+    WINDOW_EXCEPTION(_pDirectInput->CreateDevice(GUID_SysMouse, &_pMouse, nullptr));
+    WINDOW_EXCEPTION(_pMouse->SetDataFormat(&c_dfDIMouse));
+    WINDOW_EXCEPTION(_pMouse->SetCooperativeLevel(g_pMainWindow->getHandle(), DISCL_BACKGROUND | DISCL_NONEXCLUSIVE));
+    WINDOW_EXCEPTION(_pMouse->Acquire());
+
+    return true;
 }
 
-void DirectInput::update()
+void MDirectInput::Update()
 {
 	bFocused = GetFocus() == NULL ? false : true;
 
@@ -42,7 +47,16 @@ void DirectInput::update()
 	updateMouse();
 }
 
-void DirectInput::updateKeyboard()
+void MDirectInput::Release()
+{
+    Super::Release();
+
+    SafeRelease(_pKeyboard);
+    SafeRelease(_pMouse);
+    SafeRelease(_pDirectInput);
+}
+
+void MDirectInput::updateKeyboard()
 {
 	memcpy(_prevKeyboardState, _keyboardState, sizeof(unsigned char) * 256);
 	HRESULT hr = _pKeyboard->GetDeviceState(sizeof(_keyboardState), static_cast<void *>(_keyboardState));
@@ -56,43 +70,43 @@ void DirectInput::updateKeyboard()
 	}
 }
 
-void DirectInput::updateMouse()
+void MDirectInput::updateMouse()
 {
 	memcpy(&_prevMouseState, &_mouseState, sizeof(DIMOUSESTATE));
 	_pMouse->GetDeviceState(sizeof(_mouseState), static_cast<void*>(&_mouseState));
 }
 
-const bool DirectInput::keyDown(unsigned char key)
+const bool MDirectInput::keyDown(unsigned char key)
 {
 	return bFocused && (_keyboardState[key] & 0x80) && !_prevKeyboardState[key];
 }
 
-const bool DirectInput::keyUp(unsigned char key)
+const bool MDirectInput::keyUp(unsigned char key)
 {
 	return bFocused &&  !_keyboardState[key];
 }
 
-const bool DirectInput::keyPress(unsigned char key)
+const bool MDirectInput::keyPress(unsigned char key)
 {
 	return bFocused && (_keyboardState[key] & 0x80) && _prevKeyboardState[key];
 }
 
-const bool DirectInput::mouseDown(const MOUSEBUTTON eMouseButton)
+const bool MDirectInput::mouseDown(const MOUSEBUTTON eMouseButton)
 {
 	return bFocused &&  (_mouseState.rgbButtons[static_cast<int>(eMouseButton)] & 0x80) && !_prevMouseState.rgbButtons[static_cast<int>(eMouseButton)];
 }
 
-const bool DirectInput::mouseUp(const MOUSEBUTTON eMouseButton)
+const bool MDirectInput::mouseUp(const MOUSEBUTTON eMouseButton)
 {
 	return bFocused &&  !_mouseState.rgbButtons[static_cast<int>(eMouseButton)];
 }
 
-const bool DirectInput::mousePress(const MOUSEBUTTON eMouseButton)
+const bool MDirectInput::mousePress(const MOUSEBUTTON eMouseButton)
 {
 	return bFocused &&  _mouseState.rgbButtons[static_cast<int>(eMouseButton)] && _prevMouseState.rgbButtons[static_cast<int>(eMouseButton)];
 }
 
-const LONG DirectInput::mouseMove(const MOUSEAXIS eMouseAxis)
+const LONG MDirectInput::mouseMove(const MOUSEAXIS eMouseAxis)
 {
 	return bFocused == true ? *(((LONG *)&_mouseState) + static_cast<LONG>(eMouseAxis)) : 0;
 }

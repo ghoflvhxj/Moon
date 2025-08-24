@@ -105,8 +105,8 @@ struct FPrimitiveData
 	const FMeshData* MeshData = nullptr;
 
 	// 렌더러가 채워줘야 하는 데이터
-	std::shared_ptr<MVertexBuffer>				VertexBuffer;
-	std::shared_ptr<MIndexBuffer>				IndexBuffer;
+	std::weak_ptr<MVertexBuffer>			VertexBuffer;
+	std::weak_ptr<MIndexBuffer>				IndexBuffer;
 
 	// 다이나믹 메쉬용
 	Mat4* AnimMatrices = nullptr;

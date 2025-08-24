@@ -22,20 +22,25 @@ FrameManager::~FrameManager()
 
 void FrameManager::Tick()
 {
-	if (TimerManager.expired())
+	if (std::shared_ptr<MTimerManager>& t = TimerManager.lock())
 	{
-		return;
-	}
+        float delta = t->GetDeltaTime();
+        m_time += delta;
+        m_lock = true;
 
-	m_time += TimerManager.lock()->GetDeltaTime();
-	m_lock = true;
+        //std::cout << delta << std::endl;
+        //std::cout << m_time << std::endl;
 
-	if (m_time > m_timePerFrame)
-	{
-		m_time = 0.f;
-		m_lock = false;
+        if (m_time > m_timePerFrame)
+        {
+            while (m_time > m_timePerFrame)
+            {
+                m_time -= m_timePerFrame;
+            }
+            m_lock = false;
 
-		CaculateFrame(TimerManager.lock()->GetTotalTime());
+            CaculateFrame(t->GetTotalTime());
+        }
 	}
 }
 

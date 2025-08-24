@@ -88,8 +88,6 @@ Renderer::Renderer() noexcept
             MakeBuffer(GizmoMeshComp);
         }
     });
-
-    initialize();
 }
 
 Renderer::~Renderer() noexcept
@@ -97,28 +95,10 @@ Renderer::~Renderer() noexcept
     Release();
 }
 
-void Renderer::Release()
+bool Renderer::Initialize()
 {
-	_renderTargets.clear();
-	RenderPasses.clear();
+    Super::Initialize();
 
-    // 객체가 삭제되는 것이 아니기에 여기서 직접 해제해줘야 메모리 로그가 안남음
-    ViewMeshComponent.reset();
-    GizmoMeshComp.reset();
-
-    RenderablePrimitiveData.clear();
-    PrimitiveDatasPerType.clear();
-
-	PrimitiveComponents.clear();
-
-    IndexBuffers.clear();
-	VertexBuffers.clear();
-
-    IdToPrimitiveDatas.clear();
-}
-
-void Renderer::initialize() noexcept
-{
     ViewMeshComponent = std::make_shared<StaticMeshComponent>();
     ViewMeshComponent->SetPhysics(false);
     ViewMeshComponent->SetMesh(TEXT("Base/Plane.fbx"));
@@ -285,7 +265,29 @@ void Renderer::initialize() noexcept
 	//addRenderTargetForDebug(ERenderTarget::DirectionalShadowDepth);
     //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
 
-	ASSERT_MSG(EnumToIndex(ERenderPass::Count) == static_cast<uint32>(RenderPasses.size()), "ERenderPass::Count와 RenderPasses의 개수가 맞지 않음.");
+    return EnumToIndex(ERenderPass::Count) == GetSize(RenderPasses);
+}
+
+void Renderer::Release()
+{
+    Super::Release();
+
+    _renderTargets.clear();
+    RenderPasses.clear();
+
+    // 객체가 삭제되는 것이 아니기에 여기서 직접 해제해줘야 메모리 로그가 안남음
+    ViewMeshComponent.reset();
+    GizmoMeshComp.reset();
+
+    RenderablePrimitiveData.clear();
+    PrimitiveDatasPerType.clear();
+
+    PrimitiveComponents.clear();
+
+    IndexBuffers.clear();
+    VertexBuffers.clear();
+
+    IdToPrimitiveDatas.clear();
 }
 
 void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent)
@@ -511,7 +513,7 @@ void Renderer::Render()
 
     for (uint32 index = 0; index < CastValue<uint32>(ShaderType::Count); ++index)
     {
-        auto& Shaders = ShaderManager->GetShaders(CastValue<ShaderType>(index));
+        auto& Shaders = g_pGraphicDevice->GetShaderManager()->GetShaders(CastValue<ShaderType>(index));
 
         for (auto& Pair : Shaders)
         {
@@ -565,9 +567,6 @@ void Renderer::Render()
 	RenderText();
 
     g_World->render();
-
-    // 전부 삭제하는 것이 아니라 삭제된 것만 제거 되도록 변경하기
-    //DeferredPrimitiveDataMap.clear(); -> 버퍼가 한번 생성되면, 재추가 되지는 않아서 비우지 않아도 됨
 }
 
 void Renderer::RenderScene()

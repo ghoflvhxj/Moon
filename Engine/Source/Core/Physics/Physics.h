@@ -1,13 +1,13 @@
 ﻿#pragma once
 
 #include "Include.h"
-#include "Vertex.h"
-#include "PhysicsEnum.h"
 
 #include "Core/Asset.h"
+#include "Core/Module/Module.h"
 
-// 임시, FTest 참조
-#include "Mesh/Mesh.h"
+#include "PhysicsEnum.h"
+#include "Vertex.h"
+#include "Mesh/Mesh.h" // FClothData 참조
 
 class StaticMesh;
 class MPhysicsObject;
@@ -29,7 +29,7 @@ class ENGINE_DLL MPhysics : public MAsset
     REFLECT(MPhysics)
 };
 
-class ENGINE_DLL MPhysicsEngine
+class ENGINE_DLL MPhysicsEngine : public MModule
 {
 public:
     MPhysicsEngine() = default;
@@ -41,7 +41,7 @@ public:
 
 public:
     virtual void StartSimulate();
-    virtual void Update(float deltaTime) = 0;
+    virtual void Update() {}
     virtual void Release();
 
 public:
@@ -65,6 +65,8 @@ protected:
 
     // 임시. 시뮬레이션 등록 컴포넌트
     std::vector<std::weak_ptr<MMeshComponent>> MeshComponents;
+
+    REFLECT(MPhysicsEngine)
 };
 
 class ENGINE_DLL MPhysicsObject

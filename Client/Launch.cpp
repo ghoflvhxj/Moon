@@ -1,12 +1,17 @@
 ﻿#include "Include.h"
 
-#include "MoonEngine.h"
-#include "EngineException.h"
-
 #include "Window.h"
 #include "WindowManager.h"
 
+#include "MoonEngine.h"
+#include "EngineException.h"
+
+// 모듈들
+#include "DirectInput.h"
+#include "GraphicDevice.h"
+#include "Core/Physics/Jolt/Jolt.h"
 #include "Renderer.h"
+
 
 #include "Editor.h"
 
@@ -15,6 +20,9 @@
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
 #include "ImGui/backends/imgui_impl_dx11.h"
+
+#include "World.h"
+#include "Utility/PerformanceTimer.h"
 
 
 LPCWSTR title = TEXT("ShootingGame");
@@ -65,8 +73,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		pWindow = pWindowManager->CreateWindow(title, rt.right - rt.left, rt.bottom - rt.top, title);
 		g_hWnd = pWindow->getHandle();
 
+
+        // 여기서 사용할 모듈을 추가하는 것 보다 각 프로그램에서 해주는 게 좋을듯?
+        GetEngine()->AddModule<MDirectInput>();
+        GetEngine()->AddModule<GraphicDevice>();
+        GetEngine()->AddModule<MJoltPhysics>();
+        GetEngine()->AddModule<Renderer>();
+        GetEngine()->AddModule<MEditor>();
+
 		EngineInit(hInstance, pWindow);
-		SetModule(std::make_unique<MEditor>());
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -86,8 +101,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         });
 
         GetRenderFinishedDelegate().Add([&]() {
-            Test();
-
             ImGui::Render();
             ImGui::EndFrame();
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -102,19 +115,17 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 	MSG msg = { 0, };
 	while (msg.message != WM_QUIT)
 	{
-		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-        else
+        if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
         {
-            EngineLoop();
-            EnginePostLoop();
-
-            //std::wstring Frame = std::to_wstring(getMainGame()->getFrame());
-            //SetWindowText(pWindow->getHandle(), Frame.c_str());
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
         }
+
+        EngineLoop();
+        EnginePostLoop();
+
+        std::wstring Frame = std::to_wstring(GetMainWorld()->getFrame());
+        SetWindowText(pWindow->getHandle(), Frame.c_str());
 	}
 
     ImGui_ImplDX11_Shutdown();

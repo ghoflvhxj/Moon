@@ -126,6 +126,7 @@ void MRenderPass::End()
 
 	SafeRelease(_pOldRenderTargetView);
 	SafeRelease(_pOldDepthStencilView);
+
 }
 
 bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
@@ -146,6 +147,11 @@ bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
     {
         return false;
     }
+
+    //if (PrimitiveData.VertexBuffer.lock() == nullptr)
+    //{
+    //    return false;
+    //}
 
     return true;
 }
@@ -212,13 +218,13 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
     HandleOuputMergeStage(PrimitiveData);
 
 
-    if (PrimitiveData.IndexBuffer != nullptr)
+    if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
     {
-        g_pGraphicDevice->getContext()->DrawIndexed(PrimitiveData.IndexBuffer->getIndexCount(), 0, 0);
+        g_pGraphicDevice->getContext()->DrawIndexed(IndexBuffer->getIndexCount(), 0, 0);
     }
     else
     {
-        g_pGraphicDevice->getContext()->Draw(PrimitiveData.VertexBuffer->getVertexCount(), 0);
+        g_pGraphicDevice->getContext()->Draw(PrimitiveData.VertexBuffer.lock()->getVertexCount(), 0);
     }
 }
 
@@ -227,26 +233,16 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
 
+    std::shared_ptr<MVertexBuffer>& VertexBuffer = PrimitiveData.VertexBuffer.lock();
+
     // IA에 버텍스 버퍼 설정
     g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->m_pInputLayout);
-    PrimitiveData.VertexBuffer->setBufferToDevice(stride, offset);
-
-    // 포인트 라이트 쉐도우 패스에서 메시를 렌더링 함.
-    // 피직스용은 버퍼에 들어있는 정점이 16사이즈인데, InputLayout이 일반 버텍스 사이즈로 112임
-    // 패스의 자체 쉐이더를 사용하기 때문에 아래 조건문은 타지 않음
-
-    // 피직스용
-    if(_vertexShader == nullptr && PrimitiveData.InputLayout != nullptr)
-    {
-        stride = sizeof(Graphic::VERTEX_SIMPLE);
-        g_pGraphicDevice->getContext()->IASetInputLayout(PrimitiveData.InputLayout);
-        PrimitiveData.VertexBuffer->setBufferToDevice(stride, offset);
-    }
+    VertexBuffer->setBufferToDevice(stride, offset);
 
     // IA에 인덱스 버퍼 설정
-    if (PrimitiveData.IndexBuffer != nullptr)
+    if (std::shared_ptr<MIndexBuffer>& IndexBuffer = PrimitiveData.IndexBuffer.lock())
     {
-        PrimitiveData.IndexBuffer->setBufferToDevice(0);
+        IndexBuffer->setBufferToDevice(0);
     }
 
     const std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
@@ -308,14 +304,14 @@ void MRenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *
 {
 	releaseShader();
 	std::shared_ptr<VertexShader> vertexShader = nullptr;
-	if (ShaderManager->getVertexShader(vertexShaderFileName, vertexShader))
+	if (g_pGraphicDevice->GetVertexShader(vertexShaderFileName, vertexShader))
 	{
 		_vertexShader = vertexShader;
 		_vertexShaderFileName = vertexShaderFileName;;
 	}
 	
 	std::shared_ptr<PixelShader> pixelShader = nullptr;
-	if (ShaderManager->getPixelShader(pixelShaderFileName, pixelShader))
+	if (g_pGraphicDevice->GetPixelShader(pixelShaderFileName, pixelShader))
 	{
 		_pixelShader = pixelShader;
 		_pixelShaderFileName = pixelShaderFileName;
@@ -333,7 +329,7 @@ void MRenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *
 	setShader(vertexShaderFileName, pixelShaderFileName);
 
 	std::shared_ptr<MGeometryShader> geometryShader = nullptr;
-	if (ShaderManager->getGeometryShader(geomtryShaderFileName, geometryShader))
+	if (g_pGraphicDevice->GetGeometryShader(geomtryShaderFileName, geometryShader))
 	{
 		_geometryShader = geometryShader;
 		_geometryShaderFileName = geomtryShaderFileName;;

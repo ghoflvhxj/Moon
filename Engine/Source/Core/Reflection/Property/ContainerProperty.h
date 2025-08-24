@@ -9,7 +9,6 @@ struct FContainerPropertyInterface
     // 컨테이너의 키 타입 정보. 컨테이너가 아닌 경우는 nullptr.
     const FTypeDesc* KeyTypeDesc = nullptr;
     EType ContainerKeyType = EType::None;
-    bool bSharedValue = false;
 
 public:
 	virtual void Resize(const void* InObject, const size_t InSize) = 0;

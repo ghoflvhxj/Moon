@@ -57,16 +57,16 @@ PxPhysics* MPhysX::operator->()
 	return Physics;
 }
 
-void MPhysX::Update(float deltaTime)
+void MPhysX::Update()
 {
 	if (Scene == nullptr)
 	{
 		return;
 	}
 
-	Scene->simulate(deltaTime);
-	Scene->fetchResults(true);
-    Scene->fetchResultsParticleSystem();
+	//Scene->simulate(deltaTime);
+	//Scene->fetchResults(true);
+    //Scene->fetchResultsParticleSystem();
 }
 
 bool MPhysX::CreateConvex(const std::vector<Vec3>& Vertices, PxConvexMesh** ConvexMesh)

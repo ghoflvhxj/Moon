@@ -17,7 +17,7 @@ ShaderLoader::~ShaderLoader()
 {
 }
 
-const bool ShaderLoader::loadShaderFiles(const std::unique_ptr<MShaderManager>& shaderManager)
+bool ShaderLoader::loadShaderFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
 	// 멀티 쓰레드로 변경하기
 	loadVertexShaderFromFiles(shaderManager);
@@ -27,7 +27,7 @@ const bool ShaderLoader::loadShaderFiles(const std::unique_ptr<MShaderManager>& 
 	return true;
 }
 
-const bool ShaderLoader::loadVertexShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
+bool ShaderLoader::loadVertexShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
 	OutputDebugString(TEXT("VertexShader 불러오는 중...\r\n"));
 
@@ -49,7 +49,7 @@ const bool ShaderLoader::loadVertexShaderFromFiles(const std::unique_ptr<MShader
 	return true;
 }
 
-const bool ShaderLoader::loadPixelShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
+bool ShaderLoader::loadPixelShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
 	OutputDebugString(TEXT("PixelShader 불러오는 중...\r\n"));
 
@@ -71,7 +71,7 @@ const bool ShaderLoader::loadPixelShaderFromFiles(const std::unique_ptr<MShaderM
 	return true;
 }
 
-const bool ShaderLoader::loadGeometryShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
+bool ShaderLoader::loadGeometryShaderFromFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
 	OutputDebugString(TEXT("GeometryShader 불러오는 중...\r\n"));
 

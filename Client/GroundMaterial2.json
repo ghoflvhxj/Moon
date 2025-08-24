@@ -5,16 +5,14 @@
         "_textureList": {
             "0": {
                 "MAsset": {
-                    "Path": "Resources\\Texture\\stone_01_albedo.jpg"
+                    "Path": "Resources\\Texture\\Player.jpeg"
                 }
             },
             "1": {
                 "MAsset": {}
             },
             "2": {
-                "MAsset": {
-                    "Path": "Resources\\Texture\\Stone_01_normal.jpg"
-                }
+                "MAsset": {}
             },
             "3": {
                 "MAsset": {}

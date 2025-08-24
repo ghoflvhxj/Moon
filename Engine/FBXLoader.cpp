@@ -8,6 +8,8 @@
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 #include "Material.h"
 
+#include "Utility/PerformanceTimer.h"
+
 #undef min
 #undef max
 

@@ -1,10 +1,10 @@
-﻿#include "Include.h"
-#include "GraphicDevice.h"
+﻿#include "GraphicDevice.h"
+
+#include "MoonEngine.h"
 
 #include "Vertex.h"
 #include "InputLayout.h"
 
-#include "ShaderManager.h"
 #include "ShaderLoader.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
@@ -12,11 +12,14 @@
 #include "MainGameSetting.h"
 
 #include <dxgidebug.h>
-#include <dxgi1_3.h>
+#include <dxgi1_6.h>
 
 #pragma comment(lib, "dxgi.lib")
 
+
 using namespace DirectX;
+
+
 
 GraphicDevice::GraphicDevice()
 	: m_pDevice{ nullptr }
@@ -30,77 +33,60 @@ GraphicDevice::GraphicDevice()
 	, _spriteFont{ nullptr }
 
 	, m_pInputLayout{ nullptr }
-	//, m_pPixelShader{ nullptr }
-	//, m_pVertexShader{ nullptr }
 	, _viewport{ }
 {
-	initializeGrahpicDevice();
-
-	buildSamplerState();
-	buildRasterizerState();
-	buildDepthStencilState();
-	buildBlendState();
-
-	initializeDirectXTK();
+    bManualReleaseRequired = true;
 }
 
-GraphicDevice::~GraphicDevice()
+bool GraphicDevice::Initialize()
 {
-	/*----------------------------------
-	* 전역 정적 객체들의 생성과 소멸에 순서가 없어서, 자원들을 소멸자에 해제하지 않고 Relase함수로 빼낸다.
-	* 윈도우가 먼저 소멸될 때는 스왑체인이 해제가 안되기 때문! 
-	----------------------------------*/
+    Super::Initialize();
 
-	//m_pPixelShader->Release();
-	//m_pVertexShader->Release();
+    ComPtr<IDXGIFactory2> factory = nullptr;
+    UINT flags = 0;
+    HRESULT hr = CreateDXGIFactory2(flags, IID_PPV_ARGS(&factory));
+    if (FAILED(hr)) {
+        // 폴백: CreateDXGIFactory1 사용해 볼 수도 있음
+        ComPtr<IDXGIFactory> factory1;
+        hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory1));
+        if (SUCCEEDED(hr)) {
+            factory1.As(&factory); // 가능하면 IDXGIFactory2로 업캐스트 시도
+        }
+    }
 
-	//m_pInputLayout->Release();
 
-	//m_pDepthStencilView->Release();
-	//m_pRenderTargetView->Release();
+	// 장치
+    FAILED_CHECK_THROW(D3D11CreateDevice(
+        nullptr,
+        D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE,
+        nullptr,
+        D3D11_CREATE_DEVICE_DEBUG,
+        nullptr, 0,
+        D3D11_SDK_VERSION,
+        &m_pDevice, nullptr, &m_pImmediateContext
+    ));
 
-	//m_pImmediateContext->Release();
-	//m_pDevice->Release();
+    // 스왑체인
+    DXGI_SWAP_CHAIN_DESC1 swapDesc = {};
+    swapDesc.Width = g_pSetting->getResolutionWidth<UINT>();
+    swapDesc.Height = g_pSetting->getResolutionHeight<UINT>();
+    swapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapDesc.SampleDesc.Count = 1;
+    swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapDesc.BufferCount = 2;
+    swapDesc.Scaling = DXGI_SCALING_NONE;
+    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+    swapDesc.Flags = 0;
 
-	OutputDebugString(TEXT("--------------------------------------------------"));
-}
-
-const bool GraphicDevice::initializeGrahpicDevice()
-{
-	// 장치, 스왑체인 생성
-	DXGI_SWAP_CHAIN_DESC swapDesc = {};
-	swapDesc.BufferCount = 1;
-	swapDesc.BufferDesc.Width = g_pSetting->getResolutionWidth<UINT>();
-	swapDesc.BufferDesc.Height = g_pSetting->getResolutionHeight<UINT>();
-	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
-	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-	swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	swapDesc.SampleDesc.Count = 1;
-	swapDesc.SampleDesc.Quality = 0;
-	swapDesc.OutputWindow = g_hWnd;
-	swapDesc.Windowed = TRUE;
-	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	swapDesc.Flags = 0;
-
-	FAILED_CHECK_THROW(D3D11CreateDeviceAndSwapChain(
-		nullptr,
-		D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE,
-		nullptr,
-		D3D11_CREATE_DEVICE_DEBUG,
-		nullptr, 0,
-		D3D11_SDK_VERSION,
-		&swapDesc, &m_pSwapChain,
-		&m_pDevice, nullptr, &m_pImmediateContext
-	));	
+    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, g_hWnd, &swapDesc, nullptr, nullptr, &m_pSwapChain));
 
 	// 렌더 타겟 뷰 생성
 	ID3D11Texture2D *pBackBuffer = nullptr;
+
 	FAILED_CHECK_THROW(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pBackBuffer));
 	FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView));
-	SafeRelease(pBackBuffer);
+    SafeRelease(pBackBuffer);
 
 	// 깊이 스텐실 뷰 생성
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
@@ -132,11 +118,65 @@ const bool GraphicDevice::initializeGrahpicDevice()
 
 	m_pImmediateContext->RSSetViewports(1, &_viewport);
 
+    initializeDirectXTK();
+
+    buildSamplerState();
+    buildRasterizerState();
+    buildDepthStencilState();
+    buildBlendState();
+    BuildInputLayout();
+
 	return true;
 }
 
-const bool GraphicDevice::BuildInputLayout()
+void GraphicDevice::Release()
 {
+    Super::Release();
+
+    ShaderManager.reset();
+
+    _spriteFont.reset();
+    _spriteBatch.reset();
+
+    SafeReleaseArray(Samplers);
+    SafeReleaseArray(_rasterizerList);
+    SafeReleaseArray(_depthStencilStateList);
+    SafeReleaseArray(_blendStateList);
+
+    SafeRelease(m_pInputLayout);
+    SafeRelease(m_pDepthStencilView);
+    SafeRelease(m_pDepthStencilBuffer);
+    SafeRelease(m_pRenderTargetView);
+
+    //SafeRelease(m_pSwapChain);
+
+    //m_pDeferredContext->ClearState();
+    //m_pDeferredContext->Flush();
+    //SafeRelease(m_pDeferredContext);
+    if (m_pImmediateContext)
+    {
+        m_pImmediateContext->ClearState();
+        m_pImmediateContext->Flush();
+    }
+    SafeRelease(m_pImmediateContext);
+
+    SafeRelease(m_pDevice);
+
+    IDXGIDebug1* debug = nullptr;
+    //g_pGraphicDevice->getDevice()->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debug));
+    DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug));
+    OutputDebugStringW(TEXT("----------------ReportLiveObjectsBegin-------------------\r\n"));
+    debug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
+    OutputDebugStringW(TEXT("----------------ReportLiveObjectsEnd-------------------\r\n"));
+    SafeRelease(debug);
+}
+
+bool GraphicDevice::BuildInputLayout()
+{
+    ShaderManager = std::make_unique<MShaderManager>();
+    ShaderLoader shaderLoader;
+    shaderLoader.loadShaderFiles(ShaderManager);
+
     // 디폴트 InputLayout
     {
         std::vector<D3D11_INPUT_ELEMENT_DESC> inputDescList;
@@ -168,7 +208,27 @@ const bool GraphicDevice::BuildInputLayout()
 	return true;
 }
 
-const bool GraphicDevice::Refresh()
+bool GraphicDevice::GetVertexShader(const std::wstring InPath, std::shared_ptr<VertexShader>& OutShader)
+{
+    return ShaderManager->getVertexShader(InPath.c_str(), OutShader);
+}
+
+bool GraphicDevice::GetPixelShader(const std::wstring InPath, std::shared_ptr<PixelShader>& OutShader)
+{
+    return ShaderManager->getPixelShader(InPath.c_str(), OutShader);
+}
+
+bool GraphicDevice::GetGeometryShader(const std::wstring InPath, std::shared_ptr<MGeometryShader>& OutShader)
+{
+    return ShaderManager->getGeometryShader(InPath.c_str(), OutShader);
+}
+
+std::unique_ptr<MShaderManager>& GraphicDevice::GetShaderManager()
+{
+    return ShaderManager;
+}
+
+bool GraphicDevice::Refresh()
 {
 	assert(m_pDevice);
 	assert(m_pImmediateContext);
@@ -177,51 +237,19 @@ const bool GraphicDevice::Refresh()
 	return true;
 }
 
-void GraphicDevice::Release()
-{
-	_spriteFont.reset();
-	_spriteBatch.reset();
-
-	SafeReleaseArray(Samplers);
-	SafeReleaseArray(_rasterizerList);
-	SafeReleaseArray(_depthStencilStateList);
-	SafeReleaseArray(_blendStateList);
-
-	SafeRelease(m_pInputLayout);
-	SafeRelease(m_pDepthStencilView);
-	SafeRelease(m_pDepthStencilBuffer);
-	SafeRelease(m_pRenderTargetView);
-
-	SafeRelease(m_pSwapChain);
-
-	//m_pDeferredContext->ClearState();
-	//m_pDeferredContext->Flush();
-	//SafeRelease(m_pDeferredContext);
-	if (m_pImmediateContext)
-	{
-		m_pImmediateContext->ClearState();
-		m_pImmediateContext->Flush();
-	}
-	SafeRelease(m_pImmediateContext);
-
-	SafeRelease(m_pDevice);
-
-	IDXGIDebug1* debug = nullptr;
-	//g_pGraphicDevice->getDevice()->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debug));
-	DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug));
-	OutputDebugStringW(TEXT("----------------ReportLiveObjectsBegin-------------------\r\n"));
-	debug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
-	OutputDebugStringW(TEXT("----------------ReportLiveObjectsEnd-------------------\r\n"));
-	SafeRelease(debug);
-}
-
 void GraphicDevice::Begin()
 {
-	getContext()->ClearRenderTargetView(m_pRenderTargetView, reinterpret_cast<const float *>(&EngineColors::Blue));
-	getContext()->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+    getContext()->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
 }
 
-const bool GraphicDevice::buildRasterizerState()
+void GraphicDevice::End()
+{
+    m_pSwapChain->Present(0u, 0u);	
+    getContext()->ClearRenderTargetView(m_pRenderTargetView, reinterpret_cast<const float*>(&EngineColors::Blue));
+    getContext()->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+}
+
+bool GraphicDevice::buildRasterizerState()
 {
 	_rasterizerList.reserve(CastValue<uint32>(Graphic::FillMode::Count) + CastValue<uint32>(Graphic::CullMode::Count));
 	ID3D11RasterizerState *pRasterizerState = nullptr;
@@ -260,7 +288,7 @@ ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode
 	return _rasterizerList[(EnumToIndex(eFillMode) * CastValue<uint32>(Graphic::CullMode::Count)) + EnumToIndex(eCullMode)];
 }
 
-const bool GraphicDevice::buildDepthStencilState()
+bool GraphicDevice::buildDepthStencilState()
 {
 	_depthStencilStateList.reserve(CastValue<uint32>(Graphic::EDepthWriteMode::Count));
 	ID3D11DepthStencilState *pDepthStencilState = nullptr;
@@ -297,7 +325,7 @@ ID3D11DepthStencilState *GraphicDevice::getDepthStencilState(const Graphic::EDep
 	return _depthStencilStateList[EnumToIndex(eDetphWrite)];
 }
 
-const bool GraphicDevice::buildBlendState()
+bool GraphicDevice::buildBlendState()
 {
 	D3D11_BLEND_DESC bd = {};
 	ZeroMemory(&bd, sizeof(D3D11_BLEND_DESC));
@@ -343,12 +371,7 @@ ID3D11BlendState *GraphicDevice::getBlendState(const Graphic::Blend eBlend)
 	return _blendStateList[EnumToIndex(eBlend)];
 }
 
-void GraphicDevice::End()
-{
-	m_pSwapChain->Present(0u, 0u);
-}
-
-const bool GraphicDevice::buildSamplerState()
+bool GraphicDevice::buildSamplerState()
 {
 	auto CreateSamplerLambda = [this](D3D11_SAMPLER_DESC& samplerDesc)
 	{

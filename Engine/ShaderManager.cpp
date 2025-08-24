@@ -15,21 +15,6 @@ MShaderManager::MShaderManager()
 {
 }
 
-MShaderManager::~MShaderManager()
-{
-	Release();
-}
-
-void MShaderManager::Release()
-{
-	for (auto &shaderList : _shadersPerShaderType)
-	{
-		shaderList.clear();
-	}
-
-	//_blobMapList.clear();
-}
-
 const bool MShaderManager::addShader(const ShaderType type, const wchar_t *fileName, std::shared_ptr<MShader> &pShader)
 {
 	if (false == MapUtility::FindInsert(getShaderMap(type), fileName, pShader))

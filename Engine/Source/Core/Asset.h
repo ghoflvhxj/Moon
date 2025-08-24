@@ -18,6 +18,7 @@ class ENGINE_DLL MAsset : public MObject
 {
 public:
     MAsset() = default;
+    MAsset(const MAsset& Rhs) = default;
     MAsset(const std::wstring& InPath)
     {
         SetAssetPath(InPath);

@@ -57,10 +57,14 @@ namespace std
 class ENGINE_DLL MJoltPhysics : public MPhysicsEngine
 {
 public:
-    MJoltPhysics();
+    MJoltPhysics() = default;
     virtual ~MJoltPhysics() = default;
 
 public:
+    virtual bool Initialize() override;
+    virtual void Update() override;
+    virtual void Release() override;
+
     virtual void StartSimulate() override;
 
 public:
@@ -81,14 +85,12 @@ public:
     virtual void Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_ptr<MPhysicsObject>& Rhs);
 
 public:
-    virtual void Update(float deltaTime) override;
-    virtual void Release() override;
-
-public:
     JPH::TempAllocator* tempAllocator = nullptr;
     JPH::JobSystem* jobSystem = nullptr;
     JPH::JobSystem* jobSystemValidating = nullptr;
     JPH::PhysicsSystem* physics_system = nullptr;
+
+    REFLECT(MJoltPhysics)
 };
 
 class ENGINE_DLL MJoltPhysicsObject : public MPhysicsObject

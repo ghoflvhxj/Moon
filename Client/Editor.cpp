@@ -7,8 +7,6 @@
 #include "Core/Physics/Physics.h"
 #include "Core/ObjectPath.h"
 #include "Core/Asset.h"
-#include "Core/Serialize/JsonSerializer.h"
-#include "Core/Serialize/JsonDeSerializer.h"
 
 #include "World.h"
 #include "Renderer.h"
@@ -34,8 +32,6 @@
 #include "ImGui/backends/imgui_impl_win32.h"
 #include "ImGui/backends/imgui_impl_dx11.h"
 
-// 파일 다이얼로그
-#include <commdlg.h>
 
 // FBX
 #include "FBXLoader.h"
@@ -57,12 +53,7 @@ MEditor::~MEditor()
 
 bool MEditor::Initialize()
 {
-    std::wstring Str = TEXT("에디터 모듈 초기화");
-    LOG(Str);
-
-    GetRenderFinishedDelegate().Add([&]() {
-        Render();
-    });
+    Super::Initialize();
 
     return true;
 
@@ -167,14 +158,20 @@ void MEditor::Update()
 
         if (InputManager::mousePress(MOUSEBUTTON::RB))
         {
-            Vec3 rot = CameraComponent->getRotation();
-
+            Vec3 CameraRot = CameraComponent->getRotation();
+            Vec3 TargetRot = CameraRot;
             float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
             float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
 
-            rot.x = rot.x + (((rot.x + mouseY) - rot.x) * DeltaTime * 0.1f);
-            rot.y = rot.y + (((rot.y + mouseX) - rot.y) * DeltaTime * 0.1f);
-            CameraComponent->setRotation(rot);
+            TargetRot.x += mouseY * DeltaTime * 0.2f;
+            TargetRot.y += mouseX * DeltaTime * 0.2f;
+
+            float t = 0.5f;
+            CurrentRot.x = ((1.f - t) * CurrentRot.x) + (t * TargetRot.x);
+            CurrentRot.y = ((1.f - t) * CurrentRot.y) + (t * TargetRot.y);
+            CurrentRot.z = ((1.f - t) * CurrentRot.z) + (t * TargetRot.z);
+
+            CameraComponent->setRotation(CurrentRot);
         }
     }
 
@@ -380,27 +377,6 @@ void MEditor::Render()
             }
         }
 
-        if (ImGui::CollapsingHeader("Level"))
-        {
-            ImGui::Indent(20);
-            if (ImGui::Button("Save"))
-            {
-                MJsonSerializer Serializer;
-                Serializer.Serialize(GetMainWorld(), TEXT("D:\\Git\\Moon\\TestLevel.json"), true);
-            }
-            if (ImGui::Button("Load"))
-            {
-                GetLevelChangedDelegate().Broadcast();
-                GetPostLoopDelegate().Add([]() {
-                    GetMainWorld()->GetActors().clear();
-                    MJsonDeserializer Deserializer;
-                    Deserializer.Deserialize(GetMainWorld(), TEXT("D:\\Git\\Moon\\TestLevel.json"));
-                });
-
-            }
-            ImGui::Indent(-20);
-        }
-
         //if (ImGui::CollapsingHeader("JsonTest"))
         //{
         //    ImGui::Indent(20);
@@ -477,13 +453,38 @@ void MEditor::Render()
         }
     }
 
+    if (ImGui::CollapsingHeader("Level"))
+    {
+        ImGui::Indent(20);
+        if (ImGui::Button("Save As"))
+        {
+            SaveAs(*GetMainWorld());
+        }
+        if (ImGui::Button("Load"))
+        {
+            GetLevelChangedDelegate().Broadcast();
+
+            Open([&](const TCHAR* InFileName) {
+                std::wstring FileName = InFileName;
+                GetPostLoopDelegate().Add([FileName]() {
+                    GetMainWorld()->GetActors().clear();
+                    MJsonDeserializer Deserializer;
+                    Deserializer.Deserialize(GetMainWorld(), FileName);
+                    });
+                });
+        }
+        ImGui::Indent(-20);
+    }
+
     // 게임
     if (ImGui::CollapsingHeader("Game"))
     {
+        ImGui::Indent(20);
         if (ImGui::Button("Play"))
         {
             World->PlayGame();
         }
+        ImGui::Indent(-20);
     }
 
     // 기즈모 컨트롤
@@ -518,6 +519,7 @@ void MEditor::Render()
         ImGui::Text("Toatal primitive:%d", getRenderer()->TotalPrimitiveNum);
         ImGui::Text("show primitive:%d", getRenderer()->ShownPrimitiveNum);
         ImGui::Text("culled primitive:%d", getRenderer()->CulledPrimitiveNum);
+        ImGui::Text("Frame: %d", GetMainWorld()->getFrame());
 
         const FTypeDesc* Current = getRenderer()->GetTypeDesc();
         while (Current)
@@ -661,18 +663,16 @@ void MEditor::Render()
             const FTypeDesc* Current = EditAssetDesc;
             while (Current)
             {
-                DispatchStruct(Current, EditAsset);
+                DispatchStruct(Current, EditAsset.get());
                 Current = Current->Parent;
             }
 
             // 애셋 타입에 따라 추가 처리
             if (EditAsset->IsA<StaticMesh>())
             {
-                //std::shared_ptr<StaticMesh> Mesh = nullptr;
-                //g_ResourceManager->Load(EditAsset->GetAssetPath(), Mesh);
                 if (ImGui::Button("Make Collision"))
                 {
-                    GetPhysics()->SaveTest(EditAsset->CastTo<StaticMesh>());
+                    GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(EditAsset));
                 }
             }
             ImGui::End();
@@ -711,11 +711,11 @@ void MEditor::DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPrope
         {
             if (InContainerDesc->IsA<MAsset>())
             {
-                auto Asset = static_cast<MAsset*>(InContainerDesc->Get(InObject, i));
+                auto Asset = *static_cast<std::shared_ptr<MAsset>*>(InContainerDesc->Get(InObject, i));
                 std::string Path = Asset == nullptr ? "" : WStringToString(Asset->GetAssetPath());
                 ImGui::Text(Path.c_str());
 
-                const FTypeDesc* AssetTypeDesc = InContainerDesc->TypeDesc;
+                const FTypeDesc* AssetTypeDesc = Asset->GetTypeDesc();
 
                 std::wstring Filter;
                 if (AssetTypeDesc->IsA<MTexture>())
@@ -731,7 +731,10 @@ void MEditor::DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPrope
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    EditAsset = Asset;
+                    EditAsset = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(AssetTypeDesc)));
+                    MJsonDeserializer Deserializer;
+                    Deserializer.Deserialize(EditAsset, Asset->GetAssetPath());
+
                     EditAssetDesc = InContainerDesc->TypeDesc;
                 }
 
@@ -849,7 +852,7 @@ void MEditor::DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
             }
             else if (Prop->IsA<MAsset>())
             {
-                MAsset* Asset = static_cast<MAsset*>(Prop->GetAsVoid(InObject));
+                std::shared_ptr<MAsset> Asset = *static_cast<std::shared_ptr<MAsset>*>(Prop->GetAsVoid(InObject));
 
                 ImGui::Text(Prop->GetDisplayName().c_str());
 
@@ -860,7 +863,8 @@ void MEditor::DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    EditAsset = Asset;
+                    EditAsset = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(Prop->TypeDesc)));
+                    *EditAsset = *Asset;
                     EditAssetDesc = Prop->TypeDesc;
                 }
 

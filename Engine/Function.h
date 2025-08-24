@@ -136,6 +136,11 @@ inline void StringToWString(const char* Buffer, std::wstring& wstr)
     wstr.assign(Temp.begin(), Temp.end());
 }
 
+inline void StringToWString(const std::string& Buffer, std::wstring& wstr)
+{
+    StringToWString(Buffer.c_str(), wstr);
+}
+
 inline std::wstring StringToWString(const char* Buffer)
 {
     std::wstring NewString;
@@ -143,5 +148,10 @@ inline std::wstring StringToWString(const char* Buffer)
     NewString.resize(BufferSize);
     MultiByteToWideChar(CP_ACP, 0, Buffer, BufferSize, NewString.data(), BufferSize * 2);
 
-    return std::move(NewString);
+    return NewString;
+}
+
+inline std::wstring StringToWString(const std::string& Buffer)
+{
+    return StringToWString(Buffer.c_str());
 }

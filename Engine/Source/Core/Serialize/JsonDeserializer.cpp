@@ -88,7 +88,7 @@ void MJsonDeserializer::PatchVector(FVectorPropertyDesc* InContainerPropDesc, ra
         else
         {
             //PatchStruct(InContainerPropDesc->TypeDesc, InContainerPropDesc->GetAsVoid(InObject, ), Value);
-            Data = HandleData(Value, InContainerPropDesc->TypeDesc);
+            Data = HandleData(Value, InContainerPropDesc->TypeDesc, InContainerPropDesc->bSharedValue);
         }
 
         InContainerPropDesc->PushBack(InObject, Data);

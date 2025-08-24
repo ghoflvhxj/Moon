@@ -1,5 +1,9 @@
 ﻿#pragma once
-#ifndef __GRAPHIC_DEVICE_H__
+
+#include "Include.h"
+#include "Core/Module/Module.h"
+
+#include <wrl/client.h>
 
 // DirectXTK
 #include "DirectXTK/SpriteFont.h"
@@ -9,6 +13,11 @@
 
 class VertexShader;
 class PixelShader;
+class MGeometryShader;
+#include "ShaderManager.h"
+
+
+using Microsoft::WRL::ComPtr;
 
 enum class ESamplerFilter
 {
@@ -18,7 +27,7 @@ enum class ESamplerFilter
 	Count
 };
 
-class ENGINE_DLL GraphicDevice
+class ENGINE_DLL GraphicDevice : public MModule
 {
 public:
 	class ENGINE_DLL Exception : public EngineException
@@ -42,23 +51,33 @@ public:
 
 public:
 	explicit GraphicDevice();
-	~GraphicDevice();
+	virtual ~GraphicDevice() = default;
 
 	GraphicDevice(const GraphicDevice &ref) = delete;
 	GraphicDevice(GraphicDevice &&rRef) = delete;
 	GraphicDevice &operator=(const GraphicDevice &ref) = delete;
 
-	//-------------------------------------------------------------------------
-private:
-	const bool initializeGrahpicDevice();
+public:
+	virtual bool Initialize() override;
+	virtual void Release() override;
 
 public:
-	const bool BuildInputLayout();
+    void Begin();
+    void End();
+    bool Refresh();
 
-	const bool Refresh();
-	void Release();
-	void Begin();
-	void End();
+	bool BuildInputLayout();
+
+public:
+    void SetVertexShader(std::shared_ptr<VertexShader>& vertexShader);
+    void SetPixelShader(std::shared_ptr<PixelShader>& pixelShader);
+public:
+    bool GetVertexShader(const std::wstring InPath, std::shared_ptr<VertexShader>& OutShader);
+    bool GetPixelShader(const std::wstring InPath, std::shared_ptr<PixelShader>& OutShader);
+    bool GetGeometryShader(const std::wstring InPath, std::shared_ptr<MGeometryShader>& OutShader);
+    std::unique_ptr<MShaderManager>& GetShaderManager();
+public:
+    std::unique_ptr<MShaderManager> ShaderManager = nullptr;
 
 	//-------------------------------------------------------------------------
 	// State
@@ -68,10 +87,10 @@ public:
 	ID3D11DepthStencilState *getDepthStencilState(const Graphic::EDepthWriteMode eDetphWrite);
 	ID3D11BlendState *getBlendState(const Graphic::Blend eBlend);
 private:
-	const bool buildSamplerState();
-	const bool buildRasterizerState();
-	const bool buildDepthStencilState();
-	const bool buildBlendState();
+    bool buildSamplerState();
+    bool buildRasterizerState();
+    bool buildDepthStencilState();
+    bool buildBlendState();
 
 private:
 	std::vector<ID3D11SamplerState*>		Samplers;
@@ -84,12 +103,6 @@ private:
 public:
 	std::unique_ptr<DirectX::SpriteBatch> _spriteBatch;
 	std::unique_ptr<DirectX::SpriteFont> _spriteFont;
-
-	//-------------------------------------------------------------------------
-	// 인터페이스 래핑
-public:
-	void SetVertexShader(std::shared_ptr<VertexShader> &vertexShader);
-	void SetPixelShader(std::shared_ptr<PixelShader> &pixelShader);
 
 public:
 	ID3D11Device *getDevice();
@@ -106,10 +119,12 @@ private:
 	ID3D11DeviceContext *m_pDeferredContext;	// 지연 문맥: 멀티 쓰레드용 CreateDeferredContext로 생성한다
 
 private:
-	IDXGISwapChain *m_pSwapChain;
+    ComPtr<IDXGISwapChain1> m_pSwapChain;
+	//IDXGISwapChain1 *m_pSwapChain;
 
-private:
-	ID3D11RenderTargetView *m_pRenderTargetView;
+public:
+    ID3D11RenderTargetView* m_pRenderTargetView;
+    ID3D11RenderTargetView* m_pRenderTargetView2;
 	ID3D11DepthStencilView *m_pDepthStencilView;
 	ID3D11Texture2D *m_pDepthStencilBuffer;
 	//---------------------------------------------
@@ -122,11 +137,10 @@ public:
 
 private:
 	D3D11_VIEWPORT _viewport;
+
+    REFLECT(GraphicDevice)
 };
 
 #define FAILED_CHECK_THROW(hr) if((HRESULT)hr < 0) throw GraphicDevice::Exception(__LINE__, __FILE__, GetLastError());
 #define FAILED_CHECK_THROW_MSG(hr, message) if((HRESULT)hr < 0) { assert(false && TEXT(message)); throw GraphicDevice::Exception(__LINE__, __FILE__, GetLastError()); }
-
-#define __GRAPHIC_DEVICE_H__
-#endif
 

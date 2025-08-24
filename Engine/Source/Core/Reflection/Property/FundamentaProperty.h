@@ -120,7 +120,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
             else if constexpr (is_smart_ptr_v<MemType>)
             {
                 if (InIndex != 0) { MSGBOX(TEXT("배열 멤버가 아님!")); }
-                return ((Owner*)InObject->*TestMemPtr).get();
+                return &((Owner*)InObject->*TestMemPtr);
             }
             else
             {
@@ -215,6 +215,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
 	NewDesc->Size = sizeof(Type);
 	NewDesc->Num = std::is_array_v<MemType> ? sizeof(MemType) / sizeof(Type) : 1;
 	NewDesc->Offset = OffsetOf(MemPtr);
+    NewDesc->bSharedValue = is_smart_ptr_v<MemType>;
 
     SetType<ElemType>(NewDesc->Type, NewDesc->TypeDesc);
 

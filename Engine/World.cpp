@@ -39,46 +39,35 @@ MWorld::MWorld()
 
 MWorld::~MWorld()
 {
-    std::wstring Msg = TEXT("MainGame Destroy");
+    std::wstring Msg = TEXT("World Destroy");
     LOG(Msg);
 }
 
-const bool MWorld::Loop()
+bool MWorld::Loop()
 {
+    if (_deltaTime > _pFrameManager->GetFrameTime())
+    {
+        _deltaTime = 0.f;
+    }
+
 	_pTimerManager->Tick();
 	_pFrameManager->Tick();
 	_deltaTime += _pTimerManager->GetDeltaTime();
 
-	if (_pFrameManager->IsLock())
-		return false;
-
-	g_pDirectInput->update();
-
-	if (_pMainCamera)
-	{
-		_pMainCamera->update(_deltaTime);
-	}
-
-	Tick(_deltaTime);
-	Update(_deltaTime);
-    PostUpdate(_deltaTime);
-
-    _deltaTime = 0.f;
-
-	return true;
+	return _pFrameManager->IsLock();
 }
 
-void MWorld::Tick(const Time deltaTime)
+void MWorld::Tick()
 {
+    if (_pMainCamera)
+    {
+        _pMainCamera->update(_deltaTime);
+    }
 
-}
-
-void MWorld::Update(const Time deltaTime)
-{
-	for (auto& [Name, Actor] : Actors)
-	{
-        Actor->update(deltaTime);
-	}
+    for (auto& [Name, Actor] : Actors)
+    {
+        Actor->update(_deltaTime);
+    }
 }
 
 void MWorld::PlayGame()

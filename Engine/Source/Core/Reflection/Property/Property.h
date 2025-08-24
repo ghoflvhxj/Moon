@@ -25,8 +25,8 @@ struct FPropertyDesc
 	// 프로퍼티가 vector, map 같은 컨테이너 인지?
     EContainerType ContainerType = EContainerType::None;
 
-	// 프로퍼티가 포인터를 저장하는 컨테이너 인지?
-	bool bPointerElements = false;
+	// 프로퍼티가 shared_ptr 저장하는지?
+    bool bSharedValue = false;
 
     // 이 프로퍼티의 TypeDesc. 컨테이너인 경우는 요소의 TypeDesc.
 	const FTypeDesc* TypeDesc = nullptr;

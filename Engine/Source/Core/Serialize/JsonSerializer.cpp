@@ -113,7 +113,7 @@ rapidjson::Value MJsonSerializer::DispatchStruct(const FTypeDesc* InTypeDesc, co
             }
             else
             {
-                OutValue.AddMember(PropNameValue, HandleData(Prop->TypeDesc, Prop->GetAsVoid(InData)), Allocator);
+                OutValue.AddMember(PropNameValue, HandleData(Prop->TypeDesc, Prop->GetAsVoid(InData), Prop->bSharedValue), Allocator);
             }
         }
     }
@@ -178,22 +178,37 @@ rapidjson::Value MJsonSerializer::DispatchVector(FVectorPropertyDesc* InContaine
 		break;
 		}
 	}
-	else
-	{
-        if (InContainerPropDesc->IsA<MAsset>())
+    else
+    {
+        for (size_t i = 0; i < Num; ++i)
         {
-            for (size_t i = 0; i < Num; ++i)
+            const void* Data = InContainerPropDesc->Get(InData, i);
+            rapidjson::Value IndexValue = ToJsonValue(std::to_string(i));
+
+            if (InContainerPropDesc->IsA<MAsset>())
             {
                 rapidjson::Value AssetValue(kObjectType);
-                AssetValue.AddMember(rapidjson::Value(MAsset::GetTypeDescStatic()->Name, Allocator), DispatchStruct(MAsset::GetTypeDescStatic(), InContainerPropDesc->Get(InData, i)), Allocator);
-                OutValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), AssetValue, Allocator);
+
+                std::shared_ptr<MAsset> Asset = *static_cast<const std::shared_ptr<MAsset>*>(Data);
+
+                AssetValue.AddMember(ToJsonValue(MAsset::GetTypeDescStatic()->Name), DispatchStruct(MAsset::GetTypeDescStatic(), Asset.get()), Allocator);
+                OutValue.AddMember(IndexValue, AssetValue, Allocator);
             }
-        }
-        else
-        {
-            for (size_t i = 0; i < Num; ++i)
+            else if (InContainerPropDesc->IsA<MObject>())
             {
-                OutValue.AddMember(rapidjson::Value(std::to_string(i), Allocator), DispatchStruct(InContainerPropDesc->TypeDesc, InContainerPropDesc->Get(InData, i)), Allocator);
+                if (InContainerPropDesc->bSharedValue)
+                {
+                    std::shared_ptr<MObject> Object = *static_cast<const std::shared_ptr<MObject>*>(Data);
+                    OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Object.get()), Allocator);
+                }
+                else
+                {
+                    OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Data), Allocator);
+                }
+            }
+            else
+            {
+                OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Data), Allocator);
             }
         }
 	}
@@ -329,7 +344,7 @@ rapidjson::Value MJsonSerializer::HandleData(EType InType, const void* InData)
     return OutValue;
 }
 
-rapidjson::Value MJsonSerializer::HandleData(const FTypeDesc* InTypeDesc, const void* InData)
+rapidjson::Value MJsonSerializer::HandleData(const FTypeDesc* InTypeDesc, const void* InData, bool bShared)
 {
     // InTypeDesc가 유효할 지 의문이 듬.
 
@@ -337,14 +352,24 @@ rapidjson::Value MJsonSerializer::HandleData(const FTypeDesc* InTypeDesc, const 
 
     if (InTypeDesc->IsA<MAsset>())
     {
+        std::shared_ptr<const MAsset> Asset = *static_cast<const std::shared_ptr<MAsset>*>(InData);
+
         rapidjson::Value AssetValue(kObjectType);
-        AssetValue.AddMember(ToJsonValue(MAsset::GetTypeDescStatic()->Name), DispatchStruct(MAsset::GetTypeDescStatic(), InData), Allocator);
+        AssetValue.AddMember(ToJsonValue(MAsset::GetTypeDescStatic()->Name), DispatchStruct(MAsset::GetTypeDescStatic(), Asset.get()), Allocator);
         OutValue = AssetValue;
     }
     else if (InTypeDesc->IsA<MObject>())
     {
-        const MObject* Object = static_cast<const MObject*>(InData);
-        OutValue = DispatchStruct(InTypeDesc, InData);
+        const MObject* Object = nullptr;
+        if (bShared)
+        {
+            std::shared_ptr<const MObject> SharedObject = *static_cast<const std::shared_ptr<MObject>*>(InData);
+            OutValue = DispatchStruct(InTypeDesc, SharedObject.get());
+        }
+        else
+        {
+            OutValue = DispatchStruct(InTypeDesc, InData);
+        }
     }
     else
     {

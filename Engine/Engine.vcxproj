@@ -40,6 +40,7 @@
     <ClCompile Include="InputLayout.cpp" />
     <ClCompile Include="Launch.cpp" />
     <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="Source\Core\Module\Module.cpp" />
     <ClCompile Include="World.cpp" />
     <ClCompile Include="MainGameSetting.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -120,6 +121,7 @@
     <ClInclude Include="InputLayout.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Macro.h" />
+    <ClInclude Include="Source\Utility\PerformanceTimer.h" />
     <ClInclude Include="World.h" />
     <ClInclude Include="MainGameSetting.h" />
     <ClInclude Include="Manager.h" />

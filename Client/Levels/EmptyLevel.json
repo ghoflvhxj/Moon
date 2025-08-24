@@ -1,0 +1,43 @@
+{
+    "MWorld": {
+        "Actors": [
+            {
+                "Key": "MCamera_0",
+                "Value": {
+                    "MCamera": {},
+                    "MActor": {
+                        "_components": [
+                            {
+                                "Key": "RootComponent",
+                                "Value": {
+                                    "SceneComponent": {
+                                        "Scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "Rotation": [
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "Translation": [
+                                            0.0,
+                                            0.0,
+                                            0.0
+                                        ],
+                                        "bUpdated": false
+                                    },
+                                    "Component": {},
+                                    "MObject": {}
+                                }
+                            }
+                        ]
+                    },
+                    "MObject": {}
+                }
+            }
+        ]
+    },
+    "MObject": {}
+}

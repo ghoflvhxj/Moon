@@ -2,6 +2,42 @@
     "MWorld": {
         "Actors": [
             {
+                "Key": "MCamera_0",
+                "Value": {
+                    "MCamera": {},
+                    "MActor": {
+                        "_components": [
+                            {
+                                "Key": "RootComponent",
+                                "Value": {
+                                    "SceneComponent": {
+                                        "Scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "Rotation": [
+                                            0.24532,
+                                            0.61273,
+                                            0.0
+                                        ],
+                                        "Translation": [
+                                            -2.33438,
+                                            2.33014,
+                                            -1.86616
+                                        ],
+                                        "bUpdated": false
+                                    },
+                                    "Component": {},
+                                    "MObject": {}
+                                }
+                            }
+                        ]
+                    },
+                    "MObject": {}
+                }
+            },
+            {
                 "Key": "MStaticMeshActor_1",
                 "Value": {
                     "MStaticMeshActor": {},
@@ -22,7 +58,7 @@
                                         "Materials": {
                                             "0": {
                                                 "MAsset": {
-                                                    "Path": "DefulatMaterial.json"
+                                                    "Path": "GroundMaterial.json"
                                                 }
                                             }
                                         }
@@ -44,7 +80,7 @@
                                         ],
                                         "Translation": [
                                             0.0,
-                                            -1.13622,
+                                            -1.13619,
                                             2.41314
                                         ],
                                         "bUpdated": false
@@ -54,51 +90,6 @@
                                 }
                             }
                         ]
-                    },
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MCamera_0",
-                "Value": {
-                    "MCamera": {},
-                    "MActor": {
-                        "_components": [
-                            {
-                                "Key": "RootComponent",
-                                "Value": {
-                                    "SceneComponent": {
-                                        "Scale": [
-                                            1.0,
-                                            1.0,
-                                            1.0
-                                        ],
-                                        "Rotation": [
-                                            0.24532,
-                                            0.61274,
-                                            0.0
-                                        ],
-                                        "Translation": [
-                                            -2.33443,
-                                            2.33019,
-                                            -1.86616
-                                        ],
-                                        "bUpdated": false
-                                    },
-                                    "Component": {},
-                                    "MObject": {}
-                                }
-                            }
-                        ]
-                    },
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MActor_0",
-                "Value": {
-                    "MActor": {
-                        "_components": []
                     },
                     "MObject": {}
                 }
@@ -120,9 +111,9 @@
                                             1.0
                                         ],
                                         "Direction": [
-                                            0.0,
-                                            0.0,
-                                            1.0
+                                            0.54246,
+                                            -0.43456,
+                                            0.71894
                                         ],
                                         "Intensity": 1.0,
                                         "bShow": true
@@ -138,8 +129,8 @@
                                             1.0
                                         ],
                                         "Rotation": [
-                                            0.0,
-                                            0.0,
+                                            0.44955,
+                                            0.64639,
                                             0.0
                                         ],
                                         "Translation": [
@@ -154,6 +145,15 @@
                                 }
                             }
                         ]
+                    },
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MActor_0",
+                "Value": {
+                    "MActor": {
+                        "_components": []
                     },
                     "MObject": {}
                 }
@@ -252,9 +252,66 @@
                                     },
                                     "SceneComponent": {
                                         "Scale": [
-                                            0.00499,
-                                            0.00499,
-                                            0.00499
+                                            0.00498,
+                                            0.00498,
+                                            0.00498
+                                        ],
+                                        "Rotation": [
+                                            0.0,
+                                            -2.51417,
+                                            0.0
+                                        ],
+                                        "Translation": [
+                                            -1.81142,
+                                            1.10838,
+                                            -0.00004
+                                        ],
+                                        "bUpdated": false
+                                    },
+                                    "Component": {},
+                                    "MObject": {}
+                                }
+                            }
+                        ]
+                    },
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MPointLightActor_0",
+                "Value": {
+                    "MPointLightActor": {},
+                    "MActor": {
+                        "_components": [
+                            {
+                                "Key": "RootComponent",
+                                "Value": {
+                                    "MPointLightComponent": {
+                                        "Range": 5.0
+                                    },
+                                    "MLightComponent": {
+                                        "Color": [
+                                            0.0,
+                                            1.0,
+                                            0.0
+                                        ],
+                                        "Direction": [
+                                            0.0,
+                                            0.0,
+                                            1.0
+                                        ],
+                                        "Intensity": 3.0,
+                                        "bShow": true
+                                    },
+                                    "MPrimitiveComponent": {
+                                        "RenderMode": 0,
+                                        "bRendering": true
+                                    },
+                                    "SceneComponent": {
+                                        "Scale": [
+                                            1920.0,
+                                            1080.0,
+                                            1.0
                                         ],
                                         "Rotation": [
                                             0.0,
@@ -262,9 +319,9 @@
                                             0.0
                                         ],
                                         "Translation": [
-                                            -0.86942,
-                                            0.59896,
-                                            0.0
+                                            -2.73038,
+                                            1.22071,
+                                            0.43503
                                         ],
                                         "bUpdated": false
                                     },

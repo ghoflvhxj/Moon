@@ -23,6 +23,9 @@
 #include "Jolt/ObjectStream/ObjectStreamTextOut.h"
 #include "Jolt/ObjectStream/ObjectStreamTextIn.h"
 
+#include "MoonEngine.h"
+#include "World.h"
+
 #include "Renderer.h"
 #include "Vertex.h"
 #include "VertexBuffer.h"
@@ -209,45 +212,6 @@ public:
         cout << "A body went to sleep" << endl;
     }
 };
-
-
-MJoltPhysics::MJoltPhysics()
-{
-    RegisterDefaultAllocator();
-
-    Trace = TraceImpl;
-    JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
-
-    Factory::sInstance = new Factory();
-
-    RegisterTypes();
-
-    tempAllocator = new TempAllocatorImpl(32 * 1024 * 1024);
-
-    uint32 MaxConcurrentJobs = thread::hardware_concurrency();
-    // Create job system
-    jobSystem = new JobSystemThreadPool(cMaxPhysicsJobs, cMaxPhysicsBarriers, MaxConcurrentJobs - 1);
-    // Create single threaded job system for validatingS
-    jobSystemValidating = new JobSystemSingleThreaded(cMaxPhysicsJobs);
-
-    const uint cMaxBodies = 1024;
-    const uint cNumBodyMutexes = 0;
-    const uint cMaxBodyPairs = 1024;
-    const uint cMaxContactConstraints = 1024;
-
-    static BPLayerInterfaceImpl broad_phase_layer_interface;
-    static ObjectVsBroadPhaseLayerFilterImpl object_vs_broadphase_layer_filter;
-    static ObjectLayerPairFilterImpl object_vs_object_layer_filter;
-
-    physics_system = new PhysicsSystem();
-    physics_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broad_phase_layer_interface, object_vs_broadphase_layer_filter, object_vs_object_layer_filter);
-
-    static MyBodyActivationListener body_activation_listener;
-    physics_system->SetBodyActivationListener(&body_activation_listener);    
-
-    static  MyContactListener contact_listener;
-    physics_system->SetContactListener(&contact_listener);
-}
 
 void MJoltPhysics::StartSimulate()
 {
@@ -662,9 +626,53 @@ void MJoltPhysics::Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_
     physics_system->AddConstraint(ConstraintSetting->Create(lhs->GetBody(), rhs->GetBody()));
 }
 
-void MJoltPhysics::Update(float deltaTime)
+bool MJoltPhysics::Initialize()
 {
-    physics_system->Update(deltaTime, 1, tempAllocator, jobSystem);
+    Super::Initialize();
+
+    RegisterDefaultAllocator();
+
+    Trace = TraceImpl;
+    JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
+
+    Factory::sInstance = new Factory();
+
+    RegisterTypes();
+
+    tempAllocator = new TempAllocatorImpl(32 * 1024 * 1024);
+
+    uint32 MaxConcurrentJobs = thread::hardware_concurrency();
+    // Create job system
+    jobSystem = new JobSystemThreadPool(cMaxPhysicsJobs, cMaxPhysicsBarriers, MaxConcurrentJobs - 1);
+    // Create single threaded job system for validatingS
+    jobSystemValidating = new JobSystemSingleThreaded(cMaxPhysicsJobs);
+
+    const uint cMaxBodies = 1024;
+    const uint cNumBodyMutexes = 0;
+    const uint cMaxBodyPairs = 1024;
+    const uint cMaxContactConstraints = 1024;
+
+    static BPLayerInterfaceImpl broad_phase_layer_interface;
+    static ObjectVsBroadPhaseLayerFilterImpl object_vs_broadphase_layer_filter;
+    static ObjectLayerPairFilterImpl object_vs_object_layer_filter;
+
+    physics_system = new PhysicsSystem();
+    physics_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broad_phase_layer_interface, object_vs_broadphase_layer_filter, object_vs_object_layer_filter);
+
+    static MyBodyActivationListener body_activation_listener;
+    physics_system->SetBodyActivationListener(&body_activation_listener);
+
+    static  MyContactListener contact_listener;
+    physics_system->SetContactListener(&contact_listener);
+
+    return true;
+}
+
+void MJoltPhysics::Update()
+{
+    float DeltaTime = GetMainWorld()->getDeltaTime();
+
+    physics_system->Update(DeltaTime, 1, tempAllocator, jobSystem);
 
     // SoftBody의 정점위치 갱신
     for (auto& SoftBodyObject : SoftBodyObjects)

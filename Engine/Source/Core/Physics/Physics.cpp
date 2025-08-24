@@ -8,6 +8,7 @@ void MPhysicsEngine::StartSimulate()
 
 void MPhysicsEngine::Release()
 {
+    Super::Release();
     MeshComponents.clear();
 }
 

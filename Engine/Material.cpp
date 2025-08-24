@@ -74,14 +74,14 @@ void MMaterial::SetTexturesToDevice()
 std::shared_ptr<MShader> MMaterial::getVertexShader()
 {
     std::shared_ptr<VertexShader>	_vertexShader;
-	ShaderManager->getVertexShader(_vertexShaderFileName.c_str(), _vertexShader);
+    g_pGraphicDevice->GetVertexShader(_vertexShaderFileName.c_str(), _vertexShader);
     return _vertexShader;
 }
 
 std::shared_ptr<MShader> MMaterial::getPixelShader()
 {
     std::shared_ptr<PixelShader>	_pixelShader;
-	ShaderManager->getPixelShader(_pixelShaderFileName.c_str(), _pixelShader);
+    g_pGraphicDevice->GetPixelShader(_pixelShaderFileName.c_str(), _pixelShader);
     return _pixelShader;
 }
 

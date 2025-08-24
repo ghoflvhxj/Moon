@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Include.h"
+#include "Core/Module/Module.h"
 #include "Render.h"
 
 class SceneComponent;
@@ -8,7 +9,7 @@ class StaticMeshComponent;
 class MVertexBuffer;
 class RenderTarget;
 
-class ENGINE_DLL Renderer 
+class ENGINE_DLL Renderer : public MModule
 {
 public:
 	template <class T>
@@ -19,11 +20,13 @@ public:
 
 public:
 	explicit Renderer() noexcept;
-	~Renderer() noexcept;
-	void Release();
+	virtual ~Renderer() noexcept;
 
-private:
-	void initialize() noexcept;
+    // Module의 인터페이스 구현
+public:
+	virtual bool Initialize();
+	virtual void Release();
+
 private:
 	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
     std::vector<FPrimitiveData> ViewPrimitiveData;
@@ -113,7 +116,7 @@ public:
     RENDERER_OPTION(DrawCollision);
     //bool bDrawCollision = false;
 
-    REFLECT_TOP(
+    REFLECT(
         Renderer,
         PROPERTY(bDrawCollision),
         PROPERTY(bDebugRenderTargets)

@@ -34,7 +34,7 @@ class MSerializable;
 class ENGINE_DLL MJsonSerializer
 {
     rapidjson::Value HandleData(EType InType, const void* InData);
-    rapidjson::Value HandleData(const FTypeDesc* InTypeDesc, const void* InData);
+    rapidjson::Value HandleData(const FTypeDesc* InTypeDesc, const void* InData, bool bShared = false);
     template <class T>
     T CastData(const void* InData)
     {

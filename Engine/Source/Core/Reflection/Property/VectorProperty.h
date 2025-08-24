@@ -93,14 +93,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             auto& Vector = GetVector(InObject);
             if constexpr (is_smart_ptr_v<ElemType>)
             {
-                if (Vector[InIndex])
-                {
-                    return Vector[InIndex].get();
-                }
-                else
-                {
-                    return nullptr;
-                }
+                return &Vector[InIndex];
             }
             else if constexpr (std::is_pointer_v<ElemType>)
             {
@@ -180,7 +173,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
     NewDesc->Size = sizeof(PureType);
     NewDesc->ContainerType = EContainerType::Vector;
     NewDesc->ContainerKeyType = EType::Int;
-    NewDesc->bPointerElements = std::is_pointer_v<NoSmartElemType>;
+    NewDesc->bSharedValue = is_smart_ptr_v<ElemType>;
 
     SetType<PureType>(NewDesc->Type, NewDesc->TypeDesc);
 

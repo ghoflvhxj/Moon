@@ -26,7 +26,7 @@ public:
 	PxPhysics* operator->();
     
 public:
-	virtual void Update(float deltaTime) override;
+	virtual void Update() override;
     virtual void Release() override;
 
 protected:

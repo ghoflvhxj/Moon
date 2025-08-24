@@ -25,6 +25,7 @@ class ENGINE_DLL MMaterial : public MAsset
 {
 public:
 	explicit MMaterial();
+    MMaterial(const MMaterial& Rhs) = default;
 	virtual ~MMaterial();
 
 public:

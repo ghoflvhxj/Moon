@@ -136,7 +136,6 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
     NewDesc->Name = InName;
     NewDesc->Size = sizeof(PureType);
     NewDesc->ContainerType = EContainerType::Unordered_map;
-    NewDesc->bPointerElements = std::is_pointer_v<NoSmartElemType>;
     NewDesc->bSharedValue = is_smart_ptr_v<ElemType>;
 
     SetType<KeyType>(NewDesc->ContainerKeyType, NewDesc->KeyTypeDesc);
