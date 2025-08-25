@@ -35,6 +35,9 @@ public:
 	virtual void Tick();
 
 public:
+    Time GetCurrent() const;
+
+public:
 	const bool SetTimer(TimerHandle &handle, const TimerFunction &function, const bool loop, const float rate);
 
 	const Time GetDeltaTime() const;

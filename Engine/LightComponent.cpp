@@ -9,7 +9,6 @@ using namespace DirectX;
 
 MLightComponent::MLightComponent(void)
 	: MPrimitiveComponent()
-    , Direction { VEC3ZERO }
 	, Color	{ 1.f, 1.f, 1.f }
 	, Intensity { 1.f }
 	, bShow { true }

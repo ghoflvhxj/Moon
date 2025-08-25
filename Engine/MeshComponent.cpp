@@ -16,7 +16,7 @@ MMeshComponent::~MMeshComponent()
 
 void MMeshComponent::SetMesh(const std::wstring& InPath)
 {
-    std::filesystem::path Path(InPath);
+    std::filesystem::path Path = MFIleSystem::AbsolutePath(InPath);
 
     if (Path.extension() == TEXT(".fbx"))
     {

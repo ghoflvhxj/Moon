@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 
 #include "TimerManager.h"
 #include "MapUtility.h"
@@ -22,6 +22,11 @@ void MTimerManager::Tick()
 {
 	m_previousCount = m_currentCount;
 	m_currentCount = system_clock::now();
+}
+
+Time MTimerManager::GetCurrent() const
+{
+    return duration<Time>(m_currentCount - m_beginCount).count();
 }
 
 const bool MTimerManager::SetTimer(TimerHandle &handle, const TimerFunction &function, const bool loop, const float rate)

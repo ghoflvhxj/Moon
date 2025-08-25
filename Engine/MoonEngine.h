@@ -3,6 +3,8 @@
 #include "Include.h"
 #include "Core/Delegate.h"
 #include "Core/Module/Module.h"
+#include "TimerManager.h"
+#include "FrameManager.h"
 
 class MWindow;
 class MWorld;
@@ -10,7 +12,7 @@ class GraphicDevice;
 class Renderer;
 class MPhysicsEngine;
 
-class MEngine
+class ENGINE_DLL MEngine
 {
     std::vector<std::shared_ptr<MModule>> Modules;
 
@@ -71,6 +73,16 @@ public:
     }
 
 public:
+    MTimerManager TimerManager;
+    MFrameManager FrameManager;
+    float PrevProcessTime = 0.f;
+
+public:
+    FDelegate<void>& GetOnUpdated() { return OnUpdatedDelegate; }
+protected:
+    FDelegate<void> OnUpdatedDelegate;
+
+public:
     void Initialize();
     void Update();
     void Render();
@@ -82,6 +94,8 @@ public:
 
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindow);
 ENGINE_DLL void EngineLoop();
+bool EngineUpdate();
+void EngineRender();
 ENGINE_DLL void EnginePostLoop();
 ENGINE_DLL const bool EngineRelease();
 

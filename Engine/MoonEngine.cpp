@@ -20,6 +20,9 @@
 #include "MeshComponent.h"
 
 #include "Utility/PerformanceTimer.h"
+#include "TimerManager.h"
+#include "FrameManager.h"
+
 
 HINSTANCE g_hInstance;
 HWND g_hWnd;
@@ -68,14 +71,43 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
 	return true;
 }
 
-void EngineLoop()
+ENGINE_DLL void EngineLoop()
 {
-    if (g_World->Loop())
+    if (EngineUpdate())
     {
-        g_World->Tick();
+        g_World->Loop();
         GetEngine()->Update();
+        EngineRender();
+
+        float Current = GetEngine()->TimerManager.GetCurrent();
+        float ElapsedTimeForUpdate = Current - GetEngine()->PrevProcessTime;
+
+        //std::cout << ElapsedTimeForUpdate << std::endl;
+
+        GetEngine()->FrameManager.SetDeltaTime(ElapsedTimeForUpdate);
+        GetEngine()->PrevProcessTime = GetEngine()->TimerManager.GetCurrent();
     }
 
+
+}
+
+bool EngineUpdate()
+{
+    MTimerManager& TimerManager = GetEngine()->TimerManager;
+    MFrameManager& FrameManager = GetEngine()->FrameManager;
+
+    TimerManager.Tick();
+
+    float Current = TimerManager.GetCurrent();
+    float ElapsedTimeForUpdate = Current - GetEngine()->PrevProcessTime;
+
+    // 월드 업데이트&렌더의 완료에 걸리는 시간이 프레임 당 시간보다 적으면
+    // 일찍 작업이 끝난거니 업데이트는 기다림
+    return ElapsedTimeForUpdate >= FrameManager.GetTimePerFrame();
+}
+
+void EngineRender()
+{
     if (g_pGraphicDevice)
     {
         g_pGraphicDevice->Begin();
@@ -206,6 +238,8 @@ void MEngine::Initialize()
             LOG(Str);
         }
     }
+
+    PrevProcessTime = TimerManager.GetCurrent();
 }
 
 void MEngine::Update()
@@ -214,6 +248,8 @@ void MEngine::Update()
     {
         Module->Update();
     }
+
+    GetOnUpdated().Broadcast();
 }
 
 void MEngine::Render()

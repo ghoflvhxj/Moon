@@ -9,7 +9,7 @@
 
 class MWindow;
 class MTimerManager;
-class FrameManager;
+class MFrameManager;
 
 class MMeshComponent;
 
@@ -48,6 +48,7 @@ public:
         for (auto& [Name, Actor] : Actors)
         {
             Actor->PostConstruct();
+            Actor->update(0.f);
         }
     }
 
@@ -56,7 +57,6 @@ public:
 
 public:
 	bool Loop();
-	virtual void Tick();
 
 public:
     virtual void PlayGame();
@@ -92,10 +92,10 @@ private:
 	mutable std::shared_ptr<MTimerManager> _pTimerManager;
 
 public:
-	const std::shared_ptr<FrameManager> getFrameManager() const;
+	MFrameManager& getFrameManager() const;
 	const Frame getFrame() const;
 private:
-	std::shared_ptr<FrameManager> _pFrameManager;
+	std::shared_ptr<MFrameManager> _pFrameManager;
 
 public:
 	void SetMainCamera(std::shared_ptr<MCamera> pCamera);

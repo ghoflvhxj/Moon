@@ -3,72 +3,73 @@
 
 #include "TimerManager.h"
 
-FrameManager::FrameManager(std::shared_ptr<MTimerManager>& InTimermanager)
-	: Manager<FrameManager>()
-	, TimerManager(InTimermanager)
+MFrameManager::MFrameManager()
+	: Manager<MFrameManager>()
 	, m_targetFrame{ 0 }
-	, m_currentFrame{ 0 }
-	, m_frameCounter{ 0 }
 	, m_timePerFrame{ 0 }
 	, m_time{ 0 }
-	, m_elapsedTime{ 0 }
 {
 	SetTargetFrame(60);
 }
 
-FrameManager::~FrameManager()
+void MFrameManager::Tick(const MTimerManager& InTimerManager)
 {
+    //float delta = InTimerManager.GetDeltaTime();
+    //m_time += delta;
+    //m_lock = true;
+
+    //if (m_time >= m_timePerFrame)
+    //{
+    //    while (m_time >= m_timePerFrame)
+    //    {
+    //        m_time -= m_timePerFrame;
+    //    }
+    //    m_lock = false;
+
+    //    CaculateFrame(InTimerManager.GetTotalTime());
+    //}
 }
 
-void FrameManager::Tick()
+void MFrameManager::CaculateFrame(const Time currentTime)
 {
-	if (std::shared_ptr<MTimerManager>& t = TimerManager.lock())
-	{
-        float delta = t->GetDeltaTime();
-        m_time += delta;
-        m_lock = true;
+	//++m_frameCounter;
 
-        //std::cout << delta << std::endl;
-        //std::cout << m_time << std::endl;
+	//if (currentTime - m_elapsedTime >= 1.f)
+	//{
+	//	m_elapsedTime += 1.f;
 
-        if (m_time > m_timePerFrame)
-        {
-            while (m_time > m_timePerFrame)
-            {
-                m_time -= m_timePerFrame;
-            }
-            m_lock = false;
-
-            CaculateFrame(t->GetTotalTime());
-        }
-	}
+	//	m_currentFrame = m_frameCounter;
+	//	m_frameCounter = 0;
+	//}
 }
 
-void FrameManager::CaculateFrame(const Time currentTime)
-{
-	++m_frameCounter;
-
-	if (currentTime - m_elapsedTime >= 1.f)
-	{
-		m_elapsedTime += 1.f;
-
-		m_currentFrame = m_frameCounter;
-		m_frameCounter = 0;
-	}
-}
-
-void FrameManager::SetTargetFrame(const Frame frame)
+void MFrameManager::SetTargetFrame(const Frame frame)
 {
 	m_targetFrame = frame;
 	m_timePerFrame = 1.f / m_targetFrame;
 }
 
-const Frame FrameManager::GetFrame() const
+const Frame MFrameManager::GetFrame() const
 {
-	return m_currentFrame;
+	return _Frame;
 }
 
-const bool FrameManager::IsLock() const
+bool MFrameManager::IsLocked() const
 {
 	return m_lock;
+}
+
+void MFrameManager::SetDeltaTime(Time InTime)
+{
+    DeltaTime = InTime;
+
+    ElapsedTime += DeltaTime;
+    ++Counter;
+
+    if (ElapsedTime >= 1.f)
+    {
+        _Frame = Counter;
+        Counter = 0;
+        ElapsedTime = 0.f;
+    }
 }

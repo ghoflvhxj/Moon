@@ -45,29 +45,21 @@ MWorld::~MWorld()
 
 bool MWorld::Loop()
 {
-    if (_deltaTime > _pFrameManager->GetFrameTime())
-    {
-        _deltaTime = 0.f;
-    }
-
-	_pTimerManager->Tick();
-	_pFrameManager->Tick();
-	_deltaTime += _pTimerManager->GetDeltaTime();
-
-	return _pFrameManager->IsLock();
-}
-
-void MWorld::Tick()
-{
+    _deltaTime = GetEngine()->FrameManager.GetTimePerFrame();
     if (_pMainCamera)
     {
         _pMainCamera->update(_deltaTime);
     }
 
-    for (auto& [Name, Actor] : Actors)
+    if (HasBegan)
     {
-        Actor->update(_deltaTime);
+        for (auto& [Name, Actor] : Actors)
+        {
+            Actor->update(_deltaTime);
+        }
     }
+
+	return true;
 }
 
 void MWorld::PlayGame()
@@ -118,8 +110,8 @@ const Time MWorld::getDeltaTime() const
 
 const bool MWorld::Initialize()
 {
-	_pTimerManager = std::make_shared<MTimerManager>();
-	_pFrameManager = std::make_shared<FrameManager>(_pTimerManager);
+	//_pTimerManager = std::make_shared<MTimerManager>();
+	//_pFrameManager = std::make_shared<MFrameManager>(_pTimerManager);
 
     _pMainCamera = CreateActor<MCamera>(GetShared());
     _pMainCamera->setFov(g_pSetting->getFov());
@@ -133,14 +125,14 @@ const std::shared_ptr<MTimerManager> MWorld::getTimerManager() const
 	return (_pTimerManager) ? _pTimerManager : nullptr;
 }
 
-const std::shared_ptr<FrameManager> MWorld::getFrameManager() const
+MFrameManager& MWorld::getFrameManager() const
 {
-	return _pFrameManager;
+	return GetEngine()->FrameManager;
 }
 
 const Frame MWorld::getFrame() const
 {
-	return getFrameManager()->GetFrame();
+	return getFrameManager().GetFrame();
 }
 
 //const std::shared_ptr<MainGameSetting> MainGame::getSetting()

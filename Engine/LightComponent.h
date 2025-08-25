@@ -23,7 +23,7 @@ protected:
 public:
     const Vec3& GetDirection() const { return Direction; }
 protected:
-    Vec3 Direction;
+    Vec3 Direction = { 0.f, -1.f, 0.f};
 
 public:
 	const Vec3&	getColor(void) const;
