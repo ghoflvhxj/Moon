@@ -87,6 +87,11 @@ Renderer::Renderer() noexcept
         {
             MakeBuffer(GizmoMeshComp);
         }
+
+        for (auto& DebugMesh : DebugRenderTargetMehses)
+        {
+            MakeBuffer(DebugMesh);
+        }
     });
 }
 
