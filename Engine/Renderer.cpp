@@ -90,7 +90,7 @@ Renderer::Renderer() noexcept
 
         for (auto& DebugMesh : DebugRenderTargetMehses)
         {
-            MakeBuffer(DebugMesh);
+            MakeBuffer(DebugMesh.second);
         }
     });
 }
@@ -187,24 +187,35 @@ bool Renderer::Initialize()
 			ERenderTarget::Diffuse, 
 			ERenderTarget::Depth, 
 			ERenderTarget::Normal, 
-			ERenderTarget::Specular);
+			ERenderTarget::Specular
+        );
 
         RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindResourceViews(_renderTargets,
             ERenderTarget::DirectionalShadowDepth,
-            ERenderTarget::PointShadowDepth);
+            ERenderTarget::PointShadowDepth
+        );
 	}
+
+    RenderPasses[EnumToIndex(ERenderPass::Stencil)] = CreateRenderPass<MRenderPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindResourceViews(_renderTargets,
+            ERenderTarget::Stencil
+        );
+    }
 
     RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] =CreateRenderPass<DirectionalLightPass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::LightDiffuse,
-			ERenderTarget::LightSpecular);
+			ERenderTarget::LightSpecular
+        );
 
 		RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindResourceViews(_renderTargets,
 			ERenderTarget::Depth,
 			ERenderTarget::Normal,
 			ERenderTarget::Specular,
-            ERenderTarget::DirectionalShadowDepth);
+            ERenderTarget::DirectionalShadowDepth
+        );
 	}
 
     RenderPasses[EnumToIndex(ERenderPass::PointLight)] = CreateRenderPass<PointLightPass>();
@@ -216,14 +227,16 @@ bool Renderer::Initialize()
             ERenderTarget::Depth,
             ERenderTarget::Normal,
             ERenderTarget::Specular,
-            ERenderTarget::PointShadowDepth);
+            ERenderTarget::PointShadowDepth
+        );
     }
 
     RenderPasses[EnumToIndex(ERenderPass::SkyPass)] = CreateRenderPass<SkyPass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::Diffuse,
-			ERenderTarget::LightDiffuse);
+			ERenderTarget::LightDiffuse
+        );
 
 		RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
 	}
@@ -231,7 +244,8 @@ bool Renderer::Initialize()
     RenderPasses[EnumToIndex(ERenderPass::Collision)] = CreateRenderPass<CollisionPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::Collision)]->BindRenderTargets(_renderTargets,
-            ERenderTarget::Collision);
+            ERenderTarget::Collision
+        );
     }
 
     RenderPasses[EnumToIndex(ERenderPass::Combine)] = CreateRenderPass<CombinePass>();
@@ -241,7 +255,8 @@ bool Renderer::Initialize()
 			ERenderTarget::LightDiffuse,
 			ERenderTarget::LightSpecular,
             ERenderTarget::Collision,
-            ERenderTarget::PointLightDiffuse);
+            ERenderTarget::PointLightDiffuse
+        );
 	}
 
     RenderPasses[EnumToIndex(ERenderPass::Test)] = CreateRenderPass<MRenderPass>();

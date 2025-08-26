@@ -59,6 +59,7 @@ Texture2DArray g_ShadowDepth	                : register(t6);
 TextureCubeArray T_PointLightDepth              : register(t7);
 Texture2D T_Collision                           : register(t8);
 Texture2D T_PointLightDiffuse                   : register(t9); 
+Texture2D T_Stencil                             : register(t10);
 
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);

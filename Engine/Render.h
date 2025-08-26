@@ -35,7 +35,7 @@ enum class ERenderTarget
     Collision,
 
     PointLightDiffuse,
-
+    Stencil,
 	Count
 };
 
@@ -44,6 +44,7 @@ enum class ERenderPass
 	ShadowDepth,
 	PointShadowDepth,
 	Geometry,
+    Stencil,
 	DirectionalLight,
     PointLight,
 	SkyPass,
