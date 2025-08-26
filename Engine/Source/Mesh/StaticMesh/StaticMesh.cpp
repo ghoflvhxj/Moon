@@ -10,6 +10,7 @@
 #include "Core/ResourceManager.h"
 #include "Core/Serialize/JsonSerializer.h"
 #include "Core/Serialize/JsonDeserializer.h"
+#include "Core/FileSystem.h"
 
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
@@ -43,7 +44,7 @@ void StaticMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
 void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
 {
     MFBXLoader FbxLoader;
-    LoadFromFBX(FilePath, FbxLoader);
+    LoadFromFBX(MFIleSystem::AbsolutePath(FilePath), FbxLoader);
 }
 
 bool StaticMesh::Load(const std::wstring& InPath)
