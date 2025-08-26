@@ -1,23 +1,6 @@
 ﻿#pragma once
-#ifndef __COMBINE_PASS_H__
 
 #include "RenderPass.h"
-
-class CombinePass : public MRenderPass
-{
-public:
-	explicit CombinePass();
-	virtual ~CombinePass() = default;
-
-public:
-	//virtual const bool processPrimitiveData(const FPrimitiveData &primitiveData) override;
-
-private:
-    //virtual void HandleVertexShaderStage(const FPrimitiveData& PrimitiveData) override;
-    //virtual void HandlePixelShaderStage(const FPrimitiveData& PrimitiveData) override;
-    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
-    virtual void HandleOuputMergeStage(const FPrimitiveData& PrimitiveData) override;
-};
 
 class GeometryPass : public MRenderPass
 {
@@ -115,7 +98,3 @@ public:
 public:
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
 };
-
-#define __COMBINE_PASS_H__
-#endif
-

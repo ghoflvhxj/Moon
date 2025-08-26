@@ -41,6 +41,7 @@
     <ClCompile Include="Launch.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Source\Module\Module.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass.cpp" />
     <ClCompile Include="World.cpp" />
     <ClCompile Include="MainGameSetting.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -122,6 +123,7 @@
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Source\Module\Module.h" />
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass.h" />
     <ClInclude Include="Source\Utility\PerformanceTimer.h" />
     <ClInclude Include="World.h" />
     <ClInclude Include="MainGameSetting.h" />

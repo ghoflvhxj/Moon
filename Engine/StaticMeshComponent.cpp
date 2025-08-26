@@ -55,16 +55,7 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 		return false;
 	}
 
-    std::vector<std::shared_ptr<MMaterial>> PrimitiveMaterials;
-    if (Materials.empty() == false)
-    {
-        PrimitiveMaterials = Materials;
-    }
-    else
-    {
-        PrimitiveMaterials = Mesh->getMaterials();
-    }
-
+    std::vector<std::shared_ptr<MMaterial>>& PrimitiveMaterials = Materials.empty() ? Mesh->getMaterials() : Materials;
 
 	uint32 geometryCount = Mesh->GetMeshNum();
 	PrimitiveDataList.reserve(geometryCount);

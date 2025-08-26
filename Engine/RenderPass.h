@@ -26,6 +26,7 @@ public:
 public:
     virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList);
 
+protected:
 	virtual void Begin();
 	virtual void End();
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const;
@@ -42,7 +43,6 @@ protected:
     virtual void HandleOuputMergeStage(const FPrimitiveData& PrimitiveData);
 protected:
     bool bWriteDepthStencil = true;
-
 
 public:
 	// 렌더 타겟 바인드

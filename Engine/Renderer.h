@@ -28,12 +28,11 @@ public:
 	virtual void Release();
 
 private:
-	std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
     std::vector<FPrimitiveData> ViewPrimitiveData;
 
 public:
 	void AddPrimitive(std::shared_ptr<MPrimitiveComponent> pComponent);
-protected:
+public:
 	// 렌더할 Primitive 추가
     void MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponent);
     void MakeBuffer(FPrimitiveData& PrimitiveData);
@@ -48,10 +47,12 @@ protected:
     std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBuffers;
     std::map<uint32, std::vector<std::shared_ptr<MIndexBuffer>>> IndexBuffers;
 
-    //임시
 public:
-    std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId, uint32 Offset = 0) {
-        return VertexBuffers[InId][Offset];
+    std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId, uint32 InOffset = 0) {
+        return VertexBuffers[InId][InOffset];
+    }
+    std::shared_ptr<MIndexBuffer> GetIndexBuffer(uint32 InId, uint32 InOffset = 0) {
+        return IndexBuffers[InId][InOffset];
     }
 
 public:

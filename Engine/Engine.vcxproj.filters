@@ -229,6 +229,7 @@
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Source\Core\Reflection\TypeDesc.cpp" />
     <ClCompile Include="Source\Core\Object.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass.cpp" />
     <ClCompile Include="Source\Module\Module.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -496,7 +497,9 @@
     <ClInclude Include="Source\Utility\PerformanceTimer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Utility\PerformanceTimer.h">
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Module\Module.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>

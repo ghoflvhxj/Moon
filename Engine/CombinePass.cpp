@@ -26,26 +26,6 @@
 
 using namespace DirectX;
 
-CombinePass::CombinePass()
-    : MRenderPass()
-{
-    bWriteDepthStencil = false;
-}
-
-void CombinePass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
-{
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
-}
-
-void CombinePass::HandleOuputMergeStage(const FPrimitiveData& PrimitiveData)
-{
-    // DepthStencilState
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Disable), 1);
-
-    // OutputMergeState
-    g_pGraphicDevice->getContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-}
-
 bool GeometryPass::IsValidPrimitive(const FPrimitiveData &PrimitiveData) const
 {
 	return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && MRenderPass::IsValidPrimitive(PrimitiveData);

@@ -16,6 +16,7 @@
 #include "RenderTarget.h"
 #include "RenderPass.h"
 #include "CombinePass.h"
+#include "Module/Render/RenderPass/FullScreenQuadPass.h"
 
 #include "Material.h"
 #include "Shader.h"
@@ -77,11 +78,6 @@ Renderer::Renderer() noexcept
         IdToPrimitiveDatas.clear();
 
         ViewPrimitiveData.clear();
-        if (ViewMeshComponent)
-        {
-            ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
-            MakeBuffer(ViewMeshComponent);
-        }
 
         if (GizmoMeshComp)
         {
@@ -103,21 +99,6 @@ Renderer::~Renderer() noexcept
 bool Renderer::Initialize()
 {
     Super::Initialize();
-
-    ViewMeshComponent = std::make_shared<StaticMeshComponent>();
-    ViewMeshComponent->SetPhysics(false);
-    ViewMeshComponent->SetMesh(TEXT("Base/Plane.fbx"));
-    ViewMeshComponent->setTranslation(Vec3{ 0.f, 0.f, 1.f });
-    ViewMeshComponent->setScale(Vec3{ g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f });
-    ViewMeshComponent->GetMesh()->getMaterial(0)->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
-
-    std::shared_ptr<MMaterial> ViewMat = nullptr;
-    g_ResourceManager->Load(TEXT("Base/Deferred.json"), ViewMat);
-    ViewMeshComponent->SetMaterial(0, ViewMat);
-
-    ViewMeshComponent->SceneComponent::Update(0.f);
-    ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
-    MakeBuffer(ViewMeshComponent);
 
 	// 렌더 타겟 추가
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
@@ -248,7 +229,7 @@ bool Renderer::Initialize()
         );
     }
 
-    RenderPasses[EnumToIndex(ERenderPass::Combine)] = CreateRenderPass<CombinePass>();
+    RenderPasses[EnumToIndex(ERenderPass::Combine)] = CreateRenderPass<MCombinePass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::Combine)]->BindResourceViews(_renderTargets,
 			ERenderTarget::Diffuse,
@@ -257,6 +238,8 @@ bool Renderer::Initialize()
             ERenderTarget::Collision,
             ERenderTarget::PointLightDiffuse
         );
+
+        RenderPasses[EnumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	}
 
     RenderPasses[EnumToIndex(ERenderPass::Test)] = CreateRenderPass<MRenderPass>();
@@ -297,7 +280,6 @@ void Renderer::Release()
     RenderPasses.clear();
 
     // 객체가 삭제되는 것이 아니기에 여기서 직접 해제해줘야 메모리 로그가 안남음
-    ViewMeshComponent.reset();
     GizmoMeshComp.reset();
 
     RenderablePrimitiveData.clear();
@@ -583,20 +565,14 @@ void Renderer::RenderScene()
 	TotalPrimitiveNum = GetSize(PrimitiveComponents);
 	FrustumCulling();
 
-	// 기본 패스
 	uint32 CombinePass = EnumToIndex(ERenderPass::Combine);
-	for (uint32 PassIndex = 0; PassIndex < CombinePass; ++PassIndex)
+	for (uint32 PassIndex = 0; PassIndex <= CombinePass; ++PassIndex)
 	{
         if (std::shared_ptr<MRenderPass>& CurrentRenderPass = RenderPasses[PassIndex])
         {
             CurrentRenderPass->RenderPass(RenderablePrimitiveData);
         }
 	}
-
-	// 혼합 패스
-    ViewPrimitiveData[0].VertexBuffer = VertexBuffers[ViewMeshComponent->GetPrimitiveID()][0];
-    ViewPrimitiveData[0].IndexBuffer = IndexBuffers[ViewMeshComponent->GetPrimitiveID()][0];
-    RenderPasses[CombinePass]->RenderPass(ViewPrimitiveData);
 }
 
 void Renderer::RenderText()
