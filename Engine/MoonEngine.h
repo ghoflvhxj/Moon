@@ -2,7 +2,7 @@
 
 #include "Include.h"
 #include "Core/Delegate.h"
-#include "Core/Module/Module.h"
+#include "Module/Module.h"
 #include "TimerManager.h"
 #include "FrameManager.h"
 

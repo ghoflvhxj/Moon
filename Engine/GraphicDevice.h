@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "Include.h"
-#include "Core/Module/Module.h"
+#include "Module/Module.h"
 
 #include <wrl/client.h>
 

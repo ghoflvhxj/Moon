@@ -229,7 +229,7 @@
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Source\Core\Reflection\TypeDesc.cpp" />
     <ClCompile Include="Source\Core\Object.cpp" />
-    <ClCompile Include="Source\Core\Module\Module.cpp" />
+    <ClCompile Include="Source\Module\Module.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -493,10 +493,11 @@
     <ClInclude Include="Source\Core\Delegate.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Module\Module.h">
+    <ClInclude Include="Source\Utility\PerformanceTimer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Utility\PerformanceTimer.h">
+    <ClInclude Include="Source\Module\Module.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

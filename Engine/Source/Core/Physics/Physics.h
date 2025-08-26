@@ -3,7 +3,7 @@
 #include "Include.h"
 
 #include "Core/Asset.h"
-#include "Core/Module/Module.h"
+#include "Module/Module.h"
 
 #include "PhysicsEnum.h"
 #include "Vertex.h"

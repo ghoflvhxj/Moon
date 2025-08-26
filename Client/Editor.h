@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Core/Module/Module.h"
+#include "Module/Module.h"
 #include "Core/Serialize/JsonSerializer.h"
 #include "Core/Serialize/JsonDeSerializer.h"
 

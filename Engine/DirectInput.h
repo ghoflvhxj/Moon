@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Core/Module/Module.h"
+#include "Module/Module.h"
 
 class ENGINE_DLL MDirectInput : public MModule
 {

@@ -8,7 +8,6 @@
 #include "World.h"
 #include "Core/Physics/PhysX/MPhysX.h"
 #include "Core/Physics/Jolt/Jolt.h"
-#include "Core/Module/Module.h"
 #include "Core/ResourceManager.h"
 #include "Core/ResourceLoader.h"
 
