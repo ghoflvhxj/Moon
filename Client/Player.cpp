@@ -15,7 +15,7 @@
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 #include "FBXLoader.h"
-
+#include "Core/ResourceManager.h"
 #include "imgui.h"
 
 #include "Core/Serialize/JsonSerializer.h"
@@ -27,26 +27,18 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/filereadstream.h"
 
-#define UsePointLight 0
-#define UseRandomPointLight 1
 
-#define UseDynamicMesh 0
-#define UseSkySphere 0
+#define UsePointLight 0
+#define UseRandomPointLight 0
+
+#define UseDynamicMesh 1
+#define UseSkySphere 1
 
 using namespace DirectX;
 using namespace rapidjson;
 
 Player::Player()
 	: MActor()
-{
-	initialize();
-}
-
-Player::~Player()
-{
-}
-
-void Player::initialize()
 {
     LoadedStaticMeshComp = std::make_shared<StaticMeshComponent>();
     LoadedStaticMeshComp->setScale(Vec3(0.01f, 0.01f, 0.01f));
@@ -63,56 +55,70 @@ void Player::initialize()
 #endif
 
 #if UseDynamicMesh == 1
-	CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
-	AddComponent(ROOT_COMPONENT, CharacterMeshComponent);
+    CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
+    AddComponent(ROOT_COMPONENT, CharacterMeshComponent);
     CharacterMeshComponent->SetPhysics(false);
-	CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
+    CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
     CharacterMeshComponent->SetMesh(TEXT("2B/2b.fbx"));
-	CharacterMeshComponent->GetDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
-	CharacterMeshComponent->GetDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
+    CharacterMeshComponent->GetDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
+    CharacterMeshComponent->GetDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
     // 2 = 치마
 
     CharacterMeshComponent->setDrawingBoundingBox(true);
-    CharacterMeshComponent->SetAnimPlaying(false);
 #endif
 
 #if UseSkySphere == 1
-	std::shared_ptr<MTexture> SkyTexture = std::make_shared<MTexture>(TEXT("./SkyDome/Hazy_Afternoon_Backplate_001.png"));
-	_pSkyComponent = std::make_shared<SkyComponent>();
-	_pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, SkyTexture);
-	AddComponent(TEXT("Sky"), _pSkyComponent);
-	_pSkyComponent->setRotation(Vec3{ XMConvertToRadians(270.f), 0.f, 0.f });
+    std::shared_ptr<MTexture> SkyTexture = nullptr;
+    g_ResourceManager->Load(TEXT("SkyDome/Hazy_Afternoon_Backplate_001.png"), SkyTexture);
+    _pSkyComponent = std::make_shared<SkyComponent>();
+    _pSkyComponent->getSkyMesh()->getMaterial(0)->setTexture(ETextureType::Diffuse, SkyTexture);
+    AddComponent(TEXT("Sky"), _pSkyComponent);
+    _pSkyComponent->setRotation(Vec3{ XMConvertToRadians(270.f), 0.f, 0.f });
 #endif
 
 #if UseRandomPointLight == 1
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> colorDis(0, 255);
-	std::uniform_int_distribution<int> transDis(0, 10);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> colorDis(0, 255);
+    std::uniform_int_distribution<int> transDis(0, 10);
 
-	for (int i = 0; i < 1; ++i)
-	{
-		std::shared_ptr<MPointLightComponent> pLight = std::make_shared<MPointLightComponent>();
-		pLight->setTranslation(Vec3(transDis(gen) / 1.f, 1.f, transDis(gen) / 1.f));
-		pLight->setColor(Vec3(colorDis(gen) / 255.f, colorDis(gen) / 255.f, colorDis(gen) / 255.f));
-		pLight->setRange(10.f);
+    for (int i = 0; i < 1; ++i)
+    {
+        std::shared_ptr<MPointLightComponent> pLight = std::make_shared<MPointLightComponent>();
+        pLight->setTranslation(Vec3(transDis(gen) / 1.f, 1.f, transDis(gen) / 1.f));
+        pLight->setColor(Vec3(colorDis(gen) / 255.f, colorDis(gen) / 255.f, colorDis(gen) / 255.f));
+        pLight->setRange(10.f);
         //pLight->setIntensity(3.f);
-		_pLightComponentList.push_back(pLight);
+        _pLightComponentList.push_back(pLight);
 
-		std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
-		AddComponent(tag.c_str(), pLight);
-	}
+        std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
+        AddComponent(tag.c_str(), pLight);
+    }
 #endif
 }
 
-void Player::initializeImGui()
+Player::~Player()
 {
+}
 
+void Player::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (CharacterMeshComponent)
+    {
+        GetPostLoopDelegate().Add([&]() {
+            CharacterMeshComponent->Clothing();
+        });
+        
+    }
 }
 
 void Player::tick(const Time deltaTime)
 {
+    Super::tick(deltaTime);
+
 #if UseDynamicMesh == 1
 	if (InputManager::keyPress(DIK_E))
 	{

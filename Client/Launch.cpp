@@ -6,6 +6,8 @@
 #include "MoonEngine.h"
 #include "EngineException.h"
 
+#include "Core/Delegate.h"
+
 // 모듈들
 #include "DirectInput.h"
 #include "GraphicDevice.h"
@@ -27,13 +29,6 @@
 
 LPCWSTR title = TEXT("ShootingGame");
 HWND g_hWnd;
-
-void Test()
-{
-    ImGui::Begin("Editor");
-
-    ImGui::End();
-}
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -100,10 +95,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             ImGui::NewFrame();
         });
 
-        GetRenderFinishedDelegate().Add([&]() {
+        GetRenderFinishedDelegate().Add([]() {
             ImGui::Render();
             ImGui::EndFrame();
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        });
+
+        GetEngine()->GetOnUpdated().Add([]() {
+            std::wstring Frame = std::to_wstring(GetMainWorld()->getFrame());
+            SetWindowText(g_hWnd, Frame.c_str());
         });
 	}
 	catch (const EngineException &e)
@@ -123,9 +123,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
         EngineLoop();
         EnginePostLoop();
-
-        std::wstring Frame = std::to_wstring(GetMainWorld()->getFrame());
-        SetWindowText(pWindow->getHandle(), Frame.c_str());
 	}
 
     ImGui_ImplDX11_Shutdown();

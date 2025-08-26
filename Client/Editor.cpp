@@ -579,51 +579,59 @@ void MEditor::Render()
         ImGui::SameLine();
         if (ImGui::Button("Add Actor") && TypeDescs.find(ActorClassName) != TypeDescs.end())
         {
-            CreateActor(GetMainWorld(), TypeDescs[ActorClassName]);
+            std::shared_ptr<MActor> NewActor = CreateActor(GetMainWorld(), TypeDescs[ActorClassName]);
+            ClickedComp = NewActor->getComponent(ROOT_COMPONENT);
         }
     }
 
     // 액터 편집 기능
-    if (ImGui::CollapsingHeader("Actor Edit") && ClickedComp.expired() == false)
+    if (std::shared_ptr<Component> Comp = ClickedComp.lock())
     {
-        auto actor = ClickedComp.lock()->getOwningActor();
-        for (auto& [Name, Comp] : actor->GetComponents())
+        if (std::shared_ptr<MActor> Actor = Comp->getOwningActor())
         {
-            char CName[128];
-            WStringToString(Name, CName, 128);
-            std::string ClassName = "(" + Comp->GetTypeDesc()->Name + ")";
-            strcat_s(CName, 128, ClassName.c_str());
-
-            bool bHighlight = ClickedComp.lock() == Comp;
-            if (bHighlight)
+            if (ImGui::CollapsingHeader("Actor Edit"))
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
-            }
-
-            if (ImGui::Selectable(CName))
-            {
-                ClickedComp = Comp;
-            }
-
-            if (bHighlight)
-            {
-                ImGui::PopStyleColor(1);
-            }
-        }
-
-        // 컴포넌트 속성 편집 기능
-        if (std::shared_ptr<MPrimitiveComponent> HitComponent = std::static_pointer_cast<MPrimitiveComponent>(ClickedComp.lock()))
-        {
-            const FTypeDesc* Current = HitComponent->GetTypeDesc();
-            while (Current)
-            {
-                if (ImGui::CollapsingHeader(Current->Name.c_str()))
+                for (auto& [Name, Comp] : Actor->GetComponents())
                 {
-                    DispatchStruct(Current, HitComponent.get());
+                    char CName[128];
+                    WStringToString(Name, CName, 128);
+                    std::string ClassName = "(" + Comp->GetTypeDesc()->Name + ")";
+                    strcat_s(CName, 128, ClassName.c_str());
+
+                    bool bHighlight = ClickedComp.lock() == Comp;
+                    if (bHighlight)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
+                    }
+
+                    if (ImGui::Selectable(CName))
+                    {
+                        ClickedComp = Comp;
+                    }
+
+                    if (bHighlight)
+                    {
+                        ImGui::PopStyleColor(1);
+                    }
                 }
 
-                Current = Current->Parent;
+                // 컴포넌트 속성 편집 기능
+                if (std::shared_ptr<MPrimitiveComponent> HitComponent = std::static_pointer_cast<MPrimitiveComponent>(ClickedComp.lock()))
+                {
+                    const FTypeDesc* Current = HitComponent->GetTypeDesc();
+                    while (Current)
+                    {
+                        if (ImGui::CollapsingHeader(Current->Name.c_str()))
+                        {
+                            DispatchStruct(Current, HitComponent.get());
+                        }
+
+                        Current = Current->Parent;
+                    }
+                }
             }
+
+            Actor->update(0.f);
         }
     }
 
@@ -684,7 +692,7 @@ void MEditor::Render()
 
 bool MEditor::IsPickable() const
 {
-    return ImGui::GetIO().WantCaptureMouse == false;
+    return ImGui::GetIO().WantCaptureMouse == false && GetMainWorld()->IsMouseInViewport();
 }
 
 void MEditor::DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* InContainerDesc, void* InObject)

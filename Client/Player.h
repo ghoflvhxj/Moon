@@ -17,9 +17,8 @@ public:
     explicit Player();
     virtual ~Player();
 
-private:
-    void initialize();
-    void initializeImGui();
+public:
+    virtual void BeginPlay() override;
 protected:
     virtual void tick(const Time deltaTime) override;
 

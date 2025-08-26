@@ -33,7 +33,7 @@ protected:
     Time ElapsedTime = 0.f; 
     // SetDeltaTime이 호출된 횟수 누적
 	uint32 Counter = 0;
-    uint32 _Frame = 0.f;
+    uint32 _Frame = 0;
 
 private:
 	//Frame m_currentFrame;
