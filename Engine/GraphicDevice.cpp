@@ -298,12 +298,12 @@ bool GraphicDevice::buildDepthStencilState()
 	dsd.DepthEnable = TRUE;
 	dsd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dsd.DepthFunc = D3D11_COMPARISON_LESS;
-	dsd.StencilEnable = FALSE;
+	dsd.StencilEnable = TRUE;
 	dsd.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
 	dsd.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 	dsd.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 	dsd.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	dsd.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	dsd.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
 	dsd.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 	dsd.BackFace = dsd.FrontFace;
 
