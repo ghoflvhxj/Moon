@@ -81,7 +81,8 @@ void MRenderPass::Begin()
 
 		g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RawRenderTargets.size()), 
             RawRenderTargets.data(), 
-            UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView);
+            UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView
+        );
 	}
 
 	if (RenderTargetViewData.size() > 0)
@@ -295,8 +296,13 @@ void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
 
 void MRenderPass::HandleOuputMergeStage(const FPrimitiveData& PrimitiveData)
 {
-    // DepthStencilState
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(bDepthEnable ? Graphic::EDepthWriteMode::Enable : Graphic::EDepthWriteMode::Disable), 1);
+    UINT StencilRef = 0;
+    if (PrimitiveData.PrimitiveComponent.lock()->IsStencil())
+    {
+        StencilRef = 1;
+    }
+
+    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(bDepthEnable ? Graphic::EDepthWriteMode::Enable : Graphic::EDepthWriteMode::Disable), StencilRef);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 }
 

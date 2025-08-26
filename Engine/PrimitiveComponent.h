@@ -102,10 +102,16 @@ public:
 protected:
     bool bDrawColliision = false;
 
+public:
+    bool IsStencil() const { return bDrawStencil; }
+    void SetStencil(const bool bDraw) { bDrawStencil = bDraw; }
+protected:
+    bool bDrawStencil = false;
 
     REFLECT(
-        MPrimitiveComponent,
-        PROPERTY(RenderMode),
-        PROPERTY(bRendering)
+        MPrimitiveComponent
+        , PROPERTY(RenderMode)
+        , PROPERTY(bRendering)
+        , PROPERTY(bDrawStencil)
     )
 };
