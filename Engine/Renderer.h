@@ -92,7 +92,7 @@ public:
 	uint32 CulledPrimitiveNum = 0;
 
 private:
-    std::unordered_map<ERenderTarget, std::shared_ptr<StaticMeshComponent>> DebugRenderTargetMehses;
+    std::vector<std::shared_ptr<StaticMeshComponent>> DebugRenderTargetMehses;
 	bool bDebugRenderTargets = true;
 
 // Editor

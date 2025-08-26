@@ -63,7 +63,7 @@ Renderer::Renderer() noexcept
 	_cascadeDistance[CastValue<int>(EFrustumCascade::Far)] = 1000.f;
 
 	_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
-	RenderPasses.reserve(CastValue<size_t>(ERenderPass::Count));
+	RenderPasses.resize(CastValue<size_t>(ERenderPass::Count), nullptr);
 
     GetLevelChangedDelegate().Add([&]() {
         RenderablePrimitiveData.clear();
@@ -156,7 +156,7 @@ bool Renderer::Initialize()
 	}
 
 	// 렌더 패스 추가
-	RenderPasses.emplace_back(CreateRenderPass<DirectionalShadowDepthPass>());
+	RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)] = CreateRenderPass<DirectionalShadowDepthPass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::DirectionalShadowDepth
@@ -166,7 +166,7 @@ bool Renderer::Initialize()
 		RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
 	}
 
-    RenderPasses.emplace_back(CreateRenderPass<PointShadowDepthPass>());
+    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)] = CreateRenderPass<PointShadowDepthPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
             ERenderTarget::PointShadowDepth
@@ -176,7 +176,7 @@ bool Renderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
     }
 
-	RenderPasses.emplace_back(CreateRenderPass<GeometryPass>());
+    RenderPasses[EnumToIndex(ERenderPass::Geometry)] = CreateRenderPass<GeometryPass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::Diffuse, 
@@ -189,7 +189,7 @@ bool Renderer::Initialize()
             ERenderTarget::PointShadowDepth);
 	}
 
-	RenderPasses.emplace_back(CreateRenderPass<DirectionalLightPass>());
+    RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] =CreateRenderPass<DirectionalLightPass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::LightDiffuse,
@@ -202,7 +202,7 @@ bool Renderer::Initialize()
             ERenderTarget::DirectionalShadowDepth);
 	}
 
-    RenderPasses.emplace_back(CreateRenderPass<PointLightPass>());
+    RenderPasses[EnumToIndex(ERenderPass::PointLight)] = CreateRenderPass<PointLightPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::PointLight)]->BindRenderTargets(_renderTargets,
             ERenderTarget::PointLightDiffuse,
@@ -214,7 +214,7 @@ bool Renderer::Initialize()
             ERenderTarget::PointShadowDepth);
     }
 
-	RenderPasses.emplace_back(CreateRenderPass<SkyPass>());
+    RenderPasses[EnumToIndex(ERenderPass::SkyPass)] = CreateRenderPass<SkyPass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->BindRenderTargets(_renderTargets,
 			ERenderTarget::Diffuse,
@@ -223,13 +223,13 @@ bool Renderer::Initialize()
 		RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
 	}
 
-    RenderPasses.emplace_back(CreateRenderPass<CollisionPass>());
+    RenderPasses[EnumToIndex(ERenderPass::Collision)] = CreateRenderPass<CollisionPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::Collision)]->BindRenderTargets(_renderTargets,
             ERenderTarget::Collision);
     }
 
-	RenderPasses.emplace_back(CreateRenderPass<CombinePass>());
+    RenderPasses[EnumToIndex(ERenderPass::Combine)] = CreateRenderPass<CombinePass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::Combine)]->BindResourceViews(_renderTargets,
 			ERenderTarget::Diffuse,
@@ -239,7 +239,7 @@ bool Renderer::Initialize()
             ERenderTarget::PointLightDiffuse);
 	}
 
-	RenderPasses.emplace_back(CreateRenderPass<MRenderPass>());
+    RenderPasses[EnumToIndex(ERenderPass::Test)] = CreateRenderPass<MRenderPass>();
 	{
         RenderPasses[EnumToIndex(ERenderPass::Test)]->SetDepthEnable(false);
 	}
@@ -256,14 +256,15 @@ bool Renderer::Initialize()
     }
     MakeBuffer(GizmoMeshComp);
 
-	//addRenderTargetForDebug(ERenderTarget::Diffuse);
-	//addRenderTargetForDebug(ERenderTarget::Depth);
-	//addRenderTargetForDebug(ERenderTarget::Normal);
-	//addRenderTargetForDebug(ERenderTarget::Specular);
-	//addRenderTargetForDebug(ERenderTarget::LightDiffuse);
-	//addRenderTargetForDebug(ERenderTarget::LightSpecular);
-	//addRenderTargetForDebug(ERenderTarget::DirectionalShadowDepth);
-    //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
+    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Diffuse)->AsTexture());
+    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Depth)->AsTexture());
+    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Normal)->AsTexture());
+    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Specular)->AsTexture());
+    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::LightDiffuse)->AsTexture());
+    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::LightSpecular)->AsTexture());
+    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::DirectionalShadowDepth)->AsTexture());
+    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::PointShadowDepth)->AsTexture());
+    //addRenderTargetForDebug(g_pGraphicDevice->StencilTexture);
 
     return EnumToIndex(ERenderPass::Count) == GetSize(RenderPasses);
 }
@@ -496,18 +497,6 @@ void Renderer::Render()
             XMStoreFloat4x4(&LightViewProj[cascadeIndex], XMMatLightViewProj);
             LightViewProj[cascadeIndex]._42 = round(LightViewProj[cascadeIndex]._42 * 10.f) / 10.f;
             LightViewProj[cascadeIndex]._43 = round(LightViewProj[cascadeIndex]._43 * 10.f) / 10.f;
-
-            // 디버깅용
-            //if (cascadeIndex == 2)
-            //{
-            //    XMVECTOR Test = XMVector3TransformCoord(XMVectorSet(0.f, 0.f, 10.f, 1.f), LightViewProj);
-            //    Vec3 TestStore;
-            //    XMStoreFloat3(&TestStore, Test);
-
-            //    std::wostringstream ss;
-            //    ss << TEXT("LightView x:") << TestStore.x << TEXT(", y:") << TestStore.y << TEXT(", z:") << TestStore.z << std::endl;
-            //    OutputDebugString(ss.str().c_str());
-            //}
         }
     }
 
@@ -578,7 +567,10 @@ void Renderer::RenderScene()
 	uint32 CombinePass = EnumToIndex(ERenderPass::Combine);
 	for (uint32 PassIndex = 0; PassIndex < CombinePass; ++PassIndex)
 	{
-        RenderPasses[PassIndex]->RenderPass(RenderablePrimitiveData);
+        if (std::shared_ptr<MRenderPass>& CurrentRenderPass = RenderPasses[PassIndex])
+        {
+            CurrentRenderPass->RenderPass(RenderablePrimitiveData);
+        }
 	}
 
 	// 혼합 패스
