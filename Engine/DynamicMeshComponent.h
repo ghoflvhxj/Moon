@@ -12,6 +12,7 @@ public:
 	virtual ~DynamicMeshComponent();
 
 public:
+    virtual void BeginPlay() override;
     virtual void Update(const Time deltaTime);
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList) override;
 
@@ -46,7 +47,8 @@ public:
     void SetAnimPlaying(bool bPlaying) { bAnimPlaying = bPlaying; }
     bool IsAnimPlaying() const { return bAnimPlaying; }
 protected:
-    bool bAnimPlaying = true;
+    bool bAnimPlaying = false;
+    bool bPlayAnimAtBegin = true;
 
 public:
 	std::shared_ptr<DynamicMesh> GetDynamicMesh();
@@ -54,8 +56,9 @@ public:
     std::shared_ptr<MPhysicsObject> Kinematic;
 
     REFLECT(
-        DynamicMeshComponent, 
-        PROPERTY(AnimTime),
-        PROPERTY(bAnimPlaying)
+        DynamicMeshComponent
+        , PROPERTY(AnimTime)
+        , PROPERTY(bAnimPlaying)
+        , PROPERTY(bPlayAnimAtBegin)
     );
 };

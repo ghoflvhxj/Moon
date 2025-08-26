@@ -34,6 +34,8 @@ void MActor::BeginPlay()
     {
         Comp->BeginPlay();
     }
+
+    bHasBegan = true;
 }
 
 void MActor::update(const Time deltaTime)

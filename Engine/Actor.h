@@ -24,8 +24,10 @@ public:
 public:
     virtual void BeginPlay();
     FDelegate<void, std::shared_ptr<MActor>>& GetBeganPlayDelegate() { return OnBeganPlayDelegate; }
+    bool HasBegan() const { return bHasBegan; }
 protected:
     FDelegate<void, std::shared_ptr<MActor>> OnBeganPlayDelegate;
+    bool bHasBegan = false;
 
 public:
 	void update(const Time deltaTime);

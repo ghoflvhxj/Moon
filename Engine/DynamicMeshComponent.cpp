@@ -38,6 +38,16 @@ DynamicMeshComponent::~DynamicMeshComponent()
 {
 }
 
+void DynamicMeshComponent::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (bPlayAnimAtBegin)
+    {
+        bAnimPlaying = true;
+    }
+}
+
 void DynamicMeshComponent::Update(const Time deltaTime)
 {
     MMeshComponent::Update(deltaTime);
@@ -184,7 +194,7 @@ void DynamicMeshComponent::Clothing()
         Data.Mesh = Mesh;
         Data.PrimitiveComponent = GetShared();
         Data.PhysicsType = EPhysicsType::Dynamic;
-        Data.Pos = GetJointPosition("bone001");
+        Data.Pos = JointPos;
 
         std::vector<FClothData> t;
         {
