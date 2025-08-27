@@ -216,7 +216,7 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
     HandleGeometryShaderStage(PrimitiveData);
     HandlePixelShaderStage(PrimitiveData);
     HandleRasterizerStage(PrimitiveData);
-    HandleOuputMergeStage(PrimitiveData);
+    HandleOutputMergeStage(PrimitiveData);
 
 
     if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
@@ -294,15 +294,36 @@ void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Material->getFillMode(), Material->getCullMode()));
 }
 
-void MRenderPass::HandleOuputMergeStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
 {
+    uint32 DepthStencilFlag = 0;
+    if (bDepthEnable)
+    {
+        DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::DepthEnable;
+    }
+    else
+    {
+        DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::DepthDisable;
+    }
+
     UINT StencilRef = 0;
     if (PrimitiveData.PrimitiveComponent.lock()->IsStencil())
     {
+        DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilEnable;
         StencilRef = 1;
     }
+    else
+    {
+        DepthStencilFlag |= (int32)Graphic::EDepthStencilMode::StencilDisable;
+    }
 
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(bDepthEnable ? Graphic::EDepthWriteMode::Enable : Graphic::EDepthWriteMode::Disable), StencilRef);
+    auto a = g_pGraphicDevice->getDepthStencilState(DepthStencilFlag);
+    if (a == nullptr)
+    {
+        int b = 0;
+    }
+
+    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFlag), StencilRef);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 }
 

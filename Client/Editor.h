@@ -11,11 +11,13 @@ class Component;
 class MMeshComponent;
 class TerrainComponent;
 class SphereComponent;
+class SceneComponent;
+class StaticMeshComponent;
+class MStaticMeshActor;
+
 class MCamera;
 class MActor;
 class Player;
-class StaticMeshComponent;
-class MStaticMeshActor;
 class MAsset;
 
 enum class EAxies
@@ -97,7 +99,15 @@ private:
     EGizmoMode GizmoMode = EGizmoMode::Trans;
     Vec3 Prev = {};
 
-    std::weak_ptr<Component> ClickedComp;
+public:
+    void SetClickedComp(std::shared_ptr<SceneComponent>& InComp);
+    void OnClickedCompChanged();
+
+public:
+    void OutLine(std::shared_ptr<MActor>& InActor, bool bOutLine);
+
+protected:
+    std::weak_ptr<SceneComponent> ClickedComp;
 
     float CameraSpeedScale = 1.f;
 

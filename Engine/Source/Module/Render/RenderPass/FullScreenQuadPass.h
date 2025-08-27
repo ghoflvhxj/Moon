@@ -26,10 +26,23 @@ protected:
 class ENGINE_DLL MCombinePass : public MFullScreenQuadPass
 {
 public:
-    explicit MCombinePass();
+    MCombinePass() = default;
     virtual ~MCombinePass() = default;
 
-private:
+protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
-    virtual void HandleOuputMergeStage(const FPrimitiveData& PrimitiveData) override;
+    virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData) override;
+};
+
+class ENGINE_DLL MStencilPass : public MFullScreenQuadPass
+{
+public:
+    MStencilPass() = default;
+    virtual ~MStencilPass() = default;
+
+protected:
+    //virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const;
+
+protected:
+    virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData) override;
 };

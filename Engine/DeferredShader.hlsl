@@ -1,10 +1,5 @@
 #include "PSCommon.hlsli"
 
-struct PixelOut
-{
-	float4	color	: SV_TARGET0;
-};
-
 PixelOut_CombinePass main(PixelIn pIn)
 {
     PixelOut_CombinePass pOut;
@@ -21,6 +16,7 @@ PixelOut_CombinePass main(PixelIn pIn)
     //pOut.color = light;
     
     pOut.color += T_Collision.Sample(g_Sampler, pIn.uv);
+    pOut.color += T_Outline.Sample(g_Sampler, pIn.uv);
 
 	return pOut;
 }

@@ -177,9 +177,13 @@ void DirectionalLightPass::HandleRasterizerStage(const FPrimitiveData& primitive
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 }
 
-void DirectionalLightPass::HandleOuputMergeStage(const FPrimitiveData& primitiveData)
+void DirectionalLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)
 {
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Disable), 1);
+    uint32 DepthStencilFlag = 0;
+    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::DepthDisable;
+    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilDisable;
+
+    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFlag), 0);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
 }
 
@@ -245,9 +249,13 @@ void PointLightPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 }
 
-void PointLightPass::HandleOuputMergeStage(const FPrimitiveData& primitiveData)
+void PointLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)
 {
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Disable), 1);
+    uint32 DepthStencilFlag = 0;
+    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::DepthDisable;
+    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilDisable;
+
+    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFlag), 0);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
 }
 

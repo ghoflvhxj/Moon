@@ -8,7 +8,7 @@ public:
 	explicit GeometryPass() = default;
 	virtual ~GeometryPass() = default;
 
-public:
+protected:
 	virtual bool IsValidPrimitive(const FPrimitiveData &primitiveData) const override;
 };
 
@@ -54,7 +54,7 @@ public:
 
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& primitiveData) override;
-    virtual void HandleOuputMergeStage(const FPrimitiveData& primitiveData) override;
+    virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
 };
 
 class PointLightPass : public MRenderPass
@@ -70,7 +70,7 @@ public:
 
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
-    virtual void HandleOuputMergeStage(const FPrimitiveData& primitiveData) override;
+    virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
 
 protected:
     uint32 PointLightIndex = 0;

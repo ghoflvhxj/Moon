@@ -177,11 +177,14 @@ bool Renderer::Initialize()
         );
 	}
 
-    RenderPasses[EnumToIndex(ERenderPass::Stencil)] = CreateRenderPass<MRenderPass>();
+    RenderPasses[EnumToIndex(ERenderPass::Stencil)] = CreateRenderPass<MStencilPass>();
     {
-        RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindResourceViews(_renderTargets,
+        RenderPasses[EnumToIndex(ERenderPass::Stencil)]->BindRenderTargets(_renderTargets,
             ERenderTarget::Stencil
         );
+
+        RenderPasses[EnumToIndex(ERenderPass::Stencil)]->setShader(TEXT("VS_Stencil.cso"), TEXT("PS_Stencil.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::Stencil)]->SetDepthEnable(false);
     }
 
     RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] =CreateRenderPass<DirectionalLightPass>();
@@ -229,6 +232,19 @@ bool Renderer::Initialize()
         );
     }
 
+    RenderPasses[EnumToIndex(ERenderPass::Outline)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::Outline)]->BindResourceViews(_renderTargets,
+            ERenderTarget::Stencil
+        );
+        RenderPasses[EnumToIndex(ERenderPass::Outline)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::Outline
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::Outline)]->setShader(TEXT("Deferred.cso"), TEXT("PS_Outline.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::Outline)]->SetDepthEnable(false);
+    }
+
     RenderPasses[EnumToIndex(ERenderPass::Combine)] = CreateRenderPass<MCombinePass>();
 	{
 		RenderPasses[EnumToIndex(ERenderPass::Combine)]->BindResourceViews(_renderTargets,
@@ -236,16 +252,17 @@ bool Renderer::Initialize()
 			ERenderTarget::LightDiffuse,
 			ERenderTarget::LightSpecular,
             ERenderTarget::Collision,
-            ERenderTarget::PointLightDiffuse
+            ERenderTarget::PointLightDiffuse,
+            ERenderTarget::Outline
         );
 
         RenderPasses[EnumToIndex(ERenderPass::Combine)]->setShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
 	}
 
-    RenderPasses[EnumToIndex(ERenderPass::Test)] = CreateRenderPass<MRenderPass>();
-	{
-        RenderPasses[EnumToIndex(ERenderPass::Test)]->SetDepthEnable(false);
-	}
+    RenderPasses[EnumToIndex(ERenderPass::EditorGizmo)] = CreateRenderPass<MRenderPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::EditorGizmo)]->SetDepthEnable(false);
+    }
 
     GizmoMeshComp = std::make_shared<StaticMeshComponent>();
     GizmoMeshComp->SetPhysics(false);
@@ -259,7 +276,7 @@ bool Renderer::Initialize()
     }
     MakeBuffer(GizmoMeshComp);
 
-    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Diffuse)->AsTexture());
+    addRenderTargetForDebug(ERenderTarget::Diffuse);
     //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Depth)->AsTexture());
     //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Normal)->AsTexture());
     //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Specular)->AsTexture());
@@ -267,7 +284,8 @@ bool Renderer::Initialize()
     //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::LightSpecular)->AsTexture());
     //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::DirectionalShadowDepth)->AsTexture());
     //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::PointShadowDepth)->AsTexture());
-    //addRenderTargetForDebug(g_pGraphicDevice->StencilTexture);
+    addRenderTargetForDebug(ERenderTarget::Outline);
+    addRenderTargetForDebug(ERenderTarget::Stencil);
 
     return EnumToIndex(ERenderPass::Count) == GetSize(RenderPasses);
 }
@@ -553,7 +571,7 @@ void Renderer::Render()
     }
 #endif
 
-    RenderPasses[(int)ERenderPass::Test]->RenderPass(PostRenderPrimitiveDatas);
+    RenderPasses[(int)ERenderPass::EditorGizmo]->RenderPass(PostRenderPrimitiveDatas);
 
 	RenderText();
 

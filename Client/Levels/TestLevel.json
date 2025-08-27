@@ -2,6 +2,42 @@
     "MWorld": {
         "Actors": [
             {
+                "Key": "MCamera_0",
+                "Value": {
+                    "MCamera": {},
+                    "MActor": {
+                        "_components": [
+                            {
+                                "Key": "RootComponent",
+                                "Value": {
+                                    "SceneComponent": {
+                                        "Scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "Rotation": [
+                                            0.24532,
+                                            0.61273,
+                                            0.0
+                                        ],
+                                        "Translation": [
+                                            -2.3344,
+                                            2.33016,
+                                            -1.86616
+                                        ],
+                                        "bUpdated": false
+                                    },
+                                    "Component": {},
+                                    "MObject": {}
+                                }
+                            }
+                        ]
+                    },
+                    "MObject": {}
+                }
+            },
+            {
                 "Key": "MStaticMeshActor_1",
                 "Value": {
                     "MStaticMeshActor": {},
@@ -29,7 +65,8 @@
                                     },
                                     "MPrimitiveComponent": {
                                         "RenderMode": 0,
-                                        "bRendering": true
+                                        "bRendering": true,
+                                        "bDrawStencil": false
                                     },
                                     "SceneComponent": {
                                         "Scale": [
@@ -44,7 +81,7 @@
                                         ],
                                         "Translation": [
                                             0.0,
-                                            -1.1362,
+                                            -1.13619,
                                             2.41314
                                         ],
                                         "bUpdated": false
@@ -54,51 +91,6 @@
                                 }
                             }
                         ]
-                    },
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MCamera_0",
-                "Value": {
-                    "MCamera": {},
-                    "MActor": {
-                        "_components": [
-                            {
-                                "Key": "RootComponent",
-                                "Value": {
-                                    "SceneComponent": {
-                                        "Scale": [
-                                            1.0,
-                                            1.0,
-                                            1.0
-                                        ],
-                                        "Rotation": [
-                                            0.24532,
-                                            0.61273,
-                                            0.0
-                                        ],
-                                        "Translation": [
-                                            -2.33441,
-                                            2.33017,
-                                            -1.86616
-                                        ],
-                                        "bUpdated": false
-                                    },
-                                    "Component": {},
-                                    "MObject": {}
-                                }
-                            }
-                        ]
-                    },
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MActor_0",
-                "Value": {
-                    "MActor": {
-                        "_components": []
                     },
                     "MObject": {}
                 }
@@ -129,7 +121,8 @@
                                     },
                                     "MPrimitiveComponent": {
                                         "RenderMode": 0,
-                                        "bRendering": true
+                                        "bRendering": true,
+                                        "bDrawStencil": false
                                     },
                                     "SceneComponent": {
                                         "Scale": [
@@ -154,6 +147,15 @@
                                 }
                             }
                         ]
+                    },
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MActor_0",
+                "Value": {
+                    "MActor": {
+                        "_components": []
                     },
                     "MObject": {}
                 }
@@ -191,7 +193,8 @@
                                     },
                                     "MPrimitiveComponent": {
                                         "RenderMode": 0,
-                                        "bRendering": true
+                                        "bRendering": true,
+                                        "bDrawStencil": false
                                     },
                                     "SceneComponent": {
                                         "Scale": [
@@ -248,7 +251,8 @@
                                     },
                                     "MPrimitiveComponent": {
                                         "RenderMode": 0,
-                                        "bRendering": true
+                                        "bRendering": true,
+                                        "bDrawStencil": true
                                     },
                                     "SceneComponent": {
                                         "Scale": [

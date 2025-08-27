@@ -36,6 +36,7 @@ enum class ERenderTarget
 
     PointLightDiffuse,
     Stencil,
+    Outline,
 	Count
 };
 
@@ -49,8 +50,9 @@ enum class ERenderPass
     PointLight,
 	SkyPass,
     Collision,
+    Outline,
 	Combine,
-    Test,
+    EditorGizmo,
 	Count
 };
 

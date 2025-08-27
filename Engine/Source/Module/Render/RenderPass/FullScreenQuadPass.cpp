@@ -24,6 +24,9 @@ MFullScreenQuadPass::MFullScreenQuadPass()
     GetLevelChangedDelegate().Add([&]() {
         getRenderer()->MakeBuffer(ViewMeshComponent);
     });
+
+    bWriteDepthStencil = false;
+    bDepthEnable = false;
 }
 
 void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
@@ -63,21 +66,28 @@ void MFullScreenQuadPass::UpdateObjectConstantBuffer(const FPrimitiveData& Primi
     }
 }
 
-MCombinePass::MCombinePass()
-{
-    bWriteDepthStencil = false;
-}
-
 void MCombinePass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
 {
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 }
 
-void MCombinePass::HandleOuputMergeStage(const FPrimitiveData& PrimitiveData)
+void MCombinePass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
 {
-    // DepthStencilState
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(Graphic::EDepthWriteMode::Disable), 1);
+    uint32 DepthStencilFalg = 0;
+    DepthStencilFalg |= (uint32)Graphic::EDepthStencilMode::DepthDisable;
+    DepthStencilFalg |= (uint32)Graphic::EDepthStencilMode::StencilDisable;
 
-    // OutputMergeState
+    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFalg), 0);
+    g_pGraphicDevice->getContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+}
+
+void MStencilPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
+{
+    uint32 DepthStencilFlag = 0;
+    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::DepthDisable;
+    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilReadMask;
+
+    UINT StencilRef = 1; /* PrimitiveData.PrimitiveComponent->IsStencil */
+    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFlag), StencilRef);
     g_pGraphicDevice->getContext()->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 }

@@ -220,7 +220,8 @@ void MEditor::Update()
             bControlGizmo = false;
             if (World->Raycast(getRenderer()->GetRenderablePrimitiveData(), HitData))
             {
-                ClickedComp = HitData.HitComponent;
+                std::shared_ptr<SceneComponent> Temp = HitData.HitComponent.lock()->CastTo<SceneComponent>();
+                SetClickedComp(Temp);
             }
         }
     }
@@ -377,24 +378,6 @@ void MEditor::Render()
             }
         }
 
-        //if (ImGui::CollapsingHeader("JsonTest"))
-        //{
-        //    ImGui::Indent(20);
-        //    if (ImGui::Button("SaveJson"))
-        //    {
-        //        _pPlayer->JsonSaveTest();
-        //    }
-        //    if (ImGui::Button("SaveJsonPretty"))
-        //    {
-        //        _pPlayer->JsonSaveTest(true);
-        //    }
-        //    if (ImGui::Button("LoadJson"))
-        //    {
-        //        _pPlayer->JsonLoadTest();
-        //    }
-        //    ImGui::Indent(-20);
-        //}
-
         // FBX 로드 
         if (ImGui::CollapsingHeader("LoadFBX"))
         {
@@ -420,15 +403,6 @@ void MEditor::Render()
                 }
             }
         }
-
-        //if (_pPlayer)
-        //{
-        //    std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = std::static_pointer_cast<DynamicMeshComponent>(_pPlayer->getComponent(ROOT_COMPONENT));
-        //    if (DynamicMeshComp && ImGui::Button("DynamicMeshCloth"))
-        //    {
-        //        DynamicMeshComp->Clothing();
-        //    }
-        //}
 
         if (ImGui::Button("Jolt Save"))
         {
@@ -534,25 +508,31 @@ void MEditor::Render()
     {
         auto& Actors = World->GetActors();
         uint32 Num = GetSize(Actors);
-        for (auto& [Name, Actor] : Actors)
+
+        if (std::shared_ptr<Component> Comp = ClickedComp.lock())
         {
-            bool bHighlight = ClickedComp.expired() ? false : ClickedComp.lock()->getOwningActor() == Actor;
-
-            if (bHighlight)
+            // 하이라이트, Tick에서 계속 순회하는 것 보다는 변경 시 업데이트 해주는게 나을듯?
+            for (auto& [Name, Actor] : Actors)
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
-            }
+                bool bHighlight = Comp->getOwningActor() == Actor;
 
-            if (ImGui::Selectable(Name.c_str()))
-            {
-                ClickedComp = Actor->getComponent(ROOT_COMPONENT);
-            }
+                if (bHighlight)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
+                }
 
-            if (bHighlight)
-            {
-                ImGui::PopStyleColor(1);
+                if (ImGui::Selectable(Name.c_str()))
+                {
+                    SetClickedComp(Actor->getComponent(ROOT_COMPONENT));
+                }
+
+                if (bHighlight)
+                {
+                    ImGui::PopStyleColor(1);
+                }
             }
         }
+
 
         // 액터 생성       
         auto& TypeDescs = GetTypeDescs();
@@ -631,8 +611,11 @@ void MEditor::Render()
                 }
             }
 
+
+
             Actor->update(0.f);
         }
+
     }
 
     // 애셋 편집
@@ -693,6 +676,45 @@ void MEditor::Render()
 bool MEditor::IsPickable() const
 {
     return ImGui::GetIO().WantCaptureMouse == false && GetMainWorld()->IsMouseInViewport();
+}
+
+void MEditor::SetClickedComp(std::shared_ptr<SceneComponent>& InComp)
+{
+    const std::shared_ptr<SceneComponent> Old = ClickedComp.lock();
+    if (Old != InComp)
+    {
+        if (Old)
+        {
+            OutLine(Old->getOwningActor(), false);
+        }
+
+        if (InComp)
+        {
+            OutLine(InComp->getOwningActor(), true);
+        }
+
+        ClickedComp = InComp;
+    }
+}
+
+void MEditor::OnClickedCompChanged()
+{
+}
+
+void MEditor::OutLine(std::shared_ptr<MActor>& InActor, bool bOutLine)
+{
+    if (InActor == nullptr)
+    {
+        return;
+    }
+
+    for (auto& [Name, Comp] : InActor->GetComponents())
+    {
+        if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = Comp->CastTo<MPrimitiveComponent>())
+        {
+            PrimitiveComp->SetStencil(bOutLine);
+        }
+    }
 }
 
 void MEditor::DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* InContainerDesc, void* InObject)

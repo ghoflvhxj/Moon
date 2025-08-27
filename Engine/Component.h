@@ -22,7 +22,7 @@ protected:
 
 public:
 	void setOwningActor(std::shared_ptr<MActor> &actor);
-	std::shared_ptr<MActor> getOwningActor() const;
+	std::shared_ptr<MActor>& getOwningActor() const;
 private:
 	std::weak_ptr<MActor> _pOwningActor;
 

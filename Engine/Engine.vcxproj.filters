@@ -527,6 +527,9 @@
     <FxCompile Include="Shader\Vertex\VS_VertexColorOut.hlsl" />
     <FxCompile Include="Shader\Pixel\PS_SimpleTexture.hlsl" />
     <FxCompile Include="Shader\Vertex\VS_SimpleTexture.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_Stencil.hlsl" />
+    <FxCompile Include="Shader\Vertex\VS_Stencil.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_Outline.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.hlsli" />

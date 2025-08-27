@@ -47,11 +47,14 @@ namespace Graphic
 		, Count
 	};
 
-	enum class EDepthWriteMode
+	enum class EDepthStencilMode
 	{
-		Enable
-		, Disable
-		, Count
+		DepthEnable         = 1 << 1
+        , StencilEnable     = 1 << 2
+        , StencilReadMask       = 1 << 3
+		, DepthDisable      = 1 << 4
+        , StencilDisable    = 1 << 5
+		, Count             = 1 << 6
 	};
 
 	enum class Blend

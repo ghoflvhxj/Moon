@@ -18,7 +18,7 @@
 
 
 using namespace DirectX;
-
+using namespace Graphic;
 
 
 GraphicDevice::GraphicDevice()
@@ -140,8 +140,11 @@ void GraphicDevice::Release()
 
     SafeReleaseArray(Samplers);
     SafeReleaseArray(_rasterizerList);
-    SafeReleaseArray(_depthStencilStateList);
     SafeReleaseArray(_blendStateList);
+    for (auto& [Flag, DepthStencilState] : _depthStencilStateList)
+    {
+        SafeRelease(DepthStencilState);
+    }
 
     SafeRelease(m_pInputLayout);
     SafeRelease(m_pDepthStencilView);
@@ -290,7 +293,6 @@ ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode
 
 bool GraphicDevice::buildDepthStencilState()
 {
-	_depthStencilStateList.reserve(CastValue<uint32>(Graphic::EDepthWriteMode::Count));
 	ID3D11DepthStencilState *pDepthStencilState = nullptr;
 
 	//-------------------------------------------------------------------------------------
@@ -300,29 +302,83 @@ bool GraphicDevice::buildDepthStencilState()
 	dsd.DepthFunc = D3D11_COMPARISON_LESS;
 	dsd.StencilEnable = TRUE;
 	dsd.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-	dsd.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+    dsd.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 	dsd.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	dsd.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
 	dsd.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
 	dsd.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsd.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_REPLACE;
 	dsd.BackFace = dsd.FrontFace;
 
 	//-------------------------------------------------------------------------------------
-	FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&dsd, &pDepthStencilState));
-	_depthStencilStateList.push_back(pDepthStencilState);
+    {
+        FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&dsd, &pDepthStencilState));
+        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilEnable)] = pDepthStencilState;
+    }
+
+    //-------------------------------------------------------------------------------------
+    {
+        D3D11_DEPTH_STENCIL_DESC Copy = dsd;
+        FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
+        Copy.StencilReadMask = 0xFF;
+        Copy.StencilWriteMask = 0x00;
+        Copy.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+        Copy.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+        Copy.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        Copy.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+        Copy.BackFace = Copy.FrontFace;
+        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilReadMask)] = pDepthStencilState;
+    }
+
+    //-------------------------------------------------------------------------------------
+    {
+        D3D11_DEPTH_STENCIL_DESC Copy = dsd;
+        Copy.StencilEnable = FALSE;
+        Copy.FrontFace.StencilFunc = D3D11_COMPARISON_NEVER;
+        Copy.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+        Copy.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        Copy.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+        FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
+        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilDisable)] = pDepthStencilState;
+    }
 
 	//-------------------------------------------------------------------------------------
-	dsd.DepthEnable = FALSE;
+    {
+        D3D11_DEPTH_STENCIL_DESC Copy = dsd;
+        Copy.DepthEnable = FALSE;
+        FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
+        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilEnable)] = pDepthStencilState;
+    }
 
-	FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&dsd, &pDepthStencilState));
-	_depthStencilStateList.push_back(pDepthStencilState);
+    //-------------------------------------------------------------------------------------
+    {
+        D3D11_DEPTH_STENCIL_DESC Copy = dsd;
+        Copy.DepthEnable = FALSE;
+        Copy.StencilReadMask = 0xFF;
+        Copy.StencilWriteMask = 0x00;
+        Copy.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+        Copy.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+        Copy.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+        Copy.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+        Copy.BackFace = Copy.FrontFace;
+        FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
+        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilReadMask)] = pDepthStencilState;
+    }
+
+    //-------------------------------------------------------------------------------------
+    {
+        D3D11_DEPTH_STENCIL_DESC Copy = dsd;
+        Copy.DepthEnable = FALSE;
+        Copy.StencilEnable = FALSE;
+        FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
+        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilDisable)] = pDepthStencilState;
+    }
 
 	return true;
 }
 
-ID3D11DepthStencilState *GraphicDevice::getDepthStencilState(const Graphic::EDepthWriteMode eDetphWrite)
+ID3D11DepthStencilState *GraphicDevice::getDepthStencilState(const uint32 InFlag)
 {
-	return _depthStencilStateList[EnumToIndex(eDetphWrite)];
+	return _depthStencilStateList[InFlag];
 }
 
 bool GraphicDevice::buildBlendState()

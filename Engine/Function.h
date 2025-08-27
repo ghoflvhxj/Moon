@@ -58,6 +58,13 @@ inline uint32 EnumToIndex(const T enumValue)
 	return CastValue<uint32>(enumValue);
 }
 
+template <typename ...Args>
+inline uint32 EnumToFlag(Args... args)
+{
+    uint32 OutFlag = (EnumToIndex(args) | ... | 0);
+    return OutFlag;
+}
+
 inline float Int32ToFloat(const int32 value)
 {
 	return CastValue<float>(value);

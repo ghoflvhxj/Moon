@@ -39,7 +39,7 @@ public:
 
 public:
     std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>& GetComponents() { return _components; }
-	std::shared_ptr<SceneComponent>		getComponent(const wchar_t componentName[]);
+	std::shared_ptr<SceneComponent>&	getComponent(const wchar_t componentName[]);
 	const bool							AddComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> InComponent);
 protected:
 	std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>	_components;

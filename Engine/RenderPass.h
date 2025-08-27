@@ -40,7 +40,7 @@ protected:
     virtual void HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData);
     virtual void HandlePixelShaderStage(const FPrimitiveData& PrimitiveData);
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData);
-    virtual void HandleOuputMergeStage(const FPrimitiveData& PrimitiveData);
+    virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData);
 protected:
     bool bWriteDepthStencil = true;
 
@@ -112,7 +112,7 @@ private:
 
 public:
     void SetDepthEnable(const bool InEnable) { bDepthEnable = InEnable; }
-private:
+protected:
     bool bDepthEnable = true;
 
 public:
