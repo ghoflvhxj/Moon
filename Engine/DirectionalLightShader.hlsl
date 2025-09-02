@@ -13,12 +13,17 @@ cbuffer CBuffer : register(b2)
 
 PixelOut_LightPass main(PixelIn pIn)
 {
-	PixelOut_LightPass pOut;
+	PixelOut_LightPass pOut = (PixelOut_LightPass)0;
 
 	float4 depth = g_Depth.Sample(g_Sampler, pIn.uv);
 	float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);
 	normal.w = 0.f;
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
+
+    if (all(normal.xyz == float3(0.f, 0.f, 0.f)))
+    {
+        return pOut;
+    }
 
     // 그림자 계산을 위해 CascadeIndex를 구함
     int CascadeIndex = 0;
@@ -45,12 +50,15 @@ PixelOut_LightPass main(PixelIn pIn)
 	//-------------------------------------------------------------------------------------------------
     float3 ambient = float3(0.4f, 0.4f, 0.4f);
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
-    float Dot = saturate(dot(normalInWorld, -direction)); //	float으로 해도 되는데 편할려고
+
+    /*
+    float Dot = saturate(dot(normalInWorld, -direction))
     pOut.lightDiffuse.xyz = color * Dot * intensity;
     //pOut.lightDiffuse.xyz = ambient + (1.f - ShadowFactor) * pOut.lightDiffuse.xyz;
     // 기본 값 + (실제빛 * (1-기본값))
+    */
     
-    Dot = dot(normalInWorld, -direction);
+    float Dot = dot(normalInWorld, -direction);
     float NewDot = Dot * 0.5 + 0.5;  // -1 ~ 1 -> 0 ~ 1
     float backlightMin = 0.2f;  // 원하는 최소값
     Dot = lerp(backlightMin, 1.0, NewDot);

@@ -8,3 +8,5 @@ Engine/x64/Debug
 Client/Resources/Shader
 Libraries/Debug/Engine.lib
 Client/imgui.ini
+Engine/Source/Core/Physics/PhysX/MPhysX.cpp
+Editor/x64
