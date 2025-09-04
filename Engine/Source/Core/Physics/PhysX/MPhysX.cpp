@@ -253,7 +253,7 @@ Vec3 MPhysXObject::GetPhysicsPos()
     return VEC3ZERO;
 }
 
-Vec4 MPhysXObject::GetPhysicsRotation()
+Vec3 MPhysXObject::GetPhysicsRotation()
 {
     if (PxRigidActor* RigidActor = GetRigidActor())
     {

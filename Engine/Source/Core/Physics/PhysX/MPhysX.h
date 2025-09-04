@@ -70,7 +70,7 @@ public:
 
 public:
     virtual Vec3 GetPhysicsPos() override;
-    virtual Vec4 GetPhysicsRotation() override;
+    virtual Vec3 GetPhysicsRotation() override;
 
 public:
     void AttachShape(PxShape* InShape);

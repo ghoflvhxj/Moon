@@ -16,8 +16,6 @@ class MMeshComponent;
 class MActor;
 class MCamera;
 
-class MPhysX;
-
 struct FPrimitiveData;
 
 // 피킹 --------------------------------------------------------------------------

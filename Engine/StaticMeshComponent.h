@@ -35,15 +35,6 @@ public:
     void SetAngularVelocity(float x, float y, float z);
     void SetVelocity(float x, float y, float z);
 
-	// 피직스
-private:
-    //physx::PxDeformableSurface* DeformableSurface = nullptr;
-    uint32 VertexNum = 0;
-    
-    // 피직스 렌더링을 위한 임시 메터리얼.
-    std::shared_ptr<MMaterial> MaterialForPhysX = nullptr;
-    // 피직스 렌더링을 위한 임시 메시데이터
-    std::shared_ptr<FMeshData> MeshDataForPhysX = nullptr;
 
     REFLECT(StaticMeshComponent)
 };
