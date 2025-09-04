@@ -4,40 +4,6 @@
 #include "Core/Physics/Physics.h"
 #include "Core/ResourceManager.h"
 
-MMeshComponent::MMeshComponent()
-	: MPrimitiveComponent()
-{
-	//initializeMeshInformation();
-}
-
-MMeshComponent::~MMeshComponent()
-{
-}
-
-void MMeshComponent::SetMesh(const std::wstring& InPath)
-{
-    std::filesystem::path Path = MFIleSystem::AbsolutePath(InPath);
-
-    if (Path.extension() == TEXT(".fbx"))
-    {
-        Mesh->LoadFromFBX(Path);
-    }
-    else if (Path.extension() == TEXT(".json"))
-    {
-        g_ResourceManager->Load(InPath, Mesh);
-    }
-
-    Materials = Mesh->getMaterials();
-
-    OnMeshChangedDelegate.Broadcast(GetShared());
-    OnPrimitiveChangedDelegate.Broadcast(GetShared());
-}
-
-std::shared_ptr<StaticMesh> MMeshComponent::GetMesh()
-{
-    return Mesh;
-}
-
 void MMeshComponent::AddForce(const Vec3& InForce)
 {
     if (PhysicsObject)

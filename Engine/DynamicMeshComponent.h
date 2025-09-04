@@ -2,7 +2,7 @@
 #include "MeshComponent.h"
 #include "DynamicMeshComponentUtility.h"
 
-class DynamicMesh;
+#include "Mesh/DynamicMesh/DynamicMesh.h"
 
 class ENGINE_DLL DynamicMeshComponent : public MMeshComponent
 {
@@ -16,9 +16,14 @@ public:
     virtual void Update(const Time deltaTime);
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData>& PrimitiveDataList) override;
 
-    virtual void Clothing() override;
+public:
+    virtual void SetMesh(const std::wstring& InPath) override;
+    virtual std::shared_ptr<StaticMesh> GetMesh() override { return Mesh; }
+protected:
+    std::shared_ptr<DynamicMesh> Mesh;
 
 public:
+    virtual void Clothing() override;
     virtual void SetPhysics(bool bInPhysics, bool bForce = false);
 
 public:
@@ -49,6 +54,7 @@ public:
 protected:
     bool bAnimPlaying = false;
     bool bPlayAnimAtBegin = true;
+    std::shared_ptr<MAnimation> Animation = nullptr;
 
 public:
 	std::shared_ptr<DynamicMesh> GetDynamicMesh();
@@ -60,5 +66,9 @@ public:
         , PROPERTY(AnimTime)
         , PROPERTY(bAnimPlaying)
         , PROPERTY(bPlayAnimAtBegin)
+        , PROPERTY(Animation)
+        , PROPERTY_DELEGATE(Mesh, [&](DynamicMeshComponent* InObject) {
+            InObject->Reload();
+        })
     );
 };

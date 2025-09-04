@@ -8,7 +8,6 @@
 #include "Jolt/Core/JobSystemSingleThreaded.h"
 #include "Jolt/Physics/PhysicsSettings.h"
 #include "Jolt/Physics/PhysicsSystem.h"
-#include "Jolt/Physics/Collision//Shape/MeshShape.h"
 #include "Jolt/Physics/Collision/Shape/BoxShape.h"
 #include "Jolt/Physics/Collision/Shape/SphereShape.h"
 #include "Jolt/Physics/Collision/Shape/EmptyShape.h"
@@ -16,9 +15,9 @@
 #include "Jolt/Physics/Body/BodyActivationListener.h"
 #include "Jolt/Physics/SoftBody/SoftBodyCreationSettings.h"
 #include "Jolt/Physics/SoftBody/SoftBodyMotionProperties.h"
-#include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
+
 #include "Jolt/Physics/SoftBody/SoftBodyShape.h"
-#include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
+
 #include "Jolt/Physics/Constraints/FixedConstraint.h"
 #include "Jolt/ObjectStream/ObjectStreamTextOut.h"
 #include "Jolt/ObjectStream/ObjectStreamTextIn.h"
@@ -237,28 +236,35 @@ void MJoltPhysics::StartSimulate()
 
         BodyInterface& bodyInterface = physics_system->GetBodyInterface();
 
-        ConvexHullShapeSettings* Test = nullptr;
+        ShapeSettings* ShapeSetting = nullptr;
         std::stringstream ss;
         ObjectStreamTextIn StreamIn = JPH::ObjectStreamTextIn(ss);
-        StreamIn.sReadObject(Path.c_str(), Test);
+        StreamIn.sReadObject(Path.c_str(), ShapeSetting);
 
         ::Vec3 CompPos = MeshComp->getWorldTranslation();
         ::Vec3 CompRot = MeshComp->getRotation();
-        ::Vec3 CompScale = MeshComp->getScale();
 
-        Ref<Shape> NewShape = Test->Create().Get();
+        Ref<Shape> NewShape = ShapeSetting->Create().Get();
         JPH::Vec3 Pos = { CompPos.x, CompPos.y, CompPos.z };
-        Quat Rot = Quat::sEulerAngles(Vec3Arg{ CompRot.x, CompRot.y, CompRot.z });
-
+        JPH::Vec3 _Rot = { CompRot.x, CompRot.y, CompRot.z };
+        Quat Rot = Quat::sEulerAngles(_Rot);
         EMotionType MotionType = ConvertPhysicsType(MeshComp->GetPhysicsType());
-
         ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
+
+        BodyCreationSettings BodyCreationSetting = BodyCreationSettings(NewShape, Pos, Rot, MotionType, Layer);
+
+        if (MeshShapeSettings* MeshShapeSetting = DynamicCast<MeshShapeSettings>(ShapeSetting))
+        {
+            BodyCreationSetting.mOverrideMassProperties = JPH::EOverrideMassProperties::MassAndInertiaProvided;
+            BodyCreationSetting.mMassPropertiesOverride.mMass = 1.f;
+        }
+
         EActivation Activation = EActivation::DontActivate;
         if (MeshComp->IsPhysicsEnable() && bSimulating)
         {
             Activation = EActivation::Activate;
         }
-        BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape, Pos, Rot, MotionType, Layer), Activation);
+        BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSetting, Activation);
 
         FPhysicsConstructData Data;
         Data.Mesh = Mesh;
@@ -266,12 +272,13 @@ void MJoltPhysics::StartSimulate()
 
         std::shared_ptr<MJoltPhysicsObject> NewPhysicsObject = std::make_shared<MJoltPhysicsObject>(Data);
         NewPhysicsObject->SetBodyID(NewBodyID);
+        ::Vec3 CompScale = MeshComp->getScale();
         NewPhysicsObject->SetScale(CompScale);
 
         MeshComp->PhysicsObject = NewPhysicsObject;
 
         // ReadObject가 new를 이용해 Object를 생성하니, 삭제도 해줘야 함
-        delete Test;
+        delete ShapeSetting;
     }
 }
 
@@ -323,8 +330,6 @@ void MJoltPhysics::SaveTest(std::shared_ptr<StaticMesh> InMesh)
 
 void MJoltPhysics::MakeConvexHull(FPhysicsConstructData& InData)
 {
-    uint32 PrimitiveID = InData.PrimitiveComponent->GetPrimitiveID();
-
     BodyInterface& bodyInterface = physics_system->GetBodyInterface();
 
     const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
@@ -341,11 +346,46 @@ void MJoltPhysics::MakeConvexHull(FPhysicsConstructData& InData)
 
     Ref<Shape> NewShape = ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)).Create().Get();
     JPH::Vec3 Pos = { InData.Pos.x, InData.Pos.y, InData.Pos.z };
-    JPH::Quat Rot = QuatArg::sIdentity();
+    JPH::Quat Rot = JPH::Quat::sEulerAngles({ InData.Rot.x, InData.Rot.y, InData.Rot.z });
     EMotionType MotionType = ConvertPhysicsType(InData.PhysicsType);
     JPH::ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
     JPH::EActivation Activation = bSimulating ? EActivation::Activate : EActivation::DontActivate;
     BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), Pos, Rot, MotionType, Layer), EActivation::DontActivate);
+}
+
+JPH::MeshShapeSettings MJoltPhysics::MakeMeshShape(std::shared_ptr<StaticMesh> InMesh)
+{
+    BodyInterface& bodyInterface = physics_system->GetBodyInterface();
+
+    const std::vector<::Vec3>& Vertices = InMesh->GetAllVertexPosition();
+    const std::vector<uint32>& Indices = InMesh->GetMeshData(0).Indices;
+
+    JPH::VertexList vertexList;
+    for (int i = 0; i < Vertices.size(); ++i)
+    {
+        vertexList.push_back(Float3(Vertices[i].x, Vertices[i].y, Vertices[i].z));
+    }
+
+    IndexedTriangleList triangleList;
+    uint32 IndexLoopNum = GetSize(Indices) / 3;
+    for (uint32 i = 0; i < IndexLoopNum; ++i)
+    {
+        triangleList.push_back(IndexedTriangle(Indices[i * 3], Indices[i * 3 + 1], Indices[i * 3 + 2]));
+    }
+
+    return MeshShapeSettings(vertexList, triangleList);
+    
+    //JPH::Vec3 Pos = { InData.Pos.x, InData.Pos.y, InData.Pos.z };
+    //JPH::Quat Rot = JPH::Quat::sEulerAngles({ InData.Rot.x, InData.Rot.y, InData.Rot.z });
+    //EMotionType MotionType = ConvertPhysicsType(InData.PhysicsType);
+    //JPH::ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
+    //JPH::EActivation Activation = bSimulating ? EActivation::Activate : EActivation::DontActivate;
+    //BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), Pos, Rot, MotionType, Layer), EActivation::DontActivate);
+}
+
+JPH::CapsuleShape MJoltPhysics::MakeCapsule()
+{
+    return CapsuleShape(3.5f, 0.13f);
 }
 
 JPH::EMotionType MJoltPhysics::ConvertPhysicsType(EPhysicsType InType)
@@ -369,53 +409,6 @@ bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_p
     Ref<Shape> NewShape;
     BodyID NewBodyID;
 
-    if (InData.bCapsule == false)
-    {
-
-
-        const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
-        const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0).Indices;
-
-        //if (Vertices.empty())
-        //{
-        //    return false;
-        //}
-
-
-        // Make ConvexHull
-        {
-            std::vector<JPH::Vec3> JPHVertices(Vertices.size());
-            for (int i = 0; i < Vertices.size(); ++i)
-            {
-                JPHVertices[i].SetX(Vertices[i].x);
-                JPHVertices[i].SetY(Vertices[i].y);
-                JPHVertices[i].SetZ(Vertices[i].z);
-                JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
-            }
-            NewShape = ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)).Create().Get();
-            EMotionType MotionType = InData.PhysicsType == EPhysicsType::Static ? EMotionType::Static : EMotionType::Dynamic;
-            NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSettings(NewShape.GetPtr(), RVec3(0.f, 0.f, 0.f), QuatArg::sIdentity(), MotionType, Layers::NON_MOVING), EActivation::Activate);
-        }
-    }
-
-    // MeshShape
-    //if (MotionType == EMotionType::Static)
-    //{
-    //    JPH::VertexList vertexList;
-    //    for (int i = 0; i < Vertices.size(); ++i)
-    //    {
-    //        vertexList.push_back(Float3(Vertices[i].x, Vertices[i].y, Vertices[i].z));
-    //    }
-
-    //    IndexedTriangleList triangleList;
-    //    uint32 IndexLoopNum = GetSize(Indices) / 3;
-    //    for (uint32 i = 0; i < IndexLoopNum; ++i)
-    //    {
-    //        triangleList.push_back(IndexedTriangle(Indices[i * 3], Indices[i * 3 + 1], Indices[i * 3 + 2]));
-    //    }
-    //    NewShape = MeshShapeSettings(vertexList, triangleList).Create().Get();
-    //}
-
     // 캡슐
     if (InData.bCapsule)
     {
@@ -429,52 +422,6 @@ bool MJoltPhysics::AddPhysicsObject(FPhysicsConstructData& InData, std::shared_p
     std::shared_ptr<MJoltPhysicsObject> NewPhysicsObject = std::make_shared<MJoltPhysicsObject>(InData);
     NewPhysicsObject->SetBodyID(NewBodyID);
     OutPhysicsObject = NewPhysicsObject;
-
-    return true;
-}
-
-bool MJoltPhysics::AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
-{
-    BodyInterface& bodyInterface = physics_system->GetBodyInterface();
-
-    const std::vector<::Vec3>& Vertices = InData.Mesh->GetAllVertexPosition();
-    const std::vector<uint32>& Indices = InData.Mesh->GetMeshData(0).Indices;
-
-    SoftBodySharedSettings* NewSharedSettings = new SoftBodySharedSettings();
-
-    // 점의 위치를 채움
-    for (const ::Vec3& VtxPos : Vertices)
-    {
-        SoftBodySharedSettings::Vertex NewVertex;
-        NewVertex.mPosition = { VtxPos.x, VtxPos.y, VtxPos.z };
-        NewVertex.mInvMass = 1.f;
-        NewSharedSettings->mVertices.push_back(NewVertex);
-    }
-
-    // 면을 만들어 줌
-    uint32 IndexLoopNum = GetSize(Indices) / 3;
-    for (uint32 i = 0; i < IndexLoopNum; ++i)
-    {
-        SoftBodySharedSettings::Face NewFace;
-        NewFace.mVertex[0] = Indices[i * 3];
-        NewFace.mVertex[1] = Indices[i * 3 + 1];
-        NewFace.mVertex[2] = Indices[i * 3 + 2];
-        NewSharedSettings->AddFace(NewFace);
-    }
-
-    SoftBodySharedSettings::VertexAttributes inVertexAttributes = { 0.f, 0.f, 0.f, SoftBodySharedSettings::ELRAType::GeodesicDistance };
-    NewSharedSettings->CreateConstraints(&inVertexAttributes, 4);
-    NewSharedSettings->Optimize();
-
-    SoftBodyCreationSettings Cloth(NewSharedSettings, JPH::Vec3(0.f, 5.f, 0.f), QuatArg::sIdentity(), Layers::MOVING);
-    BodyID bodyId =  bodyInterface.CreateAndAddSoftBody(Cloth, EActivation::Activate);
-
-    std::shared_ptr<MJoltPhysicsObject> JoltPhysicsObject = std::make_shared<MJoltPhysicsObject>(InData);
-    JoltPhysicsObject->SetBodyID(bodyId);
-
-    OutPhysicsObject = JoltPhysicsObject;
-
-    SoftBodyObjects.push_back(OutPhysicsObject);
 
     return true;
 }
@@ -811,6 +758,21 @@ void MJoltPhysicsObject::SetRotation(const ::Vec4& InRotation)
     }
 }
 
+void MJoltPhysicsObject::SetRotation(const ::Vec3& InRotation)
+{
+    JPH::Quat InQuat = JPH::Quat::sEulerAngles({ InRotation.x, InRotation.y, InRotation.z });
+
+    Body& body = GetBody();
+    if (body.IsSoftBody())
+    {
+        GetPhysicsSystem()->GetBodyInterface().SetRotation(BodyIDCache, InQuat, EActivation::Activate);
+    }
+    else
+    {
+
+    }
+}
+
 void MJoltPhysicsObject::SetScale(const ::Vec3& InScale)
 {
     Ref<Shape> scaledShape;
@@ -890,9 +852,11 @@ void MJoltPhysicsObject::SetAngularVelocity(const ::Vec3& InVelocity)
     return { OutPos.GetX(), OutPos.GetY(), OutPos.GetZ() };
 }
 
-::Vec4 MJoltPhysicsObject::GetPhysicsRotation()
+::Vec3 MJoltPhysicsObject::GetPhysicsRotation()
 {
-    return VEC4ZERO;
+    JPH::Vec3 OutRot = GetPhysicsSystem()->GetBodyInterface().GetRotation(BodyIDCache).GetEulerAngles();
+
+    return { OutRot.GetX(), OutRot.GetY(), OutRot.GetZ()};
 }
 
 JPH::Body& MJoltPhysicsObject::GetBody()

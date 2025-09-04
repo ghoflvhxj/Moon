@@ -11,7 +11,7 @@
 void ReleaseReflection();
 
 #define PROPERTY(Prop) \
-MakeProp(#Prop, &Self::Prop, std::function<void(Self* InObject)>())
+MakeProp(#Prop, &Self::Prop, nullptr)
 
 #define PROPERTY_DELEGATE(Prop, Func) \
 MakeProp(#Prop, &Self::Prop, Func)
@@ -72,7 +72,8 @@ template <>
 const FTypeDesc* GetTypeDesc<Vec3>();
 template <>
 const FTypeDesc* GetTypeDesc<Vec4>();
-
+template <>
+const FTypeDesc* GetTypeDesc<Mat4>();
 /*
 template <>
 FTypeDesc* GetTypeDesc<std::wstring>()

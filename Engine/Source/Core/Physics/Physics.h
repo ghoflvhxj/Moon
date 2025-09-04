@@ -20,6 +20,7 @@ struct FPhysicsConstructData
 	std::shared_ptr<StaticMesh> Mesh;
 	EPhysicsType PhysicsType;
     ::Vec3 Pos = VEC3ZERO;
+    ::Vec3 Rot = VEC3ZERO;
     // 임시
     bool bCapsule = false;
 };
@@ -46,6 +47,8 @@ public:
 
 public:
     virtual void AddMeshComponent(std::shared_ptr<MMeshComponent> InMeshComp);
+
+public:
     virtual void MakeConvexHull(FPhysicsConstructData& InData) {}
 
 public:
@@ -93,6 +96,7 @@ public:
     virtual void SetMass(float InMass) = 0;
     virtual void SetPos(const ::Vec3& InPos) = 0;
     virtual void SetRotation(const ::Vec4& InRotation) {}
+    virtual void SetRotation(const ::Vec3& InRotation) {}
     virtual void SetScale(const ::Vec3& InScale) = 0;
     virtual void SetGravity(bool bGravity) = 0;
     virtual void AddForce(const ::Vec3& InForce) = 0;
@@ -100,7 +104,7 @@ public:
     virtual void SetAngularVelocity(const ::Vec3& InVelocity) = 0;
 public:
     virtual ::Vec3 GetPhysicsPos() = 0;
-    virtual ::Vec4 GetPhysicsRotation() = 0;
+    virtual ::Vec3 GetPhysicsRotation() = 0;
 
 public:
 	std::shared_ptr<MPrimitiveComponent> GetPrimitiveComponent() { return Owner.lock(); }

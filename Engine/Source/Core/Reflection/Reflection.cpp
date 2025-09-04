@@ -73,3 +73,18 @@ const FTypeDesc* GetTypeDesc<Vec4>()
 
     return &NewTypeDesc;
 }
+
+template <>
+const FTypeDesc* GetTypeDesc<Mat4>()
+{
+    static FTypeDesc TypeDesc = {
+        nullptr,
+        "Mat4",
+        sizeof(Mat4),
+        {
+            MakeProp("m", &Mat4::m, nullptr)
+        }
+    };
+
+    return &TypeDesc;
+}

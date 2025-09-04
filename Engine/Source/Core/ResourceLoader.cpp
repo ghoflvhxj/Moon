@@ -4,6 +4,7 @@
 
 #include "Texture.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
+#include "Mesh/DynamicMesh/DynamicMesh.h"
 
 MResourceLoader::~MResourceLoader()
 {
@@ -58,6 +59,21 @@ std::shared_ptr<MAsset> MMeshLoader::LoadAsset(const std::wstring& InPath)
 
     return Mesh;
 }
+
+MDynamicMeshLoader::MDynamicMeshLoader()
+{
+    DisplayName = TEXT("DynamicMesh");
+    TypeDesc = DynamicMesh::GetTypeDescStatic();
+}
+
+std::shared_ptr<MAsset> MDynamicMeshLoader::LoadAsset(const std::wstring& InPath)
+{
+    auto& Mesh = std::make_shared<DynamicMesh>();
+    Mesh->LoadFromDisk(InPath);
+
+    return Mesh;
+}
+
 
 MMaterialLoader::MMaterialLoader()
     : MResourceLoader()

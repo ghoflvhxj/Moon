@@ -17,10 +17,10 @@ public:
     using PropType = std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<T>>;
     using ElemType = std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, T>;
 public:
-    // 프로퍼티 자체를 얻는 Getter
-	virtual PropType Get(const void* InObject) = 0;
-    // 배열 요소 Getter
-    virtual ElemType& Get(const void* InObject, size_t InIndex) = 0;
+ //   // 프로퍼티 자체를 얻는 Getter
+	//virtual PropType Get(const void* InObject) = 0;
+ //   // 배열 요소 Getter
+ //   virtual ElemType& Get(const void* InObject, size_t InIndex) = 0;
 
     // Setter
     virtual void Set(void* InObject, const T& InT) = 0;
@@ -42,7 +42,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
     // T            -> T
     using _NoArray = std::conditional_t<
         std::is_array_v<MemType>,
-        std::add_pointer_t<std::remove_extent_t<MemType>>,
+        std::add_pointer_t<std::remove_all_extents_t<MemType>>,
         MemType
     >;
 
@@ -77,50 +77,57 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
         // 델리게이트
         std::function<void(Owner* InObject)> Func;
 
-        virtual PropType Get(const void* InObject) override
-        {
-            if constexpr (std::is_array_v<MemType>)
-            {
-                return &((Owner*)InObject->*TestMemPtr)[0];
-            }
-            else if constexpr (is_smart_ptr_v<MemType>)
-            {
-                return ((Owner*)InObject->*TestMemPtr).get();
-            }
-            else
-            {
-                return ((Owner*)InObject->*TestMemPtr);
-            }
-        }
+  //      virtual PropType Get(const void* InObject) override
+  //      {
+  //          if constexpr (std::is_array_v<MemType>)
+  //          {
+  //              return ((Owner*)InObject->*TestMemPtr);
+  //          }
+  //          else if constexpr (is_smart_ptr_v<MemType>)
+  //          {
+  //              return ((Owner*)InObject->*TestMemPtr).get();
+  //          }
+  //          else
+  //          {
+  //              return ((Owner*)InObject->*TestMemPtr);
+  //          }
+  //      }
 
-        // 타입이 지정된 Getter
-		virtual ElemType& Get(const void* InObject, size_t InIndex = 0) override
-		{
-            if constexpr (std::is_array_v<MemType>)
-            {
-                return ((Owner*)InObject->*TestMemPtr)[InIndex];
-            }
-            else if constexpr (is_smart_ptr_v<MemType>)
-            {
-                return *((Owner*)InObject->*TestMemPtr).get();
-            }
-            else
-            {
-                return ((Owner*)InObject->*TestMemPtr);
-            }
-		}
+  //      // 타입이 지정된 Getter
+		//virtual ElemType& Get(const void* InObject, size_t InIndex = 0) override
+		//{
+  //          if constexpr (std::is_array_v<MemType>)
+  //          {
+  //              return ((Owner*)InObject->*TestMemPtr)[InIndex];
+  //          }
+  //          else if constexpr (is_smart_ptr_v<MemType>)
+  //          {
+  //              return *((Owner*)InObject->*TestMemPtr).get();
+  //          }
+  //          else
+  //          {
+  //              return ((Owner*)InObject->*TestMemPtr);
+  //          }
+		//}
 
         // 부모 클래스 주석 참고
         virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
         {
-            if constexpr (std::is_array_v<MemType>)
-            {
-                return &((Owner*)InObject->*TestMemPtr)[InIndex];
-            }
-            else if constexpr (is_smart_ptr_v<MemType>)
+            if constexpr (is_smart_ptr_v<MemType>)
             {
                 if (InIndex != 0) { MSGBOX(TEXT("배열 멤버가 아님!")); }
                 return &((Owner*)InObject->*TestMemPtr);
+            }
+            else if constexpr (std::is_array_v<MemType>)
+            {
+                if constexpr (std::rank_v<MemType> == 1)
+                {
+                    return &((Owner*)InObject->*TestMemPtr)[InIndex];
+                }
+                else if constexpr (std::rank_v<MemType> == 2)
+                {
+                    return &((Owner*)InObject->*TestMemPtr)[InIndex/4][InIndex%4];
+                }
             }
             else
             {
@@ -144,7 +151,14 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
             }
             else if constexpr (std::is_array_v<MemType>)
             {
-                ((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<ElemType*>(InData);
+                if constexpr (std::rank_v<MemType> == 1)
+                {
+                    ((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<ElemType*>(InData);
+                }
+                else if constexpr (std::rank_v<MemType> == 2)
+                {
+                    ((Owner*)InObject->*TestMemPtr)[InIndex/4][InIndex%4] = *static_cast<ElemType*>(InData);
+                }
             }
             else
             {
@@ -208,7 +222,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
 	};
     
     // T[N] -> T
-    using Type = std::conditional_t<std::is_array_v<MemType>, std::remove_extent_t<MemType>, MemType>;
+    using Type = std::conditional_t<std::is_array_v<MemType>, std::remove_all_extents_t<MemType>, MemType>;
     std::function<void(Owner* InObject)> Func = InFunc;
 	FPropertyDesc* NewDesc = new FPropertyImple(MemPtr, Func);
 	NewDesc->Name = InName;

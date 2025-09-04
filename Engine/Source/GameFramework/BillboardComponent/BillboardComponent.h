@@ -1,12 +1,12 @@
 ﻿#pragma once
 
 #include "Include.h"
-#include "MeshComponent.h"
+#include "StaticMeshComponent.h"
 
 class StaticMesh;
 class MTexture;
 
-class ENGINE_DLL MBillboardComponent : public MMeshComponent
+class ENGINE_DLL MBillboardComponent : public StaticMeshComponent
 {
 public:
     MBillboardComponent();

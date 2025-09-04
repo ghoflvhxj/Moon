@@ -6,6 +6,7 @@
 #include "Material.h"
 #include "Texture.h"
 
+#include "Core/ResourceManager.h"
 #include "Core/Physics/Physics.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 
@@ -43,6 +44,7 @@ void StaticMeshComponent::Update(const Time deltaTime)
 	if (PhysicsObject)
 	{
 		setTranslation(PhysicsObject->GetPhysicsPos());
+        setRotation(PhysicsObject->GetPhysicsRotation());
 	}
 
 	Super::Update(deltaTime);
@@ -72,17 +74,17 @@ const bool StaticMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> &Pr
 	}
 
 	// BoudingBox
-	std::shared_ptr<MBoundingBox> &boundingBox = Mesh->GetBoundingBox();
-	if (boundingBox && _bDrawBoundingBox)
-	{
-        FPrimitiveData PrimitiveData = {};
-		PrimitiveData.PrimitiveComponent = GetShared();
-		PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
-        PrimitiveData.MeshData = boundingBox->GetMeshData().get();
-		PrimitiveData.Material = boundingBox->getMaterial();
+	//std::shared_ptr<MBoundingBox> &boundingBox = Mesh->GetBoundingBox();
+	//if (boundingBox && _bDrawBoundingBox)
+	//{
+ //       FPrimitiveData PrimitiveData = {};
+	//	PrimitiveData.PrimitiveComponent = GetShared();
+	//	PrimitiveData.PrimitiveType = EPrimitiveType::Collision;
+ //       PrimitiveData.MeshData = boundingBox->GetMeshData().get();
+	//	PrimitiveData.Material = boundingBox->getMaterial();
 
-		PrimitiveDataList.push_back(PrimitiveData);
-	}
+	//	PrimitiveDataList.push_back(PrimitiveData);
+	//}
 
     // 콜리젼
     if (PhysicsObject)
@@ -124,16 +126,23 @@ void StaticMeshComponent::setScale(const Vec3& InScale)
     }
 }
 
-XMMATRIX StaticMeshComponent::GetRotationMatrix()
+void StaticMeshComponent::SetMesh(const std::wstring& InPath)
 {
-	if (PhysicsObject)
-	{
-		return XMMatrixRotationQuaternion(XMLoadFloat4(&PhysicsObject->GetPhysicsRotation()));
-	}
-	else
-	{
-		return SceneComponent::GetRotationMatrix();
-	}
+    std::filesystem::path Path = MFIleSystem::AbsolutePath(InPath);
+
+    if (Path.extension() == TEXT(".fbx"))
+    {
+        Mesh->LoadFromFBX(Path);
+    }
+    else if (Path.extension() == TEXT(".json"))
+    {
+        g_ResourceManager->Load(InPath, Mesh);
+    }
+
+    Materials = Mesh->getMaterials();
+
+    OnMeshChangedDelegate.Broadcast(GetShared());
+    OnPrimitiveChangedDelegate.Broadcast(GetShared());
 }
 
 void StaticMeshComponent::Temp(float y)

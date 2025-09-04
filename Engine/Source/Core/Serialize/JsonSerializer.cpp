@@ -44,66 +44,9 @@ rapidjson::Value MJsonSerializer::DispatchStruct(const FTypeDesc* InTypeDesc, co
                 break;
             }
         }
-        else if (Prop->Num > 1) // 배열
+        else if (Prop->IsArray()) // 배열
         {
-            size_t Num = Prop->Num;
-            switch (Prop->Type)
-            {
-            case EType::Int:
-            case EType::Enum:
-            {
-				OutValue.AddMember(PropNameValue, ToJsonValue(static_cast<FFundamentalPropertyDesc<int*>*>(Prop)->Get(InData), Num), Allocator);
-            }
-            break;
-            case EType::Float:
-            {
-				OutValue.AddMember(PropNameValue, ToJsonValue(static_cast<FFundamentalPropertyDesc<float*>*>(Prop)->Get(InData), Num), Allocator);
-            }
-            break;
-            case EType::Vec2:
-            {
-				OutValue.AddMember(PropNameValue, ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec2*>*>(Prop)->Get(InData), Num), Allocator);
-            }
-            break;
-            case EType::Vec3:
-            {
-				OutValue.AddMember(PropNameValue, ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec3*>*>(Prop)->Get(InData), Num), Allocator);
-            }
-            break;
-            case EType::Vec4:
-            {
-				OutValue.AddMember(PropNameValue, ToJsonValue(static_cast<FFundamentalPropertyDesc<Vec4*>*>(Prop)->Get(InData), Num), Allocator);
-            }
-            break;
-			case EType::String:
-			{
-				OutValue.AddMember(PropNameValue, ToJsonValue(static_cast<FFundamentalPropertyDesc<std::string*>*>(Prop)->Get(InData), Num), Allocator);
-			}
-			break;
-			case EType::WString:
-			{
-				OutValue.AddMember(PropNameValue, ToJsonValue(static_cast<FFundamentalPropertyDesc<std::wstring*>*>(Prop)->Get(InData), Num), Allocator);
-			}
-			break;
-			case EType::Bool:
-			{
-				OutValue.AddMember(PropNameValue, ToJsonValue(static_cast<FFundamentalPropertyDesc<bool*>*>(Prop)->Get(InData), Num), Allocator);
-			}
-			break;
-            default:
-            {
-				rapidjson::Value Temp(kArrayType);
-				for (size_t i = 0; i < Prop->Num; ++i)
-				{
-					uint64 Base = (uint64)Prop->GetAsVoid(InData);
-					uint64 MemoryPos = Base + (Prop->GetSize() * i);
-					Temp.PushBack(DispatchStruct(Prop->TypeDesc, (void*)MemoryPos), Allocator);
-				}
-
-				OutValue.AddMember(PropNameValue, Temp, Allocator);
-            }
-            break;
-            }
+            OutValue.AddMember(PropNameValue, DispatchArray(Prop, InData), Allocator);
         }
         else
         {
@@ -129,89 +72,52 @@ rapidjson::Value MJsonSerializer::DispatchVector(FVectorPropertyDesc* InContaine
 	rapidjson::Value OutValue(kObjectType);
 
 	size_t Num = InContainerPropDesc->GetNum(InData);
-	if (InContainerPropDesc->TypeDesc == nullptr)
-	{
-		switch (InContainerPropDesc->Type)
-		{
-		case EType::Int:
-		case EType::Enum:
-		{
-			auto Value = (int*)InContainerPropDesc->Get(InData, 0);
-			OutValue = ToJsonValue(Value, Num, true);
-		}
-		break;
-		case EType::Float:
-		{
-			auto Value = (float*)InContainerPropDesc->Get(InData, 0);
-			OutValue = ToJsonValue(Value, Num, true);
-		}
-		break;
-		case EType::Vec2:
-		{
-			auto Value = (Vec2*)InContainerPropDesc->Get(InData, 0);
-			OutValue = ToJsonValue(Value, Num, true);
-		}
-		break;
-		case EType::Vec3:
-		{
-			auto Value = (Vec3*)InContainerPropDesc->Get(InData, 0);
-			OutValue = ToJsonValue(Value, Num, true);
-		}
-		break;
-		case EType::Vec4:
-		{
-			auto Value = (Vec4*)InContainerPropDesc->Get(InData, 0);
-			OutValue = ToJsonValue(Value, Num, true);
-		}
-		break;
-		case EType::String:
-		{
-			auto Value = (std::string*)InContainerPropDesc->Get(InData, 0);
-			OutValue = ToJsonValue(Value, Num, true);
-		}
-		break;
-		case EType::WString:
-		{
-			auto Value = (std::wstring*)InContainerPropDesc->Get(InData, 0);
-			OutValue = ToJsonValue(Value, Num, true);
-		}
-		break;
-		}
-	}
-    else
+
+    for (size_t i = 0; i < Num; ++i)
     {
-        for (size_t i = 0; i < Num; ++i)
+        if (InContainerPropDesc->Type != EType::None)
         {
-            const void* Data = InContainerPropDesc->Get(InData, i);
-            rapidjson::Value IndexValue = ToJsonValue(std::to_string(i));
-
-            if (InContainerPropDesc->IsA<MAsset>())
-            {
-                rapidjson::Value AssetValue(kObjectType);
-
-                std::shared_ptr<MAsset> Asset = *static_cast<const std::shared_ptr<MAsset>*>(Data);
-
-                AssetValue.AddMember(ToJsonValue(MAsset::GetTypeDescStatic()->Name), DispatchStruct(MAsset::GetTypeDescStatic(), Asset.get()), Allocator);
-                OutValue.AddMember(IndexValue, AssetValue, Allocator);
-            }
-            else if (InContainerPropDesc->IsA<MObject>())
-            {
-                if (InContainerPropDesc->bSharedValue)
-                {
-                    std::shared_ptr<MObject> Object = *static_cast<const std::shared_ptr<MObject>*>(Data);
-                    OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Object.get()), Allocator);
-                }
-                else
-                {
-                    OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Data), Allocator);
-                }
-            }
-            else
-            {
-                OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Data), Allocator);
-            }
+            OutValue.AddMember(ToJsonValue(std::to_string(i)), HandleData(InContainerPropDesc->Type, InContainerPropDesc->Get(InData, i)), Allocator);
         }
-	}
+        else
+        {
+            OutValue.AddMember(ToJsonValue(std::to_string(i)), HandleData(InContainerPropDesc->TypeDesc, InContainerPropDesc->Get(InData, i), InContainerPropDesc->bSharedValue), Allocator);
+        }
+    }
+
+ //   {
+ //       for (size_t i = 0; i < Num; ++i)
+ //       {
+ //           const void* Data = InContainerPropDesc->Get(InData, i);
+ //           rapidjson::Value IndexValue = ToJsonValue(std::to_string(i));
+
+ //           if (InContainerPropDesc->IsA<MAsset>())
+ //           {
+ //               rapidjson::Value AssetValue(kObjectType);
+
+ //               std::shared_ptr<MAsset> Asset = *static_cast<const std::shared_ptr<MAsset>*>(Data);
+
+ //               AssetValue.AddMember(ToJsonValue(MAsset::GetTypeDescStatic()->Name), DispatchStruct(MAsset::GetTypeDescStatic(), Asset.get()), Allocator);
+ //               OutValue.AddMember(IndexValue, AssetValue, Allocator);
+ //           }
+ //           else if (InContainerPropDesc->IsA<MObject>())
+ //           {
+ //               if (InContainerPropDesc->bSharedValue)
+ //               {
+ //                   std::shared_ptr<MObject> Object = *static_cast<const std::shared_ptr<MObject>*>(Data);
+ //                   OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Object.get()), Allocator);
+ //               }
+ //               else
+ //               {
+ //                   OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Data), Allocator);
+ //               }
+ //           }
+ //           else
+ //           {
+ //               OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Data), Allocator);
+ //           }
+ //       }
+	//}
 
 	return OutValue;
 }
@@ -288,6 +194,26 @@ rapidjson::Value MJsonSerializer::DispatchMap(FMapPropertyDesc* InContainerPropD
         OutValue.PushBack(Pair, Allocator);
     }
 
+
+    return OutValue;
+}
+
+rapidjson::Value MJsonSerializer::DispatchArray(FPropertyDesc* InArrayPropDesc, const void* InData)
+{
+    rapidjson::Value OutValue(kArrayType);
+
+    size_t Num = InArrayPropDesc->Num;
+    for (size_t i = 0; i < Num; ++i)
+    {
+        if (InArrayPropDesc->Type != EType::None)
+        {
+            OutValue.PushBack(HandleData(InArrayPropDesc->Type, InArrayPropDesc->GetAsVoid(InData, i)), Allocator);
+        }
+        else
+        {
+            OutValue.PushBack(HandleData(InArrayPropDesc->TypeDesc, InArrayPropDesc->GetAsVoid(InData, i)), Allocator);
+        }
+    }
 
     return OutValue;
 }

@@ -3,7 +3,7 @@
 
 using namespace fbxsdk;
 
-void AnimationClip::SetFrameInfo(FbxTime& InStart, FbxTime& InEnd)
+void MAnimation::SetFrameInfo(FbxTime& InStart, FbxTime& InEnd)
 {
     StartFrame = CastValue<uint32>(InStart.GetFrameCount(FbxTime::eFrames24));
     EndFrame = CastValue<uint32>(InEnd.GetFrameCount(FbxTime::eFrames24));

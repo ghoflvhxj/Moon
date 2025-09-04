@@ -23,9 +23,13 @@ public:
 	virtual void setTranslation(const Vec3 &translation) override;
 	virtual void setScale(const Vec3& InScale) override;
 
+    // 메시 관련
 public:
-	virtual XMMATRIX GetRotationMatrix();
-
+    virtual void SetMesh(const std::wstring& InPath) override;
+    virtual std::shared_ptr<StaticMesh> GetMesh() override { return Mesh; }
+protected:
+    std::shared_ptr<StaticMesh> Mesh;
+    
 public:
 	void Temp(float y);
 	void SetGravity(bool bGravity);
@@ -35,6 +39,9 @@ public:
     void SetAngularVelocity(float x, float y, float z);
     void SetVelocity(float x, float y, float z);
 
-
-    REFLECT(StaticMeshComponent)
+    REFLECT(StaticMeshComponent
+        , PROPERTY_DELEGATE(Mesh, [&](StaticMeshComponent* InObject) {
+            InObject->Reload();
+        })
+    )
 };

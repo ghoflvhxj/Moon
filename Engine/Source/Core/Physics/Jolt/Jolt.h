@@ -6,8 +6,12 @@
 #include "Jolt/Jolt.h"
 #include "Jolt/Core/Reference.h"
 #include "Jolt/Physics/PhysicsSystem.h"
-#include "Jolt/Physics/Collision/Shape/Shape.h"
 #include "Jolt/Physics/Body/BodyID.h"
+
+#include "Jolt/Physics/Collision/Shape/Shape.h"
+#include "Jolt/Physics/Collision/Shape/MeshShape.h"
+#include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
+#include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 
 class MMeshComponent;
 class StaticMesh;
@@ -73,13 +77,13 @@ public:
     virtual void SaveTest(std::shared_ptr<StaticMesh> Mesh) override;
 
     virtual void MakeConvexHull(FPhysicsConstructData& InData) override;
-    
+    JPH::MeshShapeSettings MakeMeshShape(std::shared_ptr<StaticMesh> InMesh);
+    JPH::CapsuleShape MakeCapsule();
 public:
     JPH::EMotionType ConvertPhysicsType(EPhysicsType InType);
 
 public:
     virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
-    virtual bool AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
     virtual void AddCloth(FPhysicsConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
     virtual void AddKinematic(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject);
     virtual void Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_ptr<MPhysicsObject>& Rhs);
@@ -119,6 +123,7 @@ public:
     virtual void SetMass(float InMass) override;
     virtual void SetPos(const ::Vec3& InPos) override;
     virtual void SetRotation(const ::Vec4& InRotation) override;
+    virtual void SetRotation(const ::Vec3& InRotation) override;
     virtual void SetScale(const ::Vec3& InScale) override;
     virtual void SetGravity(bool bGravity) override;
     virtual void AddForce(const ::Vec3& InForce) override;
@@ -126,7 +131,7 @@ public:
     virtual void SetAngularVelocity(const ::Vec3& InVelocity) override;
 public:
     virtual ::Vec3 GetPhysicsPos() override;
-    virtual ::Vec4 GetPhysicsRotation() override;
+    virtual ::Vec3 GetPhysicsRotation() override;
 
 public:
     JPH::Body& GetBody();

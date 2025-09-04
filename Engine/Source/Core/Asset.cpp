@@ -4,8 +4,11 @@
 
 MAsset::~MAsset()
 {
-    std::wstring Msg = TEXT("Release Asset: ") + GetAssetPath();
-    LOG(Msg);
+    if (Path.empty() == false)
+    {
+        std::wstring Msg = TEXT("Release Asset: ") + GetAssetPath();
+        LOG(Msg);
+    }
 }
 
 void MAsset::LoadFromDisk(const std::wstring& InPath)

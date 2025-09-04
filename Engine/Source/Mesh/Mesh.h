@@ -3,10 +3,20 @@
 #include "Include.h"
 #include "Vertex.h"
 
+#include "Core/Asset.h"
+
 struct ENGINE_DLL FMeshData
 {
     VertexList		Vertices;
     IndexList 		Indices;
+
+    FMeshData& operator+=(const FMeshData& Rhs)
+    {
+        this->Vertices.insert(this->Vertices.end(), Rhs.Vertices.begin(), Rhs.Vertices.end());
+        this->Indices.insert(this->Indices.end(), Rhs.Indices.begin(), Rhs.Indices.end());
+
+        return *this;
+    }
 
     REFLECT_TOP(FMeshData, PROPERTY(Vertices), PROPERTY(Indices));
 };
@@ -41,11 +51,15 @@ public:
 protected:
     // 모든 조인트의 행렬을 저장
     std::vector<Mat4> Matrices;
+
+    REFLECT_TOP(KeyFrame
+        , PROPERTY(Matrices)
+    );
 };
 
-struct ENGINE_DLL AnimationClip
+struct ENGINE_DLL MAnimation : public MAsset
 {
-    AnimationClip()
+    MAnimation()
         : StartFrame{ 0 }
         , EndFrame{ 0 }
         , TotalFrame{ 0 }
@@ -67,6 +81,15 @@ public:
 protected:
     // 프레임 단위로 조인트들의 행렬을 저장함. 1프레임 200개행렬, 2프레임 200개행렬 이런 구조.
     std::vector<KeyFrame> KeyFrames;
+
+    REFLECT(MAnimation
+        , PROPERTY(Name)
+        , PROPERTY(StartFrame)
+        , PROPERTY(EndFrame)
+        , PROPERTY(TotalFrame)
+        , PROPERTY(KeyFrames)
+        //, PROPERTY(static_cast<float>(Duration))
+    );
 };
 
 struct ENGINE_DLL VertexIndexWeightInfo
@@ -78,19 +101,25 @@ struct ENGINE_DLL VertexIndexWeightInfo
 struct ENGINE_DLL FJoint
 {
     FJoint()
-        : _parentIndex{ -1 }
-        , _position{ 0.f, 0.f, 0.f }
-        , _globalBindPoseInverseMatrix{ IDENTITYMATRIX }
     {
 
     }
 
-    int32	_parentIndex;
+    int32	_parentIndex = -1;
 
     // 메시의 점 위치를 조인트 기준의 위치로 변환하는 행렬
-    Mat4	_globalBindPoseInverseMatrix;
-    Vec3	_position;
-    Vec3    Rotation;
+    Mat4	_globalBindPoseInverseMatrix = IDENTITYMATRIX;
+    Vec3	Position = {};
+    Vec3    Rotation = {};
+    Vec3    Scale = {};
+
+    REFLECT_TOP(FJoint
+        , PROPERTY(_globalBindPoseInverseMatrix)
+        , PROPERTY(_parentIndex)
+        , PROPERTY(Position)
+        , PROPERTY(Rotation)
+        , PROPERTY(Scale)
+    );
 };
 
 using JointIndexMap = std::unordered_map<std::string, int>;

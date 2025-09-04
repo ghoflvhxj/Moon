@@ -7,20 +7,19 @@ void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& F
     StaticMesh::InitializeFromFBX(FbxLoader, FilePath);
     FbxLoader.LoadFBXAnim(_animationClipList);
 
-    NameToJointIndex = FbxLoader.GetNameToJointIndex();
-    Joints = FbxLoader.GetJoints();
-
     for (std::shared_ptr<MMaterial>& Material : Materials)
     {
         // 디폴트 쉐이더
         Material->setShader(TEXT("TexAnimVertexShader.cso"), TEXT("TexPixelShader.cso"));
     }
 
-
-    _pSkeleton = std::make_shared<Skeleton>(this);
+    Skeleton = std::make_shared<MSkeleton>();
+    Skeleton->SetAssetPath(FbxLoader.GetDirectory() + FbxLoader.GetFileName() + TEXT("_Skeleton.json"));
+    Skeleton->Joints = FbxLoader.GetJoints();
+    Skeleton->NameToJointIndex = FbxLoader.GetNameToJointIndex();
 }
 
-bool DynamicMesh::getAnimationClip(const uint32 index, AnimationClip& OutAnimationClip)
+bool DynamicMesh::getAnimationClip(const uint32 index, MAnimation& OutAnimationClip)
 {
     if (GetSize(_animationClipList) > index)
     {
@@ -33,15 +32,40 @@ bool DynamicMesh::getAnimationClip(const uint32 index, AnimationClip& OutAnimati
 
 const uint32 DynamicMesh::GetJointNum() const
 {
-    return GetSize(Joints);
+    return Skeleton ? Skeleton->GetJointNum() : 0;
 }
 
 std::vector<FJoint>& DynamicMesh::GetJoints()
 {
-    return Joints;
+    return Skeleton->GetJoints();
 }
 
 FJoint DynamicMesh::GetJoint(uint32 InIndex)
+{
+    return Skeleton->GetJoint(InIndex);
+}
+
+FJoint DynamicMesh::GetJoint(const std::string& InName)
+{
+    return Skeleton->GetJoint(InName);
+}
+
+int32 DynamicMesh::GetJointIndex(const std::string& InName)
+{
+    return Skeleton->GetJointIndex(InName);
+}
+
+const uint32 MSkeleton::GetJointNum() const
+{
+    return GetSize(Joints);
+}
+
+std::vector<FJoint>& MSkeleton::GetJoints()
+{
+    return Joints;
+}
+
+FJoint MSkeleton::GetJoint(uint32 InIndex)
 {
     if (InIndex < GetSize(Joints))
     {
@@ -51,7 +75,7 @@ FJoint DynamicMesh::GetJoint(uint32 InIndex)
     return FJoint();
 }
 
-FJoint DynamicMesh::GetJoint(const std::string& InName)
+FJoint MSkeleton::GetJoint(const std::string& InName)
 {
     if (NameToJointIndex.find(InName) != NameToJointIndex.end())
     {
@@ -61,7 +85,7 @@ FJoint DynamicMesh::GetJoint(const std::string& InName)
     return FJoint();
 }
 
-int32 DynamicMesh::GetJointIndex(const std::string& InName)
+int32 MSkeleton::GetJointIndex(const std::string& InName)
 {
     if (NameToJointIndex.find(InName) != NameToJointIndex.end())
     {
@@ -69,33 +93,4 @@ int32 DynamicMesh::GetJointIndex(const std::string& InName)
     }
 
     return -1;
-}
-
-Skeleton::Skeleton(DynamicMesh* dynamicMesh)
-{
-    // 스켈레톤 메시 생성
-    //for (uint32 JointIndex = 0; JointIndex < 199; ++JointIndex)
-    //{
-    //    auto& JointPosition = dynamicMesh->getJoints()[JointIndex]._position;
-    //    _vertices.push_back({ Vec4{ JointPosition.x, JointPosition.y, JointPosition.z, 1.f } });
-    //    _vertices.back().BlendIndex[0] = JointIndex;
-    //    _vertices.back().BlendWeight[0] = 1.f;
-
-    //    int32 parentIndex = dynamicMesh->getJoints()[JointIndex]._parentIndex;
-    //    if (parentIndex != -1)
-    //    {
-    //        auto& parentTrans = dynamicMesh->getJoints()[parentIndex]._position;
-    //        _vertices.push_back({ Vec4{ parentTrans.x, parentTrans.y, parentTrans.z, 1.f } });
-    //        _vertices.back().BlendIndex[0] = parentIndex;
-    //        _vertices.back().BlendWeight[0] = 1.f;
-    //    }
-    //    else
-    //    {
-    //        _vertices.push_back({ Vec4{ JointPosition.x, JointPosition.y, JointPosition.z, 1.f } });
-    //    }
-    //}
-    //_pVertexBuffer = std::make_shared<MVertexBuffer>(CastValue<uint32>(sizeof(Vertex)), CastValue<uint32>(_vertices.size()), _vertices.data());
-    //_pMaterial = std::make_shared<MMaterial>();
-    //_pMaterial->setShader(TEXT("Bone.cso"), TEXT("TexPixelShader.cso")); // 툴에서 설정한 쉐이더를 읽어야 하는데, 지금은 없으니까 그냥 임시로 땜빵
-    //_pMaterial->setTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 }

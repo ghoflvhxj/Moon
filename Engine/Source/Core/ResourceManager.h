@@ -67,10 +67,14 @@ public:
             return false;
         }
 
-        const FTypeDesc* TypeDesc = T::GetTypeDescStatic();
-        if (TypeDesc == MAsset::GetTypeDescStatic())
+        const FTypeDesc* TypeDesc = nullptr;
+        if (OutResource)
         {
             TypeDesc = OutResource->GetTypeDesc();
+        }
+        else
+        {
+            TypeDesc = T::GetTypeDescStatic();
         }
 
         if (ResourceLoaders2.find(TypeDesc) != ResourceLoaders2.end())

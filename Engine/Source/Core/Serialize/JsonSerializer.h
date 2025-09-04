@@ -51,7 +51,7 @@ public:
     rapidjson::Value DispatchStruct(const FTypeDesc* InTypeDesc, const void* InData);
     rapidjson::Value DispatchVector(FVectorPropertyDesc* InContainerPropDesc, const void* InData);
     rapidjson::Value DispatchMap(FMapPropertyDesc* InContainerPropDesc, const void* InData);
-
+    rapidjson::Value DispatchArray(FPropertyDesc* InArrayPropDesc, const void* InData);
 
 
 public:
@@ -170,6 +170,20 @@ public:
         ArrayValue.PushBack(rapidjson::Value(Object.y), Allocator);
         ArrayValue.PushBack(rapidjson::Value(Object.z), Allocator);
         ArrayValue.PushBack(rapidjson::Value(Object.w), Allocator);
+
+        return ArrayValue;
+    }
+
+    // Mat4
+    template <>
+    rapidjson::Value SerializeCustomType(const Mat4& InData)
+    {
+        rapidjson::Value ArrayValue(rapidjson::kArrayType);
+
+        ArrayValue.PushBack(ToJsonValue(InData.m[0]), Allocator);
+        ArrayValue.PushBack(ToJsonValue(InData.m[1]), Allocator);
+        ArrayValue.PushBack(ToJsonValue(InData.m[2]), Allocator);
+        ArrayValue.PushBack(ToJsonValue(InData.m[3]), Allocator);
 
         return ArrayValue;
     }

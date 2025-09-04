@@ -55,6 +55,15 @@ protected:
     virtual std::shared_ptr<MAsset> LoadAsset(const std::wstring& InPath) override;
 };
 
+class ENGINE_DLL MDynamicMeshLoader : public MResourceLoader
+{
+public:
+    MDynamicMeshLoader();
+
+protected:
+    virtual std::shared_ptr<MAsset> LoadAsset(const std::wstring& InPath) override;
+};
+
 class ENGINE_DLL MMaterialLoader : public MResourceLoader
 {
 public:

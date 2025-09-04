@@ -17,23 +17,21 @@ struct FClothUpdateData
 class ENGINE_DLL MMeshComponent abstract : public MPrimitiveComponent
 {
 public:
-	explicit MMeshComponent();
-	virtual ~MMeshComponent();
+	explicit MMeshComponent() = default;
+	virtual ~MMeshComponent() = default;
 
 public:
     void Reload()
     {
-        std::wstring temp = Mesh->GetAssetPath();
+        std::wstring temp = GetMesh()->GetAssetPath();
         SetMesh(temp);
     }
 
-    // 메시 관련
 public:
-    void SetMesh(const std::wstring& InPath);
-    std::shared_ptr<StaticMesh> GetMesh();
+    virtual void SetMesh(const std::wstring& InPath) = 0;
+    virtual std::shared_ptr<StaticMesh> GetMesh() = 0;
     FDelegate<void, std::shared_ptr<MPrimitiveComponent>>& GetMeshChangedDelegate() { return OnMeshChangedDelegate; }
 protected:
-    std::shared_ptr<StaticMesh> Mesh;
     FDelegate<void, std::shared_ptr<MPrimitiveComponent>> OnMeshChangedDelegate;
 
 public:
@@ -73,10 +71,6 @@ protected:
         MMeshComponent,
         PROPERTY_DELEGATE(bPhysicsSimulate, [&](MMeshComponent* InObject) {
             InObject->SetPhysicsSimulate(InObject->IsPhysicsSimulating());
-        }),
-        //PROPERTY(Mesh)
-        PROPERTY_DELEGATE(Mesh, [&](MMeshComponent* InObject) {
-            InObject->Reload();
         }),
         PROPERTY(PhysicsType),
         PROPERTY_DELEGATE(Materials, [&](MMeshComponent* InObject) {

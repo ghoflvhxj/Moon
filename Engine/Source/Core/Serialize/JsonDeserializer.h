@@ -148,6 +148,15 @@ public:
         Vector.w = JsonValue.GetArray()[3].GetFloat();
     }
 
+    template <>
+    void DeserializeCustomType(rapidjson::Value& JsonValue, Mat4& Mat)
+    {
+        for (int i = 0; i < 16; ++i)
+        {
+            Mat.m[i / 4][i % 4] = JsonValue.GetArray()[i].GetFloat();
+        }
+    }
+
 public:
     template <class T>
     void GetObjectFromJson(rapidjson::Value& InJsonValue, T& OutObject)

@@ -119,16 +119,17 @@ protected:
 
 
 public:
-	void LoadFBXAnim(std::vector<AnimationClip>& animationClipList);
+	void LoadFBXAnim(std::vector<MAnimation>& animationClipList);
 	bool LoadFBXMesh(const std::wstring& InPath);
     // FBX파일을 Json으로 만들 때 호출됨
-    void SaveJsonAsset(const std::wstring& InPath);
+    void SaveJsonAsset(const std::wstring& InPath, bool bMesh = true, bool bMaterial = true, bool bSkeleton = false, bool bAnim = false);
 private:
 	void InitializeFbxSdk();
 	void convertScene();
 
 public:
     const std::wstring& GetDirectory() const { return Directory; }
+    const std::wstring& GetFileName() const { return Name; }
 private:
 	std::wstring Path;
 	std::wstring Directory;
@@ -168,7 +169,6 @@ private:
 	void loadNormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
 	void loadTangent(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
 	void loadBinormal(Vertex &vertex, const int controlPointIndex, const int vertexCounter, FFBXVertexKey& VertexKey);
-	void loadAnimation();
 private:
 	void loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName);
 private:

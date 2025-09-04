@@ -62,7 +62,7 @@ void MFBXLoader::SafeDestroy(fbxsdk::FbxObject*& InObject)
     }
 }
 
-void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
+void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
 {
     // 메시를 그릴거임.
     // 근데 애니메이션이 적용됬다면, 정점들에 애니메이션 행렬을 곱해야 함.
@@ -93,10 +93,10 @@ void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
 		FbxString animStackName = _pAnimStack->GetName();
 		FbxTakeInfo* pTakeInfo = _pScene->GetTakeInfo(animStackName);
 
-        AnimationClip& CurrentAnimClip = OutAnimationClips[AnimStackIndex];
+        MAnimation& CurrentAnimClip = OutAnimationClips[AnimStackIndex];
 		CurrentAnimClip.Name = animStackName.Buffer();
+        CurrentAnimClip.SetAssetPath(Directory + StringToWString(CurrentAnimClip.Name) + TEXT(".json"));
         CurrentAnimClip.SetFrameInfo(pTakeInfo->mLocalTimeSpan.GetStart(), pTakeInfo->mLocalTimeSpan.GetStop());
-
         // 조인트를 얻기 위해 메시->디포머->스킨->클러스터->링크 순으로 파고듬
         // 클러스터의 링크 = 조인트
 		for (uint32 meshIndex = 0; meshIndex < GeometryCount; ++meshIndex)
@@ -204,7 +204,7 @@ void MFBXLoader::LoadFBXAnim(std::vector<AnimationClip>& OutAnimationClips)
 					log += "/";
 					//log += std::to_string(jointIndex);
 					log += "\r\n";
-					OutputDebugStringA(log.c_str());
+					LOG(StringToWString(log));
 #endif
 				}
 			}
@@ -248,7 +248,7 @@ bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
 	return false;
 }
 
-void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
+void MFBXLoader::SaveJsonAsset(const std::wstring& InPath, bool bMesh /*= true*/, bool bMaterial /*= true*/, bool bSkeleton /*= false*/, bool bAnim /*= false*/)
 {
     LoadFBXMesh(InPath);
 
@@ -266,7 +266,6 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
     }
 
     std::shared_ptr<StaticMesh> NewMesh = bDynamic ? std::make_shared<DynamicMesh>() : std::make_shared<StaticMesh>();
-    
     NewMesh->LoadFromFBX(InPath, *this);
 
     std::set<uint32> UniqueMaterialIndices;
@@ -275,18 +274,42 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath)
         UniqueMaterialIndices.emplace(MaterialIndex);
     }
 
-    // 매터리얼 저장
-    for (auto& Material : NewMesh->getMaterials())
+    if (bMaterial)
     {
-        MJsonSerializer MatSerializer;
-        MatSerializer.Serialize(*Material, Material->GetAssetPath(), true);
+        for (auto& Material : NewMesh->getMaterials())
+        {
+            MJsonSerializer MatSerializer;
+            MatSerializer.Serialize(*Material, Material->GetAssetPath(), true);
+        }
     }
 
-    // 이제 매터리얼 정보가 채워진 StaticMesh 저장할 수 있음.
-    MJsonSerializer Serializer;
-    std::wstring MeshPath = Directory + Name + TEXT(".json");
-    NewMesh->SetAssetPath(MeshPath);
-    Serializer.Serialize(*NewMesh, NewMesh->GetAssetPath(), false);
+    if (bMesh)
+    {
+        MJsonSerializer Serializer;
+        std::wstring MeshPath = Directory + Name + TEXT(".json");
+        NewMesh->SetAssetPath(MeshPath);
+        Serializer.Serialize(*NewMesh, NewMesh->GetAssetPath(), false);
+    }
+
+    if (bDynamic)
+    {
+        std::shared_ptr<DynamicMesh> NewDynamicMesh = std::static_pointer_cast<DynamicMesh>(NewMesh);
+        if (bSkeleton)
+        {
+            MJsonSerializer Serializer;
+            Serializer.Serialize(*(NewDynamicMesh->Skeleton), NewDynamicMesh->Skeleton->GetAssetPath(), true);
+        }
+
+        if (bAnim)
+        {
+            std::vector<MAnimation> Anims = NewDynamicMesh->GetAnimClips();
+            for (auto& Anim : Anims)
+            {
+                MJsonSerializer Serializer;
+                Serializer.Serialize(Anim, Anim.GetAssetPath(), true);
+            }
+        }
+    }
 }
 
 void MFBXLoader::InitializeFbxSdk()
@@ -791,11 +814,6 @@ void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const
     }
 }
 
-void MFBXLoader::loadAnimation()
-{
-
-}
-
 void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName)
 {
     uint32 JointIndex = GetSize(Joints);
@@ -808,9 +826,12 @@ void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName
 	}
 
     FbxAMatrix& GlobalTransform = pNode->EvaluateGlobalTransform();
-    auto& trans = GlobalTransform.GetT();
+    auto& Scale = GlobalTransform.GetS();
     auto& Rot = GlobalTransform.GetR();
-    NewJoint._position = { (float)trans[0], (float)trans[1], (float)trans[2] };
+    auto& Trans = GlobalTransform.GetT();
+    NewJoint.Scale = { (float)Scale[0], (float)Scale[1], (float)Scale[2] };
+    NewJoint.Rotation = { (float)Rot[0], (float)Rot[1], (float)Rot[2] };
+    NewJoint.Position = { (float)Trans[0], (float)Trans[1], (float)Trans[2] };
 
 	Joints.push_back(NewJoint);
 }

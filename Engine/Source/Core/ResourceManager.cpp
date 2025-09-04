@@ -7,6 +7,7 @@ MResourceManager::MResourceManager()
 {
     AddLoader(std::make_shared<MTextureLoader>());
     AddLoader(std::make_shared<MMeshLoader>());
+    AddLoader(std::make_shared<MDynamicMeshLoader>());
     AddLoader(std::make_shared<MMaterialLoader>());
 }
 
@@ -44,11 +45,13 @@ std::shared_ptr<MAsset> MResourceManager::Load(const std::wstring& InPath, const
             return ResourceLoaders[FileExtension]->TryLoad(Path);
         }
 
-        MSGBOX(TEXT("지원되지 않은 파일 확장자(") + FileExtension + TEXT(")"));
+        std::wstring Msg = TEXT("지원되지 않은 파일 확장자(") + FileExtension + TEXT(")");
+        LOG(Msg);
 
         // 피직스 임시
         std::shared_ptr<MAsset> Asset(static_cast<MAsset*>(Create(InTypeDesc)));
-        Asset->SetAssetPath(Path);
+        Asset->LoadFromDisk(Path);
+        //Asset->SetAssetPath(Path); 애셋 자체에 이미 Path가 있으니 읽어오게 하면 됨
         TempCache.emplace(Path, Asset);
 
         return TempCache[Path];
