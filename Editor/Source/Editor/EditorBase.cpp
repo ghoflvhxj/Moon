@@ -15,11 +15,13 @@
 
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
+#include "DynamicMeshComponent.h"
 
 #include <commdlg.h>
 
-MAssetEditor::MAssetEditor(const FTypeDesc* InTypeDesc, std::shared_ptr<MAsset>& InAsset)
-    : AssetTypeDesc(InTypeDesc)
+MAssetEditor::MAssetEditor(void* InObject, const FTypeDesc* InTypeDesc, std::shared_ptr<MAsset>& InAsset)
+    : Object(InObject)
+    , AssetTypeDesc(InTypeDesc)
     , Asset(InAsset)
 {
     Title = AssetTypeDesc->Name + " Edit";
@@ -78,18 +80,38 @@ void MAssetEditor::Update()
         // 애셋 타입에 따라 추가 처리
         if (Asset->IsA<DynamicMesh>())
         {
-            if (ImGui::Button("Add Capsule"))
+            // 조인트의 위치에 캡슐을 그리고 싶은데, 위치를 얻으려면 컴포넌트가 필요함...
+            if (DynamicMeshComponent* DynamicMeshComp = static_cast<DynamicMeshComponent*>(Object))
             {
-                if (auto JoltPhysics = GetJolt())
+                std::shared_ptr<DynamicMesh> Dm = Asset->CastTo<DynamicMesh>();
+                for (auto& BodyCapsuleData : Dm->BodyCapsuleDatas)
                 {
-                    //JoltPhysics->MakeCapsule();
-                }
-                if (auto Renderer = GetRenderer())
-                {
-                    Renderer->MakeCapsule();
+                    const Vec3& JointPos = DynamicMeshComp->GetJointPosition(BodyCapsuleData.AttachJointIndex);
+                    const Vec4& JointRot = DynamicMeshComp->GetJointRotation(BodyCapsuleData.AttachJointIndex);
+                    if (BodyCapsuleData.PrimitiveID == -1)
+                    {
+                        BodyCapsuleData.PrimitiveID = GetRenderer()->MakeCapsule(1.f, 1.f);
+                    }
+                    GetRenderer()->UpdatePrimitive(BodyCapsuleData.PrimitiveID, JointPos, JointRot);
                 }
             }
+
+            if (ImGui::CollapsingHeader("Physics Body"))
+            {
+                //if (ImGui::Button("Add Capsule"))
+                //{
+                //    if (auto JoltPhysics = GetJolt())
+                //    {
+                //        //JoltPhysics->MakeCapsule();
+                //    }
+                //    if (auto Renderer = GetRenderer())
+                //    {
+                //        Renderer->MakeCapsule();
+                //    }
+                //}
+            }
         }
+
         else if (Asset->IsA<StaticMesh>())
         {
             if (ImGui::Button("Make ConvexHull Collision"))

@@ -124,4 +124,4 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
 void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InPropertyDesc, void* InObject);
 void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject);
 void HandleProperty(EType InType, const char* DisplayName, void* InData);
-void EditAsset(const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath);
+void EditAsset(void* InObject, const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath);

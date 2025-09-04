@@ -10,3 +10,4 @@ Libraries/Debug/Engine.lib
 Client/imgui.ini
 Engine/Source/Core/Physics/PhysX/MPhysX.cpp
 Editor/x64
+Editor/Resources/Shader

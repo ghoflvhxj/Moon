@@ -336,6 +336,20 @@ void MEditor::Render()
         // FBX 로드 
         if (ImGui::CollapsingHeader("LoadFBX"))
         {
+            static bool bMesh = false;
+            static bool bMaterial = false;
+            static bool bSkeleton = false;
+            static bool bAnim = false;
+
+            ImGui::Checkbox("Mesh", &bMesh);
+            ImGui::SameLine(100.f);
+            ImGui::Checkbox("Material", &bMaterial);
+            ImGui::SameLine(200.f);
+            ImGui::Checkbox("Skeleton", &bSkeleton);
+            ImGui::SameLine(300.f);
+            ImGui::Checkbox("Anim", &bAnim);
+            ImGui::NewLine();
+
             if (ImGui::Button("Load"))
             {
                 TCHAR FileName[256] = {};
@@ -353,7 +367,7 @@ void MEditor::Render()
                 if (GetOpenFileNameW(&t))
                 {
                     MFBXLoader FBXLoader;
-                    FBXLoader.SaveJsonAsset(FileName);
+                    FBXLoader.SaveJsonAsset(FileName, bMesh, bMaterial, bSkeleton, bAnim);
                     wcout << FileName << endl;
                 }
             }
@@ -675,7 +689,7 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    EditAsset(AssetTypeDesc, StringToWString(Path));
+                    EditAsset(InObject, AssetTypeDesc, StringToWString(Path));
                 }
 
                 ImGui::SameLine(350);
@@ -792,6 +806,8 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
             }
             else if (Prop->IsA<MAsset>())
             {
+                ImGui::PushID(Prop);
+
                 std::shared_ptr<MAsset> Asset = *static_cast<std::shared_ptr<MAsset>*>(Prop->GetAsVoid(InObject));
 
                 ImGui::Text(Prop->GetDisplayName().c_str());
@@ -803,15 +819,11 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    EditAsset(Prop->TypeDesc, StringToWString(Path));
-                    //EditAsset = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(Prop->TypeDesc)));
-                    //EditAssetDesc = Prop->TypeDesc;
-                    //*EditAsset = *Asset;
+                    EditAsset(InObject, Prop->TypeDesc, StringToWString(Path));
                 }
 
                 ImGui::SameLine(350);
 
-                ImGui::PushID(Prop);
                 if (ImGui::Button("..."))
                 {
                     TCHAR FileName[256] = {};
@@ -831,7 +843,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                         wcout << FileName << endl;
 
                         // Asset 부분만 불러와 Path를 세팅하도록
-                        std::shared_ptr<MAsset> NewAsset = g_ResourceManager->Load(FileName, Asset->GetTypeDesc());
+                        std::shared_ptr<MAsset> NewAsset = g_ResourceManager->Load(FileName, Prop->TypeDesc);
                         static_cast<FFundamentalPropertyDesc<MAsset>*>(Prop)->Set(InObject, NewAsset);
                     }
                 }
@@ -898,7 +910,7 @@ void HandleProperty(EType InType, const char* DisplayName, void* InData)
     }
 }
 
-void EditAsset(const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath)
+void EditAsset(void* InObject, const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath)
 {
     if (InPath.empty())
     {
@@ -909,7 +921,7 @@ void EditAsset(const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath)
     MJsonDeserializer Deserializer;
     Deserializer.Deserialize(AssetCopy, InPath);
 
-    std::shared_ptr<MAssetEditor> a = std::make_shared<MAssetEditor>(InAssetTypeDesc, AssetCopy);
+    std::shared_ptr<MAssetEditor> a = std::make_shared<MAssetEditor>(InObject, InAssetTypeDesc, AssetCopy);
     std::string Title = a->GetTitle();
     //a->GetClosedDelegate().Add([Title]() {
     //    GetEngine()->GetModule<MEditor>()->Editors.erase(Title);
