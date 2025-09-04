@@ -30,7 +30,7 @@ std::unique_ptr<MEngine> g_Engine = std::make_unique<MEngine>();
 std::shared_ptr<MWindow> g_pMainWindow				= nullptr;
 std::shared_ptr<MDirectInput> g_pDirectInput		= nullptr;
 std::shared_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
-std::shared_ptr<Renderer> g_pRenderer				= nullptr;
+std::shared_ptr<MRenderer> g_pRenderer				= nullptr;
 std::shared_ptr<MPhysicsEngine> g_pPhysics			= nullptr;
 
 std::shared_ptr<MWorld> g_World	= nullptr;
@@ -52,7 +52,7 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
 	g_pMainWindow = pWindow;
 
     g_pDirectInput = g_Engine->GetModule<MDirectInput>();
-    g_pRenderer = g_Engine->GetModule<Renderer>();
+    g_pRenderer = g_Engine->GetModule<MRenderer>();
     g_pPhysics = g_Engine->GetModule<MPhysicsEngine>();
     g_pGraphicDevice = g_Engine->GetModule<GraphicDevice>();
     g_Engine->Initialize();
@@ -158,7 +158,7 @@ ENGINE_DLL std::shared_ptr<MWindow>& GetMainWindow()
     return g_pMainWindow;
 }
 
-std::shared_ptr<Renderer>& getRenderer()
+std::shared_ptr<MRenderer>& getRenderer()
 {
 	return g_pRenderer;
 }
@@ -186,6 +186,11 @@ void SetModule(std::unique_ptr<MModule>&& InModule)
 
 void RegisterComponent(std::shared_ptr<Component> InComponent)
 {
+    if (InComponent == nullptr)
+    {
+        return;
+    }
+
     if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = InComponent->CastTo<MPrimitiveComponent>())
     {
         getRenderer()->AddPrimitive(std::static_pointer_cast<MPrimitiveComponent>(InComponent));

@@ -9,7 +9,7 @@
 class MWindow;
 class MWorld;
 class GraphicDevice;
-class Renderer;
+class MRenderer;
 class MPhysicsEngine;
 
 class ENGINE_DLL MEngine
@@ -103,7 +103,7 @@ ENGINE_DLL std::unique_ptr<MEngine>& GetEngine();
 
 ENGINE_DLL std::shared_ptr<GraphicDevice>& getGraphicDevice();
 ENGINE_DLL std::shared_ptr<MWindow>& GetMainWindow();
-ENGINE_DLL std::shared_ptr<Renderer>& getRenderer();
+ENGINE_DLL std::shared_ptr<MRenderer>& getRenderer();
 ENGINE_DLL std::shared_ptr<MWorld>& GetMainWorld();
 ENGINE_DLL std::shared_ptr<MPhysicsEngine>& GetPhysics();
 

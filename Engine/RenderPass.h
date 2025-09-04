@@ -120,6 +120,9 @@ public:
 private:
 	ERenderTarget UsedDepthStencilBuffer;
 
+protected:
+    D3D_PRIMITIVE_TOPOLOGY DefaultTopology = D3D_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
 public:
 	DirectX::XMVECTORF32 Color = EngineColors::Black;
 };

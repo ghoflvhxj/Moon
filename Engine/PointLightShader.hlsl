@@ -14,7 +14,7 @@ cbuffer PixelShaderConstantBuffer : register (b2)
 
 PixelOut_LightPass main(PixelIn pIn)
 {
-	PixelOut_LightPass pOut;
+	PixelOut_LightPass pOut = (PixelOut_LightPass)0;
 
 	float4 depth	= g_Depth.Sample(g_Sampler, pIn.uv);
     float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);

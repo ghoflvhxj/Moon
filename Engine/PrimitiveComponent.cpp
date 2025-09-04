@@ -133,8 +133,9 @@ const float MBoundingBox::GetLength(const Vec3 &scale /*= { 1.f, 1.f, 1.f }*/) c
 uint32 MPrimitiveComponent::PrimitiveCounter = 0;
 
 MPrimitiveComponent::MPrimitiveComponent()
-	:RenderMode{ ERenderMode::Perspective }
-	, PrimitiveID{ PrimitiveCounter++ }
+	: Super()
+    , RenderMode{ ERenderMode::Perspective }
+	, PrimitiveID{ ++PrimitiveCounter }
 {
 }
 

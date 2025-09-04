@@ -202,12 +202,6 @@ void SkyPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
     g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Frontface));
 }
 
-PointLightPass::PointLightPass()
-    : MRenderPass()
-{
-    //SetClearTargets(false);
-}
-
 void PointLightPass::End()
 {
     MRenderPass::End();
@@ -257,6 +251,30 @@ void PointLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)
 
     g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFlag), 0);
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
+}
+
+CollisionPass::CollisionPass()
+{
+    DefaultTopology = D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
+}
+
+void CollisionPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
+{
+    MRenderPass::RenderPass(PrimitiveDatList);
+    //Begin();
+
+    //for (auto& PrimitiveData : PrimitiveDatList)
+    //{
+    //    if (IsValidPrimitive(PrimitiveData) == false)
+    //    {
+    //        continue;
+    //    }
+
+    //    UpdateTickConstantBuffer(PrimitiveData);
+    //    DrawPrimitive(PrimitiveData);
+    //}
+
+    //End();
 }
 
 bool CollisionPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const

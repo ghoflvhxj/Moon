@@ -20,9 +20,13 @@ MFullScreenQuadPass::MFullScreenQuadPass()
     ViewMeshComponent->GetPrimitiveData(ViewPrimitiveData);
     
     getRenderer()->MakeBuffer(ViewMeshComponent);
+    ViewPrimitiveData[0].VertexBuffer = getRenderer()->GetVertexBuffer(ViewMeshComponent->GetPrimitiveID(), 0);
+    ViewPrimitiveData[0].IndexBuffer = getRenderer()->GetIndexBuffer(ViewMeshComponent->GetPrimitiveID(), 0);
 
     GetLevelChangedDelegate().Add([&]() {
         getRenderer()->MakeBuffer(ViewMeshComponent);
+        ViewPrimitiveData[0].VertexBuffer = getRenderer()->GetVertexBuffer(ViewMeshComponent->GetPrimitiveID(), 0);
+        ViewPrimitiveData[0].IndexBuffer = getRenderer()->GetIndexBuffer(ViewMeshComponent->GetPrimitiveID(), 0);
     });
 
     bWriteDepthStencil = false;
@@ -31,9 +35,6 @@ MFullScreenQuadPass::MFullScreenQuadPass()
 
 void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 {
-    ViewPrimitiveData[0].VertexBuffer = getRenderer()->GetVertexBuffer(ViewMeshComponent->GetPrimitiveID(), 0);
-    ViewPrimitiveData[0].IndexBuffer = getRenderer()->GetIndexBuffer(ViewMeshComponent->GetPrimitiveID(), 0);
-
     Begin();
 
     for (auto& PrimitiveData : ViewPrimitiveData)

@@ -100,20 +100,22 @@ struct FPrimitiveData
         return PrimitiveComponent.lock()->template CastTo<T>();
     }
 
-	std::weak_ptr<MPrimitiveComponent>			PrimitiveComponent;
-	std::weak_ptr<MMaterial>					Material;
+	std::weak_ptr<MPrimitiveComponent> PrimitiveComponent;
+	std::weak_ptr<MMaterial> Material;
 	EPrimitiveType PrimitiveType = EPrimitiveType::Count;
 
+    // 컴포넌트 없이 렌더 시 월드변환을 위한 데이터
+    Vec3 Translation = {};               
+    Vec4 Rotation = {};
+    
 	// 메시가 채우는 데이터
 	const FMeshData* MeshData = nullptr;
 
 	// 렌더러가 채워줘야 하는 데이터
-	std::weak_ptr<MVertexBuffer>			VertexBuffer;
-	std::weak_ptr<MIndexBuffer>				IndexBuffer;
+	std::weak_ptr<MVertexBuffer> VertexBuffer;
+	std::weak_ptr<MIndexBuffer> IndexBuffer;
 
 	// 다이나믹 메쉬용
 	Mat4* AnimMatrices = nullptr;
 	uint32 _jointCount = 0;
-
-    struct ID3D11InputLayout* InputLayout = nullptr;
 };

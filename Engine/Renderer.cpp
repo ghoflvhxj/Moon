@@ -52,9 +52,8 @@ enum class EFrustumCascade
     Count
 };
 
-Renderer::Renderer() noexcept
-	: _bDirtyConstant{ true }
-	, _cascadeDistance(4, 0.f)
+MRenderer::MRenderer() noexcept
+	: _cascadeDistance(4, 0.f)
     , LightPosition(3, VEC3ZERO)
     , LightViewProj(3, IDENTITYMATRIX)
 {
@@ -77,8 +76,6 @@ Renderer::Renderer() noexcept
 
         IdToPrimitiveDatas.clear();
 
-        ViewPrimitiveData.clear();
-
         if (GizmoMeshComp)
         {
             MakeBuffer(GizmoMeshComp);
@@ -88,18 +85,20 @@ Renderer::Renderer() noexcept
         {
             MakeBuffer(DebugMesh.second);
         }
+
+        //MakeCapsule(1.f, 1.f);
     });
 }
 
-Renderer::~Renderer() noexcept
+MRenderer::~MRenderer() noexcept
 {
     Release();
 }
 
-bool Renderer::Initialize()
+bool MRenderer::Initialize()
 {
     Super::Initialize();
-
+    
 	// 렌더 타겟 추가
 	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
 	{
@@ -142,15 +141,15 @@ bool Renderer::Initialize()
 	}
 
 	// 렌더 패스 추가
-	RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)] = CreateRenderPass<DirectionalShadowDepthPass>();
-	{
-		RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->BindRenderTargets(_renderTargets,
-			ERenderTarget::DirectionalShadowDepth
-		);
+    RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)] = CreateRenderPass<DirectionalShadowDepthPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::DirectionalShadowDepth
+        );
 
-		RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
-		RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
-	}
+        RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->setShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
+    }
 
     RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)] = CreateRenderPass<PointShadowDepthPass>();
     {
@@ -216,20 +215,22 @@ bool Renderer::Initialize()
     }
 
     RenderPasses[EnumToIndex(ERenderPass::SkyPass)] = CreateRenderPass<SkyPass>();
-	{
-		RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->BindRenderTargets(_renderTargets,
-			ERenderTarget::Diffuse,
-			ERenderTarget::LightDiffuse
+    {
+        RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::Diffuse,
+            ERenderTarget::LightDiffuse
         );
 
-		RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
-	}
+        RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
+    }
 
     RenderPasses[EnumToIndex(ERenderPass::Collision)] = CreateRenderPass<CollisionPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::Collision)]->BindRenderTargets(_renderTargets,
             ERenderTarget::Collision
         );
+
+        RenderPasses[EnumToIndex(ERenderPass::Collision)]->setShader(TEXT("VS_Collision.cso"), TEXT("PS_Collision.cso"));
     }
 
     RenderPasses[EnumToIndex(ERenderPass::Outline)] = CreateRenderPass<MFullScreenQuadPass>();
@@ -269,28 +270,30 @@ bool Renderer::Initialize()
     GizmoMeshComp->SetMesh(TEXT("Base/axis.fbx"));
     GizmoMeshComp->setScale(0.001f, 0.001f, 0.001f);
     GizmoMeshComp->SceneComponent::Update(0.f);
-
     for (auto& Material : GizmoMeshComp->GetMesh()->getMaterials())
     {
         Material->setShader(TEXT("VS_VertexColorOut.cso"), TEXT("PS_VertexColorOut.cso"));
     }
     MakeBuffer(GizmoMeshComp);
 
+    //MakeCapsule(1.f, 1.f);
+
     addRenderTargetForDebug(ERenderTarget::Diffuse);
-    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Depth)->AsTexture());
-    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Normal)->AsTexture());
-    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::Specular)->AsTexture());
-    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::LightDiffuse)->AsTexture());
-    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::LightSpecular)->AsTexture());
-    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::DirectionalShadowDepth)->AsTexture());
-    //addRenderTargetForDebug(GetRenderTarget(ERenderTarget::PointShadowDepth)->AsTexture());
+    addRenderTargetForDebug(ERenderTarget::Depth);
+    addRenderTargetForDebug(ERenderTarget::Normal);
+    addRenderTargetForDebug(ERenderTarget::Specular);
+    addRenderTargetForDebug(ERenderTarget::LightDiffuse);
+    addRenderTargetForDebug(ERenderTarget::LightSpecular);
+    //addRenderTargetForDebug(ERenderTarget::DirectionalShadowDepth);
+    //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
     addRenderTargetForDebug(ERenderTarget::Outline);
     addRenderTargetForDebug(ERenderTarget::Stencil);
+    addRenderTargetForDebug(ERenderTarget::Collision);
 
     return EnumToIndex(ERenderPass::Count) == GetSize(RenderPasses);
 }
 
-void Renderer::Release()
+void MRenderer::Release()
 {
     Super::Release();
 
@@ -311,7 +314,99 @@ void Renderer::Release()
     IdToPrimitiveDatas.clear();
 }
 
-void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent)
+void MRenderer::DrawLine(const std::vector<Vec3>& InWorldPositions)
+{
+    FMeshData NewMeshData = {};
+    NewMeshData.Vertices.reserve(InWorldPositions.size());
+    for (auto& InPosition : InWorldPositions)
+    {
+        Vertex NewVertex = {};
+        NewVertex.Pos.x = InPosition.x;
+        NewVertex.Pos.y = InPosition.y;
+        NewVertex.Pos.z = InPosition.z;
+
+        NewMeshData.Vertices.push_back(NewVertex);
+        NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    }
+
+    FPrimitiveData NewPrimitivData = {};
+    NewPrimitivData.MeshData = &NewMeshData;
+
+    //MakeBuffer()
+}
+
+uint32 MRenderer::MakeCapsule(float InRadius, float InHeight)
+{
+    float Radius = InRadius;
+    uint32 Offset = 0;
+
+    FMeshData NewMeshData = {};
+    for (uint32 i = 1; i <= 16; ++i)
+    {
+        Vertex NewVertex = {};
+        NewVertex.Pos.x = Radius * std::sin((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.y = 0.f;
+        NewVertex.Pos.z = Radius * std::cos((2.f * 3.14f / 16.f) * i);
+        NewMeshData.Vertices.push_back(NewVertex);
+    }
+    for (uint32 i = 1; i < 16; ++i)
+    {
+        NewMeshData.Indices.push_back(Offset + i);
+        NewMeshData.Indices.push_back(Offset + i - 1);
+    }
+    NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    NewMeshData.Indices.push_back(Offset);
+
+    Offset = GetSize(NewMeshData.Vertices);
+    for (uint32 i = 1; i <= 16; ++i)
+    {
+        Vertex NewVertex = {};
+        NewVertex.Pos.x = 0.f;
+        NewVertex.Pos.y = Radius * std::cos((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.z = Radius * std::sin((2.f * 3.14f / 16.f) * i);
+        NewMeshData.Vertices.push_back(NewVertex);
+    }
+    for (uint32 i = 1; i < 16; ++i)
+    {
+        NewMeshData.Indices.push_back(Offset + i);
+        NewMeshData.Indices.push_back(Offset + i - 1);
+    }
+    NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    NewMeshData.Indices.push_back(Offset);
+
+    Offset = GetSize(NewMeshData.Vertices);
+    for (uint32 i = 1; i <= 16; ++i)
+    {
+        Vertex NewVertex = {};
+        NewVertex.Pos.x = Radius * std::sin((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.y = Radius * std::cos((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.z = 0.f;
+        NewMeshData.Vertices.push_back(NewVertex);
+        NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    }
+    for (uint32 i = 1; i < 16; ++i)
+    {
+        NewMeshData.Indices.push_back(Offset + i);
+        NewMeshData.Indices.push_back(Offset + i - 1);
+    }
+    NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    NewMeshData.Indices.push_back(Offset);
+
+    std::vector<FPrimitiveData> PrimitiveDatas;
+    FPrimitiveData NewPrimitivData = {};
+    NewPrimitivData.MeshData = &NewMeshData;
+    NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
+    uint32 PrimitiveID = MPrimitiveComponent::MakePrimitiveID();
+    MakeBuffer(PrimitiveID, NewMeshData);
+    NewPrimitivData.VertexBuffer = VertexBuffers[PrimitiveID][0];
+    NewPrimitivData.IndexBuffer = IndexBuffers[PrimitiveID][0];
+    PrimitiveDatas.push_back(NewPrimitivData);
+    IdToPrimitiveDatas.emplace(PrimitiveID, PrimitiveDatas);
+
+    return PrimitiveID;
+}
+
+void MRenderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent)
 {
 	if (InPrimitiveComponent == nullptr)
 	{
@@ -319,21 +414,13 @@ void Renderer::AddPrimitive(std::shared_ptr<MPrimitiveComponent> InPrimitiveComp
 	}
 
     uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
-
     PrimitiveComponents[PrimitiveID] = InPrimitiveComponent;
-    //Primitives[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
-
-    MakeBuffer(InPrimitiveComponent);
-    if (std::shared_ptr<MMeshComponent> MeshComp = InPrimitiveComponent->CastTo<MMeshComponent>())
-    {
-        MeshComp->GetMeshChangedDelegate().Add(this, &Renderer::MakeBuffer);
-    }
 
     MakePrimitiveData(InPrimitiveComponent);
-    InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &Renderer::MakePrimitiveData);
+    InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &MRenderer::MakePrimitiveData);
 }
 
-void Renderer::MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponent)
+void MRenderer::MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponent)
 {
     if (InComponent == nullptr)
     {
@@ -343,64 +430,101 @@ void Renderer::MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponen
     int32 PrimitiveID = InComponent->GetPrimitiveID();
     IdToPrimitiveDatas.erase(PrimitiveID);
 
-    std::vector<FPrimitiveData> PrimitiveDatas;
-    if (InComponent->GetPrimitiveData(PrimitiveDatas) == false)
+    std::vector<FPrimitiveData> TempPrimitiveDatas;
+    if (InComponent->GetPrimitiveData(TempPrimitiveDatas) == false)
     {
         return;
     }
 
-    for (uint32 i = 0; i < GetSize(PrimitiveDatas); ++i)
+    IdToPrimitiveDatas[PrimitiveID] = TempPrimitiveDatas;
+
+    if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
     {
-        FPrimitiveData& PrimitiveData = PrimitiveDatas[i];
-        PrimitiveData.VertexBuffer = VertexBuffers[PrimitiveID][i];
-        PrimitiveData.IndexBuffer = IndexBuffers[PrimitiveID][i];
+        MeshComp->GetMeshChangedDelegate().Add(this, &MRenderer::MakeBuffer);
+    }
 
-        if (PrimitiveData.MeshData == nullptr)
-        {
-            continue;
-        }
+    MakeBuffer(InComponent, IdToPrimitiveDatas[PrimitiveID]);
 
-        IdToPrimitiveDatas[PrimitiveID].push_back(PrimitiveData);
+    for (uint32 i=0; i<GetSize(IdToPrimitiveDatas[PrimitiveID]); ++i)
+    {
+        FPrimitiveData& PrimitiveData = IdToPrimitiveDatas[PrimitiveID][i];
         PrimitiveDatasPerType[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
     }
 }
 
-void Renderer::MakeBuffer(FPrimitiveData& PrimitiveData)
+void MRenderer::MakeBuffer(uint32 InPrimitiveID, const FMeshData& InMeshData)
 {
-	int32 PrimitiveID = PrimitiveData.PrimitiveComponent.lock()->GetPrimitiveID();
-
-	auto& MeshData = *PrimitiveData.MeshData;
 	uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
-	uint32 VertexNum = GetSize(MeshData.Vertices);
-	VertexBuffers[PrimitiveID].push_back(std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData.Vertices.data()));
+	uint32 VertexNum = GetSize(InMeshData.Vertices);
+    std::shared_ptr<MVertexBuffer> VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, InMeshData.Vertices.data());
+    VertexBuffers[InPrimitiveID].push_back(VertexBuffer);
 
 	uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
-	uint32 IndexNum = GetSize(MeshData.Indices);
-	IndexBuffers[PrimitiveID].push_back(IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData.Indices.data()) : nullptr);
+	uint32 IndexNum = GetSize(InMeshData.Indices);
+    std::shared_ptr<MIndexBuffer> IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, InMeshData.Indices.data()) : nullptr;
+    IndexBuffers[InPrimitiveID].push_back(IndexBuffer);
 }
 
-void Renderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
+void MRenderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
 {
     if (InComponent == nullptr)
     {
         return;
     }
 
-    int32 PrimitiveID = InComponent->GetPrimitiveID();
+    uint32 PrimitiveID = InComponent->GetPrimitiveID();
+    std::vector<FPrimitiveData> InPrimitiveDatas;
+    InComponent->GetPrimitiveData(InPrimitiveDatas);
 
-    VertexBuffers.erase(PrimitiveID);
-    IndexBuffers.erase(PrimitiveID);
-
-    std::vector<FPrimitiveData> PrimitiveDatas;
-    InComponent->GetPrimitiveData(PrimitiveDatas);
-
-    for (auto& PrimtiveData : PrimitiveDatas)
+    for (FPrimitiveData& PrimitiveData : InPrimitiveDatas)
     {
-        MakeBuffer(PrimtiveData);
+        if (PrimitiveData.MeshData == nullptr)
+        {
+            continue;
+        }
+
+        MakeBuffer(PrimitiveID, *PrimitiveData.MeshData);
     }
 }
 
-void Renderer::addRenderTargetForDebug(ERenderTarget InRenderTarget)
+void MRenderer::UpdatePrimitive(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation)
+{
+    auto& Iter = IdToPrimitiveDatas.find(InPrimitiveID);
+    if (Iter == IdToPrimitiveDatas.end())
+    {
+        return;
+    }
+
+    for (auto& PrimitiveData : Iter->second)
+    {
+        PrimitiveData.Translation = InTranslation;
+        PrimitiveData.Rotation = InRotation;
+    }
+}
+
+void MRenderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent, std::vector<FPrimitiveData>& InPrimitiveDatas)
+{
+    if (InComponent == nullptr)
+    {
+        return;
+    }
+
+    uint32 PrimitiveID = InComponent->GetPrimitiveID();
+
+    for (FPrimitiveData& PrimitiveData : InPrimitiveDatas)
+    {
+        if (PrimitiveData.MeshData == nullptr)
+        {
+            continue;
+        }
+
+        MakeBuffer(InComponent->GetPrimitiveID(), *PrimitiveData.MeshData);
+        PrimitiveData.VertexBuffer = VertexBuffers[PrimitiveID].back();
+        PrimitiveData.IndexBuffer = IndexBuffers[PrimitiveID].back();
+    }
+}
+
+void MRenderer::addRenderTargetForDebug(ERenderTarget InRenderTarget)
 {
 #ifdef _DEBUG
     std::shared_ptr<MMaterial> BaseMat = nullptr;
@@ -415,7 +539,6 @@ void Renderer::addRenderTargetForDebug(ERenderTarget InRenderTarget)
     NewMesh->SetMesh(TEXT("Base/Plane.fbx"));
     if (MapUtility::FindInsert(DebugRenderTargetMehses, InRenderTarget, NewMesh))
     {
-        
         uint32 count = CastValue<uint32>(DebugRenderTargetMehses.size() - 1);
         NewMesh->setScale(scale, scale, 0.f);
         NewMesh->setTranslation(x + scale * count, scale, 1.f);
@@ -428,17 +551,12 @@ void Renderer::addRenderTargetForDebug(ERenderTarget InRenderTarget)
         NewMesh->setRenderMode(MPrimitiveComponent::ERenderMode::Orthogonal);
 		NewMesh->SceneComponent::Update(0.f);
 
-		std::vector<FPrimitiveData> PrimitiveDatas;
-		NewMesh->GetPrimitiveData(PrimitiveDatas);
-		for (auto& PrimitiveData : PrimitiveDatas)
-		{
-			MakeBuffer(PrimitiveData);
-		}
+        MakeBuffer(NewMesh);
     }
 #endif
 }
 
-void Renderer::Render()
+void MRenderer::Render()
 {
     // 디렉셔널 라이트 데이터 갱신
     auto DirectionalLightPrimitive = GetPrimitives(EPrimitiveType::DirectionalLight);
@@ -539,20 +657,17 @@ void Renderer::Render()
     {
         float DistToScale = XMVectorGetX(XMVector3Length(XMLoadFloat3(&g_World->getMainCamera()->GetWorldTranslation()) - XMLoadFloat3(&GizmoPos))) / 10.f;
 
-        std::vector<FPrimitiveData> GizmoPrimitives;
         GizmoMeshComp->setTranslation(GizmoPos);
         GizmoMeshComp->setScale(0.001f * DistToScale, 0.001f * DistToScale, 0.001f * DistToScale);
-        GizmoMeshComp->GetPrimitiveData(GizmoPrimitives);
         GizmoMeshComp->SceneComponent::Update(0.f);
 
+        std::vector<FPrimitiveData> GizmoPrimitives;
+        GizmoMeshComp->GetPrimitiveData(GizmoPrimitives);
         for (uint32 i = 0; i < GetSize(GizmoPrimitives); ++i)
         {
-            uint32 PrimitiveID = GizmoMeshComp->GetPrimitiveID();
-            auto& GizmoPrimitive = GizmoPrimitives[i];
-            GizmoPrimitive.VertexBuffer = VertexBuffers[PrimitiveID][i];
-            GizmoPrimitive.IndexBuffer = IndexBuffers[PrimitiveID][i];
+            GizmoPrimitives[i].VertexBuffer = VertexBuffers[GizmoMeshComp->GetPrimitiveID()][i];
+            GizmoPrimitives[i].IndexBuffer = IndexBuffers[GizmoMeshComp->GetPrimitiveID()][i];
         }
-
         PostRenderPrimitiveDatas.insert(PostRenderPrimitiveDatas.end(), GizmoPrimitives.begin(), GizmoPrimitives.end());
     }
 
@@ -578,7 +693,7 @@ void Renderer::Render()
     g_World->render();
 }
 
-void Renderer::RenderScene()
+void MRenderer::RenderScene()
 {
 	TotalPrimitiveNum = GetSize(PrimitiveComponents);
 	FrustumCulling();
@@ -593,12 +708,12 @@ void Renderer::RenderScene()
 	}
 }
 
-void Renderer::RenderText()
+void MRenderer::RenderText()
 {
 
 }
 
-void Renderer::FrustumCulling()
+void MRenderer::FrustumCulling()
 {
     RenderablePrimitiveData.clear();
 
@@ -667,19 +782,25 @@ void Renderer::FrustumCulling()
 
     for (auto& [Id, PrimitiveDatas] : IdToPrimitiveDatas)
     {
+        if (PrimitiveDatas.empty())
+        {
+            continue;
+        }
+
         TotalPrimitiveNum += GetSize(PrimitiveDatas);
 
-        const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = PrimitiveDatas[0].PrimitiveComponent.lock();
-
-        std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
-        // 바운딩 박스가 없으면 일단 무조건 렌더링
-        if (PrimitiveComponent->GetBoundingBox(BoundingBox))
+        if (const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = PrimitiveDatas[0].PrimitiveComponent.lock())
         {
-            // 컬링
-            if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
+            std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
+            // 바운딩 박스가 없으면 일단 무조건 렌더링
+            if (PrimitiveComponent->GetBoundingBox(BoundingBox))
             {
-                CulledPrimitiveNum += GetSize(PrimitiveDatas);
-                continue;
+                // 컬링
+                if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
+                {
+                    CulledPrimitiveNum += GetSize(PrimitiveDatas);
+                    continue;
+                }
             }
         }
 
@@ -688,7 +809,7 @@ void Renderer::FrustumCulling()
     }
 }
 
-void Renderer::UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader)
+void MRenderer::UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader)
 {
     Vec4 resolution = { g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 0.f, 0.f };
     Shader->SetValue(TEXT("resolution"), resolution);
@@ -697,14 +818,9 @@ void Renderer::UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader)
     Shader->SetValue(TEXT("bLight"), bLight);
 }
 
-void Renderer::UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader)
+void MRenderer::UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader)
 {
     Shader->SetValue(TEXT("cascadeDistance"), _cascadeDistance);
     Shader->SetValue(TEXT("lightPos"), LightPosition);
     Shader->SetValue(TEXT("lightViewProjMatrix"), LightViewProj);
-}
-
-const bool Renderer::IsGlobalBufferDirty() const
-{
-	return _bDirtyConstant;
 }

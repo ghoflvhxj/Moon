@@ -63,6 +63,7 @@ protected:
 
 public:
 	const uint32 GetPrimitiveID() const { return PrimitiveID; }
+    static uint32 MakePrimitiveID() { return ++PrimitiveCounter; }
 protected:
 	static uint32 PrimitiveCounter;
 	uint32 PrimitiveID;

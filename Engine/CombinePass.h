@@ -60,7 +60,7 @@ protected:
 class PointLightPass : public MRenderPass
 {
 public:
-    explicit PointLightPass();
+    explicit PointLightPass() = default;
     virtual ~PointLightPass() = default;
 
 public:
@@ -92,9 +92,10 @@ protected:
 class CollisionPass : public MRenderPass
 {
 public:
-    explicit CollisionPass() = default;
+    explicit CollisionPass();
     virtual ~CollisionPass() = default;
 
 public:
+    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
 };

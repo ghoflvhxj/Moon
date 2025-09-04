@@ -24,6 +24,8 @@
 
 #include "DynamicMeshComponent.h"
 
+using namespace DirectX;
+
 MRenderPass::MRenderPass()
 	: _pOldRenderTargetView{ nullptr }
 	, _pOldDepthStencilView{ nullptr }
@@ -133,20 +135,18 @@ void MRenderPass::End()
 bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
     const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
-    if (Primitive == nullptr)
+    if (Primitive != nullptr)
     {
-        return false;
-    }
+        if (Primitive->IsRendering() == false)
+        {
+            return false;
+        }
 
-    if (Primitive->IsRendering() == false)
-    {
-        return false;
-    }
-
-    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-    if (Material == nullptr)
-    {
-        return false;
+        std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
+        if (Material == nullptr)
+        {
+            return false;
+        }
     }
 
     //if (PrimitiveData.VertexBuffer.lock() == nullptr)
@@ -159,54 +159,87 @@ bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 
 void MRenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-
+    std::shared_ptr<MShader> VS = nullptr;
+    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
+    {
+        VS = Material->getVertexShader();
+    }
+    else
+    {
+        VS = _vertexShader;
+    }
     //------------------------------------------------------------------------------------------------------------------
     // 버텍스 쉐이더 CBuffer
-    Material->getVertexShader()->SetValue(TEXT("viewMatrix"), g_World->getMainCameraViewMatrix());
-    Material->getVertexShader()->SetValue(TEXT("projectionMatrix"), g_World->getMainCameraProjectioinMatrix());
-    Material->getVertexShader()->SetValue(TEXT("identityMatrix"), IDENTITYMATRIX);
-    Material->getVertexShader()->SetValue(TEXT("orthographicProjectionMatrix"), g_World->getMainCameraOrthographicProjectionMatrix());
-    Material->getVertexShader()->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_World->getMainCamera()->getInverseOrthographicProjectionMatrix());
+    VS->SetValue(TEXT("viewMatrix"), g_World->getMainCameraViewMatrix());
+    VS->SetValue(TEXT("projectionMatrix"), g_World->getMainCameraProjectioinMatrix());
+    VS->SetValue(TEXT("identityMatrix"), IDENTITYMATRIX);
+    VS->SetValue(TEXT("orthographicProjectionMatrix"), g_World->getMainCameraOrthographicProjectionMatrix());
+    VS->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_World->getMainCamera()->getInverseOrthographicProjectionMatrix());
 }
 
 void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
 	const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
-    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
+
+    std::shared_ptr<MShader> VS = nullptr;
+    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
+    {
+        VS = Material->getVertexShader();
+    }
+    else
+    {
+        VS = _vertexShader;
+    }
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 버텍스쉐이더 ConstantBuffer
-	Material->getVertexShader()->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
-    Material->getVertexShader()->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
-    Material->getVertexShader()->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
-    bool b = Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal;
-	// 애님 관련 변수
-	//BOOL animated = PrimitiveData.AnimMatrices != nullptr;
-	//Material->getVertexShader()->SetValue(TEXT("animated"), animated);
-	//if (animated == TRUE)
-	//{
-	//	Material->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), PrimitiveData.AnimMatrices);
-	//}
-
     BOOL animated = FALSE;
-    if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastTo<DynamicMeshComponent>())
+    if (Primitive)
     {
-        animated = TRUE;
-        Material->getVertexShader()->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
-
+        VS->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
+        VS->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
+        VS->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
+        if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastTo<DynamicMeshComponent>())
+        {
+            animated = TRUE;
+            VS->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
+        }
     }
-    Material->getVertexShader()->SetValue(TEXT("animated"), animated);
+    else
+    {
+        Mat4 WorldMatrix = {};
+        XMMATRIX XMWorldMat = XMMatrixRotationQuaternion(XMLoadFloat4(&PrimitiveData.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&PrimitiveData.Translation));
+        XMStoreFloat4x4(&WorldMatrix, XMWorldMat);
+        Mat4 InvWorldMatrix = {};
+        XMStoreFloat4x4(&InvWorldMatrix, XMMatrixInverse(nullptr, XMWorldMat));
 
+        VS->SetValue(TEXT("worldMatrix"), WorldMatrix);
+        VS->SetValue(TEXT("inverseWorldMatrix"), InvWorldMatrix);
+        VS->SetValue(TEXT("bOrtho"), FALSE);
+    }
+
+    VS->SetValue(TEXT("animated"), animated);
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer
-	BOOL bUseNormal = Material->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
-	Material->getPixelShader()->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
-	BOOL bUseSpecular = Material->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
-	Material->getPixelShader()->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
-	BOOL bAlphaMask = Material->IsAlphaMasked() ? TRUE : FALSE;
-	Material->getPixelShader()->SetValue(TEXT("bAlphaMask"), bAlphaMask);
+    std::shared_ptr<MShader> PS = nullptr;
+    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
+    {
+        PS = Material->getPixelShader();
+        BOOL bUseNormal = Material->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
+        PS->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
+        BOOL bUseSpecular = Material->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
+        PS->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
+        BOOL bAlphaMask = Material->IsAlphaMasked() ? TRUE : FALSE;
+        PS->SetValue(TEXT("bAlphaMask"), bAlphaMask);
+    }
+    else
+    {
+        PS = _pixelShader;
+        PS->SetValue(TEXT("bUseNormalTexture"), FALSE);
+        PS->SetValue(TEXT("bUseSpecularTexture"), FALSE);
+        PS->SetValue(TEXT("bAlphaMask"), FALSE);
+    }
 }
 
 void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
@@ -217,7 +250,6 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
     HandlePixelShaderStage(PrimitiveData);
     HandleRasterizerStage(PrimitiveData);
     HandleOutputMergeStage(PrimitiveData);
-
 
     if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
     {
@@ -246,8 +278,14 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
         IndexBuffer->setBufferToDevice(0);
     }
 
-    const std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-    g_pGraphicDevice->getContext()->IASetPrimitiveTopology(Material->getTopology());
+    if (const std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
+    {
+        g_pGraphicDevice->getContext()->IASetPrimitiveTopology(Material->getTopology());
+    }
+    else
+    {
+        g_pGraphicDevice->getContext()->IASetPrimitiveTopology(DefaultTopology);
+    }
 }
 
 void MRenderPass::HandleVertexShaderStage(const FPrimitiveData& PrimitiveData)
@@ -279,7 +317,10 @@ void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
     PixelShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
     PixelShader->Apply();
 
-    Material->SetTexturesToDevice();
+    if (Material)
+    {
+        Material->SetTexturesToDevice();
+    }
 
     for (const FViewBindData& Data : ResourceViewData)
     {
@@ -289,9 +330,14 @@ void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
 
 void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
 {
-    const std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Material->getFillMode(), Material->getCullMode()));
+    if (const std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
+    {
+        g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Material->getFillMode(), Material->getCullMode()));
+    }
+    else
+    {
+        g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
+    }
 }
 
 void MRenderPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
@@ -307,20 +353,21 @@ void MRenderPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
     }
 
     UINT StencilRef = 0;
-    if (PrimitiveData.PrimitiveComponent.lock()->IsStencil())
+    if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = PrimitiveData.PrimitiveComponent.lock())
     {
-        DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilEnable;
-        StencilRef = 1;
+        if (PrimitiveData.PrimitiveComponent.lock()->IsStencil())
+        {
+            DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilEnable;
+            StencilRef = 1;
+        }
+        else
+        {
+            DepthStencilFlag |= (int32)Graphic::EDepthStencilMode::StencilDisable;
+        }
     }
     else
     {
-        DepthStencilFlag |= (int32)Graphic::EDepthStencilMode::StencilDisable;
-    }
-
-    auto a = g_pGraphicDevice->getDepthStencilState(DepthStencilFlag);
-    if (a == nullptr)
-    {
-        int b = 0;
+        DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilDisable;
     }
 
     g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFlag), StencilRef);

@@ -9,7 +9,7 @@ class StaticMeshComponent;
 class MVertexBuffer;
 class RenderTarget;
 
-class ENGINE_DLL Renderer : public MModule
+class ENGINE_DLL MRenderer : public MModule
 {
 public:
 	template <class T>
@@ -19,23 +19,26 @@ public:
 	}
 
 public:
-	explicit Renderer() noexcept;
-	virtual ~Renderer() noexcept;
+	explicit MRenderer() noexcept;
+	virtual ~MRenderer() noexcept;
 
     // Module의 인터페이스 구현
 public:
 	virtual bool Initialize();
 	virtual void Release();
 
-private:
-    std::vector<FPrimitiveData> ViewPrimitiveData;
+public:
+    void DrawLine(const std::vector<Vec3>& InWorldPositions);
+    uint32 MakeCapsule(float InRadius, float InHeight);
+
 
 public:
 	void AddPrimitive(std::shared_ptr<MPrimitiveComponent> pComponent);
 public:
 	// 렌더할 Primitive 추가
     void MakePrimitiveData(std::shared_ptr<MPrimitiveComponent> InComponent);
-    void MakeBuffer(FPrimitiveData& PrimitiveData);
+    void MakeBuffer(uint32 InPrimitiveID, const FMeshData& InMeshData);
+    void MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent, std::vector<FPrimitiveData>& InPrimitiveDatas);
     void MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent);
 protected:
     // 모든 PrimitiveComponent
@@ -46,6 +49,15 @@ protected:
     // PrimitiveID - 버텍스 버퍼 쌍을 저장함, ConstantBuffer는 쉐이더에서 하는데 모든 버퍼를 Renderer가 관리할지, Shader가 할지 
     std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBuffers;
     std::map<uint32, std::vector<std::shared_ptr<MIndexBuffer>>> IndexBuffers;
+
+    // 컴포넌트 없는 PrimitiveData 업데이트
+public:
+    void UpdatePrimitive(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation);
+
+    // 라인 테스트
+protected:
+    std::shared_ptr<MVertexBuffer> V;
+    std::shared_ptr<MIndexBuffer> I;
 
 public:
     std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId, uint32 InOffset = 0) {
@@ -102,12 +114,6 @@ public:
     Vec3 GizmoPos = VEC3ZERO;
     std::shared_ptr<StaticMeshComponent> GizmoMeshComp = nullptr;
 
-public:
-	const bool IsGlobalBufferDirty() const;
-private:
-	// 한 프레임 동안에 ConstantBuffer가 변경되었는지 여부를 판단하기 위한 변수
-	bool _bDirtyConstant;
-
 protected:
     std::vector<float> _cascadeDistance;
     std::vector<Vec3> LightPosition;
@@ -118,7 +124,7 @@ public:
     //bool bDrawCollision = false;
 
     REFLECT(
-        Renderer,
+        MRenderer,
         PROPERTY(bDrawCollision),
         PROPERTY(bDebugRenderTargets)
     )

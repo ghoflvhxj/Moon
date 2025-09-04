@@ -24,6 +24,11 @@ struct PixelIn_SimpleTex
     float2 uv : TEXCOORD0;
 };
 
+struct PixelOut_Simple
+{
+    float4 color : SV_TARGET0;
+};
+
 struct PixelOut_GeometryPass
 {
 	float4 color	: SV_TARGET0;

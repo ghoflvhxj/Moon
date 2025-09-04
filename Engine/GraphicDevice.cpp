@@ -20,7 +20,6 @@
 using namespace DirectX;
 using namespace Graphic;
 
-
 GraphicDevice::GraphicDevice()
 	: m_pDevice{ nullptr }
 	, m_pImmediateContext{ nullptr }
@@ -151,17 +150,18 @@ void GraphicDevice::Release()
     SafeRelease(m_pDepthStencilBuffer);
     SafeRelease(m_pRenderTargetView);
 
-    //SafeRelease(m_pSwapChain);
-
-    //m_pDeferredContext->ClearState();
-    //m_pDeferredContext->Flush();
-    //SafeRelease(m_pDeferredContext);
+#ifdef MULTITHREAD
+    m_pDeferredContext->ClearState();
+    m_pDeferredContext->Flush();
+    SafeRelease(m_pDeferredContext);
+#else
     if (m_pImmediateContext)
     {
         m_pImmediateContext->ClearState();
         m_pImmediateContext->Flush();
     }
     SafeRelease(m_pImmediateContext);
+#endif
 
     SafeRelease(m_pDevice);
 
@@ -410,7 +410,7 @@ bool GraphicDevice::buildBlendState()
 	//-------------------------------------------------------------------------------------
 	bd.RenderTarget[0].BlendEnable = TRUE;
 	bd.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	bd.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
 	bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 	for (uint32 i = 1; i < 8; ++i)
 	{
