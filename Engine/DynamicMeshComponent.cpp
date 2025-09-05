@@ -286,7 +286,7 @@ Vec3 DynamicMeshComponent::GetJointPosition(uint32 JointIndex)
 
     FJoint Joint = GetDynamicMesh()->GetJoint(JointIndex);
     MAnimation CurrentAnimClip;
-    if (Animation)
+    if (Animation && bAnimPlaying)
     {
         float RealFrame = AnimTime * 24.f;
         uint32 Frame = CastValue<uint32>(RealFrame);
@@ -370,10 +370,9 @@ void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTim
 	AinmClipIndex = index;
 	AnimTime += deltaTime;
 
-    MAnimation AnimClip;
-    if (GetDynamicMesh()->getAnimationClip(index, AnimClip))
+    if(Animation)
     {
-        if (AnimTime > CastValue<float>(AnimClip.Duration))
+        if (AnimTime > static_cast<float>(Animation->Duration))
         {
             AnimTime = 0.f;
         }

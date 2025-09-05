@@ -94,7 +94,7 @@
                                         "bPlayAnimAtBegin": true,
                                         "Animation": {
                                             "MAsset": {
-                                                "Path": "2B_Work\\Take 001.json"
+                                                "Path": "2B\\Take 001.json"
                                             }
                                         },
                                         "Mesh": {

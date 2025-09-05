@@ -72,7 +72,7 @@ struct ENGINE_DLL MAnimation : public MAsset
     uint32			StartFrame;
     uint32			EndFrame;
     uint32			TotalFrame;
-    double			Duration;
+    float			Duration;
 
 public:
     void SetFrameInfo(fbxsdk::FbxTime& InStart, fbxsdk::FbxTime& InEnd);
@@ -88,7 +88,7 @@ protected:
         , PROPERTY(EndFrame)
         , PROPERTY(TotalFrame)
         , PROPERTY(KeyFrames)
-        //, PROPERTY(static_cast<float>(Duration))
+        , PROPERTY(Duration)
     );
 };
 
@@ -105,20 +105,27 @@ struct ENGINE_DLL FJoint
 
     }
 
+    // 조인트 이름
+    std::string Name;
+
+    // 부모 조인트 인덱스
     int32	_parentIndex = -1;
 
     // 메시의 점 위치를 조인트 기준의 위치로 변환하는 행렬
     Mat4	_globalBindPoseInverseMatrix = IDENTITYMATRIX;
-    Vec3	Position = {};
-    Vec3    Rotation = {};
+
+    // SRV
     Vec3    Scale = {};
+    Vec3    Rotation = {};
+    Vec3	Position = {};
 
     REFLECT_TOP(FJoint
-        , PROPERTY(_globalBindPoseInverseMatrix)
+        , PROPERTY(Name)
         , PROPERTY(_parentIndex)
-        , PROPERTY(Position)
-        , PROPERTY(Rotation)
+        , PROPERTY(_globalBindPoseInverseMatrix)
         , PROPERTY(Scale)
+        , PROPERTY(Rotation)
+        , PROPERTY(Position)
     );
 };
 

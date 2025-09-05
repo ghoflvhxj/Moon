@@ -86,6 +86,11 @@ void MAssetEditor::Update()
                 std::shared_ptr<DynamicMesh> Dm = Asset->CastTo<DynamicMesh>();
                 for (auto& BodyCapsuleData : Dm->BodyCapsuleDatas)
                 {
+                    if (BodyCapsuleData.AttachJointIndex == -1)
+                    {
+                        continue;
+                    }
+
                     const Vec3& JointPos = DynamicMeshComp->GetJointPosition(BodyCapsuleData.AttachJointIndex);
                     const Vec4& JointRot = DynamicMeshComp->GetJointRotation(BodyCapsuleData.AttachJointIndex);
                     if (BodyCapsuleData.PrimitiveID == -1)
@@ -94,6 +99,42 @@ void MAssetEditor::Update()
                     }
                     GetRenderer()->UpdatePrimitive(BodyCapsuleData.PrimitiveID, JointPos, JointRot);
                 }
+
+                std::vector<FJoint>& Joints = DynamicMeshComp->GetDynamicMesh()->GetJoints();
+                std::map<int32, std::vector<FJoint>> ChildJointsMap;
+                for (uint32 i = 0; i < GetSize(Joints); ++i)
+                {
+                    const FJoint& Joint = Joints[i];
+                    ChildJointsMap[Joint._parentIndex].push_back(Joint);
+                }
+
+                std::list<int32> Q(1, -1);
+
+                std::function<void(int32)> DrawTree = [&](int32 InParentIndex) {
+                    const auto& ChildJoints = ChildJointsMap[InParentIndex];
+                    for (const auto& ChildJoint : ChildJoints)
+                    {
+                        int32 JointIndex = Dm->Skeleton->NameToJointIndex[ChildJoint.Name];
+                        if (ChildJointsMap[JointIndex].empty())
+                        {
+                            if (ImGui::TreeNodeEx(ChildJoint.Name.c_str(), ImGuiTreeNodeFlags_Leaf))
+                            {
+                                ImGui::TreePop();
+                            }
+                        }
+                        else
+                        {
+                            if (ImGui::TreeNode(ChildJoint.Name.c_str()))
+                            {
+                                DrawTree(JointIndex);
+                                ImGui::TreePop();
+                            }
+                        }
+
+                    }
+                };
+
+                DrawTree(-1);
             }
 
             if (ImGui::CollapsingHeader("Physics Body"))

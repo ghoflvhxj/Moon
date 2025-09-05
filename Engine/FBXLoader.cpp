@@ -816,10 +816,13 @@ void MFBXLoader::loadBinormal(Vertex &vertex, const int controlPointIndex, const
 
 void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName)
 {
+    std::string Name = pNode->GetName();
+
     uint32 JointIndex = GetSize(Joints);
-	NameToJointIndex.emplace(pNode->GetName(), JointIndex);
+	NameToJointIndex.emplace(Name, JointIndex);
 
 	FJoint NewJoint;
+    NewJoint.Name = Name;
 	if(NameToJointIndex.find(parentName) != NameToJointIndex.end())
 	{
         NewJoint._parentIndex = NameToJointIndex[parentName];

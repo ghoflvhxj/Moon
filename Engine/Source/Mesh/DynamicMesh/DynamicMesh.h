@@ -69,6 +69,7 @@ public:
     FJoint GetJoint(uint32 InIndex);
     FJoint GetJoint(const std::string& InName);
     int32 GetJointIndex(const std::string& InName);
+
 public:
     std::vector<FJoint> Joints;
     std::unordered_map<std::string, uint32> NameToJointIndex;
