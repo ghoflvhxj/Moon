@@ -65,16 +65,13 @@ Player::Player()
 
 #if UseDynamicMesh == 1
     CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
-    AddComponent(ROOT_COMPONENT, CharacterMeshComponent);
     CharacterMeshComponent->SetPhysics(false);
     CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
     CharacterMeshComponent->SetMesh(TEXT("2B/2b.json"));
-    //CharacterMeshComponent->GetDynamicMesh()->getMaterial(3)->SetAlphaMask(true);
-    //CharacterMeshComponent->GetDynamicMesh()->getMaterial(4)->SetAlphaMask(true);
-    // 2 = 치마
-
     CharacterMeshComponent->setDrawingBoundingBox(true);
+    
+    AddComponent(ROOT_COMPONENT, CharacterMeshComponent);
 #endif
 
 #if UseRandomPointLight == 1
@@ -106,13 +103,9 @@ void Player::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (CharacterMeshComponent)
-    {
-        GetPostLoopDelegate().Add([&]() {
-            CharacterMeshComponent->Clothing();
-        });
-        
-    }
+    GetPostLoopDelegate().Add([&]() {
+        getComponent(ROOT_COMPONENT)->CastTo<DynamicMeshComponent>()->Clothing();
+    });
 }
 
 void Player::tick(const Time deltaTime)
