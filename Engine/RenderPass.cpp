@@ -208,7 +208,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
     else
     {
         Mat4 WorldMatrix = {};
-        XMMATRIX XMWorldMat = XMMatrixRotationQuaternion(XMLoadFloat4(&PrimitiveData.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&PrimitiveData.Translation));
+        XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&PrimitiveData.Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&PrimitiveData.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&PrimitiveData.Translation));
         XMStoreFloat4x4(&WorldMatrix, XMWorldMat);
         Mat4 InvWorldMatrix = {};
         XMStoreFloat4x4(&InvWorldMatrix, XMMatrixInverse(nullptr, XMWorldMat));

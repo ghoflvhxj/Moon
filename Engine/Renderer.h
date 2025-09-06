@@ -52,7 +52,7 @@ protected:
 
     // 컴포넌트 없는 PrimitiveData 업데이트
 public:
-    void UpdatePrimitive(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation);
+    void UpdatePrimitive(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation, const Vec3& InScale);
 
     // 라인 테스트
 protected:

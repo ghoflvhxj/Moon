@@ -93,11 +93,15 @@ void MAssetEditor::Update()
 
                     const Vec3& JointPos = DynamicMeshComp->GetJointPosition(BodyCapsuleData.AttachJointIndex);
                     const Vec4& JointRot = DynamicMeshComp->GetJointRotation(BodyCapsuleData.AttachJointIndex);
+                    Vec3 JointScale = DynamicMeshComp->GetJointScale(BodyCapsuleData.AttachJointIndex);
+                    JointScale.x /= 20.f;
+                    JointScale.y /= 20.f;
+                    JointScale.z /= 20.f;
                     if (BodyCapsuleData.PrimitiveID == -1)
                     {
-                        BodyCapsuleData.PrimitiveID = GetRenderer()->MakeCapsule(1.f, 1.f);
+                        BodyCapsuleData.PrimitiveID = GetRenderer()->MakeCapsule(1.f, 3.f);
                     }
-                    GetRenderer()->UpdatePrimitive(BodyCapsuleData.PrimitiveID, JointPos, JointRot);
+                    GetRenderer()->UpdatePrimitive(BodyCapsuleData.PrimitiveID, JointPos, JointRot, JointScale);
                 }
 
                 std::vector<FJoint>& Joints = DynamicMeshComp->GetDynamicMesh()->GetJoints();

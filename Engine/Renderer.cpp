@@ -85,8 +85,6 @@ MRenderer::MRenderer() noexcept
         {
             MakeBuffer(DebugMesh.second);
         }
-
-        //MakeCapsule(1.f, 1.f);
     });
 }
 
@@ -276,8 +274,6 @@ bool MRenderer::Initialize()
     }
     MakeBuffer(GizmoMeshComp);
 
-    //MakeCapsule(1.f, 1.f);
-
     addRenderTargetForDebug(ERenderTarget::Diffuse);
     addRenderTargetForDebug(ERenderTarget::Depth);
     addRenderTargetForDebug(ERenderTarget::Normal);
@@ -338,14 +334,16 @@ void MRenderer::DrawLine(const std::vector<Vec3>& InWorldPositions)
 uint32 MRenderer::MakeCapsule(float InRadius, float InHeight)
 {
     float Radius = InRadius;
+    float HalfHeight = InHeight / 2.f;
     uint32 Offset = 0;
 
+    // 상단 구 XZ
     FMeshData NewMeshData = {};
     for (uint32 i = 1; i <= 16; ++i)
     {
         Vertex NewVertex = {};
         NewVertex.Pos.x = Radius * std::sin((2.f * 3.14f / 16.f) * i);
-        NewVertex.Pos.y = 0.f;
+        NewVertex.Pos.y = HalfHeight;
         NewVertex.Pos.z = Radius * std::cos((2.f * 3.14f / 16.f) * i);
         NewMeshData.Vertices.push_back(NewVertex);
     }
@@ -357,12 +355,13 @@ uint32 MRenderer::MakeCapsule(float InRadius, float InHeight)
     NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
     NewMeshData.Indices.push_back(Offset);
 
+    // 상단 구 YZ
     Offset = GetSize(NewMeshData.Vertices);
     for (uint32 i = 1; i <= 16; ++i)
     {
         Vertex NewVertex = {};
         NewVertex.Pos.x = 0.f;
-        NewVertex.Pos.y = Radius * std::cos((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.y = HalfHeight + Radius * std::cos((2.f * 3.14f / 16.f) * i);
         NewVertex.Pos.z = Radius * std::sin((2.f * 3.14f / 16.f) * i);
         NewMeshData.Vertices.push_back(NewVertex);
     }
@@ -374,15 +373,88 @@ uint32 MRenderer::MakeCapsule(float InRadius, float InHeight)
     NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
     NewMeshData.Indices.push_back(Offset);
 
+    // 상단 구 XY
     Offset = GetSize(NewMeshData.Vertices);
     for (uint32 i = 1; i <= 16; ++i)
     {
         Vertex NewVertex = {};
         NewVertex.Pos.x = Radius * std::sin((2.f * 3.14f / 16.f) * i);
-        NewVertex.Pos.y = Radius * std::cos((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.y = HalfHeight + Radius * std::cos((2.f * 3.14f / 16.f) * i);
         NewVertex.Pos.z = 0.f;
         NewMeshData.Vertices.push_back(NewVertex);
-        NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    }
+    for (uint32 i = 1; i < 16; ++i)
+    {
+        NewMeshData.Indices.push_back(Offset + i);
+        NewMeshData.Indices.push_back(Offset + i - 1);
+    }
+    NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    NewMeshData.Indices.push_back(Offset);
+
+    // 실린더
+    Offset = GetSize(NewMeshData.Vertices);
+    for (uint32 i = 1; i <= 4; ++i)
+    {
+        Vertex NewVertex = {};
+        NewVertex.Pos.x = Radius * std::sin((2.f * 3.14f / 4.f) * i);
+        NewVertex.Pos.y = HalfHeight;
+        NewVertex.Pos.z = Radius * std::cos((2.f * 3.14f / 4.f) * i);
+        NewMeshData.Vertices.push_back(NewVertex);
+
+        NewVertex.Pos.y = -HalfHeight;
+        NewMeshData.Vertices.push_back(NewVertex);
+    }
+    for (uint32 i = 1; i < 8; i+=2)
+    {
+        NewMeshData.Indices.push_back(Offset + i);
+        NewMeshData.Indices.push_back(Offset + i - 1);
+    }
+
+    // 하단 구 XZ
+    Offset = GetSize(NewMeshData.Vertices);
+    for (uint32 i = 1; i <= 16; ++i)
+    {
+        Vertex NewVertex = {};
+        NewVertex.Pos.x = Radius * std::sin((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.y = -HalfHeight;
+        NewVertex.Pos.z = Radius * std::cos((2.f * 3.14f / 16.f) * i);
+        NewMeshData.Vertices.push_back(NewVertex);
+    }
+    for (uint32 i = 1; i < 16; ++i)
+    {
+        NewMeshData.Indices.push_back(Offset + i);
+        NewMeshData.Indices.push_back(Offset + i - 1);
+    }
+    NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    NewMeshData.Indices.push_back(Offset);
+
+    // 하단 구 YZ
+    Offset = GetSize(NewMeshData.Vertices);
+    for (uint32 i = 1; i <= 16; ++i)
+    {
+        Vertex NewVertex = {};
+        NewVertex.Pos.x = 0.f;
+        NewVertex.Pos.y = -HalfHeight + Radius * std::cos((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.z = Radius * std::sin((2.f * 3.14f / 16.f) * i);
+        NewMeshData.Vertices.push_back(NewVertex);
+    }
+    for (uint32 i = 1; i < 16; ++i)
+    {
+        NewMeshData.Indices.push_back(Offset + i);
+        NewMeshData.Indices.push_back(Offset + i - 1);
+    }
+    NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
+    NewMeshData.Indices.push_back(Offset);
+
+    // 하단 구 XY
+    Offset = GetSize(NewMeshData.Vertices);
+    for (uint32 i = 1; i <= 16; ++i)
+    {
+        Vertex NewVertex = {};
+        NewVertex.Pos.x = Radius * std::sin((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.y = -HalfHeight + Radius * std::cos((2.f * 3.14f / 16.f) * i);
+        NewVertex.Pos.z = 0.f;
+        NewMeshData.Vertices.push_back(NewVertex);
     }
     for (uint32 i = 1; i < 16; ++i)
     {
@@ -487,7 +559,7 @@ void MRenderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
     }
 }
 
-void MRenderer::UpdatePrimitive(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation)
+void MRenderer::UpdatePrimitive(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation, const Vec3& InScale)
 {
     auto& Iter = IdToPrimitiveDatas.find(InPrimitiveID);
     if (Iter == IdToPrimitiveDatas.end())
@@ -497,8 +569,9 @@ void MRenderer::UpdatePrimitive(uint32 InPrimitiveID, const Vec3& InTranslation,
 
     for (auto& PrimitiveData : Iter->second)
     {
-        PrimitiveData.Translation = InTranslation;
+        PrimitiveData.Scale = InScale;
         PrimitiveData.Rotation = InRotation;
+        PrimitiveData.Translation = InTranslation;
     }
 }
 
