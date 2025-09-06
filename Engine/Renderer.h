@@ -60,12 +60,8 @@ protected:
     std::shared_ptr<MIndexBuffer> I;
 
 public:
-    std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId, uint32 InOffset = 0) {
-        return VertexBuffers[InId][InOffset];
-    }
-    std::shared_ptr<MIndexBuffer> GetIndexBuffer(uint32 InId, uint32 InOffset = 0) {
-        return IndexBuffers[InId][InOffset];
-    }
+    std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId, uint32 InOffset = 0);
+    std::shared_ptr<MIndexBuffer> GetIndexBuffer(uint32 InId, uint32 InOffset = 0);
 
 public:
     const std::vector<FPrimitiveData>& GetPrimitives(EPrimitiveType InPrimitiveType) { return PrimitiveDatasPerType[InPrimitiveType]; }

@@ -659,8 +659,10 @@ void MJoltPhysics::Update()
                 Vertices[i].Pos.z = BodyPos.GetZ() - ToLocal.GetZ() + SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ();
             }
 
-            std::shared_ptr<MVertexBuffer> VertexBuffer = g_pRenderer->GetVertexBuffer(PhysicObject->GetPrimitiveComponent()->GetPrimitiveID(), MeshIndex);
-            VertexBuffer->Update(Vertices.data());
+            if (std::shared_ptr<MVertexBuffer> VertexBuffer = g_pRenderer->GetVertexBuffer(PhysicObject->GetPrimitiveComponent()->GetPrimitiveID(), MeshIndex))
+            {
+                VertexBuffer->Update(Vertices.data());
+            }
         }
     }
 }
@@ -684,8 +686,10 @@ MJoltPhysicsObject::MJoltPhysicsObject(FPhysicsConstructData& InData)
 
 void MJoltPhysicsObject::UpdateVertices(std::vector<::Vertex>& InVertices)
 {
-    std::shared_ptr<MVertexBuffer> VertexBuffer = g_pRenderer->GetVertexBuffer(GetPrimitiveComponent()->GetPrimitiveID());
-    VertexBuffer->Update(InVertices.data());
+    if (std::shared_ptr<MVertexBuffer> VertexBuffer = g_pRenderer->GetVertexBuffer(GetPrimitiveComponent()->GetPrimitiveID()))
+    {
+        VertexBuffer->Update(InVertices.data());
+    }
 }
 
 void MJoltPhysicsObject::MoveTo(const ::Vec3& TargetPos)

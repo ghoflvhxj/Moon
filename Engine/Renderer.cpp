@@ -502,6 +502,28 @@ void MRenderer::UpdatePrimitive(uint32 InPrimitiveID, const Vec3& InTranslation,
     }
 }
 
+std::shared_ptr<MVertexBuffer> MRenderer::GetVertexBuffer(uint32 InId, uint32 InOffset)
+{
+    auto& Buffers = VertexBuffers[InId];
+    if (Buffers.empty() == false)
+    {
+        return Buffers[InOffset];
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<MIndexBuffer> MRenderer::GetIndexBuffer(uint32 InId, uint32 InOffset)
+{
+    auto& Buffers = IndexBuffers[InId];
+    if (Buffers.empty() == false)
+    {
+        return IndexBuffers[InId][InOffset];
+    }
+
+    return nullptr;
+}
+
 void MRenderer::MakeBuffer(std::shared_ptr<MPrimitiveComponent> InComponent, std::vector<FPrimitiveData>& InPrimitiveDatas)
 {
     if (InComponent == nullptr)
