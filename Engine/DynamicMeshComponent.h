@@ -34,6 +34,7 @@ public:
     Vec3 GetRelativeJointPosition(const std::string& InName);
     Vec4 GetJointRotation(uint32 JointIndex);
     Vec4 GetJointRotation(const std::string& InName);
+    Vec3 GetJointScale(uint32 InJointIndex);
 public:
     void SetAnimClip(const uint32 Index);
     uint32 GetAnimClipNum();

@@ -29,6 +29,8 @@ constexpr Vec4 IDENTITY1 = { 0.f, 1.f, 0.f, 0.f };
 constexpr Vec4 IDENTITY2 = { 0.f, 0.f, 1.f, 0.f };
 constexpr Vec4 IDENTITY3 = { 0.f, 0.f, 0.f, 1.f };
 
+constexpr float PI = DirectX::XM_PI;
+
 constexpr Mat4 IDENTITYMATRIX = {	1.f, 0.f, 0.f, 0.f,
 									0.f, 1.f, 0.f, 0.f,
 									0.f, 0.f, 1.f, 0.f,

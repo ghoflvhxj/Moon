@@ -250,8 +250,8 @@ void DynamicMeshComponent::Clothing()
 
         GetDynamicMesh()->GetClothDatas() = t;
 
-        //g_pPhysics->AddCloth(Data, GetDynamicMesh()->GetClothDatas(), NewClothPhysicsObject);
-        //ClothPhysicsObjects.push_back(NewClothPhysicsObject);
+        g_pPhysics->AddCloth(Data, GetDynamicMesh()->GetClothDatas(), NewClothPhysicsObject);
+        ClothPhysicsObjects.push_back(NewClothPhysicsObject);
 
         FClothUpdateData UpdateData = {};
         UpdateData.ClothDataIndex = 0;
@@ -280,32 +280,42 @@ Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
 
 Vec3 DynamicMeshComponent::GetJointPosition(uint32 JointIndex)
 {
-    Vec3 OutPos = VEC3ZERO;
-    XMVECTOR Pos = XMLoadFloat3(&VEC3ZERO);
+    Vec3 OutTrans = VEC3ZERO;
+
+    if (JointIndex < 0 || Mesh->GetJointNum() - 1 < JointIndex)
+    {
+        return OutTrans;
+    }
+
+    XMVECTOR Trans = XMLoadFloat3(&VEC3ZERO);
     XMMATRIX WorldMat = XMLoadFloat4x4(&getWorldMatrix());
 
-    FJoint Joint = GetDynamicMesh()->GetJoint(JointIndex);
-    MAnimation CurrentAnimClip;
-    if (Animation && bAnimPlaying)
+    if (Animation && IsAnimPlaying())
     {
-        float RealFrame = AnimTime * 24.f;
-        uint32 Frame = CastValue<uint32>(RealFrame);
+        float FloatFrame = AnimTime * 24.f;
+        uint32 Frame = CastValue<uint32>(FloatFrame);
 
         XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(JointIndex));
-        Pos = XMVector3TransformCoord(Pos, JointMatrix);
-        Pos = XMVector3TransformCoord(Pos, WorldMat);
-        XMStoreFloat3(&OutPos, Pos);
+        XMMATRIX Matrix = JointMatrix * WorldMat;
+
+        XMVECTOR Dummy = {};
+        XMMatrixDecompose(&Dummy, &Dummy, &Trans, Matrix);
+
+        XMStoreFloat3(&OutTrans, Trans);
     }
     else
     {
+        FJoint Joint = GetDynamicMesh()->GetJoint(JointIndex);
         XMMATRIX JointMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&Joint.Scale)) * XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Joint.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&Joint.Position));
-        Pos = XMVector3TransformCoord(Pos, JointMatrix);
-        Pos = XMVector3TransformCoord(Pos, WorldMat);
-        XMStoreFloat3(&OutPos, Pos);
+        XMMATRIX Matrix = JointMatrix * WorldMat;
+
+        XMVECTOR Dummy = {};
+        XMMatrixDecompose(&Dummy, &Dummy, &Trans, Matrix);
+
+        XMStoreFloat3(&OutTrans, Trans);
     }
 
-
-    return OutPos;
+    return OutTrans;
 }
 
 Vec3 DynamicMeshComponent::GetRelativeJointPosition(const std::string& InName)
@@ -322,19 +332,80 @@ Vec4 DynamicMeshComponent::GetJointRotation(const std::string& InName)
     return GetJointRotation(GetDynamicMesh()->GetJointIndex(InName));
 }
 
+Vec3 DynamicMeshComponent::GetJointScale(uint32 InJointIndex)
+{
+    Vec3 OutScale = VEC3ONE;
+
+    if (InJointIndex < 0 || Mesh->GetJointNum() - 1 < InJointIndex)
+    {
+        return OutScale;
+    }
+
+    XMVECTOR Scale = XMLoadFloat3(&VEC3ZERO);
+    XMMATRIX WorldMat = XMLoadFloat4x4(&getWorldMatrix());
+
+    if (Animation && IsAnimPlaying())
+    {
+        float FloatFrame = AnimTime * 24.f;
+        uint32 Frame = CastValue<uint32>(FloatFrame);
+
+        XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(InJointIndex));
+        XMMATRIX Matrix = JointMatrix * WorldMat;
+
+        XMVECTOR Dummy = {};
+        XMMatrixDecompose(&Scale, &Dummy, &Dummy, Matrix);
+
+        XMStoreFloat3(&OutScale, Scale);
+    }
+    else
+    {
+        FJoint Joint = GetDynamicMesh()->GetJoint(InJointIndex);
+        XMMATRIX JointMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&Joint.Scale)) * XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Joint.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&Joint.Position));
+        XMMATRIX Matrix = JointMatrix * WorldMat;
+
+        XMVECTOR Dummy = {};
+        XMMatrixDecompose(&Scale, &Dummy, &Dummy, Matrix);
+
+        XMStoreFloat3(&OutScale, Scale);
+    }
+
+    return OutScale;
+}
+
 Vec4 DynamicMeshComponent::GetJointRotation(uint32 JointIndex)
 {
     Vec4 OutRot = VEC4ZERO;
 
-    MAnimation CurrentAnimClip;
-    if (GetDynamicMesh()->getAnimationClip(AinmClipIndex, CurrentAnimClip))
+    if (JointIndex < 0 || Mesh->GetJointNum() - 1 < JointIndex)
     {
-        float RealFrame = AnimTime * 24.f;
-        uint32 Frame = CastValue<uint32>(RealFrame);
+        return OutRot;
+    }
 
-        XMVECTOR Scale, Rotation, Translation;
+    XMVECTOR Rotation = {};
+    XMMATRIX WorldMat = XMLoadFloat4x4(&getWorldMatrix());
 
-        XMMatrixDecompose(&Scale, &Rotation, &Translation, XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex)));
+    if (Animation && IsAnimPlaying())
+    {
+        float FloatFrame = AnimTime * 24.f;
+        uint32 Frame = CastValue<uint32>(FloatFrame);
+
+        XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(JointIndex));
+        XMMATRIX Matrix = JointMatrix * WorldMat;
+        
+        XMVECTOR Dummy = {};
+        XMMatrixDecompose(&Dummy, &Rotation, &Dummy, Matrix);
+
+        XMStoreFloat4(&OutRot, Rotation);
+    }
+    else
+    {
+        FJoint Joint = GetDynamicMesh()->GetJoint(JointIndex);
+        XMMATRIX JointMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&Joint.Scale)) * XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Joint.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&Joint.Position));
+        XMMATRIX Matrix = JointMatrix * WorldMat;
+
+        XMVECTOR Dummy = {};
+        XMMatrixDecompose(&Dummy, &Rotation, &Dummy, Matrix);
+
         XMStoreFloat4(&OutRot, Rotation);
     }
 

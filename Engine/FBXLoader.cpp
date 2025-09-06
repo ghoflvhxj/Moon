@@ -833,7 +833,7 @@ void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName
     auto& Rot = GlobalTransform.GetR();
     auto& Trans = GlobalTransform.GetT();
     NewJoint.Scale = { (float)Scale[0], (float)Scale[1], (float)Scale[2] };
-    NewJoint.Rotation = { (float)Rot[0], (float)Rot[1], (float)Rot[2] };
+    NewJoint.Rotation = { ToRadian((float)Rot[0]), ToRadian((float)Rot[1]), ToRadian((float)Rot[2]) };
     NewJoint.Position = { (float)Trans[0], (float)Trans[1], (float)Trans[2] };
 
 	Joints.push_back(NewJoint);

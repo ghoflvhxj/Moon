@@ -4,6 +4,8 @@
 
 #include <Shlwapi.h>
 
+// 점점 기능이 많아지면 클래스의 Static으로 뺴야할 듯
+
 inline void GetResourceDirectory(WCHAR buffer[])
 {
 	GetCurrentDirectory(MAX_PATH, buffer);
@@ -161,4 +163,14 @@ inline std::wstring StringToWString(const char* Buffer)
 inline std::wstring StringToWString(const std::string& Buffer)
 {
     return StringToWString(Buffer.c_str());
+}
+
+inline float ToRadian(float InDegree)
+{
+    return InDegree * (PI / 180.f);
+}
+
+inline Vec3 ToRadian(Vec3& InVector)
+{
+    return { ToRadian(InVector.x), ToRadian(InVector.y), ToRadian(InVector.z) };
 }

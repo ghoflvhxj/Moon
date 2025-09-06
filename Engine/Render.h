@@ -105,8 +105,9 @@ struct FPrimitiveData
 	EPrimitiveType PrimitiveType = EPrimitiveType::Count;
 
     // 컴포넌트 없이 렌더 시 월드변환을 위한 데이터
-    Vec3 Translation = {};               
+    Vec3 Scale = {};
     Vec4 Rotation = {};
+    Vec3 Translation = {};               
     
 	// 메시가 채우는 데이터
 	const FMeshData* MeshData = nullptr;
