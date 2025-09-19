@@ -157,7 +157,9 @@ protected:
     // 조인트의 [이름, 인덱스] 쌍을 저장함
     std::unordered_map<std::string, uint32> NameToJointIndex;
 	std::vector<FJoint>				Joints;
+    std::vector<fbxsdk::FbxNode*>   JointNodes;
     uint32 AnimStackNum = 0;
+
 
 private:
 	void loadNode();

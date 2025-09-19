@@ -97,6 +97,7 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
 		CurrentAnimClip.Name = animStackName.Buffer();
         CurrentAnimClip.SetAssetPath(Directory + StringToWString(CurrentAnimClip.Name) + TEXT(".json"));
         CurrentAnimClip.SetFrameInfo(pTakeInfo->mLocalTimeSpan.GetStart(), pTakeInfo->mLocalTimeSpan.GetStop());
+
         // 조인트를 얻기 위해 메시->디포머->스킨->클러스터->링크 순으로 파고듬
         // 클러스터의 링크 = 조인트
 		for (uint32 meshIndex = 0; meshIndex < GeometryCount; ++meshIndex)
@@ -109,6 +110,22 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
 			    pMeshNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
 				pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot) 
             };
+
+            for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
+            {
+                FbxTime currentTime;
+                currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
+
+                FbxAMatrix MeshGlobal = pMeshNode->EvaluateGlobalTransform(currentTime);
+
+                for (uint32 j = 0; j < GetSize(Joints); ++j) {
+                    FbxNode* jointNode = JointNodes[j];
+                    if (!jointNode) continue;
+                    FbxAMatrix JointGlobal = jointNode->EvaluateGlobalTransform(currentTime);
+                    FbxAMatrix localToMesh = MeshGlobal.Inverse() * JointGlobal;
+                    XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(j), ToXMMatrix(localToMesh));
+                }
+            }
 
 			int deformerCount = pMesh->GetDeformerCount();
 			for (int deformerIndex = 0; deformerIndex < deformerCount; ++deformerIndex)
@@ -127,6 +144,9 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
                     FbxCluster* pCluster = pSkin->GetCluster(clusterIndex);
                     const char* JointName = pCluster->GetLink()->GetName();
                     int JointIndex = NameToJointIndex[JointName];
+
+                    std::wstring str = TEXT("JointName: ") + StringToWString(JointName) + TEXT(", JointIndex: ") + std::to_wstring(JointIndex);
+                    LOG(str);
 
                     FbxAMatrix b = {
                         pCluster->GetLink()->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
@@ -171,19 +191,20 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
                         }
 					}
 
-                    for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
-                    {
-                        FbxTime currentTime;
-                        currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
+                    //for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
+                    //{
+                    //    FbxTime currentTime;
+                    //    currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
 
-                        // 메시 글로벌 
-                        FbxAMatrix MeshGlobal = pMeshNode->EvaluateGlobalTransform(currentTime);
-                        // 조인트 글로벌
-                        FbxAMatrix JointGlobal = pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
-                        // 메시의 로컬에서 조인트 글로벌로 변환
-                        FbxAMatrix& Test = MeshGlobal.Inverse() * JointGlobal;
-                        XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex), ToXMMatrix(Test));
-                    }
+                    //    // 메시 글로벌 
+                    //    FbxAMatrix MeshGlobal = pMeshNode->EvaluateGlobalTransform(currentTime);
+                    //    // 조인트 글로벌
+                    //    FbxAMatrix JointGlobal = pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
+
+                    //    // 메시의 로컬에서 조인트 글로벌로 변환
+                    //    FbxAMatrix& Test = MeshGlobal.Inverse() * JointGlobal;
+                    //    XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex), ToXMMatrix(Test));
+                    //}
 
 #ifdef _DEBUG
 					std::string log;
@@ -837,6 +858,7 @@ void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName
     NewJoint.Position = { (float)Trans[0], (float)Trans[1], (float)Trans[2] };
 
 	Joints.push_back(NewJoint);
+    JointNodes.push_back(pNode);
 }
 
 void MFBXLoader::loadTexture()
