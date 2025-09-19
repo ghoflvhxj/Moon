@@ -106,7 +106,7 @@ const bool MDirectInput::mousePress(const MOUSEBUTTON eMouseButton)
 	return bFocused &&  _mouseState.rgbButtons[static_cast<int>(eMouseButton)] && _prevMouseState.rgbButtons[static_cast<int>(eMouseButton)];
 }
 
-const LONG MDirectInput::mouseMove(const MOUSEAXIS eMouseAxis)
+const LONG MDirectInput::mouseMove(const EAxis eMouseAxis)
 {
 	return bFocused == true ? *(((LONG *)&_mouseState) + static_cast<LONG>(eMouseAxis)) : 0;
 }
@@ -141,7 +141,7 @@ const bool InputManager::mousePress(const MOUSEBUTTON button)
 	return g_pDirectInput->mousePress(button);
 }
 
-ENGINE_DLL const LONG InputManager::mouseMove(const MOUSEAXIS axis)
+ENGINE_DLL const LONG InputManager::mouseMove(const EAxis axis)
 {
 	return g_pDirectInput->mouseMove(axis);
 }

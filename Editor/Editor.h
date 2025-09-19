@@ -20,11 +20,6 @@ class MActor;
 class Player;
 class MAsset;
 
-enum class EAxies
-{
-    X, Y, Z
-};
-
 enum class EGizmoMode
 {
     Trans,
@@ -41,6 +36,7 @@ public:
 
 public:
 	virtual bool Initialize() override;
+    virtual void Release() override;
 	virtual void Update() override;
 	virtual void Render() override;
 
@@ -93,7 +89,7 @@ public:
     bool IsPickable() const;
 private:
     Vec3 GizmoOffset = VEC3ZERO;
-    EAxies GizmoAxis;
+    EAxis GizmoAxis;
     bool bSetGizmoOffset = false;
 	bool bControlGizmo = false;
     EGizmoMode GizmoMode = EGizmoMode::Trans;

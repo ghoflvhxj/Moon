@@ -10,7 +10,7 @@ enum class MOUSEBUTTON
 	LB, RB, MB, EEND 
 };
 
-enum class MOUSEAXIS
+enum class EAxis
 {
 	X, Y, Z, END
 };

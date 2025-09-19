@@ -26,7 +26,7 @@ public:
 	const bool mouseDown(const MOUSEBUTTON eMouseButton);
 	const bool mouseUp(const MOUSEBUTTON eMouseButton);
 	const bool mousePress(const MOUSEBUTTON eMouseButton);
-	const LONG mouseMove(const MOUSEAXIS eMouseAxis);
+	const LONG mouseMove(const EAxis eMouseAxis);
 private:
 	IDirectInput8 *_pDirectInput;
 	IDirectInputDevice8 *_pKeyboard;
@@ -55,5 +55,5 @@ public:
 	static const bool mouseDown(const MOUSEBUTTON button);
 	static const bool mouseUp(const MOUSEBUTTON button);
 	static const bool mousePress(const MOUSEBUTTON button);
-	static const LONG mouseMove(const MOUSEAXIS axis);
+	static const LONG mouseMove(const EAxis axis);
 };

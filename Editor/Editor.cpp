@@ -105,7 +105,7 @@ void MEditor::Update()
 
         if (GetMainWorld()->IsMouseInViewport())
         {
-            CameraSpeedScale += static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Z)) / 10.f;
+            CameraSpeedScale += static_cast<float>(InputManager::mouseMove(EAxis::Z)) / 10.f;
         }
         CameraSpeedScale = CameraSpeedScale >= 1.f ? CameraSpeedScale : 1.f;
 
@@ -115,8 +115,8 @@ void MEditor::Update()
         {
             Vec3 CameraRot = CameraComponent->getRotation();
             Vec3 TargetRot = CameraRot;
-            float mouseX = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::X));
-            float mouseY = static_cast<float>(InputManager::mouseMove(MOUSEAXIS::Y));
+            float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X));
+            float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y));
 
             TargetRot.x += mouseY * DeltaTime * 0.2f;
             TargetRot.y += mouseX * DeltaTime * 0.2f;
@@ -160,13 +160,13 @@ void MEditor::Update()
             switch (HitData.PrimitiveIndex)
             {
             case 0:
-                GizmoAxis = EAxies::Z;
+                GizmoAxis = EAxis::Z;
                 break;
             case 1:
-                GizmoAxis = EAxies::Y;
+                GizmoAxis = EAxis::Y;
                 break;
             case 2:
-                GizmoAxis = EAxies::X;
+                GizmoAxis = EAxis::X;
                 break;
             }
         }
@@ -208,13 +208,13 @@ void MEditor::Update()
             Vec3 Pos = GizmoTargetComp->getWorldTranslation();
             switch (GizmoAxis)
             {
-            case EAxies::X:
+            case EAxis::X:
                 Plane = XMPlaneFromPoints(XMLoadFloat3(&Pos), XMLoadFloat3(&Pos) + XMVectorSet(1.f, 0.f, 1.f, 0.f), XMLoadFloat3(&Pos) - XMLoadFloat3(&VEC3RIGHT));
                 break;
-            case EAxies::Z:
+            case EAxis::Z:
                 Plane = XMPlaneFromPoints(XMLoadFloat3(&Pos), XMLoadFloat3(&Pos) + XMVectorSet(1.f, 0.f, 1.f, 0.f), XMLoadFloat3(&Pos) - XMLoadFloat3(&VEC3RIGHT));
                 break;
-            case EAxies::Y:
+            case EAxis::Y:
                 Plane = XMPlaneFromPoints(XMLoadFloat3(&Pos), XMLoadFloat3(&Pos) + XMVectorSet(0.f, 1.f, -1.f, 0.f), XMLoadFloat3(&Pos) - XMLoadFloat3(&VEC3UP));
                 break;
             }
@@ -235,13 +235,13 @@ void MEditor::Update()
 
                     switch (GizmoAxis)
                     {
-                    case EAxies::X:
+                    case EAxis::X:
                         DeltaTrans.y = DeltaTrans.z = 0.f;
                         break;
-                    case EAxies::Y:
+                    case EAxis::Y:
                         DeltaTrans.x = DeltaTrans.z = 0.f;
                         break;
-                    case EAxies::Z:
+                    case EAxis::Z:
                         DeltaTrans.x = DeltaTrans.y = 0.f;
                         break;
                     }
@@ -256,13 +256,13 @@ void MEditor::Update()
 
                     switch (GizmoAxis)
                     {
-                    case EAxies::X:
+                    case EAxis::X:
                         DeltaRot.y = DeltaRot.z = 0.f;
                         break;
-                    case EAxies::Y:
+                    case EAxis::Y:
                         DeltaRot.x = DeltaRot.z = 0.f;
                         break;
-                    case EAxies::Z:
+                    case EAxis::Z:
                         DeltaRot.x = DeltaRot.y = 0.f;
                         break;
                     }
@@ -276,13 +276,13 @@ void MEditor::Update()
 
                     switch (GizmoAxis)
                     {
-                    case EAxies::X:
+                    case EAxis::X:
                         DeltaScale.y = DeltaScale.z = 0.f;
                         break;
-                    case EAxies::Y:
+                    case EAxis::Y:
                         DeltaScale.x = DeltaScale.z = 0.f;
                         break;
-                    case EAxies::Z:
+                    case EAxis::Z:
                         DeltaScale.x = DeltaScale.y = 0.f;
                         break;
                     }
