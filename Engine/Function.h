@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include "Define.h"
-#include <string>
+#include "Enum.h"
 
+#include <string>
 #include <Shlwapi.h>
 
 // 점점 기능이 많아지면 클래스의 Static으로 뺴야할 듯
@@ -170,7 +171,36 @@ inline float ToRadian(float InDegree)
     return InDegree * (PI / 180.f);
 }
 
-inline Vec3 ToRadian(Vec3& InVector)
+inline Vec3 ToRadian(const Vec3& InVector)
 {
     return { ToRadian(InVector.x), ToRadian(InVector.y), ToRadian(InVector.z) };
+}
+
+inline float ToDegree(float InRadian)
+{
+    return InRadian / PI * 180.f;
+}
+
+inline Vec3 ToDegree(const Vec3& InVector)
+{
+    return { ToDegree(InVector.x), ToDegree(InVector.y), ToDegree(InVector.z) };
+}
+
+static inline float clampf(float v, float a, float b) { return (v < a) ? a : ((v > b) ? b : v); }
+
+inline static std::ostream& operator<<(std::ostream& InOutStream, const Vec3& InVec)
+{
+    InOutStream << InVec.x << ", " << InVec.y << ", " << InVec.z;
+    return InOutStream;
+}
+
+inline Vec3 GetAxis(const Mat4& InMatrix, const EAxis InAxis)
+{
+    uint32 Index = EnumToIndex(InAxis);
+    return { InMatrix.m[Index][0], InMatrix.m[Index][1], InMatrix.m[Index][2] };
+}
+
+inline Vec3 GetPos(const Mat4& InMatrix)
+{
+    return { InMatrix.m[3][0], InMatrix.m[3][1], InMatrix.m[3][2] };
 }
