@@ -11,7 +11,10 @@
 #include "Jolt/Physics/Collision/Shape/Shape.h"
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 #include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
+#include "Jolt/Physics/Collision/Shape/SphereShape.h"
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
+
+#include "Mesh/Mesh.h"
 
 class MMeshComponent;
 class StaticMesh;
@@ -21,6 +24,12 @@ namespace JPH
     class TempAllocator;
     class JobSystem;
 }
+
+// 이름은 일단 임시로
+struct FBodyCapsuleDataWrapper
+{
+
+};
 
 struct FVertexKey
 {
@@ -68,25 +77,39 @@ public:
     virtual bool Initialize() override;
     virtual void Update() override;
     virtual void Release() override;
-
     virtual void StartSimulate() override;
 
+public:
+    static JPH::Quat DXQuatToJPHQuat(const ::Vec4& InQuat);
+    static JPH::Quat DXAngleToJPHQuat(const ::Vec3& InRot);
+    static JPH::Vec3 ToJPHPos(const ::Vec3& InPos);
+    static JPH::Vec3 ToJPHPos(const ::Vec4& InPos);
+    static void DXQuaternionToEuler(::Vec4 q, float& outPitch, float& outYaw, float& outRoll);
 public:
     // 메시의 ConvexHull을 만들어 저장함
     virtual void LoadTest() override;
     virtual void SaveTest(std::shared_ptr<StaticMesh> Mesh) override;
 
-    virtual void MakeConvexHull(FPhysicsConstructData& InData) override;
+    JPH::ConvexHullShapeSettings MakeConvexHull(FBodyConstructData& InData);
     JPH::MeshShapeSettings MakeMeshShape(std::shared_ptr<StaticMesh> InMesh);
-    JPH::CapsuleShape MakeCapsule();
-public:
-    JPH::EMotionType ConvertPhysicsType(EPhysicsType InType);
+    JPH::CapsuleShapeSettings MakeCapsule(float InHalfHeight, float InRadius);
+    JPH::SphereShapeSettings MakeSphere(float InRadius);
+    //virtual void MakeKinematic(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject);
 
 public:
-    virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
-    virtual void AddCloth(FPhysicsConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
-    virtual void AddKinematic(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject);
+    JPH::EMotionType ConvertPhysicsType(EPhysicsType InType);
+public:
+    virtual void AddCloth(FBodyConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
+    virtual void AddCharacterBody(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData);
+protected:
+    std::vector<std::shared_ptr<class MCharacterBodyObject>> CharacterBodies;
+
+public:
     virtual void Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_ptr<MPhysicsObject>& Rhs);
+
+protected:
+    // Shape를 이용해 바디를 만드는 함수
+    void CreateBody(JPH::RefConst<JPH::Shape> InShape, const FBodyConstructData& InData, std::shared_ptr<class MBodyObject> InBodyObject);
 
 public:
     JPH::TempAllocator* tempAllocator = nullptr;
@@ -94,13 +117,15 @@ public:
     JPH::JobSystem* jobSystemValidating = nullptr;
     JPH::PhysicsSystem* physics_system = nullptr;
 
+    JPH::Vec3 TempRot = {};
+
     REFLECT(MJoltPhysics)
 };
 
-class ENGINE_DLL MJoltPhysicsObject : public MPhysicsObject
+class ENGINE_DLL MBodyObject : public MPhysicsObject
 {
 public:
-    MJoltPhysicsObject(FPhysicsConstructData& InData);
+    MBodyObject(const FBodyConstructData& InData);
 
 public:
     MJoltPhysics* Get()
@@ -123,7 +148,7 @@ public:
     virtual void SetMass(float InMass) override;
     virtual void SetPos(const ::Vec3& InPos) override;
     virtual void SetRotation(const ::Vec4& InRotation) override;
-    virtual void SetRotation(const ::Vec3& InRotation) override;
+    //virtual void SetRotation(const ::Vec3& InRotation) override;
     virtual void SetScale(const ::Vec3& InScale) override;
     virtual void SetGravity(bool bGravity) override;
     virtual void AddForce(const ::Vec3& InForce) override;

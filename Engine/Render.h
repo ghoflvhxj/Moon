@@ -49,9 +49,9 @@ enum class ERenderPass
 	DirectionalLight,
     PointLight,
 	SkyPass,
-    Collision,
-    Outline,
-	Combine,
+    Line,               // 캡슐, 스피어 등의 표시용
+    Outline,            // 클릭 된 오브젝트 외각선 표시용
+	Combine,            
     EditorGizmo,
 	Count
 };
@@ -105,7 +105,7 @@ struct FPrimitiveData
 	EPrimitiveType PrimitiveType = EPrimitiveType::Count;
 
     // 컴포넌트 없이 렌더 시 월드변환을 위한 데이터
-    Vec3 Scale = {};
+    Vec3 Scale = VEC3ONE;
     Vec4 Rotation = {};
     Vec3 Translation = {};               
     
@@ -119,4 +119,8 @@ struct FPrimitiveData
 	// 다이나믹 메쉬용
 	Mat4* AnimMatrices = nullptr;
 	uint32 _jointCount = 0;
+
+    // 인스턴싱 용
+    std::weak_ptr<MVertexBuffer> InstanceBuffer;
+    uint32 InstanceNum = 0;
 };

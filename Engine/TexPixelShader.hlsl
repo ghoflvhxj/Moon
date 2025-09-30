@@ -38,7 +38,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
 	if (true == bUseSpecularTexture)
 	{
 		float3 specular = g_Specular.Sample(g_Sampler, pIn.uv).xyz;
-		pOut.specular = float4(specular, 1.f);
+		pOut.specular = float4(specular, 1.f); 
 	}
 	
     // 테스트 를 위한 값 초기화

@@ -33,7 +33,8 @@
     <ClCompile Include="Source\ThirdParty\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="Source\Editor\DynamicMeshEdtior.cpp" />
+    <ClCompile Include="Source\Editor\AssetEditor.cpp" />
+    <ClCompile Include="Source\Editor\DynamicMeshPhysicsEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -49,6 +50,7 @@
     <ClInclude Include="Source\ThirdParty\ImGui\imstb_truetype.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.h" />
-    <ClInclude Include="Source\Editor\DynamicMeshEdtior.h" />
+    <ClInclude Include="Source\Editor\AssetEditor.h" />
+    <ClInclude Include="Source\Editor\DynamicMeshPhysicsEditor.h" />
   </ItemGroup>
 </Project>

@@ -24,16 +24,19 @@ protected:
 
 public:
     virtual void Clothing() override;
-    virtual void SetPhysics(bool bInPhysics, bool bForce = false);
+    void Clothing2();
 
 public:
+    Mat4 GetJointMatrix(uint32 InJointIndex);
+    // 조인트의 로컬 축을 반환함
+    Vec3 GetJointAxis(uint32 InJointIndex, uint32 InAxisIndex);
     // 조인트의 월드 위치를 반환함
-    Vec3 GetJointPosition(uint32 JointIndex);
+    Vec3 GetJointPosition(uint32 InJointIndex);
     Vec3 GetJointPosition(const std::string& InName);
     // 조인트의 컴포넌트 상대 위치를 반환함
     Vec3 GetRelativeJointPosition(const std::string& InName);
-    Vec4 GetJointRotation(uint32 JointIndex);
-    Vec4 GetJointRotation(const std::string& InName);
+    Vec4 GetJointQuaternion(uint32 InJointIndex);
+    Vec4 GetJointQuaternion(const std::string& InName);
     Vec3 GetJointScale(uint32 InJointIndex);
 public:
     void SetAnimClip(const uint32 Index);
@@ -42,6 +45,7 @@ public:
 private:
 	uint32 AinmClipIndex = 0;
 	float AnimTime = 0.f;
+    float AnimSpeed = 1.f;
 
 public:
     Mat4* GetAnimMatrices() { return JointAnimMatrices; }
@@ -62,9 +66,11 @@ public:
 
     std::shared_ptr<MPhysicsObject> Kinematic;
 
+
     REFLECT(
         DynamicMeshComponent
         , PROPERTY(AnimTime)
+        , PROPERTY(AnimSpeed)
         , PROPERTY(bAnimPlaying)
         , PROPERTY(bPlayAnimAtBegin)
         , PROPERTY(Animation)

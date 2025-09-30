@@ -6,7 +6,7 @@
 #include "GraphicDevice.h"
 #include "Renderer.h"
 #include "World.h"
-#include "Core/Physics/Jolt/Jolt.h"
+#include "Module/Physics/Jolt.h"
 #include "Core/ResourceManager.h"
 #include "Core/ResourceLoader.h"
 
@@ -193,7 +193,7 @@ void RegisterComponent(std::shared_ptr<Component> InComponent)
 
     if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = InComponent->CastTo<MPrimitiveComponent>())
     {
-        getRenderer()->AddPrimitive(std::static_pointer_cast<MPrimitiveComponent>(InComponent));
+        getRenderer()->AddPrimitiveComponent(std::static_pointer_cast<MPrimitiveComponent>(InComponent));
     }
 
     if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())

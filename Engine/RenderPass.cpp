@@ -1,7 +1,10 @@
 ﻿#include "RenderPass.h"
 
+#include "MoonEngine.h"
+
 #include "MainGameSetting.h"
 #include "Renderer.h"
+
 
 // Graphic
 #include "VertexBuffer.h"
@@ -159,37 +162,13 @@ bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 
 void MRenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MShader> VS = nullptr;
-    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
-    {
-        VS = Material->getVertexShader();
-    }
-    else
-    {
-        VS = _vertexShader;
-    }
-    //------------------------------------------------------------------------------------------------------------------
-    // 버텍스 쉐이더 CBuffer
-    VS->SetValue(TEXT("viewMatrix"), g_World->getMainCameraViewMatrix());
-    VS->SetValue(TEXT("projectionMatrix"), g_World->getMainCameraProjectioinMatrix());
-    VS->SetValue(TEXT("identityMatrix"), IDENTITYMATRIX);
-    VS->SetValue(TEXT("orthographicProjectionMatrix"), g_World->getMainCameraOrthographicProjectionMatrix());
-    VS->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_World->getMainCamera()->getInverseOrthographicProjectionMatrix());
 }
 
 void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
 	const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
 
-    std::shared_ptr<MShader> VS = nullptr;
-    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
-    {
-        VS = Material->getVertexShader();
-    }
-    else
-    {
-        VS = _vertexShader;
-    }
+    std::shared_ptr<MShader> VS = GetVertexShader(PrimitiveData);
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 버텍스쉐이더 ConstantBuffer
@@ -222,10 +201,9 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer
-    std::shared_ptr<MShader> PS = nullptr;
+    std::shared_ptr<MShader> PS = GetPixelShader(PrimitiveData);
     if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
     {
-        PS = Material->getPixelShader();
         BOOL bUseNormal = Material->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
         PS->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
         BOOL bUseSpecular = Material->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
@@ -235,7 +213,6 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
     }
     else
     {
-        PS = _pixelShader;
         PS->SetValue(TEXT("bUseNormalTexture"), FALSE);
         PS->SetValue(TEXT("bUseSpecularTexture"), FALSE);
         PS->SetValue(TEXT("bAlphaMask"), FALSE);
@@ -251,14 +228,36 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
     HandleRasterizerStage(PrimitiveData);
     HandleOutputMergeStage(PrimitiveData);
 
-    if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
+    std::shared_ptr<MVertexBuffer>& VertexBuffer = PrimitiveData.VertexBuffer.lock();
+
+    if (std::shared_ptr<MVertexBuffer> InstanceBuffer = PrimitiveData.InstanceBuffer.lock())
     {
-        g_pGraphicDevice->getContext()->DrawIndexed(IndexBuffer->getIndexCount(), 0, 0);
+        if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
+        {
+            UINT IndexNum = IndexBuffer->getIndexCount();
+            UINT InstanceNum = PrimitiveData.InstanceNum;
+            g_pGraphicDevice->getContext()->DrawIndexedInstanced(IndexNum, InstanceNum, 0, 0, 0);
+            
+        }
+        else
+        {
+            UINT VertexNum = VertexBuffer->getVertexCount();
+            UINT InstanceNum = PrimitiveData.InstanceNum;
+            g_pGraphicDevice->getContext()->DrawInstanced(VertexNum, InstanceNum, 0, 0);
+        }
     }
     else
     {
-        g_pGraphicDevice->getContext()->Draw(PrimitiveData.VertexBuffer.lock()->getVertexCount(), 0);
+        if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
+        {
+            g_pGraphicDevice->getContext()->DrawIndexed(IndexBuffer->getIndexCount(), 0, 0);
+        }
+        else
+        {
+            g_pGraphicDevice->getContext()->Draw(VertexBuffer->getVertexCount(), 0);
+        }
     }
+
 }
 
 void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
@@ -266,11 +265,34 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
 
-    std::shared_ptr<MVertexBuffer>& VertexBuffer = PrimitiveData.VertexBuffer.lock();
+    std::vector<ID3D11Buffer*> VertexBuffers;
+    std::vector<UINT> Strides;
+    std::vector<UINT> Offsets;
 
-    // IA에 버텍스 버퍼 설정
-    g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->m_pInputLayout);
-    VertexBuffer->setBufferToDevice(stride, offset);
+    // 버텍스 버퍼
+    std::shared_ptr<MVertexBuffer>& VertexBuffer = PrimitiveData.VertexBuffer.lock();
+    VertexBuffers.push_back(VertexBuffer->getBuffer());
+    Strides.push_back(VertexBuffer->GetVertexSize());
+    Offsets.push_back(0);
+
+    // 인스턴싱 버퍼
+    if (std::shared_ptr<MVertexBuffer>& InstanceBuffer = PrimitiveData.InstanceBuffer.lock())
+    {
+        VertexBuffers.push_back(InstanceBuffer->getBuffer());
+        Strides.push_back(InstanceBuffer->GetVertexSize());
+        Offsets.push_back(0);
+    }
+    else
+    {
+        //VertexBuffers.push_back(nullptr);
+        //Strides.push_back(0);
+        //Offsets.push_back(0);
+    }
+
+    UINT VertexBufferNum = GetSize(VertexBuffers);
+    getGraphicDevice()->getContext()->IASetVertexBuffers(0, VertexBufferNum, VertexBuffers.data(), Strides.data(), Offsets.data());
+
+    //g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->m_pInputLayout);
 
     // IA에 인덱스 버퍼 설정
     if (std::shared_ptr<MIndexBuffer>& IndexBuffer = PrimitiveData.IndexBuffer.lock())
@@ -290,7 +312,7 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
 
 void MRenderPass::HandleVertexShaderStage(const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MShader>& VertexShader = _vertexShader != nullptr ? _vertexShader : PrimitiveData.Material.lock()->getVertexShader();
+    std::shared_ptr<MShader>& VertexShader = GetVertexShader(PrimitiveData);
     VertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
     VertexShader->Apply();
 }
@@ -311,13 +333,11 @@ void MRenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
 
 void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-
-    std::shared_ptr<MShader>& PixelShader = _pixelShader != nullptr ? _pixelShader : Material->getPixelShader();
+    std::shared_ptr<MShader> PixelShader = GetPixelShader(PrimitiveData);
     PixelShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
     PixelShader->Apply();
 
-    if (Material)
+    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
     {
         Material->SetTexturesToDevice();
     }
@@ -374,7 +394,39 @@ void MRenderPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 }
 
-void MRenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
+std::shared_ptr<MShader> MRenderPass::GetVertexShader(const FPrimitiveData& InPrimitiveData)
+{
+    std::shared_ptr<MMaterial>& Material = InPrimitiveData.Material.lock();
+    std::shared_ptr<MShader> OutShader = nullptr;
+    if (Material != nullptr && bUseDefaultShaderOnly == false)
+    {
+        OutShader = Material->getVertexShader();
+    }
+    else
+    {
+        OutShader = _vertexShader;
+    }
+
+    return OutShader;
+}
+
+std::shared_ptr<MShader> MRenderPass::GetPixelShader(const FPrimitiveData& InPrimitiveData)
+{
+    std::shared_ptr<MMaterial>& Material = InPrimitiveData.Material.lock();
+    std::shared_ptr<MShader> OutShader = nullptr;
+    if (Material != nullptr && bUseDefaultShaderOnly == false)
+    {
+        OutShader = Material->getPixelShader();
+    }
+    else
+    {
+        OutShader = _pixelShader;
+    }
+
+    return OutShader;
+}
+
+void MRenderPass::SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
 {
 	releaseShader();
 	std::shared_ptr<VertexShader> vertexShader = nullptr;
@@ -398,9 +450,9 @@ void MRenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *
 	_bShaderSet = true;
 }
 
-void MRenderPass::setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName)
+void MRenderPass::SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName)
 {
-	setShader(vertexShaderFileName, pixelShaderFileName);
+	SetDefaultShader(vertexShaderFileName, pixelShaderFileName);
 
 	std::shared_ptr<MGeometryShader> geometryShader = nullptr;
 	if (g_pGraphicDevice->GetGeometryShader(geomtryShaderFileName, geometryShader))

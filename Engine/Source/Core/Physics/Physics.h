@@ -13,16 +13,17 @@ class StaticMesh;
 class MPhysicsObject;
 class MPrimitiveComponent;
 class MMeshComponent;
+class DynamicMeshComponent;
 
-struct FPhysicsConstructData
+struct FBodyCapsuleData;
+
+struct FBodyConstructData
 {
 	std::shared_ptr<MPrimitiveComponent> PrimitiveComponent;
 	std::shared_ptr<StaticMesh> Mesh;
 	EPhysicsType PhysicsType;
     ::Vec3 Pos = VEC3ZERO;
-    ::Vec3 Rot = VEC3ZERO;
-    // 임시
-    bool bCapsule = false;
+    ::Vec4 Rot = VEC4ZERO;
 };
 
 class ENGINE_DLL MPhysics : public MAsset
@@ -49,16 +50,12 @@ public:
     virtual void AddMeshComponent(std::shared_ptr<MMeshComponent> InMeshComp);
 
 public:
-    virtual void MakeConvexHull(FPhysicsConstructData& InData) {}
-
-public:
     // Component를 받도록 변경
-    virtual bool AddPhysicsObject(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) = 0;
-    virtual bool AddCloth(FPhysicsConstructData& InData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) { return false; }
-    virtual void AddCloth(FPhysicsConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) {}
+    virtual void AddCloth(FBodyConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) {}
+    virtual void AddCharacterBody(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData) {}
 
 protected:
-    std::vector<std::weak_ptr<MPhysicsObject>> SoftBodyObjects;
+    std::vector<std::weak_ptr<MPhysicsObject>> SoftBodies;
 
     // 프리미티브ID - 피직스 오브젝트 쌍
     std::map<uint32, std::shared_ptr<MPhysicsObject>> PhysicsObjects;
@@ -72,7 +69,7 @@ protected:
     REFLECT(MPhysicsEngine)
 };
 
-class ENGINE_DLL MPhysicsObject
+class ENGINE_DLL MPhysicsObject : std::enable_shared_from_this<MPhysicsObject>
 {
 public:
 	MPhysicsObject(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent, std::shared_ptr<StaticMesh> InMesh)

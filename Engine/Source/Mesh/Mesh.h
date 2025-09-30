@@ -114,7 +114,8 @@ struct ENGINE_DLL FJoint
     // 메시의 점 위치를 조인트 기준의 위치로 변환하는 행렬
     Mat4	_globalBindPoseInverseMatrix = IDENTITYMATRIX;
 
-    // SRV
+public:
+    // SRT
     Vec3    Scale = {};
     Vec3    Rotation = {};
     Vec3	Position = {};
@@ -129,5 +130,49 @@ struct ENGINE_DLL FJoint
     );
 };
 
-using JointIndexMap = std::unordered_map<std::string, int>;
-using VertexWeightInfoListMap = std::unordered_map<int, VertexIndexWeightInfo>;
+struct FCapsuleData
+{
+    float HalfHeight = 1.f;
+    float Radius = 1.f;
+
+    REFLECT_TOP(
+        FCapsuleData
+        , PROPERTY(HalfHeight)
+        , PROPERTY(Radius)
+    );
+};
+
+struct FBodyCapsuleData
+{
+    int32 PrimitiveID = -1;
+
+    int32 AttachJointIndex = -1;
+    FCapsuleData CapsuleData;
+    Vec3 TranslationOffset = {};
+    Vec3 RotationOffset = {};
+
+    float GetRadius()
+    {
+        return CapsuleData.Radius;
+    }
+
+    float GetHalfHeight()
+    {
+        return CapsuleData.HalfHeight;
+    }
+
+    REFLECT_TOP(FBodyCapsuleData
+        , PROPERTY(AttachJointIndex)
+        , PROPERTY(CapsuleData)
+        , PROPERTY(TranslationOffset)
+        , PROPERTY(RotationOffset)
+    );
+};
+
+namespace Mesh
+{
+    void MakeSphere(FMeshData& OutMeshData, uint32 InSegment);
+    void MakeCoordinate(FMeshData& OutMeshData);
+    void MakeCapsule(FMeshData& OutMeshData, float InHalfHeight, float InRadius);
+    void MakeRect(FMeshData& OutMeshData);
+}

@@ -1,0 +1,40 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "VS_Sphere.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MTexture": {},
+                "MAsset": {}
+            },
+            "1": {
+                "MTexture": {},
+                "MAsset": {}
+            },
+            "2": {
+                "MTexture": {},
+                "MAsset": {}
+            },
+            "3": {
+                "MTexture": {},
+                "MAsset": {}
+            },
+            "4": {
+                "MTexture": {},
+                "MAsset": {}
+            },
+            "5": {
+                "MTexture": {},
+                "MAsset": {}
+            }
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 2,
+        "bUseAlpha": false,
+        "bAlphaMask": false
+    },
+    "MAsset": {
+        "Path": "Base\\SphereMaterial.json"
+    }
+}

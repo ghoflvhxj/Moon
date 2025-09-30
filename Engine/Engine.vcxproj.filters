@@ -212,7 +212,6 @@
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
     <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
     <ClCompile Include="Source\Core\Physics\Physics.cpp" />
-    <ClCompile Include="Source\Core\Physics\Jolt\Jolt.cpp" />
     <ClCompile Include="Source\Core\Serialize\JsonSerializer.cpp" />
     <ClCompile Include="Source\Core\Serialize\Serializerable.cpp" />
     <ClCompile Include="Source\Core\Serialize\JsonDeserializer.cpp" />
@@ -230,6 +229,9 @@
     <ClCompile Include="Source\Core\Object.cpp" />
     <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass.cpp" />
     <ClCompile Include="Source\Module\Module.cpp" />
+    <ClCompile Include="Source\Module\Physics\CapsuleBody.cpp" />
+    <ClCompile Include="Source\Module\Physics\Jolt.cpp" />
+    <ClCompile Include="Source\Module\Physics\CharacterPhysics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -436,9 +438,6 @@
     <ClInclude Include="Source\Core\Physics\Physics.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Physics\Jolt\Jolt.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\Serialize\JsonSerializer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -497,6 +496,15 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Module\Module.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Physics\CapsuleBody.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Physics\Jolt.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Physics\CharacterPhysics.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

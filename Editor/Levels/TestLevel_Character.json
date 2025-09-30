@@ -24,7 +24,7 @@
                                         "Translation": [
                                             1.23588,
                                             1.90713,
-                                            7.41843
+                                            7.41838
                                         ],
                                         "bUpdated": false
                                     },
@@ -153,7 +153,7 @@
                                         "Translation": [
                                             0.0,
                                             0.0,
-                                            5.0
+                                            0.0
                                         ],
                                         "bUpdated": false
                                     },
@@ -258,6 +258,65 @@
                                             0.0,
                                             0.0,
                                             1.0
+                                        ],
+                                        "bUpdated": false
+                                    },
+                                    "Component": {},
+                                    "MObject": {}
+                                }
+                            }
+                        ]
+                    },
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_0",
+                "Value": {
+                    "MStaticMeshActor": {},
+                    "MActor": {
+                        "_components": [
+                            {
+                                "Key": "RootComponent",
+                                "Value": {
+                                    "StaticMeshComponent": {
+                                        "Mesh": {
+                                            "MAsset": {
+                                                "Path": "Base\\Box.json"
+                                            }
+                                        }
+                                    },
+                                    "MMeshComponent": {
+                                        "bPhysicsSimulate": false,
+                                        "PhysicsType": 0,
+                                        "Materials": {
+                                            "0": {
+                                                "MAsset": {
+                                                    "Path": "GroundMaterial.json"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "MPrimitiveComponent": {
+                                        "RenderMode": 0,
+                                        "bRendering": true,
+                                        "bDrawStencil": true
+                                    },
+                                    "SceneComponent": {
+                                        "Scale": [
+                                            0.1,
+                                            0.1,
+                                            0.1
+                                        ],
+                                        "Rotation": [
+                                            -0.39536,
+                                            -1.15446,
+                                            0.8147
+                                        ],
+                                        "Translation": [
+                                            -0.02609,
+                                            0.77937,
+                                            0.19716
                                         ],
                                         "bUpdated": false
                                     },

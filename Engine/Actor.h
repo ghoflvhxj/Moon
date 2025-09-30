@@ -36,6 +36,7 @@ protected:
 
 public:
     const Vec3 GetWorldTranslation();
+    void SetWorldTranslation(const Vec3& InTrans);
 
 public:
     std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>& GetComponents() { return _components; }

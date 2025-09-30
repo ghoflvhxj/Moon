@@ -55,6 +55,33 @@ int32 DynamicMesh::GetJointIndex(const std::string& InName)
     return Skeleton->GetJointIndex(InName);
 }
 
+const std::shared_ptr<MSkeleton>& DynamicMesh::GetSkeleton()
+{
+    return Skeleton;
+}
+
+void MSkeleton::OnLoaded()
+{
+    Super::OnLoaded();
+
+    for (uint32 i = 0; i < GetSize(Joints); ++i)
+    {
+        const FJoint& Joint = Joints[i];
+        ChildJoints[Joint._parentIndex].push_back(Joint);
+    }
+}
+
+void MSkeleton::SetJoints(std::vector<FJoint>& InJoints)
+{
+    Joints = std::move(InJoints);
+
+    for (uint32 i = 0; i < GetSize(Joints); ++i)
+    {
+        const FJoint& Joint = Joints[i];
+        ChildJoints[Joint._parentIndex].push_back(Joint);
+    }
+}
+
 const uint32 MSkeleton::GetJointNum() const
 {
     return GetSize(Joints);
@@ -67,7 +94,7 @@ std::vector<FJoint>& MSkeleton::GetJoints()
 
 FJoint MSkeleton::GetJoint(uint32 InIndex)
 {
-    if (InIndex < GetSize(Joints))
+    if (InIndex != -1 && InIndex < GetSize(Joints))
     {
         return Joints[InIndex];
     }
@@ -77,20 +104,32 @@ FJoint MSkeleton::GetJoint(uint32 InIndex)
 
 FJoint MSkeleton::GetJoint(const std::string& InName)
 {
-    if (NameToJointIndex.find(InName) != NameToJointIndex.end())
-    {
-        return GetJoint(NameToJointIndex[InName]);
-    }
-
-    return FJoint();
+    return GetJoint(GetJointIndex(InName));
 }
 
-int32 MSkeleton::GetJointIndex(const std::string& InName)
+int32 MSkeleton::GetJointIndex(const std::string& InName) const
 {
-    if (NameToJointIndex.find(InName) != NameToJointIndex.end())
+    auto& Iter = NameToJointIndex.find(InName);
+    if (Iter != NameToJointIndex.end())
     {
-        return NameToJointIndex[InName];
+        return Iter->second;
     }
 
     return -1;
+}
+
+const std::vector<FJoint>& MSkeleton::GetChildJoints(const std::string& InName)
+{
+    return GetChildJoints(GetJointIndex(InName));
+}
+
+const std::vector<FJoint>& MSkeleton::GetChildJoints(int32 InIndex)
+{
+    auto& Iter = ChildJoints.find(InIndex);
+    if (Iter != ChildJoints.end())
+    {
+        return Iter->second;
+    }
+
+    return ChildJoints[-2]; // -1은 루트 조인트가 들어가있음.
 }

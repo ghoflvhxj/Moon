@@ -37,15 +37,6 @@ private:
 	std::vector<ShaderMap> _shadersPerShaderType;
 
 public:
-	ID3D10Blob*						getVertexShaderBlob(const wchar_t *shaderName);
-//	void							releaseBlob();	// InputLayout 생성을 위해 남겨두었던 Blob을 소멸시킵니다.
-//public:
-//	inline BlobMap&					getBlobMap(const ShaderType type);
-//private:
-//	std::vector<BlobMap> _blobMapList;
-//
-//public:
-//	ShaderReflectionMap&			getReflectionMap(const ShaderType type);
-//private:
-//	std::vector<ShaderReflectionMap> _reflectionMapList;
+    // InputLayout 생성 시 사용할 함수
+    ID3D10Blob*						getVertexShaderBlob(const wchar_t *shaderName);
 };

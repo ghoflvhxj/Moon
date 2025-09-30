@@ -89,13 +89,21 @@ protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
 };
 
-class CollisionPass : public MRenderPass
+class MLinePass : public MRenderPass
 {
 public:
-    explicit CollisionPass();
-    virtual ~CollisionPass() = default;
+    explicit MLinePass();
+    virtual ~MLinePass() = default;
 
 public:
-    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+};
+
+class MEditorPass : public MRenderPass
+{
+public:
+    explicit MEditorPass();
+
+public:
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
 };

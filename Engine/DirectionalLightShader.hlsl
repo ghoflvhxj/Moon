@@ -46,33 +46,17 @@ PixelOut_LightPass main(PixelIn pIn)
 	float3 direction = normalize(g_lightDirection.xyz);
 	float3 color = g_lightColor.xyz;
 	float intensity = g_lightColor.w;
-
+    
 	//-------------------------------------------------------------------------------------------------
-    float3 ambient = float3(0.4f, 0.4f, 0.4f);
+    float3 ambient = float3(0.2f, 0.2f, 0.2f);
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
-
-    /*
-    float Dot = saturate(dot(normalInWorld, -direction))
-    pOut.lightDiffuse.xyz = color * Dot * intensity;
-    //pOut.lightDiffuse.xyz = ambient + (1.f - ShadowFactor) * pOut.lightDiffuse.xyz;
-    // 기본 값 + (실제빛 * (1-기본값))
-    */
     
     float Dot = dot(normalInWorld, -direction);
-    float NewDot = Dot * 0.5 + 0.5;  // -1 ~ 1 -> 0 ~ 1
-    float backlightMin = 0.2f;  // 원하는 최소값
-    Dot = lerp(backlightMin, 1.0, NewDot);
-    if (NewDot <= 0.5f)
-    {
-        Dot = lerp(backlightMin, backlightMin + 0.1f, NewDot * 2.f);
-    }
-    else
-    {
-        Dot = lerp(backlightMin + 0.1f, 1.0, NewDot * 2.f - 1.f);
-    }
-    //pOut.lightDiffuse.xyz = (color * Dot * intensity);
-    //pOut.lightDiffuse.xyz = ambient +  (color * Dot * intensity);
-    pOut.lightDiffuse.xyz = ambient * (1.f - ShadowFactor) + (color * Dot * intensity);
+    float Bright = saturate(Dot);                       // 0 ~ 1
+    
+    float3 Direct = Bright * intensity * (1.f - ShadowFactor);
+    float3 InDirect = ambient * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
+    pOut.lightDiffuse.xyz = color * (max(0.4f, Direct) + InDirect);
 
 	//-------------------------------------------------------------------------------------------------
     direction = normalize(reflect(direction, normal.xyz));

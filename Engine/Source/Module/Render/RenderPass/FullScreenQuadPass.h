@@ -1,6 +1,14 @@
-﻿#pragma once 
+﻿/*
+    화면 전체를 덮는 사각형 메쉬를 그리는 패스.
+    일반적으로 다른 패스의 결과물을 텍스쳐 리소스로 이용함.
+*/
+
+#pragma once 
 
 #include "Include.h"
+
+#include "Mesh/Mesh.h"
+
 #include "Render.h"
 #include "RenderPass.h"
 
@@ -19,8 +27,8 @@ protected:
     virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData);
 
 protected:
-    std::shared_ptr<StaticMeshComponent> ViewMeshComponent;
-    std::vector<FPrimitiveData> ViewPrimitiveData;
+    FMeshData MeshData = {};
+    uint32 PID = 0;
 };
 
 class ENGINE_DLL MCombinePass : public MFullScreenQuadPass

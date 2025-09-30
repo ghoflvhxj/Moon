@@ -4,7 +4,7 @@ PixelOut_CombinePass main(PixelIn pIn)
 {
     PixelOut_CombinePass pOut;
 
-	float4 diffuse	= g_Diffuse.Sample(g_Sampler, pIn.uv);
+    float4 diffuse	= g_Diffuse.Sample(g_Sampler, pIn.uv);
 	float4 DirectionalLight	= g_LightDiffuse.Sample(g_Sampler, pIn.uv);
 	float4 specular = g_LightSpecular.Sample(g_Sampler, pIn.uv);
     float4 PointLight = T_PointLightDiffuse.Sample(g_Sampler, pIn.uv);
@@ -15,16 +15,18 @@ PixelOut_CombinePass main(PixelIn pIn)
     }
     
     float4 Collision = T_Collision.Sample(g_Sampler, pIn.uv);
-    if (Collision.x > 0.f)
+    if (any(Collision.rgb != 0.f))
     {
         pOut.color = Collision;
     }
 
     float4 Outline = T_Outline.Sample(g_Sampler, pIn.uv);
-    if (Outline.x > 0.f)
+    if (any(Outline.rgb != 0.f))
     {
         pOut.color = Outline;
     }
+    
+    //pOut.color = g_Diffuse.Sample(g_Sampler, pIn.uv);
 
 	return pOut;
 }

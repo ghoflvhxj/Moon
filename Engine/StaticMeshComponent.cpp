@@ -41,10 +41,11 @@ StaticMeshComponent::~StaticMeshComponent()
 
 void StaticMeshComponent::Update(const Time deltaTime)
 {
-	if (PhysicsObject)
+	if (PhysicsObject && bPhysicsSimulate)
 	{
 		setTranslation(PhysicsObject->GetPhysicsPos());
         setRotation(PhysicsObject->GetPhysicsRotation());
+
 	}
 
 	Super::Update(deltaTime);
@@ -110,7 +111,7 @@ void StaticMeshComponent::setTranslation(const Vec3& translation)
 {
     SceneComponent::setTranslation(translation);
 
-    if (PhysicsObject && bPhysics)
+    if (PhysicsObject && bPhysicsSimulate == false)
     {
         PhysicsObject->SetPos(translation);
     }
@@ -120,7 +121,7 @@ void StaticMeshComponent::setScale(const Vec3& InScale)
 {
 	SceneComponent::setScale(InScale);
     
-    if (PhysicsObject && bPhysics)
+    if (PhysicsObject && bPhysicsSimulate == false)
     {
         PhysicsObject->SetScale(InScale);
     }

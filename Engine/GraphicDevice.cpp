@@ -183,7 +183,7 @@ bool GraphicDevice::BuildInputLayout()
     // 디폴트 InputLayout
     {
         std::vector<D3D11_INPUT_ELEMENT_DESC> inputDescList;
-        Vertex::getDesc(inputDescList);
+        getDesc(inputDescList);
 
         if (ShaderManager)
         {

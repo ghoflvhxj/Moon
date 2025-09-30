@@ -1,5 +1,6 @@
 #include "Common.hlsli"
 
+// Vetex.h의 InputLayoutDesc와 같아야 함.
 struct VertexIn
 {
 	float4 pos				: POSITION0;
@@ -10,6 +11,14 @@ struct VertexIn
 	float3 binormal			: NORMAL2;
 	uint4 blendIndex		: BLENDINDICES0;
 	float4 blendWeight		: BLENDWEIGHT0;
+};
+
+struct InstanceIn
+{
+    float4 WorldMatrixRow0 : TEXCOORD1;
+    float4 WorldMatrixRow1 : TEXCOORD2;
+    float4 WorldMatrixRow2 : TEXCOORD3;
+    float4 WorldMatrixRow3 : TEXCOORD4;
 };
 
 struct VertexOut

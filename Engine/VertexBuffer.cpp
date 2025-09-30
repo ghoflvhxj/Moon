@@ -18,30 +18,7 @@ MVertexBuffer::MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, 
 	, VertexNum	{ vertexCount }
     , VertexSize     { vertexSize }
 {
-	D3D11_BUFFER_DESC bd = {};
-	bd.ByteWidth			= static_cast<UINT>(vertexSize * vertexCount);
-    //bd.Usage              = D3D11_USAGE_DEFAULT;
-    bd.Usage                = D3D11_USAGE_DYNAMIC;
-	bd.BindFlags			= D3D11_BIND_VERTEX_BUFFER;
-	//bd.CPUAccessFlags		= 0u;
-    bd.CPUAccessFlags		= D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
-	bd.MiscFlags			= 0u;
-	bd.StructureByteStride	= 0u;
-	
-	D3D11_SUBRESOURCE_DATA sd = {};
-	sd.pSysMem = buffer;
-
-	if (g_pGraphicDevice->getDevice()->CreateBuffer(&bd, &sd, &_pBuffer) == E_FAIL)
-	{
-#ifdef _DEBUG
-		throw WINDOW_EXCEPTION(GetLastError());
-#endif
-	}
-
-#ifdef PHYSX_CUDA
-    // D3D11 리소스를 CUDA에 등록함
-    CUresult Result = cuGraphicsD3D11RegisterResource(&CudaResource, _pBuffer, CU_GRAPHICS_REGISTER_FLAGS_NONE);
-#endif
+    CreateBuffer(vertexSize, vertexCount, buffer);
 }
 
 MVertexBuffer::~MVertexBuffer()
@@ -52,10 +29,39 @@ MVertexBuffer::~MVertexBuffer()
 	SafeRelease(_pBuffer);
 }
 
+void MVertexBuffer::CreateBuffer(const uint32 vertexSize, const uint32 vertexCount, const void* buffer)
+{
+    SafeRelease(_pBuffer);
+
+    D3D11_BUFFER_DESC bd = {};
+    bd.ByteWidth = static_cast<UINT>(vertexSize * vertexCount);
+    //bd.Usage              = D3D11_USAGE_DEFAULT;
+    bd.Usage = D3D11_USAGE_DYNAMIC;
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    //bd.CPUAccessFlags		= 0u;
+    bd.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
+    bd.MiscFlags = 0u;
+    bd.StructureByteStride = 0u;
+
+    D3D11_SUBRESOURCE_DATA sd = {};
+    sd.pSysMem = buffer;
+
+    if (g_pGraphicDevice->getDevice()->CreateBuffer(&bd, &sd, &_pBuffer) == E_FAIL)
+    {
+#ifdef _DEBUG
+        throw WINDOW_EXCEPTION(GetLastError());
+#endif
+    }
+
+#ifdef PHYSX_CUDA
+    // D3D11 리소스를 CUDA에 등록함
+    CUresult Result = cuGraphicsD3D11RegisterResource(&CudaResource, _pBuffer, CU_GRAPHICS_REGISTER_FLAGS_NONE);
+#endif
+}
+
 void MVertexBuffer::setBufferToDevice(UINT &stride, UINT &offset)
 {
     g_pGraphicDevice->getContext()->IASetVertexBuffers(0, 1, &_pBuffer, &stride, &offset);
-    //g_pGraphicDevice->getContext()->IASetVertexBuffers(0, 1, &_pBuffer, &VertexSize, &offset);
 }
 
 ID3D11Buffer* MVertexBuffer::getBuffer()
@@ -70,13 +76,24 @@ const uint32 MVertexBuffer::getVertexCount() const
 
 void MVertexBuffer::Update(void* InData)
 {
-    
     D3D11_MAPPED_SUBRESOURCE SubResource;
     g_pGraphicDevice->getContext()->Map(_pBuffer, 0u, D3D11_MAP::D3D11_MAP_WRITE_DISCARD, 0u, &SubResource);
 
     memcpy(SubResource.pData, InData, VertexSize * VertexNum);
 
     g_pGraphicDevice->getContext()->Unmap(_pBuffer, 0u);
+}
+
+void MVertexBuffer::Update(void* InData, uint32 InNum)
+{
+    if (VertexNum != InNum)
+    {
+        CreateBuffer(VertexSize, InNum, InData);
+    }
+    else
+    {
+        Update(InData);
+    }
 }
 
 #ifdef PHYSX_CUDA

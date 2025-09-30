@@ -1,6 +1,6 @@
 #include "VSCommon.hlsli"
 
-VertexOut main(VertexIn vIn)
+VertexOut main(VertexIn vIn, InstanceIn iIn)
 {
 	VertexOut vOut;
 

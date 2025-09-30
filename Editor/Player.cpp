@@ -68,7 +68,7 @@ Player::Player()
     CharacterMeshComponent->SetPhysics(false);
     CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
-    CharacterMeshComponent->SetMesh(TEXT("2B/2b.json"));
+    CharacterMeshComponent->SetMesh(TEXT("2B/2B.json"));
     CharacterMeshComponent->setDrawingBoundingBox(true);
     
     AddComponent(ROOT_COMPONENT, CharacterMeshComponent);

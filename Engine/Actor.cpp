@@ -70,6 +70,14 @@ const Vec3 MActor::GetWorldTranslation()
     return VEC3ZERO;
 }
 
+void MActor::SetWorldTranslation(const Vec3& InTrans)
+{
+    if (auto& RootComp = getComponent(ROOT_COMPONENT))
+    {
+        return RootComp->setTranslation(InTrans);
+    }
+}
+
 std::shared_ptr<SceneComponent>& MActor::getComponent(const wchar_t componentName[])
 {
 	return _components[componentName];

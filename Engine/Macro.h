@@ -79,3 +79,14 @@
 #define LOG(InMessage) \
 {   /*DoNothing*/  }
 #endif
+
+#ifdef DEBUG
+#define LOGTEXT(InText) \
+{\
+    std::wcout << InText << std::endl; \
+    OutputDebugStringW(InText); \
+}
+#else
+#define LOGTEXT(InMessage) \
+{   /*DoNothing*/  }
+#endif

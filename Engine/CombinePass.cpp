@@ -33,10 +33,9 @@ bool GeometryPass::IsValidPrimitive(const FPrimitiveData &PrimitiveData) const
 
 DirectionalShadowDepthPass::DirectionalShadowDepthPass()
 	: MRenderPass()
-    //, LightPosition(3)
-    //, LightViewProj(3)
 {
 	SetUseOwningDepthStencilBuffer(ERenderTarget::DirectionalShadowDepth);
+    bUseDefaultShaderOnly = true;
 }
 
 void DirectionalShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
@@ -67,6 +66,7 @@ PointShadowDepthPass::PointShadowDepthPass()
     : MRenderPass()
 {
     SetUseOwningDepthStencilBuffer(ERenderTarget::PointShadowDepth);
+    bUseDefaultShaderOnly = true;
 }
 
 void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
@@ -129,17 +129,13 @@ void PointShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& Prim
 {
     MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 
-    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-
-    // 패스 자체 쉐이더를 사용하기 때문에 오브젝트 Cbuffer로 수동으로 갱신해줌
-    auto& variableInfosVS = Material->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::Object);
-    _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object, variableInfosVS);
+    //std::shared_ptr<MShader>& VertexShader = GetVertexShader(PrimitiveData);
 }
 
 void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
 {
 	MPrimitiveComponent* PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock().get();
-    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
+    std::shared_ptr<MShader>& PixelShader = GetPixelShader(PrimitiveData);
 
 	Vec3 trans = PrimitiveComponent->getWorldTranslation();
 	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
@@ -157,12 +153,11 @@ void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &Prim
 	XMStoreFloat4x4(&rotMatrix, rotationMatrix);
 	Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
 
-	Material->getPixelShader()->SetValue(TEXT("g_lightPosition"), transAndRange);
-	Material->getPixelShader()->SetValue(TEXT("g_lightDirection"), look);
-	Material->getPixelShader()->SetValue(TEXT("g_lightColor"), color);
-
-	Material->getPixelShader()->SetValue(TEXT("g_inverseCameraViewMatrix"), g_World->getMainCamera()->getInvesrViewMatrix());
-	Material->getPixelShader()->SetValue(TEXT("g_inverseProjectiveMatrix"), g_World->getMainCamera()->getInversePerspectiveProjectionMatrix());
+	PixelShader->SetValue(TEXT("g_lightPosition"), transAndRange);
+	PixelShader->SetValue(TEXT("g_lightDirection"), look);
+	PixelShader->SetValue(TEXT("g_lightColor"), color);
+	PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), g_World->getMainCamera()->getInvesrViewMatrix());
+	PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), g_World->getMainCamera()->getInversePerspectiveProjectionMatrix());
 
 	MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }
@@ -253,31 +248,24 @@ void PointLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
 }
 
-CollisionPass::CollisionPass()
+MLinePass::MLinePass()
+    : MRenderPass()
 {
     DefaultTopology = D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
 }
 
-void CollisionPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
-{
-    MRenderPass::RenderPass(PrimitiveDatList);
-    //Begin();
-
-    //for (auto& PrimitiveData : PrimitiveDatList)
-    //{
-    //    if (IsValidPrimitive(PrimitiveData) == false)
-    //    {
-    //        continue;
-    //    }
-
-    //    UpdateTickConstantBuffer(PrimitiveData);
-    //    DrawPrimitive(PrimitiveData);
-    //}
-
-    //End();
-}
-
-bool CollisionPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+bool MLinePass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
     return g_pRenderer->IsDrawCollision() && PrimitiveData.PrimitiveType == EPrimitiveType::Collision && MRenderPass::IsValidPrimitive(PrimitiveData);
+}
+
+MEditorPass::MEditorPass()
+    : MRenderPass()
+{
+    DefaultTopology = D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
+}
+
+bool MEditorPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+{
+    return MRenderPass::IsValidPrimitive(PrimitiveData);
 }

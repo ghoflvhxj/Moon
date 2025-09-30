@@ -51,10 +51,12 @@ public:
     void SetPhysicsSimulate(bool bInSimulate, bool bForce = false);
     void SetPhysicsType(EPhysicsType InPhysicsType) { PhysicsType = InPhysicsType; }
     EPhysicsType GetPhysicsType() const { return PhysicsType; }
-    bool IsPhysicsSimulating() const { return bPhysicsSimulate; }
     bool IsPhysicsEnable() const { return bPhysics; }
+    bool IsPhysicsSimulating() const { return bPhysicsSimulate; }
 protected:
+    // 물리 효과 여부
     bool bPhysics = true;
+    // 물리 효과의 시뮬레이션 실행 중인지 여부
     bool bPhysicsSimulate = false;
     EPhysicsType PhysicsType = EPhysicsType::Static;
 

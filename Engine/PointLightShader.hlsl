@@ -40,11 +40,11 @@ PixelOut_LightPass main(PixelIn pIn)
 
 	//-------------------------------------------------------------------------------------------------
     // Diffuse
-    float3 ambient = float3(0.3f, 0.3f, 0.3f);
+    float3 ambient = float3(0.4f, 0.4f, 0.4f);
     float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
-    float Dot = saturate(dot(normalInWorld, direction));
-    //pOut.lightDiffuse.xyz = color * (Dot * (1.f - 0.5f) + 0.5f) * intensity * attenuation;
-    pOut.lightDiffuse.xyz = color * intensity;
+    
+    float Dot = dot(normalInWorld, direction);
+    float Bright = saturate(Dot); // 0 ~ 1
 
 	//-------------------------------------------------------------------------------------------------
 	// Specular
@@ -75,8 +75,11 @@ PixelOut_LightPass main(PixelIn pIn)
     }
     ShadowFactor /= sampleCount * sampleCount;
 
-    pOut.lightDiffuse.xyz = (1.f - ShadowFactor) * pOut.lightDiffuse.xyz;
-    pOut.lightDiffuse.xyz *= Dot * attenuation;
+    
+    float3 Direct = Bright * intensity * attenuation * (1.f - ShadowFactor);
+    //float3 Direct = Bright * intensity * attenuation;
+    //float3 InDirect = ambient * abs(Dot) * attenuation; // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
+    pOut.lightDiffuse.xyz = color * Direct;
 
 	return pOut;
 }

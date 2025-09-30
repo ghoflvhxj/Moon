@@ -4,9 +4,11 @@
 #include "Window.h"
 
 #include "Core/ResourceManager.h"
-#include "Core/Physics/Physics.h"
 #include "Core/ObjectPath.h"
 #include "Core/Asset.h"
+
+#include "Core/Physics/Physics.h" // TODO. Module/Physcis/Physics.h로 변경
+#include "Module/Physics/CharacterPhysics.h"
 
 #include "World.h"
 #include "Renderer.h"
@@ -34,13 +36,13 @@
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 
+
+
 // FBX
 #include "FBXLoader.h"
 
-#include "Source/Editor/EditorBase.h"
-
-#define UseGround 1
-#define UseDirectionalLight 1
+#include "Editor/AssetEditor.h"
+#include "Editor/DynamicMeshPhysicsEditor.h"
 
 using namespace DirectX;
 
@@ -59,6 +61,13 @@ bool MEditor::Initialize()
     Super::Initialize();
 
     return true;
+}
+
+void MEditor::Release()
+{
+    Super::Release();
+
+    Editors.clear();
 }
 
 void MEditor::Update()
@@ -373,27 +382,39 @@ void MEditor::Render()
             }
         }
 
-        if (ImGui::Button("Jolt Save"))
+        if (ImGui::CollapsingHeader("Jolt Physics"))
         {
-            if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp.lock()->CastTo<MMeshComponent>())
+            if (ImGui::Button("Jolt Save"))
             {
-                if (MeshComp->GetMesh())
+                if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp.lock()->CastTo<MMeshComponent>())
                 {
-                    GetPhysics()->SaveTest(MeshComp->GetMesh());
+                    if (MeshComp->GetMesh())
+                    {
+                        GetPhysics()->SaveTest(MeshComp->GetMesh());
+                    }
+                }
+            }
+
+            if (ImGui::Button("Jolt Load"))
+            {
+                if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp.lock()->CastTo<MMeshComponent>())
+                {
+                    if (MeshComp->GetMesh())
+                    {
+                        GetPhysics()->LoadTest();
+                    }
+                }
+            }
+
+            if (ImGui::Button("Clothing2"))
+            {
+                if (auto DynamicMeshComp = ClickedComp.lock()->CastTo<DynamicMeshComponent>())
+                {
+                    DynamicMeshComp->Clothing2();
                 }
             }
         }
 
-        if (ImGui::Button("Jolt Load"))
-        {
-            if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp.lock()->CastTo<MMeshComponent>())
-            {
-                if (MeshComp->GetMesh())
-                {
-                    GetPhysics()->LoadTest();
-                }
-            }
-        }
     }
 
     if (ImGui::CollapsingHeader("Level"))
@@ -411,10 +432,9 @@ void MEditor::Render()
                 std::wstring FileName = InFileName;
                 GetPostLoopDelegate().Add([FileName]() {
                     GetMainWorld()->GetActors().clear();
-                    MJsonDeserializer Deserializer;
-                    Deserializer.Deserialize(GetMainWorld(), FileName);
-                    });
+                    GetMainWorld()->Load(FileName);
                 });
+            });
         }
         ImGui::Indent(-20);
     }
@@ -478,30 +498,28 @@ void MEditor::Render()
         auto& Actors = World->GetActors();
         uint32 Num = GetSize(Actors);
 
-        if (std::shared_ptr<Component> Comp = ClickedComp.lock())
+        std::shared_ptr<Component> HighlightComp = ClickedComp.lock();
+        std::shared_ptr<MActor> HighlightActor = HighlightComp == nullptr ? nullptr : HighlightComp->getOwningActor();
+
+        // 하이라이트, Tick에서 계속 순회하는 것 보다는 변경 시 업데이트 해주는게 나을듯?
+        for (auto& [Name, Actor] : Actors)
         {
-            // 하이라이트, Tick에서 계속 순회하는 것 보다는 변경 시 업데이트 해주는게 나을듯?
-            for (auto& [Name, Actor] : Actors)
+            bool bHighlight = HighlightActor == Actor;
+            if (bHighlight)
             {
-                bool bHighlight = Comp->getOwningActor() == Actor;
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
+            }
 
-                if (bHighlight)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
-                }
+            if (ImGui::Selectable(Name.c_str()))
+            {
+                SetClickedComp(Actor->getComponent(ROOT_COMPONENT));
+            }
 
-                if (ImGui::Selectable(Name.c_str()))
-                {
-                    SetClickedComp(Actor->getComponent(ROOT_COMPONENT));
-                }
-
-                if (bHighlight)
-                {
-                    ImGui::PopStyleColor(1);
-                }
+            if (bHighlight)
+            {
+                ImGui::PopStyleColor(1);
             }
         }
-
 
         // 액터 생성       
         auto& TypeDescs = GetTypeDescs();
@@ -588,6 +606,7 @@ void MEditor::Render()
     for (auto& [Title, TempEditor] : Editors)
     {
         TempEditor->Update();
+        TempEditor->Render();
     }
 
 	ImGui::End();
@@ -661,7 +680,7 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
         {
             if (InContainerDesc->IsA<MAsset>())
             {
-                auto Asset = *static_cast<std::shared_ptr<MAsset>*>(InContainerDesc->Get(InObject, i));
+                std::shared_ptr<MAsset>& Asset = *static_cast<std::shared_ptr<MAsset>*>(InContainerDesc->Get(InObject, i));
                 std::string Path = Asset == nullptr ? "" : WStringToString(Asset->GetAssetPath());
                 ImGui::Text(Path.c_str());
 
@@ -689,7 +708,7 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    EditAsset(InObject, AssetTypeDesc, StringToWString(Path));
+                    OpenAssetEditor(static_cast<MObject*>(InObject), AssetTypeDesc, StringToWString(Path));
                 }
 
                 ImGui::SameLine(350);
@@ -819,7 +838,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    EditAsset(InObject, Prop->TypeDesc, StringToWString(Path));
+                    OpenAssetEditor(static_cast<MObject*>(InObject), Prop->TypeDesc, StringToWString(Path));
                 }
 
                 ImGui::SameLine(350);
@@ -871,7 +890,12 @@ void HandleProperty(EType InType, const char* DisplayName, void* InData)
     break;
     case EType::Float:
     {
-        ImGui::InputFloat(DisplayName, static_cast<float*>(InData));
+        auto Temp = static_cast<float*>(InData);
+        float Temp2 = *Temp;
+        if (ImGui::InputFloat(DisplayName, &Temp2))
+        {
+            *Temp = Temp2;
+        }
     }
     break;
     case EType::Bool:
@@ -910,22 +934,29 @@ void HandleProperty(EType InType, const char* DisplayName, void* InData)
     }
 }
 
-void EditAsset(void* InObject, const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath)
+void OpenAssetEditor(MObject* InAssetOwner, const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath)
 {
     if (InPath.empty())
     {
         return;
     }
 
+    if (InAssetTypeDesc->IsA<MAsset>() == false)
+    {
+        return;
+    }
+
     std::shared_ptr<MAsset> AssetCopy = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(InAssetTypeDesc)));
-    MJsonDeserializer Deserializer;
-    Deserializer.Deserialize(AssetCopy, InPath);
+    AssetCopy->Load(InPath);
 
-    std::shared_ptr<MAssetEditor> a = std::make_shared<MAssetEditor>(InObject, InAssetTypeDesc, AssetCopy);
-    std::string Title = a->GetTitle();
-    //a->GetClosedDelegate().Add([Title]() {
-    //    GetEngine()->GetModule<MEditor>()->Editors.erase(Title);
-    //});
+    std::shared_ptr<MAssetEditor> NewAssetEditor = std::make_shared<MAssetEditor>(InAssetOwner);
+    // TODO. 하드 코딩을 제거하고 애셋에 맞는 에디터 인스턴스를 생성하도록
+    if (InAssetTypeDesc == MDynamicMeshPhysics::GetTypeDescStatic())
+    {
+        NewAssetEditor = std::make_shared<MDynamicMeshPhysicsEditor>(InAssetOwner);
+    }
 
-    GetEngine()->GetModule<MEditor>()->Editors.emplace(Title, a);
+    NewAssetEditor->SetAsset(AssetCopy);
+
+    GetEngine()->GetModule<MEditor>()->Editors.emplace(NewAssetEditor->GetTitle(), NewAssetEditor);
 }

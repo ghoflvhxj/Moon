@@ -14,6 +14,9 @@ public:
 	explicit MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer);
 	~MVertexBuffer();
 
+protected:
+    void CreateBuffer(const uint32 vertexSize, const uint32 vertexCount, const void* buffer);
+
 public:
 	void setBufferToDevice(UINT &stride, UINT &offset);
 public:
@@ -23,12 +26,14 @@ private:
 
 public:
 	const uint32 getVertexCount() const;
+    const uint32 GetVertexSize() const { return VertexSize; }
 private:
 	uint32 VertexNum;
     uint32 VertexSize;
 
 public:
     void Update(void* InData);
+    void Update(void* InData, uint32 InNum);
 
 #ifdef PHYSX_CUDA
     void UpdateUsingCUDA(physx::PxDeformableSurface* DeformableSurface, uint32 VertexNum);

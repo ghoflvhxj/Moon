@@ -44,6 +44,10 @@ protected:
 protected:
     bool bWriteDepthStencil = true;
 
+protected:
+    std::shared_ptr<MShader> GetVertexShader(const FPrimitiveData& InPrimitiveData);
+    std::shared_ptr<MShader> GetPixelShader(const FPrimitiveData& InPrimitiveData);
+
 public:
 	// 렌더 타겟 바인드
 	template<class... TList>
@@ -91,8 +95,8 @@ private:
 	ID3D11DepthStencilView *_pOldDepthStencilView;
 	
 public:
-	void setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
-	void setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName);
+	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
+	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName);
 	const bool isShaderSet() const;
 private:
 	void releaseShader();
@@ -104,6 +108,7 @@ protected:
 	std::shared_ptr<MShader>	_pixelShader;
 	std::shared_ptr<MShader> _geometryShader;
 	bool _bShaderSet;
+    bool bUseDefaultShaderOnly = false;
 
 public:
 	void SetClearTargets(const bool bClear);
