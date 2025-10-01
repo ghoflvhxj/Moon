@@ -6,77 +6,11 @@
 
 #include <memory.h>
 
-//void Shader::ExtractConstantBufferVariables(std::shared_ptr<Shader> pShader, VariableInfoOfConstantBuffers &variableInfoOfConstantBuffers)
-//{
-//	variableInfoOfConstantBuffers.clear();
-//
-//	ID3D11ShaderReflection *pShaderReflection = nullptr;
-//	ID3D10Blob *pBlob = pShader->getBlob();
-//	FAILED_CHECK_THROW(D3DReflect(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pShaderReflection));
-//
-//	D3D11_SHADER_DESC shaderDesc = { 0 };
-//	FAILED_CHECK_THROW(pShaderReflection->GetDesc(&shaderDesc));
-//
-//	uint32 constantBufferCount = static_cast<uint32>(shaderDesc.ConstantBuffers);
-//	_variableInfo.reserve(constantBufferCount);
-//	for (uint32 constantBufferIndex = 0; constantBufferIndex < constantBufferCount; ++constantBufferIndex)
-//	{
-//		variableInfoOfConstantBuffers.emplace_back(std::vector<VariableInfo>());
-//
-//		ID3D11ShaderReflectionConstantBuffer *pReflectionConstantBuffer = nullptr;
-//		pReflectionConstantBuffer = pShaderReflection->GetConstantBufferByIndex(constantBufferIndex);
-//		if (nullptr == pReflectionConstantBuffer)
-//		{
-//			FAILED_CHECK_THROW(E_FAIL);
-//		}
-//
-//		D3D11_SHADER_BUFFER_DESC bufferDesc = { 0 };
-//		FAILED_CHECK_THROW(pReflectionConstantBuffer->GetDesc(&bufferDesc));
-//
-//		std::vector<Byte> bufferData(bufferDesc.Size, 0);
-//		std::shared_ptr<ConstantBuffer> pConstantBuffer = std::make_shared<ConstantBuffer>(bufferDesc.Size, bufferData.data(), bufferDesc.Variables);	// 여기서 상수버퍼라고 확정지었는데, 이러지 말고 상수버퍼가 버퍼를 상속받게 만들고, 버퍼 클래스 추가
-//		uint32 variableCount = bufferDesc.Variables;
-//
-//		for (uint32 variableIndex = 0; variableIndex < variableCount; ++variableIndex)
-//		{
-//			ID3D11ShaderReflectionVariable *pReflectionVariable = pReflectionConstantBuffer->GetVariableByIndex(variableIndex);
-//			if (nullptr == pReflectionVariable)
-//			{
-//				FAILED_CHECK_THROW(E_FAIL);
-//			}
-//
-//			D3D11_SHADER_VARIABLE_DESC variableDesc = { 0 };
-//			FAILED_CHECK_THROW(pReflectionVariable->GetDesc(&variableDesc));
-//
-//			VariableInfo info = {};
-//			info._offset	= variableDesc.StartOffset;
-//			info._size		= variableDesc.Size;
-//			info._pValue	= new Byte[variableDesc.Size];
-//			variableInfoOfConstantBuffers.back().emplace_back(info);
-//
-//			//if (nullptr != variableDesc.DefaultValue)
-//			//{
-//			//	memcpy(bufferData.data() + variableDesc.StartOffset, variableDesc.DefaultValue, variableDesc.Size);
-//			//}
-//			//
-//			//switch (bufferDesc.Type)
-//			//{
-//			//case D3D11_CBUFFER_TYPE::D3D11_CT_TBUFFER: // 텍스쳐 버퍼
-//			//{
-//			//	break;
-//			//}
-//			//case D3D11_CBUFFER_TYPE::D3D11_CT_CBUFFER: // 상수 버퍼
-//			//{
-//			//	break;
-//			//}
-//			//}
-//		}
-//	}
-//}
+std::vector<std::shared_ptr<MConstantBuffer>> MShader::SharedBuffers(EnumToIndex(EConstantBufferLayer::Tick) + 1, nullptr);
 
 MShader::MShader(const std::wstring &filePathName)
 	: ConstantBuffers(CastValue<uint32>(EConstantBufferLayer::Count), nullptr)
-	, Variables(CastValue<uint32>(EConstantBufferLayer::Count), std::vector<FShaderVariable>())
+	, Variables(CastValue<uint32>(EConstantBufferLayer::Count), std::vector<FBufferVariable>())
 {
 	if (filePathName.empty())
 	{
@@ -94,32 +28,44 @@ MShader::~MShader()
 
 void MShader::Apply()
 {
-    for (const std::shared_ptr<MConstantBuffer>& ConstantBuffer : ConstantBuffers)
+    if (GetConstantBuffer())
     {
-        if (ConstantBuffer == nullptr)
-        {
-            continue;
-        }
-
-        ConstantBuffer->Commit();
+        GetConstantBuffer()->Commit();
     }
 
     SetToDevice();
 }
 
+void MShader::SetToDevice()
+{
+    // DoNothing
+    // 자식 클래스에서 정의
+}
+
 std::vector<ID3D11Buffer*> MShader::GetBuffers()
 {
     std::vector<ID3D11Buffer*> Buffers;
+    /*
     Buffers.reserve(ConstantBuffers.size());
     for (auto& ConstantBuffer : ConstantBuffers)
     {
         Buffers.emplace_back(ConstantBuffer ? ConstantBuffer->getRaw() : nullptr);
     }
+    */
+
+    if (HasConstantBuffer())
+    {
+        Buffers.push_back(GetConstantBuffer()->getRaw());
+    }
+    else
+    {
+        Buffers.push_back(nullptr);
+    }
 
     return Buffers;
 }
 
-void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FShaderVariable>& InVariables)
+void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FBufferVariable>& InVariables)
 {
 	uint32 Index = CastValue<uint32>(layer);
     
@@ -129,15 +75,6 @@ void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector
     }
 
     UpdateConstantBuffer(layer);
-
-	//uint32 size = ConstantBuffers[Index]->getSize();
-	//Byte* pData = (Byte*)_aligned_malloc(size, 16);
-	//for (FShaderVariable& varialbeInfo : InVariables)
-	//{
-	//	memcpy(pData + varialbeInfo.Offset, varialbeInfo.Value, varialbeInfo.Size);
-	//}
-	//ConstantBuffers[Index]->Update(pData);
-	//_aligned_free((void*)pData);
 }
 
 void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
@@ -148,7 +85,7 @@ void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
 		return;
 	}
 
-	for (const FShaderVariable& Variable : Variables[Index])
+	for (const FBufferVariable& Variable : Variables[Index])
 	{
 		ConstantBuffers[Index]->SetData(Variable.Offset, Variable.Value, Variable.Size);
 	}
@@ -156,79 +93,110 @@ void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
 
 void MShader::CreateCosntantBuffers()
 {
-	ID3D11ShaderReflection *pShaderReflection = nullptr;
+	ID3D11ShaderReflection *DX_ShaderReflection = nullptr;
 
-	FAILED_CHECK_THROW(D3DReflect(_pBlob->GetBufferPointer(), _pBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&pShaderReflection));
+	FAILED_CHECK_THROW(D3DReflect(_pBlob->GetBufferPointer(), _pBlob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&DX_ShaderReflection));
 
-	D3D11_SHADER_DESC shaderDesc = { 0 };
-	FAILED_CHECK_THROW(pShaderReflection->GetDesc(&shaderDesc));
+	D3D11_SHADER_DESC DX_ShaderDesc = { 0 };
+	FAILED_CHECK_THROW(DX_ShaderReflection->GetDesc(&DX_ShaderDesc));
 
 	uint32 ConstantBufferLayerNum = CastValue<uint32>(EConstantBufferLayer::Count);
-	uint32 constantBufferNum = static_cast<uint32>(shaderDesc.ConstantBuffers);
+	uint32 constantBufferNum = static_cast<uint32>(DX_ShaderDesc.ConstantBuffers);
 	if (constantBufferNum > ConstantBufferLayerNum)
 	{
 		DEV_ASSERT_MSG("ConstantBuffer의 개수가 ConstantBuffersLayer::Countf를 넘어섭니다.");
 	}
 
-	for (uint32 ConstantBufferCounter = 0; ConstantBufferCounter < constantBufferNum; ++ConstantBufferCounter)
-	{
-		ID3D11ShaderReflectionConstantBuffer *pReflectionConstantBuffer = pShaderReflection->GetConstantBufferByIndex(ConstantBufferCounter);
-		if (nullptr == pReflectionConstantBuffer)
-		{
-			FAILED_CHECK_THROW(E_FAIL);
-		}
+    if (constantBufferNum == 0)
+    {
+        return;
+    }
 
-		D3D11_SHADER_BUFFER_DESC bufferDesc = {};
-		FAILED_CHECK_THROW(pReflectionConstantBuffer->GetDesc(&bufferDesc));
-		std::vector<Byte> bufferData(bufferDesc.Size, 0);
-		uint32 variableCount = bufferDesc.Variables;
+    uint32 BufferrIndexer = 0;
+    if (SharedBuffers[EnumToIndex(EConstantBufferLayer::Global)] == nullptr)
+    {
+        SharedBuffers[EnumToIndex(EConstantBufferLayer::Global)] = ParsingBuffer(DX_ShaderReflection, EConstantBufferLayer::Global, BufferrIndexer);
+    }
+    if(SharedBuffers[EnumToIndex(EConstantBufferLayer::Tick)] == nullptr)
+    {
+        SharedBuffers[EnumToIndex(EConstantBufferLayer::Tick)] = ParsingBuffer(DX_ShaderReflection, EConstantBufferLayer::Tick, BufferrIndexer);
+    }
 
-		D3D11_SHADER_INPUT_BIND_DESC ShaderInputBindDesc = {};
-		pShaderReflection->GetResourceBindingDescByName(bufferDesc.Name, &ShaderInputBindDesc);
-		uint32 LayerIndex = ShaderInputBindDesc.BindPoint;
-		
-		for (uint32 VariableIndex = 0; VariableIndex < variableCount; ++VariableIndex)
-		{
-			ID3D11ShaderReflectionVariable *pReflectionVariable = pReflectionConstantBuffer->GetVariableByIndex(VariableIndex);
-			if (nullptr == pReflectionVariable)
-			{
-				FAILED_CHECK_THROW(E_FAIL);
-			}
+    BufferrIndexer = constantBufferNum - 1;
+    ConstantBuffers[EnumToIndex(EConstantBufferLayer::Object)] = ParsingBuffer(DX_ShaderReflection, EConstantBufferLayer::Object, BufferrIndexer);
 
-			D3D11_SHADER_VARIABLE_DESC variableDesc = { 0 };
-			FAILED_CHECK_THROW(pReflectionVariable->GetDesc(&variableDesc));
+	SafeRelease(DX_ShaderReflection);
+}
 
-			if (nullptr != variableDesc.DefaultValue)
-			{
-				memcpy(bufferData.data() + variableDesc.StartOffset, variableDesc.DefaultValue, variableDesc.Size);
-			}
+std::shared_ptr<MConstantBuffer> MShader::ParsingBuffer(ID3D11ShaderReflection* InShaderReflection, EConstantBufferLayer InLayer, uint32& BufferrIndexer)
+{
+    ID3D11ShaderReflectionConstantBuffer* pReflectionConstantBuffer = InShaderReflection->GetConstantBufferByIndex(BufferrIndexer);
+    if (nullptr == pReflectionConstantBuffer)
+    {
+        FAILED_CHECK_THROW(E_FAIL);
+    }
 
-			switch (bufferDesc.Type)
-			{
-			case D3D11_CBUFFER_TYPE::D3D11_CT_TBUFFER: // 텍스쳐 버퍼
-			{
-				break;
-			}
-			case D3D11_CBUFFER_TYPE::D3D11_CT_CBUFFER: // 상수 버퍼
-			{
-				break;
-			}
-			}
+    D3D11_SHADER_BUFFER_DESC DX_BufferDesc = {};
+    FAILED_CHECK_THROW(pReflectionConstantBuffer->GetDesc(&DX_BufferDesc));
 
-			std::wstring VariableName;
-			StringToWString(variableDesc.Name, VariableName);
+    std::vector<Byte> bufferData(DX_BufferDesc.Size, 0);
+    uint32 VariableNum = DX_BufferDesc.Variables;
+    std::shared_ptr<MConstantBuffer>& NewConstantBuffer = std::make_shared<MConstantBuffer>(DX_BufferDesc.Size, bufferData.data(), VariableNum);
 
-			Variables[LayerIndex].emplace_back(variableDesc.StartOffset, variableDesc.Size);
-			FShaderVariableInfo NewVarbleInfo;
-			NewVarbleInfo.Layer			= static_cast<EConstantBufferLayer>(LayerIndex);
-			NewVarbleInfo.Index			= VariableIndex;	
-			VariableInfos[VariableName] = NewVarbleInfo;
-		}
-		
-		ConstantBuffers[LayerIndex] = std::make_shared<MConstantBuffer>(bufferDesc.Size, bufferData.data(), bufferDesc.Variables);
-	}
+    D3D11_SHADER_INPUT_BIND_DESC ShaderInputBindDesc = {};
+    InShaderReflection->GetResourceBindingDescByName(DX_BufferDesc.Name, &ShaderInputBindDesc);
+    uint32 BindPoint = ShaderInputBindDesc.BindPoint;
 
-	SafeRelease(pShaderReflection);
+    uint32 ConstantBufferLayer = EnumToIndex(InLayer);
+    if (BindPoint != ConstantBufferLayer)
+    {
+        return nullptr;
+    }
+
+    ++BufferrIndexer;
+
+    for (uint32 VariableIndex = 0; VariableIndex < VariableNum; ++VariableIndex)
+    {
+        ID3D11ShaderReflectionVariable* pReflectionVariable = pReflectionConstantBuffer->GetVariableByIndex(VariableIndex);
+        if (nullptr == pReflectionVariable)
+        {
+            FAILED_CHECK_THROW(E_FAIL);
+        }
+
+        D3D11_SHADER_VARIABLE_DESC variableDesc = { 0 };
+        FAILED_CHECK_THROW(pReflectionVariable->GetDesc(&variableDesc));
+
+        if (nullptr != variableDesc.DefaultValue)
+        {
+            memcpy(bufferData.data() + variableDesc.StartOffset, variableDesc.DefaultValue, variableDesc.Size);
+        }
+
+        switch (DX_BufferDesc.Type)
+        {
+        case D3D11_CBUFFER_TYPE::D3D11_CT_TBUFFER: // 텍스쳐 버퍼
+        {
+            break;
+        }
+        case D3D11_CBUFFER_TYPE::D3D11_CT_CBUFFER: // 상수 버퍼
+        {
+            break;
+        }
+        }
+
+        std::wstring VariableName;
+        StringToWString(variableDesc.Name, VariableName);
+
+        FBufferVariableInfo NewVarbleInfo;
+        NewVarbleInfo.Layer = InLayer;
+        NewVarbleInfo.Index = VariableIndex;
+
+        FBufferVariable NewVariable(variableDesc.StartOffset, variableDesc.Size);
+
+        NewConstantBuffer->AddVariable(VariableName, NewVarbleInfo, NewVariable);
+    }
+
+    //ConstantBuffers[BindPoint] = std::make_shared<MConstantBuffer>(bufferDesc.Size, bufferData.data(), bufferDesc.Variables);
+    return NewConstantBuffer;
 }
 
 const uint32 MShader::getVariableCountOfConstantBuffer(const EConstantBufferLayer layer)
@@ -236,12 +204,22 @@ const uint32 MShader::getVariableCountOfConstantBuffer(const EConstantBufferLaye
 	return ConstantBuffers[CastValue<uint32>(layer)]->getCountOfVariables();
 }
 
+std::shared_ptr<MConstantBuffer> MShader::GetConstantBuffer()
+{
+    return ConstantBuffers[EnumToIndex(EConstantBufferLayer::Object)];
+}
+
 ID3D10Blob* MShader::getBlob()
 {
 	return _pBlob;
 }
 
-std::vector<std::vector<FShaderVariable>>& MShader::GetVariables()
+std::vector<std::vector<FBufferVariable>>& MShader::GetVariables()
 {
 	return Variables;
+}
+
+std::shared_ptr<MConstantBuffer>& MShader::GetSharedConstantBuffer(EConstantBufferLayer InLayer)
+{
+    return SharedBuffers[EnumToIndex(InLayer)];
 }

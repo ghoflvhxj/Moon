@@ -3,10 +3,10 @@
 #include "GraphicDevice.h"
 
 MConstantBuffer::MConstantBuffer(const uint32 bufferSize, const void *buffer, const uint32 countOfVariables)
-	: _pBuffer{ nullptr }
-	, Buffer{ nullptr }
+	: DX_Buffer{ nullptr }
+	, BufferData{ nullptr }
 	, BufferSize{ bufferSize }
-	, _countOfVarialbes{ countOfVariables }
+	, VariableNum{ countOfVariables }
 {
 	D3D11_BUFFER_DESC bd		= {};
 	bd.BindFlags				= D3D11_BIND_CONSTANT_BUFFER;
@@ -19,38 +19,51 @@ MConstantBuffer::MConstantBuffer(const uint32 bufferSize, const void *buffer, co
 	D3D11_SUBRESOURCE_DATA sd	= {};
 	sd.pSysMem					= buffer;
 
-	Buffer = (Byte*)_aligned_malloc(bufferSize, 16);
-	ZeroMemory(Buffer, bufferSize);
+	BufferData = (Byte*)_aligned_malloc(bufferSize, 16);
+	ZeroMemory(BufferData, bufferSize);
 
-	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateBuffer(&bd, &sd, &_pBuffer));
+	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateBuffer(&bd, &sd, &DX_Buffer));
 }
 
 MConstantBuffer::~MConstantBuffer()
 {
-	_aligned_free(Buffer);
-	Buffer = nullptr;
+	_aligned_free(BufferData);
+	BufferData = nullptr;
 
-	SafeRelease(_pBuffer);
+	SafeRelease(DX_Buffer);
 }
 
 void MConstantBuffer::Commit()
 {
 	D3D11_MAPPED_SUBRESOURCE mappedSubResource = {};
-	g_pGraphicDevice->getContext()->Map(_pBuffer, 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedSubResource);
-	memcpy(mappedSubResource.pData, Buffer, BufferSize);
-	g_pGraphicDevice->getContext()->Unmap(_pBuffer, 0u);
+	g_pGraphicDevice->getContext()->Map(DX_Buffer, 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedSubResource);
+	memcpy(mappedSubResource.pData, BufferData, BufferSize);
+	g_pGraphicDevice->getContext()->Unmap(DX_Buffer, 0u);
 }
 
-void MConstantBuffer::Update(const void * pData)
+void MConstantBuffer::SetAllData(const void * pData)
 {
-	memcpy(Buffer, pData, BufferSize);
+	memcpy(BufferData, pData, BufferSize);
 
 	Commit();
 }
 
-void MConstantBuffer::SetData(int32 Offset, Byte* InData, uint32 InSize)
+void MConstantBuffer::SetData(int32 Offset, const void* InData, uint32 InSize)
 {
-	memcpy(Buffer + Offset, InData, InSize);
+	memcpy(BufferData + Offset, InData, InSize);
+}
+
+void MConstantBuffer::SetData(const std::wstring& InName, const void* InData)
+{
+    auto& Iter = VariableInfos.find(InName);
+    if (Iter == VariableInfos.end())
+    {
+        return;
+    }
+
+    const FBufferVariableInfo& VariableInfo = Iter->second;
+    const FBufferVariable& Variable = Variables[VariableInfo.Index];
+    SetData(Variable.Offset, InData, Variable.Size);
 }
 
 const uint32 MConstantBuffer::getSize() const
@@ -60,10 +73,16 @@ const uint32 MConstantBuffer::getSize() const
 
 ID3D11Buffer *const MConstantBuffer::getRaw()
 {
-	return _pBuffer;
+	return DX_Buffer;
 }
 
 const uint32 MConstantBuffer::getCountOfVariables() const
 {
-	return _countOfVarialbes;
+	return VariableNum;
+}
+
+void MConstantBuffer::AddVariable(const std::wstring& InName, const FBufferVariableInfo& InVariableInfo, const FBufferVariable& InVariable)
+{
+    VariableInfos[InName] = InVariableInfo;
+    Variables.push_back(InVariable);
 }

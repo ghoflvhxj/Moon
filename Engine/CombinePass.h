@@ -21,7 +21,6 @@ public:
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData) override;
 
 protected:
     //std::weak_ptr<class MLightComponent> CachedLightComponent;
@@ -39,7 +38,6 @@ private:
     virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& primitiveData) override;
 };
 
 class DirectionalLightPass : public MRenderPass

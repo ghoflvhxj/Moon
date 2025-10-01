@@ -19,7 +19,7 @@ class PixelShader;
 class MPrimitiveComponent;
 class DynamicMeshComponent;
 
-struct FShaderVariable;
+struct FBufferVariable;
 
 class ENGINE_DLL MMaterial : public MAsset
 {
@@ -81,8 +81,8 @@ private:
 	bool bAlphaMask;
 
 public:
-	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer);
-	std::vector<FShaderVariable>& getConstantBufferVariables(const ShaderType InShaderType, const uint32 index);
+	std::vector<FBufferVariable>& getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer);
+	std::vector<FBufferVariable>& getConstantBufferVariables(const ShaderType InShaderType, const uint32 index);
 	
 	// 유틸리티	함수들
 public:

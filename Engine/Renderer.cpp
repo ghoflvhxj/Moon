@@ -43,6 +43,8 @@
 
 using namespace DirectX;
 
+#define MinimalRendering 0
+
 enum class EFrustumCascade
 {
     Near,
@@ -54,7 +56,7 @@ enum class EFrustumCascade
 
 MRenderer::MRenderer() noexcept
 	: CascadeDistance(4, 0.f)
-    , CascadeLightPosition(3, VEC3ZERO)
+    , CascadeLightPositions(3, VEC4ZERO)
     , CascadeLightMatrices(3, IDENTITYMATRIX)
 {
 	CascadeDistance[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
@@ -140,6 +142,7 @@ bool MRenderer::Initialize()
 		_renderTargets.emplace_back(std::make_shared<RenderTarget>(RenderTargetInfo));
 	}
 
+#if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)] = CreateRenderPass<DirectionalShadowDepthPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->BindRenderTargets(_renderTargets,
@@ -159,6 +162,7 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPointPS.cso"), TEXT("ShadowDepthPointGS.cso"));
         RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
     }
+#endif
 
     RenderPasses[EnumToIndex(ERenderPass::Geometry)] = CreateRenderPass<GeometryPass>();
 	{
@@ -175,6 +179,7 @@ bool MRenderer::Initialize()
         );
 	}
 
+#if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::Stencil)] = CreateRenderPass<MStencilPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::Stencil)]->BindRenderTargets(_renderTargets,
@@ -244,6 +249,7 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::Outline)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_Outline.cso"));
         RenderPasses[EnumToIndex(ERenderPass::Outline)]->SetDepthEnable(false);
     }
+#endif
 
     RenderPasses[EnumToIndex(ERenderPass::Combine)] = CreateRenderPass<MCombinePass>();
 	{
@@ -726,7 +732,7 @@ void MRenderer::Render()
             XMVECTOR LightDirection = XMVector3Normalize(XMLoadFloat3(&InLightComponent->GetDirection()));
             XMVECTOR CascadeCenterInWorld = XMVector3TransformCoord(CascadeCenter, cameraWorldMatrix);
             XMVECTOR LightPositionInFrustume = CascadeCenterInWorld - (LightDirection * radius);
-            XMStoreFloat3(&CascadeLightPosition[cascadeIndex], LightPositionInFrustume);
+            XMStoreFloat4(&CascadeLightPositions[cascadeIndex], LightPositionInFrustume);
 
             float Near = std::max(DepthCenter - radius, 0.1f);
             float Far = radius * 2.f;
@@ -751,16 +757,8 @@ void MRenderer::Render()
         }
     }
 
-    for (uint32 index = 0; index < CastValue<uint32>(ShaderType::Count); ++index)
-    {
-        auto& Shaders = g_pGraphicDevice->GetShaderManager()->GetShaders(CastValue<ShaderType>(index));
-
-        for (auto& Pair : Shaders)
-        {
-            UpdateGlobalConstantBuffer(Pair.second);
-            UpdateTickConstantBuffer(Pair.second);
-        }
-    }
+    UpdateGlobalConstantBuffer();
+    UpdateTickConstantBuffer();
 
     // 스피어 그리기
     PrimitiveDatasRenderPass[SpherePID].clear();
@@ -976,24 +974,41 @@ void MRenderer::FrustumCulling()
     }
 }
 
-void MRenderer::UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader)
+void MRenderer::UpdateGlobalConstantBuffer()
 {
+    std::shared_ptr<MConstantBuffer>& GlobalCBuffer = MShader::GetSharedConstantBuffer(EConstantBufferLayer::Global);
     Vec4 resolution = { g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 0.f, 0.f };
-    Shader->SetValue(TEXT("resolution"), resolution);
+    GlobalCBuffer->SetData(TEXT("resolution"), &resolution);
 
     BOOL bLight = TRUE;
-    Shader->SetValue(TEXT("bLight"), bLight);
+    GlobalCBuffer->SetData(TEXT("bLight"), &bLight);
+
+    GlobalCBuffer->Commit();
+
+    ID3D11Buffer* DX_Buffer = GlobalCBuffer->getRaw();
+    g_pGraphicDevice->getContext()->VSSetConstantBuffers(0, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->PSSetConstantBuffers(0, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->GSSetConstantBuffers(0, 1, &DX_Buffer);
 }
 
-void MRenderer::UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader)
+void MRenderer::UpdateTickConstantBuffer()
 {
-    Shader->SetValue(TEXT("cascadeDistance"), CascadeDistance);
-    Shader->SetValue(TEXT("lightPos"), CascadeLightPosition);
-    Shader->SetValue(TEXT("lightViewProjMatrix"), CascadeLightMatrices);
+    std::shared_ptr<MConstantBuffer>& TickCBuffer = MShader::GetSharedConstantBuffer(EConstantBufferLayer::Tick);
 
-    Shader->SetValue(TEXT("viewMatrix"), g_World->getMainCameraViewMatrix());
-    Shader->SetValue(TEXT("projectionMatrix"), g_World->getMainCameraProjectioinMatrix());
-    Shader->SetValue(TEXT("identityMatrix"), IDENTITYMATRIX);
-    Shader->SetValue(TEXT("orthographicProjectionMatrix"), g_World->getMainCameraOrthographicProjectionMatrix());
-    Shader->SetValue(TEXT("inverseOrthographicProjectionMatrix"), g_World->getMainCamera()->getInverseOrthographicProjectionMatrix());
+    TickCBuffer->SetData(TEXT("cascadeDistance"), &CascadeDistance);
+    TickCBuffer->SetData(TEXT("lightPos"), CascadeLightPositions.data());
+    TickCBuffer->SetData(TEXT("lightViewProjMatrix"), CascadeLightMatrices.data());
+
+    TickCBuffer->SetData(TEXT("viewMatrix"), &g_World->getMainCameraViewMatrix());
+    TickCBuffer->SetData(TEXT("projectionMatrix"), &g_World->getMainCameraProjectioinMatrix());
+    TickCBuffer->SetData(TEXT("identityMatrix"), &IDENTITYMATRIX);
+    TickCBuffer->SetData(TEXT("orthographicProjectionMatrix"), &g_World->getMainCameraOrthographicProjectionMatrix());
+    TickCBuffer->SetData(TEXT("inverseOrthographicProjectionMatrix"), &g_World->getMainCamera()->getInverseOrthographicProjectionMatrix());
+
+    TickCBuffer->Commit();
+
+    ID3D11Buffer* DX_Buffer = TickCBuffer->getRaw();
+    g_pGraphicDevice->getContext()->PSSetConstantBuffers(1, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->VSSetConstantBuffers(1, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->GSSetConstantBuffers(1, 1, &DX_Buffer);
 }

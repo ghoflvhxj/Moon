@@ -33,7 +33,7 @@ void VertexShader::SetToDevice()
     g_pGraphicDevice->getContext()->VSSetShader(_pVertexShader, nullptr, 0);
 
     std::vector<ID3D11Buffer*>& RawBuffers = GetBuffers();
-    g_pGraphicDevice->getContext()->VSSetConstantBuffers(0u, CastValue<UINT>(RawBuffers.size()), RawBuffers.data());
+    g_pGraphicDevice->getContext()->VSSetConstantBuffers(2u, CastValue<UINT>(RawBuffers.size()), RawBuffers.data());
 }
 
 ID3D11VertexShader* VertexShader::getRaw()

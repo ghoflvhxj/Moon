@@ -1,7 +1,8 @@
-#pragma once
-#ifndef __CONSTANT_BUFFER_H__
+ï»¿#pragma once
 
 class MMaterial;
+struct FBufferVariableInfo;
+struct FBufferVariable;
 
 class MConstantBuffer
 {
@@ -10,13 +11,13 @@ public:
 	~MConstantBuffer();
 
 public:
-	// µ¥ÀÌÅÍ¸¦ µğ¹ÙÀÌ½º¿¡ ¿Ã¸²
+	// ë°ì´í„°ë¥¼ ë””ë°”ì´ìŠ¤ì— ì˜¬ë¦¼
 	void Commit();
-	// µ¥ÀÌÅÍ¸¦ ¾÷µ¥ÀÌÆ® ÇÏ°í µğ¹ÙÀÌ½º¿¡ ¿Ã¸²
-	void Update(const void *pData);
-	// Æ¯Á¤ µ¥ÀÌÅÍ¸¸ ¾÷µ¥ÀÌÆ® ÇÒ ‹š »ç¿ë
-	void SetData(int32 Offset, Byte* InData, uint32 InSize);
-
+	// ë°ì´í„°ë¥¼ ì—…ë°ì´íŠ¸ í•˜ê³  ë””ë°”ì´ìŠ¤ì— ì˜¬ë¦¼
+	void SetAllData(const void *pData);
+	// íŠ¹ì • ë°ì´í„°ë§Œ ì—…ë°ì´íŠ¸ í•  ë–„ ì‚¬ìš©
+	void SetData(int32 Offset, const void* InData, uint32 InSize);
+    void SetData(const std::wstring& InName, const void* InData);
 	//void setBufferToDevice(UINT &stride, UINT &offset);
 
 public:
@@ -27,17 +28,21 @@ private:
 public:
 	ID3D11Buffer *const getRaw();
 private:
-	ID3D11Buffer *_pBuffer;
+	ID3D11Buffer *DX_Buffer;
 
 public:
 	const uint32 getCountOfVariables() const;
 private:
-	uint32 _countOfVarialbes;
+	uint32 VariableNum;
 
 private:
-	Byte* Buffer;
+	Byte* BufferData;
 
+public:
+    void AddVariable(const std::wstring& InName, const FBufferVariableInfo& InVariableInfo, const FBufferVariable& InVariable);
+protected:
+    // ì´ë¦„, ë²„í¼ ë³€ìˆ˜ ìŒì„ ì €ì¥í•¨
+    std::map<std::wstring, FBufferVariableInfo> VariableInfos;
+    // ë³€ìˆ˜ì˜ ë°ì´í„°ë¥¼ ì €ì¥í•¨
+    std::vector<FBufferVariable> Variables;
 };
-
-#define __CONSTANT_BUFFER_H__
-#endif

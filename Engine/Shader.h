@@ -1,16 +1,13 @@
 ﻿#pragma once
-#ifndef __SHADER_H__
-#define __SHADER_H__
 
 #include "ConstantBuffer.h"
 
 // 쉐이더는 hlsl에서 사용되는 변수 값과, CBuffer를 관리를 하는 존재임
 // 지금은 쉐이더마다 CBuffer를 생성하고 있지만, 이후에는 공통된 CBuffer를 공유하는 구조로 변경하고 싶음
-
 enum class EConstantBufferLayer
 {
 	Global,		// 해상도 등 설정 값
-	Tick,		// 카메라 위치? 등등
+	Tick,		// 카메라 위치? 등등9
 	Object,		// World, View, Proj 등등
 	Count
 };
@@ -23,10 +20,10 @@ enum class ShaderType : uint8
 	Count
 };
 
-struct FShaderVariable
+struct FBufferVariable
 {
 public:
-	FShaderVariable(uint32 offset, uint32 size)
+	FBufferVariable(uint32 offset, uint32 size)
 		: Offset{ offset }
 		, Size{ size }
 		, Value{ nullptr }
@@ -37,7 +34,7 @@ public:
 			ZeroMemory(Value, Size);
 		}
 	}
-	FShaderVariable(const FShaderVariable &rhs)
+	FBufferVariable(const FBufferVariable &rhs)
 	{
 		Offset = rhs.Offset;
 		Size = rhs.Size;
@@ -50,7 +47,7 @@ public:
 		}
 	}
 
-	~FShaderVariable()
+	~FBufferVariable()
 	{
 		if (Value != nullptr)
 		{
@@ -61,7 +58,7 @@ public:
 		}
 	}
 
-	FShaderVariable& operator=(FShaderVariable &rhs)
+	FBufferVariable& operator=(FBufferVariable &rhs)
 	{
 		if (Value != nullptr)
 		{
@@ -85,15 +82,15 @@ public:
 	}
 
 public:
-	uint32 Offset;
-	uint32 Size;
-	Byte* Value;
+    uint32 Offset = 0;
+	uint32 Size = 0;
+	Byte* Value = nullptr;
 };
 
-struct FShaderVariableInfo
+struct FBufferVariableInfo
 {
 public:
-	FShaderVariableInfo()
+	FBufferVariableInfo()
 		: Layer(EConstantBufferLayer::Count), Index(-1)
 	{
 	}
@@ -110,9 +107,9 @@ public:
 
 	// d3d11 raw
 public:
-    // ConstantBuffer에 저장된 버퍼를 리소스로 등록하고, 
+    // ConstantBuffer에 저장된 데이터를 GPU에 전달함 
     void Apply();
-    virtual void SetToDevice() = 0;
+    virtual void SetToDevice();
 protected:
     std::vector<ID3D11Buffer*> GetBuffers();
 
@@ -130,87 +127,47 @@ public:
 	template <class T>
 	void SetValue(const std::wstring& InName, const T& InValue)
 	{
-		if(VariableInfos.find(InName) == VariableInfos.end())
-		{
-			return;
-		}
-
-		const FShaderVariableInfo& ShaderVariableInfo = VariableInfos[InName];
-		const std::vector<FShaderVariable>& LayerVariables = Variables[static_cast<int32>(ShaderVariableInfo.Layer)];
-		if (ShaderVariableInfo.Index >= LayerVariables.size())
-		{
-			return;
-		}
-
-		const FShaderVariable& ShaderVariable = LayerVariables[ShaderVariableInfo.Index];
-
-		memcpy(ShaderVariable.Value, &InValue, ShaderVariable.Size);
-		ConstantBuffers[static_cast<int32>(ShaderVariableInfo.Layer)]->SetData(ShaderVariable.Offset, ShaderVariable.Value, ShaderVariable.Size);
+        GetConstantBuffer()->SetData(InName, static_cast<const void*>(&InValue));
 	}
     // 포인터 타입 대응
 	template <class T>
 	void SetValue(const std::wstring& InName, T* InValue)
 	{
-		if (VariableInfos.find(InName) == VariableInfos.end())
-		{
-			return;
-		}
-
-		const FShaderVariableInfo& ShaderVariableInfo = VariableInfos[InName];
-		const std::vector<FShaderVariable>& LayerVariables = Variables[static_cast<int32>(ShaderVariableInfo.Layer)];
-		if (ShaderVariableInfo.Index >= LayerVariables.size())
-		{
-			return;
-		}
-
-		const FShaderVariable& ShaderVariable = LayerVariables[ShaderVariableInfo.Index];
-
-		memcpy(ShaderVariable.Value, InValue, ShaderVariable.Size);
-		ConstantBuffers[static_cast<int32>(ShaderVariableInfo.Layer)]->SetData(ShaderVariable.Offset, ShaderVariable.Value, ShaderVariable.Size);
-	}
+        GetConstantBuffer()->SetData(InName, static_cast<const void*>(InValue));
+    }
     // 벡터 타입 대응
 	template <class T>
 	void SetValue(const std::wstring& InName, const std::vector<T>& InValue)
 	{
-		if (VariableInfos.find(InName) == VariableInfos.end())
-		{
-			return;
-		}
-
-		const FShaderVariableInfo& ShaderVariableInfo = VariableInfos[InName];
-		const std::vector<FShaderVariable>& LayerVariables = Variables[static_cast<int32>(ShaderVariableInfo.Layer)];
-		if (ShaderVariableInfo.Index >= LayerVariables.size())
-		{
-			return;
-		}
-
-		const FShaderVariable& ShaderVariable = LayerVariables[ShaderVariableInfo.Index];
-
-		memcpy(ShaderVariable.Value, InValue.data(), ShaderVariable.Size);
-		ConstantBuffers[static_cast<int32>(ShaderVariableInfo.Layer)]->SetData(ShaderVariable.Offset, ShaderVariable.Value, ShaderVariable.Size);
+        GetConstantBuffer()->SetData(InName, static_cast<const void*>(InValue.data()));
 	}
 
-	void UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FShaderVariable> &varialbeInfos);
+	void UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FBufferVariable> &varialbeInfos);
 	void UpdateConstantBuffer(const EConstantBufferLayer layer);
 
 private:
 	void CreateCosntantBuffers();
+    std::shared_ptr<MConstantBuffer> ParsingBuffer(ID3D11ShaderReflection* InShaderReflection,  EConstantBufferLayer InLayer, uint32& BufferrIndexer);
 
 public:
 	const uint32 getVariableCountOfConstantBuffer(const EConstantBufferLayer layer);
+    std::shared_ptr<MConstantBuffer> GetConstantBuffer();
+    bool HasConstantBuffer() { return GetConstantBuffer() != nullptr; }
 protected:
-	// 레이어 별로 ConstantBuffer를 관리
+	// ObjectLayer 버퍼만 관리
 	std::vector<std::shared_ptr<MConstantBuffer>> ConstantBuffers;
 
 public:
-	std::vector<std::vector<FShaderVariable>>& GetVariables();
+	std::vector<std::vector<FBufferVariable>>& GetVariables();
 private:
 	// ConstantBuffer 레이어 별로 변수 정보 저장
-	std::vector<std::vector<FShaderVariable>> Variables;	
+	std::vector<std::vector<FBufferVariable>> Variables;	
 	// 이름과 변수의 바인딩 정보
-	std::unordered_map<std::wstring, FShaderVariableInfo> VariableInfos;
-	// ConstantBuffer 를 업데이트 하는데 사용되는 데이터
-	//std::vector<Byte*> Buffers;
-};
+	std::unordered_map<std::wstring, FBufferVariableInfo> VariableInfos;
 
-#endif
+public:
+    static std::shared_ptr<MConstantBuffer>& GetSharedConstantBuffer(EConstantBufferLayer InLayer);
+protected:
+    // 모든 쉐이더가 공유하는 버퍼, 현재는 Global, Tick 이 해당됨.
+    static std::vector<std::shared_ptr<MConstantBuffer>> SharedBuffers;
+};

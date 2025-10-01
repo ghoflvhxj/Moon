@@ -36,20 +36,7 @@ void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& Primitiv
         DrawPrimitive(NewPrimitivData);
     }
 
-
     End();
-}
-
-void MFullScreenQuadPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
-{
-    MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
-
-    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
-    {
-        // 패스 자체 쉐이더를 오브젝트 매터리얼 쉐이더의 Cbuffer로 수동으로 갱신해줌
-        auto& variableInfosVS = Material->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::Object);
-        _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object, variableInfosVS);
-    }
 }
 
 void MCombinePass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)

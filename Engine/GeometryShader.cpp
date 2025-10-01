@@ -33,7 +33,7 @@ void MGeometryShader::SetToDevice()
 	g_pGraphicDevice->getContext()->GSSetShader(_pGeometryShader, nullptr, 0);
 
 	std::vector<ID3D11Buffer*>& RawBuffers = GetBuffers();
-	g_pGraphicDevice->getContext()->GSSetConstantBuffers(0u, CastValue<UINT>(RawBuffers.size()), RawBuffers.data());
+	g_pGraphicDevice->getContext()->GSSetConstantBuffers(2u, CastValue<UINT>(RawBuffers.size()), RawBuffers.data());
 }
 
 ID3D11GeometryShader* MGeometryShader::getRaw()

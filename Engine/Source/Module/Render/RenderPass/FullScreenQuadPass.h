@@ -24,9 +24,6 @@ public:
     virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;\
 
 protected:
-    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData);
-
-protected:
     FMeshData MeshData = {};
     uint32 PID = 0;
 };

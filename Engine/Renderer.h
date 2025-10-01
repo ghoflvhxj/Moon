@@ -40,8 +40,8 @@ protected:
     void RenderScene();
     void RenderText();
 private:
-    void UpdateGlobalConstantBuffer(std::shared_ptr<MShader>& Shader);
-    void UpdateTickConstantBuffer(std::shared_ptr<MShader>& Shader);
+    void UpdateGlobalConstantBuffer();
+    void UpdateTickConstantBuffer();
 
 public:
     //void DrawCapsule(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation);
@@ -160,7 +160,7 @@ public:
     // Cascade Shadow 구현을 위한 멤버들
 protected:
     std::vector<float> CascadeDistance;
-    std::vector<Vec3> CascadeLightPosition;
+    std::vector<Vec4> CascadeLightPositions;
     std::vector<Mat4> CascadeLightMatrices;
 
     // 공통된 CosntantBuffer

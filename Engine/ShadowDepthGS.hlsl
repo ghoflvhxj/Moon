@@ -26,10 +26,13 @@ struct GSOutput
 [maxvertexcount(9)] 
 void main(triangle GSInput input[3], inout TriangleStream<GSOutput> output)
 {
+    [unroll]
     for (uint cascadeIndex = 0; cascadeIndex < 3; ++cascadeIndex)
     {
         GSOutput element;
         element.renderTargetIndex = cascadeIndex;
+        
+        [unroll]
         for (uint i = 0; i < 3; ++i)
         {
             element.pos         = mul(input[i].pos, lightViewProjMatrix[cascadeIndex]);

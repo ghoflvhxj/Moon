@@ -148,12 +148,12 @@ const Graphic::CullMode MMaterial::getCullMode() const
 	return _eCullMode;
 }
 
-std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const ShaderType InShaderType, const uint32 index)
+std::vector<FBufferVariable>& MMaterial::getConstantBufferVariables(const ShaderType InShaderType, const uint32 index)
 {
 	return getConstantBufferVariables(InShaderType, static_cast<EConstantBufferLayer>(index));
 }
 
-std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer)
+std::vector<FBufferVariable>& MMaterial::getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer)
 {
 	//size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
 	//std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
@@ -187,7 +187,7 @@ std::vector<FShaderVariable>& MMaterial::getConstantBufferVariables(const Shader
 
     if (Shader == nullptr)
     {
-        static std::vector<FShaderVariable> Dummy;
+        static std::vector<FBufferVariable> Dummy;
         return Dummy;
     }
 

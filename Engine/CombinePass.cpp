@@ -53,15 +53,6 @@ bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& Primitiv
     return false;
 }
 
-void DirectionalShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
-{
-    MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
-
-    // 패스 자체 쉐이더를 사용하기 때문에 오브젝트 Cbuffer를 수동으로 갱신해줌 (WorldMatrix, AnimMatrix 등등을 복사하는 것)
-    auto& variableInfosVS = PrimitiveData.Material.lock()->getConstantBufferVariables(ShaderType::Vertex, EConstantBufferLayer::Object);
-    _vertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object, variableInfosVS);
-}
-
 PointShadowDepthPass::PointShadowDepthPass()
     : MRenderPass()
 {
@@ -123,13 +114,6 @@ bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData)
     }
 
     return false;
-}
-
-void PointShadowDepthPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
-{
-    MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
-
-    //std::shared_ptr<MShader>& VertexShader = GetVertexShader(PrimitiveData);
 }
 
 void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)

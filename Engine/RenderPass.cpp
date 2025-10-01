@@ -172,50 +172,56 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 버텍스쉐이더 ConstantBuffer
-    BOOL animated = FALSE;
-    if (Primitive)
+    if (VS->HasConstantBuffer())
     {
-        VS->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
-        VS->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
-        VS->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
-        if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastTo<DynamicMeshComponent>())
+        BOOL animated = FALSE;
+        if (Primitive)
         {
-            animated = TRUE;
-            VS->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
+            VS->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
+            VS->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
+            VS->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
+            if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastTo<DynamicMeshComponent>())
+            {
+                animated = TRUE;
+                VS->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
+            }
         }
-    }
-    else
-    {
-        Mat4 WorldMatrix = {};
-        XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&PrimitiveData.Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&PrimitiveData.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&PrimitiveData.Translation));
-        XMStoreFloat4x4(&WorldMatrix, XMWorldMat);
-        Mat4 InvWorldMatrix = {};
-        XMStoreFloat4x4(&InvWorldMatrix, XMMatrixInverse(nullptr, XMWorldMat));
+        else
+        {
+            Mat4 WorldMatrix = {};
+            XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&PrimitiveData.Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&PrimitiveData.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&PrimitiveData.Translation));
+            XMStoreFloat4x4(&WorldMatrix, XMWorldMat);
+            Mat4 InvWorldMatrix = {};
+            XMStoreFloat4x4(&InvWorldMatrix, XMMatrixInverse(nullptr, XMWorldMat));
 
-        VS->SetValue(TEXT("worldMatrix"), WorldMatrix);
-        VS->SetValue(TEXT("inverseWorldMatrix"), InvWorldMatrix);
-        VS->SetValue(TEXT("bOrtho"), FALSE);
-    }
+            VS->SetValue(TEXT("worldMatrix"), WorldMatrix);
+            VS->SetValue(TEXT("inverseWorldMatrix"), InvWorldMatrix);
+            VS->SetValue(TEXT("bOrtho"), FALSE);
+        }
 
-    VS->SetValue(TEXT("animated"), animated);
+        VS->SetValue(TEXT("animated"), animated);
+    }
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer
     std::shared_ptr<MShader> PS = GetPixelShader(PrimitiveData);
-    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
+    if (PS->HasConstantBuffer())
     {
-        BOOL bUseNormal = Material->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
-        PS->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
-        BOOL bUseSpecular = Material->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
-        PS->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
-        BOOL bAlphaMask = Material->IsAlphaMasked() ? TRUE : FALSE;
-        PS->SetValue(TEXT("bAlphaMask"), bAlphaMask);
-    }
-    else
-    {
-        PS->SetValue(TEXT("bUseNormalTexture"), FALSE);
-        PS->SetValue(TEXT("bUseSpecularTexture"), FALSE);
-        PS->SetValue(TEXT("bAlphaMask"), FALSE);
+        if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
+        {
+            BOOL bUseNormal = Material->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
+            PS->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
+            BOOL bUseSpecular = Material->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
+            PS->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
+            BOOL bAlphaMask = Material->IsAlphaMasked() ? TRUE : FALSE;
+            PS->SetValue(TEXT("bAlphaMask"), bAlphaMask);
+        }
+        else
+        {
+            PS->SetValue(TEXT("bUseNormalTexture"), FALSE);
+            PS->SetValue(TEXT("bUseSpecularTexture"), FALSE);
+            PS->SetValue(TEXT("bAlphaMask"), FALSE);
+        }
     }
 }
 
