@@ -253,3 +253,17 @@ bool MEditorPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
     return MRenderPass::IsValidPrimitive(PrimitiveData);
 }
+
+MDepthPre::MDepthPre()
+{
+}
+
+bool MDepthPre::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+{
+    return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && MRenderPass::IsValidPrimitive(PrimitiveData);
+}
+
+void MDepthPre::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
+{
+    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface, true));
+}

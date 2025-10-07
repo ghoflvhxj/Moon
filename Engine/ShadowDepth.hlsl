@@ -4,7 +4,7 @@ VertexOut main(VertexIn vIn)
 {
     VertexOut vOut = (VertexOut)0;
     
-    matrix boneTransform =
+    row_major matrix boneTransform =
     {
         1.f, 0.f, 0.f, 0.f,
 		0.f, 1.f, 0.f, 0.f,

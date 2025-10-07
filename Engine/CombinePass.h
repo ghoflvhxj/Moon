@@ -9,6 +9,7 @@ public:
 	virtual ~GeometryPass() = default;
 
 protected:
+
 	virtual bool IsValidPrimitive(const FPrimitiveData &primitiveData) const override;
 };
 
@@ -104,4 +105,14 @@ public:
 
 public:
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+};
+
+class MDepthPre : public MRenderPass
+{
+public:
+    explicit MDepthPre();
+
+public:
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;    
+    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
 };

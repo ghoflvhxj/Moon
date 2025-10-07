@@ -24,11 +24,11 @@ PixelOut_LightPass main(PixelIn pIn)
     {
         return pOut;
     }
-
+    
     // 그림자 계산을 위해 CascadeIndex를 구함
     int CascadeIndex = 0;
     float3 PixelPosInCameraView = PixelToView(pIn.uv, depth, g_inverseProjectiveMatrix).xyz;
-    //[unroll]
+    [unroll]
     for (int i = 1; i < 4; ++i)
     {
         if (PixelPosInCameraView.z < cascadeDistance[i])
@@ -64,6 +64,9 @@ PixelOut_LightPass main(PixelIn pIn)
 
 	float3 specularFactor = pow(saturate(dot(normalize(toEye), direction)), 10.f);
 	pOut.lightSpecular = float4(specular.xyz * specularFactor, 1.f);
-
+    
+    //pOut.lightDiffuse.xyz = PixelPosInWorld.xyz;
+    //pOut.lightDiffuse.xyz = PixelPosInCameraView.xyz;
+    pOut.lightDiffuse.xyz = PixelPosInLightViewProj.xyz;
 	return pOut;
 }

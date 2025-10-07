@@ -56,7 +56,6 @@ void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList
             continue;
         }
 
-        UpdateTickConstantBuffer(PrimitiveData);
         UpdateObjectConstantBuffer(PrimitiveData);
         DrawPrimitive(PrimitiveData);
     }
@@ -168,7 +167,11 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 {
 	const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
 
-    std::shared_ptr<MShader> VS = GetVertexShader(PrimitiveData);
+    std::shared_ptr<MShader>& VS = GetVertexShader(PrimitiveData);
+
+    auto GetViewProjMatrix = [](bool bOrtho)->Mat4 {
+        return bOrtho ? getRenderer()->ViewOrthogonalProjMatrix : getRenderer()->ViewPerspectiveProjMatrix;
+    };
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 버텍스쉐이더 ConstantBuffer
@@ -178,12 +181,24 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
         if (Primitive)
         {
             VS->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
+
+            Mat4 WorldView = {};
+            XMStoreFloat4x4(&WorldView, XMLoadFloat4x4(&Primitive->getWorldMatrix()) * XMLoadFloat4x4(&g_World->getMainCameraViewMatrix()));
+            VS->SetValue(TEXT("WorldView"), WorldView);
+
+            Mat4 WorldViewProj = {};
+            XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&Primitive->getWorldMatrix()) * XMLoadFloat4x4(&GetViewProjMatrix(Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)));
+            VS->SetValue(TEXT("WorldViewProj"), WorldViewProj);
+
             VS->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
             VS->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
             if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastTo<DynamicMeshComponent>())
             {
-                animated = TRUE;
-                VS->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
+                animated = DynamicMeshComp->IsAnimPlaying() ? TRUE : FALSE;
+                if (animated)
+                {
+                    VS->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
+                }
             }
         }
         else
@@ -191,10 +206,18 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
             Mat4 WorldMatrix = {};
             XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&PrimitiveData.Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&PrimitiveData.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&PrimitiveData.Translation));
             XMStoreFloat4x4(&WorldMatrix, XMWorldMat);
+            VS->SetValue(TEXT("worldMatrix"), WorldMatrix);
+
+            Mat4 WorldView = {};
+            XMStoreFloat4x4(&WorldView, XMWorldMat * XMLoadFloat4x4(&IDENTITYMATRIX));
+            VS->SetValue(TEXT("WorldView"), WorldView);
+
+            Mat4 WorldViewProj = {};
+            XMStoreFloat4x4(&WorldViewProj, XMWorldMat * XMLoadFloat4x4(&getRenderer()->ViewPerspectiveProjMatrix));
+            VS->SetValue(TEXT("WorldViewProj"), WorldViewProj);
+
             Mat4 InvWorldMatrix = {};
             XMStoreFloat4x4(&InvWorldMatrix, XMMatrixInverse(nullptr, XMWorldMat));
-
-            VS->SetValue(TEXT("worldMatrix"), WorldMatrix);
             VS->SetValue(TEXT("inverseWorldMatrix"), InvWorldMatrix);
             VS->SetValue(TEXT("bOrtho"), FALSE);
         }
@@ -204,7 +227,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer
-    std::shared_ptr<MShader> PS = GetPixelShader(PrimitiveData);
+    std::shared_ptr<MShader>& PS = GetPixelShader(PrimitiveData);
     if (PS->HasConstantBuffer())
     {
         if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
@@ -443,7 +466,7 @@ void MRenderPass::SetDefaultShader(const wchar_t *vertexShaderFileName, const wc
 	}
 	
 	std::shared_ptr<PixelShader> pixelShader = nullptr;
-	if (g_pGraphicDevice->GetPixelShader(pixelShaderFileName, pixelShader))
+	if (pixelShaderFileName != nullptr && g_pGraphicDevice->GetPixelShader(pixelShaderFileName, pixelShader))
 	{
 		_pixelShader = pixelShader;
 		_pixelShaderFileName = pixelShaderFileName;

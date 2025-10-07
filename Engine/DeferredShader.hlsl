@@ -9,8 +9,10 @@ PixelOut_CombinePass main(PixelIn pIn)
 	float4 specular = g_LightSpecular.Sample(g_Sampler, pIn.uv);
     float4 PointLight = T_PointLightDiffuse.Sample(g_Sampler, pIn.uv);
 	pOut.color = diffuse;
-	if (bLight)
-	{
+    
+    
+    if (bLight)
+    {
         pOut.color = diffuse * (DirectionalLight + PointLight + specular);
     }
     
@@ -26,7 +28,6 @@ PixelOut_CombinePass main(PixelIn pIn)
         pOut.color = Outline;
     }
     
-    //pOut.color = g_Diffuse.Sample(g_Sampler, pIn.uv);
-
+    
 	return pOut;
 }

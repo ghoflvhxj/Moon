@@ -38,6 +38,8 @@
 
 #include "Core/ResourceManager.h"
 
+#include "Utility/PerformanceTimer.h"
+
 #undef max
 #undef min
 
@@ -55,14 +57,14 @@ enum class EFrustumCascade
 };
 
 MRenderer::MRenderer() noexcept
-	: CascadeDistance(4, 0.f)
+	: CascadeDistances(4, 0.f)
     , CascadeLightPositions(3, VEC4ZERO)
     , CascadeLightMatrices(3, IDENTITYMATRIX)
 {
-	CascadeDistance[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
-	CascadeDistance[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
-	CascadeDistance[CastValue<int>(EFrustumCascade::Middle2)] = 18.f;
-	CascadeDistance[CastValue<int>(EFrustumCascade::Far)] = 1000.f;
+	CascadeDistances[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
+	CascadeDistances[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
+	CascadeDistances[CastValue<int>(EFrustumCascade::Middle2)] = 18.f;
+	CascadeDistances[CastValue<int>(EFrustumCascade::Far)] = 1000.f;
 
 	_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
 	RenderPasses.resize(CastValue<size_t>(ERenderPass::Count), nullptr);
@@ -113,7 +115,7 @@ bool MRenderer::Initialize()
 			RenderTargetInfo.bCube = false;
 			RenderTargetInfo.Width = 1024 * 2;
 			RenderTargetInfo.Height = 1024 * 2;
-            RenderTargetInfo.TextrueNum = CastValue<int>(CascadeDistance.size());
+            RenderTargetInfo.TextrueNum = CastValue<int>(CascadeDistances.size());
             RenderTargetInfo.Type = ERenderTargetType::Depth;
 		}
 		break;
@@ -127,11 +129,13 @@ bool MRenderer::Initialize()
             RenderTargetInfo.TextrueNum *= MaxPointLightNum;
         }
 		break;
+        //case ERenderTarget::DepthPre:
+        //{
+        //    RenderTargetInfo = FRenderTagetInfo::GetDefault( );
+        //    RenderTargetInfo.Type = ERenderTargetType::Depth;
+        //}
+        break;
         case ERenderTarget::Depth:
-        {
-            RenderTargetInfo = FRenderTagetInfo::GetDefault( );
-            RenderTargetInfo.Type = ERenderTargetType::Depth;
-        }
 		default:
 		{
 			RenderTargetInfo = FRenderTagetInfo::GetDefault();
@@ -141,6 +145,12 @@ bool MRenderer::Initialize()
 
 		_renderTargets.emplace_back(std::make_shared<RenderTarget>(RenderTargetInfo));
 	}
+
+    RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::ZPre)]->SetDefaultShader(TEXT("TexAnimVertexShader.cso"), nullptr);
+        RenderPasses[EnumToIndex(ERenderPass::ZPre)]->ApplyDefaultShaderOnly(true);
+    }
 
 #if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)] = CreateRenderPass<DirectionalShadowDepthPass>();
@@ -153,33 +163,33 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
     }
 
-    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)] = CreateRenderPass<PointShadowDepthPass>();
-    {
-        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
-            ERenderTarget::PointShadowDepth
-        );
+    //RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)] = CreateRenderPass<PointShadowDepthPass>();
+    //{
+    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
+    //        ERenderTarget::PointShadowDepth
+    //    );
 
-        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPointPS.cso"), TEXT("ShadowDepthPointGS.cso"));
-        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
-    }
+    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPointPS.cso"), TEXT("ShadowDepthPointGS.cso"));
+    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
+    //}
 #endif
 
     RenderPasses[EnumToIndex(ERenderPass::Geometry)] = CreateRenderPass<GeometryPass>();
-	{
-		RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindRenderTargets(_renderTargets,
-			ERenderTarget::Diffuse, 
-			ERenderTarget::Depth, 
-			ERenderTarget::Normal, 
-			ERenderTarget::Specular
+    {
+        RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::Diffuse,
+            ERenderTarget::Depth,
+            ERenderTarget::Normal,
+            ERenderTarget::Specular
         );
 
         RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindResourceViews(_renderTargets,
             ERenderTarget::DirectionalShadowDepth,
             ERenderTarget::PointShadowDepth
         );
-	}
+    }
 
-#if MinimalRendering == 0
+
     RenderPasses[EnumToIndex(ERenderPass::Stencil)] = CreateRenderPass<MStencilPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::Stencil)]->BindRenderTargets(_renderTargets,
@@ -190,20 +200,21 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::Stencil)]->SetDepthEnable(false);
     }
 
-    RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] =CreateRenderPass<DirectionalLightPass>();
-	{
-		RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
-			ERenderTarget::LightDiffuse,
-			ERenderTarget::LightSpecular
+#if MinimalRendering == 0
+    RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] = CreateRenderPass<DirectionalLightPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::LightDiffuse,
+            ERenderTarget::LightSpecular
         );
 
-		RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindResourceViews(_renderTargets,
-			ERenderTarget::Depth,
-			ERenderTarget::Normal,
-			ERenderTarget::Specular,
+        RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindResourceViews(_renderTargets,
+            ERenderTarget::Depth,
+            ERenderTarget::Normal,
+            ERenderTarget::Specular,
             ERenderTarget::DirectionalShadowDepth
         );
-	}
+    }
 
     RenderPasses[EnumToIndex(ERenderPass::PointLight)] = CreateRenderPass<PointLightPass>();
     {
@@ -282,6 +293,7 @@ bool MRenderer::Initialize()
     }
     UpdateBuffer(GizmoMeshComp);
 
+    //addRenderTargetForDebug(ERenderTarget::DepthPre);
     addRenderTargetForDebug(ERenderTarget::Diffuse);
     addRenderTargetForDebug(ERenderTarget::Depth);
     addRenderTargetForDebug(ERenderTarget::Normal);
@@ -689,12 +701,12 @@ void MRenderer::Render()
 
         for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Far); ++cascadeIndex)
         {
-            float Depth = CascadeDistance[cascadeIndex];
-            float NextDepth = CascadeDistance[cascadeIndex + 1];
-            float XNear = CascadeDistance[cascadeIndex] * tanHalfHorizen;
-            float XFar = CascadeDistance[cascadeIndex + 1] * tanHalfHorizen;
-            float YNear = CascadeDistance[cascadeIndex] * tanHalfVertical;
-            float YFar = CascadeDistance[cascadeIndex + 1] * tanHalfVertical;
+            float Depth = CascadeDistances[cascadeIndex];
+            float NextDepth = CascadeDistances[cascadeIndex + 1];
+            float XNear = CascadeDistances[cascadeIndex] * tanHalfHorizen;
+            float XFar = CascadeDistances[cascadeIndex + 1] * tanHalfHorizen;
+            float YNear = CascadeDistances[cascadeIndex] * tanHalfVertical;
+            float YFar = CascadeDistances[cascadeIndex + 1] * tanHalfVertical;
             float DepthCenter = (NextDepth + Depth) / 2.f;
 
             std::vector<Vec3> FrustumVertices = {
@@ -733,10 +745,11 @@ void MRenderer::Render()
             XMVECTOR CascadeCenterInWorld = XMVector3TransformCoord(CascadeCenter, cameraWorldMatrix);
             XMVECTOR LightPositionInFrustume = CascadeCenterInWorld - (LightDirection * radius);
             XMStoreFloat4(&CascadeLightPositions[cascadeIndex], LightPositionInFrustume);
+            CascadeLightPositions[cascadeIndex].w = 1.f;
 
             float Near = std::max(DepthCenter - radius, 0.1f);
             float Far = radius * 2.f;
-            XMMATRIX OrthograhpicMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, Near, Far);
+            XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, Near, Far);
 
             XMVECTOR UpVector = XMLoadFloat3(&VEC3UP);
             if (fabs(XMVectorGetX(XMVector3Dot(UpVector, LightDirection))) > 0.999f)
@@ -750,8 +763,8 @@ void MRenderer::Render()
             //float snapY = roundf(XMVectorGetY(projCenter) / worldTexelSize) * worldTexelSize;
             //LightView.r[3].m128_f32[0] += (snapX - XMVectorGetX(projCenter));
             //LightView.r[3].m128_f32[1] += (snapY - XMVectorGetY(projCenter));
-            XMMATRIX XMMatLightViewProj = XMMatrixMultiply(LightView, OrthograhpicMatrix);
-            XMStoreFloat4x4(&CascadeLightMatrices[cascadeIndex], XMMatLightViewProj);
+            XMMATRIX XMLightViewProj = LightView  * OrthoProjMatrix;
+            XMStoreFloat4x4(&CascadeLightMatrices[cascadeIndex], XMLightViewProj);
             CascadeLightMatrices[cascadeIndex]._42 = round(CascadeLightMatrices[cascadeIndex]._42 * 10.f) / 10.f;
             CascadeLightMatrices[cascadeIndex]._43 = round(CascadeLightMatrices[cascadeIndex]._43 * 10.f) / 10.f;
         }
@@ -791,7 +804,7 @@ void MRenderer::Render()
 
     // 씬 그리기
 	RenderScene();
-
+    
     std::vector<FPrimitiveData> PostRenderPrimitiveDatas;
 
     // 축 그리기
@@ -852,10 +865,6 @@ void MRenderer::Render()
 #endif
 
     RenderPasses[(int)ERenderPass::EditorGizmo]->RenderPass(PostRenderPrimitiveDatas);
-
-	RenderText();
-
-    g_World->render();
 }
 
 void MRenderer::RenderScene()
@@ -868,6 +877,8 @@ void MRenderer::RenderScene()
 	{
         if (std::shared_ptr<MRenderPass>& CurrentRenderPass = RenderPasses[PassIndex])
         {
+            std::wstring Name = TEXT("Pass") + std::to_wstring(PassIndex) + TEXT(" :");
+            PerformanceTimer Temp(Name);
             CurrentRenderPass->RenderPass(RenderablePrimitiveData);
         }
 	}
@@ -885,58 +896,59 @@ void MRenderer::FrustumCulling()
     const std::shared_ptr<MCamera>& Camera = g_World->getMainCamera();
 
 	XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&g_World->getMainCameraProjectioinMatrix()));
+	XMStoreFloat4x4(&ViewPerspectiveProjMatrix, ViewProj);
 
-	XMFLOAT4X4 ViewProjectMatrix;
-	XMStoreFloat4x4(&ViewProjectMatrix, ViewProj);
+    XMMATRIX XMOrthoViewProject = XMLoadFloat4x4(&Camera->getViewMatrix()) * XMLoadFloat4x4(&g_World->getMainCameraOrthographicProjectionMatrix());
+    XMStoreFloat4x4(&ViewOrthogonalProjMatrix, XMOrthoViewProject);
 
     // 평면의 방정식 ax + by + cz + d = 0을 구해야 함
 
     // 절두체 Near 평면
 	std::vector<XMVECTOR> Planes(6);
-    float a = ViewProjectMatrix._13;
-    float b = ViewProjectMatrix._23;
-    float c = ViewProjectMatrix._33;
-    float d = ViewProjectMatrix._43;
+    float a = ViewPerspectiveProjMatrix._13;
+    float b = ViewPerspectiveProjMatrix._23;
+    float c = ViewPerspectiveProjMatrix._33;
+    float d = ViewPerspectiveProjMatrix._43;
 	Planes[0] = XMVectorSet(a, b, c, d);
 	Planes[0] = XMPlaneNormalize(Planes[0]);
 
 	// 절두체 Far 평면
-	a = (float)(ViewProjectMatrix._14 - ViewProjectMatrix._13);
-	b = (float)(ViewProjectMatrix._24 - ViewProjectMatrix._23);
-	c = (float)(ViewProjectMatrix._34 - ViewProjectMatrix._33);
-	d = (float)(ViewProjectMatrix._44 - ViewProjectMatrix._43);
+	a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._13);
+	b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._23);
+	c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._33);
+	d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._43);
 	Planes[1] = XMVectorSet(a, b, c, d);
 	Planes[1] = XMPlaneNormalize(Planes[1]);
 
 	// 절두체의 왼쪽 평면
-	a = (float)(ViewProjectMatrix._14 + ViewProjectMatrix._11);
-	b = (float)(ViewProjectMatrix._24 + ViewProjectMatrix._21);
-	c = (float)(ViewProjectMatrix._34 + ViewProjectMatrix._31);
-	d = (float)(ViewProjectMatrix._44 + ViewProjectMatrix._41);
+	a = (float)(ViewPerspectiveProjMatrix._14 + ViewPerspectiveProjMatrix._11);
+	b = (float)(ViewPerspectiveProjMatrix._24 + ViewPerspectiveProjMatrix._21);
+	c = (float)(ViewPerspectiveProjMatrix._34 + ViewPerspectiveProjMatrix._31);
+	d = (float)(ViewPerspectiveProjMatrix._44 + ViewPerspectiveProjMatrix._41);
 	Planes[2] = XMVectorSet(a, b, c, d);
 	Planes[2] = XMPlaneNormalize(Planes[2]);
 
 	// 절두체의 오른쪽 평면
-	a = (float)(ViewProjectMatrix._14 - ViewProjectMatrix._11);
-	b = (float)(ViewProjectMatrix._24 - ViewProjectMatrix._21);
-	c = (float)(ViewProjectMatrix._34 - ViewProjectMatrix._31);
-	d = (float)(ViewProjectMatrix._44 - ViewProjectMatrix._41);
+	a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._11);
+	b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._21);
+	c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._31);
+	d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._41);
 	Planes[3] = XMVectorSet(a, b, c, d);
 	Planes[3] = XMPlaneNormalize(Planes[3]);
 
 	// 절두체의 윗 평면
-	a = (float)(ViewProjectMatrix._14 - ViewProjectMatrix._12);
-	b = (float)(ViewProjectMatrix._24 - ViewProjectMatrix._22);
-	c = (float)(ViewProjectMatrix._34 - ViewProjectMatrix._32);
-	d = (float)(ViewProjectMatrix._44 - ViewProjectMatrix._42);
+	a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._12);
+	b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._22);
+	c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._32);
+	d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._42);
 	Planes[4] = XMVectorSet(a, b, c, d);
 	Planes[4] = XMPlaneNormalize(Planes[4]);
 
 	// 절두체의 아래 평면
-	a = (float)(ViewProjectMatrix._14 + ViewProjectMatrix._12);
-	b = (float)(ViewProjectMatrix._24 + ViewProjectMatrix._22);
-	c = (float)(ViewProjectMatrix._34 + ViewProjectMatrix._32);
-	d = (float)(ViewProjectMatrix._44 + ViewProjectMatrix._42);
+	a = (float)(ViewPerspectiveProjMatrix._14 + ViewPerspectiveProjMatrix._12);
+	b = (float)(ViewPerspectiveProjMatrix._24 + ViewPerspectiveProjMatrix._22);
+	c = (float)(ViewPerspectiveProjMatrix._34 + ViewPerspectiveProjMatrix._32);
+	d = (float)(ViewPerspectiveProjMatrix._44 + ViewPerspectiveProjMatrix._42);
 	Planes[5] = XMVectorSet(a, b, c, d);
 	Planes[5] = XMPlaneNormalize(Planes[5]);
 
@@ -958,15 +970,16 @@ void MRenderer::FrustumCulling()
         {
             std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
             // TODO 바운딩 박스가 없으면 일단 무조건 렌더링
-            if (PrimitiveComponent->GetBoundingBox(BoundingBox))
-            {
-                // 컬링
-                if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
-                {
-                    CulledPrimitiveNum += GetSize(PrimitiveDatas);
-                    continue;
-                }
-            }
+            //if (PrimitiveComponent->GetBoundingBox(BoundingBox))
+            //{
+            //    // 컬링
+            //    if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
+            //    {
+            //        CulledPrimitiveNum += GetSize(PrimitiveDatas);
+            //        continue;
+            //    }
+            //    
+            //}
         }
 
         RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), PrimitiveDatas.begin(), PrimitiveDatas.end());
@@ -977,6 +990,11 @@ void MRenderer::FrustumCulling()
 void MRenderer::UpdateGlobalConstantBuffer()
 {
     std::shared_ptr<MConstantBuffer>& GlobalCBuffer = MShader::GetSharedConstantBuffer(EConstantBufferLayer::Global);
+    if (GlobalCBuffer == nullptr)
+    {
+        return;
+    }
+
     Vec4 resolution = { g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 0.f, 0.f };
     GlobalCBuffer->SetData(TEXT("resolution"), &resolution);
 
@@ -993,9 +1011,11 @@ void MRenderer::UpdateGlobalConstantBuffer()
 
 void MRenderer::UpdateTickConstantBuffer()
 {
-    std::shared_ptr<MConstantBuffer>& TickCBuffer = MShader::GetSharedConstantBuffer(EConstantBufferLayer::Tick);
+    EConstantBufferLayer Layer = EConstantBufferLayer::Tick;
+    uint32 LayerIndex = EnumToIndex(Layer);
+    std::shared_ptr<MConstantBuffer>& TickCBuffer = MShader::GetSharedConstantBuffer(Layer);
 
-    TickCBuffer->SetData(TEXT("cascadeDistance"), &CascadeDistance);
+    TickCBuffer->SetData(TEXT("cascadeDistance"), CascadeDistances.data());
     TickCBuffer->SetData(TEXT("lightPos"), CascadeLightPositions.data());
     TickCBuffer->SetData(TEXT("lightViewProjMatrix"), CascadeLightMatrices.data());
 
@@ -1008,7 +1028,7 @@ void MRenderer::UpdateTickConstantBuffer()
     TickCBuffer->Commit();
 
     ID3D11Buffer* DX_Buffer = TickCBuffer->getRaw();
-    g_pGraphicDevice->getContext()->PSSetConstantBuffers(1, 1, &DX_Buffer);
-    g_pGraphicDevice->getContext()->VSSetConstantBuffers(1, 1, &DX_Buffer);
-    g_pGraphicDevice->getContext()->GSSetConstantBuffers(1, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->PSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->VSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->GSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
 }

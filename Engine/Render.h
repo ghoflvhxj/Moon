@@ -20,11 +20,10 @@ using RenderTargets = std::vector<std::shared_ptr<RenderTarget>>;
 // PixelShader랑 맞춰줘야 함
 enum class ERenderTarget
 {
-	//DepthPre,
 	Diffuse,
 	Depth,
 	Normal,
-	Specular,
+	Specular, // 여기 까지가 매터리얼에 할당된 텍스쳐들
 
 	LightDiffuse,
 	LightSpecular,
@@ -37,11 +36,13 @@ enum class ERenderTarget
     PointLightDiffuse,
     Stencil,
     Outline,
+
 	Count
 };
 
 enum class ERenderPass
 {
+    ZPre,
 	ShadowDepth,
 	PointShadowDepth,
 	Geometry,

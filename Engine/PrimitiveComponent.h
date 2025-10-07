@@ -79,7 +79,7 @@ public:
 	void				setRenderMode(const ERenderMode renderMode);
 	const ERenderMode	getRenderMdoe() const;
 private:
-	ERenderMode RenderMode;
+	ERenderMode RenderMode = ERenderMode::Perspective;
 
 public:
 	void SetRendering(bool bNewRendering);

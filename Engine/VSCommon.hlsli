@@ -48,6 +48,8 @@ struct VertexOut_SimpleTex
 cbuffer VS_CBuffer_PerObject : register(b2)
 {
 	row_major matrix worldMatrix;
+    row_major matrix WorldView;
+    row_major matrix WorldViewProj;
     row_major matrix InverseWorldMatrix;
 	row_major matrix keyFrameMatrices[199];
 	bool animated;
@@ -71,4 +73,21 @@ int getCascadeIndex(float3 pos)
     }
 	
     return cascadeIndex;
+}
+
+float4 Temp(VertexIn vIn)
+{
+    matrix boneTransform = identityMatrix;
+    if (animated)
+    {
+        boneTransform = (matrix) 0;
+        for (int i = 0; i < 4; ++i)
+        {
+            boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);
+        }
+    }
+    
+    float3 animatedPos = mul(float4(vIn.pos.xyz, 1.f), boneTransform).xyz;
+    float4 ProjectedPos = mul(float4(animatedPos, 1.f), WorldViewProj);
+    return ProjectedPos;
 }

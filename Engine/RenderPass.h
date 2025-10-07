@@ -98,6 +98,7 @@ public:
 	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
 	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName);
 	const bool isShaderSet() const;
+    void ApplyDefaultShaderOnly(bool InValue) { bUseDefaultShaderOnly = InValue; }
 private:
 	void releaseShader();
 protected:

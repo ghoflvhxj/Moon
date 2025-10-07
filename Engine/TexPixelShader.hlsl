@@ -23,7 +23,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
         clip(pOut.color.rgb - float3(0.01f, 0.01f, 0.01f));
         pOut.color.rgb = smoothstep(0.f, 1.f, pOut.color.rgb);
     }
-    
+
     if (true == bUseNormalTexture)
     {
         float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
@@ -34,12 +34,12 @@ PixelOut_GeometryPass main(PixelIn pIn)
         
         pOut.normal = float4(normal, 1.f);
     }
-
-	if (true == bUseSpecularTexture)
-	{
-		float3 specular = g_Specular.Sample(g_Sampler, pIn.uv).xyz;
-		pOut.specular = float4(specular, 1.f); 
-	}
+    
+    if (true == bUseSpecularTexture)
+    {
+        float3 specular = g_Specular.Sample(g_Sampler, pIn.uv).xyz;
+        pOut.specular = float4(specular, 1.f);
+    }
 	
     // 테스트 를 위한 값 초기화
     //pOut.color = float4(PixelPosInLightViewProj.z, shadowFactor, 0.f, 1.f);
@@ -113,10 +113,3 @@ PixelOut_GeometryPass main(PixelIn pIn)
     
     return pOut;
 }
-
-//float4 main(VertexOut vOut) : SV_TARGET
-//{
-//	float4 color = g_Diffuse.Sample(g_Sampler, vOut.uv);
-//
-//	return color;
-//}

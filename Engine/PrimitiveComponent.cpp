@@ -134,7 +134,6 @@ uint32 MPrimitiveComponent::PrimitiveCounter = 0;
 
 MPrimitiveComponent::MPrimitiveComponent()
 	: Super()
-    , RenderMode{ ERenderMode::Perspective }
 	, PrimitiveID{ ++PrimitiveCounter }
 {
 }

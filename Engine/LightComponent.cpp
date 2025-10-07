@@ -13,6 +13,8 @@ MLightComponent::MLightComponent(void)
 	, Intensity { 1.f }
 	, bShow { true }
 {
+    setRenderMode(ERenderMode::Orthogonal);
+
     g_ResourceManager->Load(TEXT("Base/Plane.json"), _pStaticMesh);
 
     Material = std::make_shared<MMaterial>();
@@ -28,6 +30,7 @@ MLightComponent::~MLightComponent(void)
 void MLightComponent::Update(const Time deltaTime)
 {
     Super::Update(deltaTime);
+    setRenderMode(ERenderMode::Orthogonal);
 
     Direction = GetForward();
 }

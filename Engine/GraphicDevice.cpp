@@ -266,9 +266,17 @@ bool GraphicDevice::buildRasterizerState()
 	rd.SlopeScaledDepthBias = 0.f;
 	rd.DepthBiasClamp = 0.f;
 	rd.DepthClipEnable = TRUE;
-	rd.ScissorEnable = FALSE;
+	rd.ScissorEnable = TRUE;
 	rd.MultisampleEnable = FALSE;
 	rd.AntialiasedLineEnable = FALSE;
+
+    {
+        rd.DepthBias = 100000;
+        rd.SlopeScaledDepthBias = 1.f;
+        FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &DepthBiasRS));
+        rd.DepthBias = 0;
+        rd.SlopeScaledDepthBias = 0.f;
+    }
 
 	//-------------------------------------------------------------------------------------
 	for (uint32 fillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME; fillMode <= D3D11_FILL_MODE::D3D11_FILL_SOLID; ++fillMode)
@@ -278,16 +286,29 @@ bool GraphicDevice::buildRasterizerState()
 			rd.FillMode = D3D11_FILL_MODE(fillMode);
 			rd.CullMode = D3D11_CULL_MODE(cullMode);
 
-			FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &pRasterizerState));
-			_rasterizerList.push_back(pRasterizerState);
+            FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &pRasterizerState));
+            _rasterizerList.push_back(pRasterizerState);
 		}
 	}
+
+    UINT RectNum = 1;
+    D3D11_RECT Rect = {};
+    Rect.left = 0;
+    Rect.top = 0;
+    Rect.right = g_pSetting->getResolutionWidth<LONG>();
+    Rect.bottom = g_pSetting->getResolutionHeight<LONG>();
+    getContext()->RSSetScissorRects(RectNum, &Rect);
 
 	return true;
 }
 
-ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode)
+ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode, bool bDepthBias)
 {
+    if (bDepthBias)
+    {
+        return DepthBiasRS;
+    }
+
 	return _rasterizerList[(EnumToIndex(eFillMode) * CastValue<uint32>(Graphic::CullMode::Count)) + EnumToIndex(eCullMode)];
 }
 
@@ -445,9 +466,9 @@ bool GraphicDevice::buildSamplerState()
 	SamplerDesc.BorderColor[2] = 1.f;
 	SamplerDesc.BorderColor[3] = 1.f;
 	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	SamplerDesc.MaxAnisotropy = 16u;
+	SamplerDesc.MaxAnisotropy = 1u;
+	SamplerDesc.MinLOD = 0;
 	SamplerDesc.MaxLOD = FLT_MAX;
-	SamplerDesc.MinLOD = -FLT_MAX;
 	SamplerDesc.MipLODBias = 0.f;
 
 	// Point
@@ -460,7 +481,7 @@ bool GraphicDevice::buildSamplerState()
 
 	// Anisotropic
 	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
-	SamplerDesc.MaxAnisotropy = 16u;
+	SamplerDesc.MaxAnisotropy = 1u;
 	CreateSamplerLambda(SamplerDesc);
 
 	// Comparison MIN MAG LINEAR MIP POINT
@@ -469,7 +490,7 @@ bool GraphicDevice::buildSamplerState()
 	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 	SamplerDesc.BorderColor[0] = 1.f;
 	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
-	SamplerDesc.MaxAnisotropy = 16u;
+	SamplerDesc.MaxAnisotropy = 1u;
 	SamplerDesc.MipLODBias = 0.f;
 
     {

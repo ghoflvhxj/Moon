@@ -33,9 +33,9 @@ public:
 
     // Module의 인터페이스 구현
 public:
-    virtual bool Initialize();
-    virtual void Release();
-    virtual void Render();
+    virtual bool Initialize() override;
+    virtual void Release() override;
+    virtual void Render() override;
 protected:
     void RenderScene();
     void RenderText();
@@ -159,14 +159,13 @@ public:
 
     // Cascade Shadow 구현을 위한 멤버들
 protected:
-    std::vector<float> CascadeDistance;
+    std::vector<float> CascadeDistances;
     std::vector<Vec4> CascadeLightPositions;
     std::vector<Mat4> CascadeLightMatrices;
 
-    // 공통된 CosntantBuffer
-protected:
-    
-
+public:
+    Mat4 ViewPerspectiveProjMatrix = {};
+    Mat4 ViewOrthogonalProjMatrix = {};
 public:
     RENDERER_OPTION(DrawCollision);
     //bool bDrawCollision = false;

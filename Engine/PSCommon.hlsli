@@ -57,7 +57,8 @@ struct PixelOut_LightPass
 Texture2D g_Diffuse				                : register(t0);
 Texture2D g_Depth				                : register(t1);
 Texture2D g_Normal				                : register(t2);
-Texture2D g_Specular			                : register(t3);
+Texture2D g_Specular			                : register(t3); // 여기 까지가 매터리얼에 할당된 텍스쳐들
+
 Texture2D g_LightDiffuse		                : register(t4);
 Texture2D g_LightSpecular		                : register(t5);
 Texture2DArray g_ShadowDepth	                : register(t6);
@@ -65,7 +66,8 @@ TextureCubeArray T_PointLightDepth              : register(t7);
 Texture2D T_Collision                           : register(t8);
 Texture2D T_PointLightDiffuse                   : register(t9); 
 Texture2D T_Stencil                             : register(t10);
-Texture2D T_Outline : register(t11);
+Texture2D T_Outline                             : register(t11);
+
 
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);

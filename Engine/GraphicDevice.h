@@ -83,7 +83,7 @@ public:
 	// State
 public:
 	ID3D11SamplerState* getSamplerState(ESamplerFilter SamplerFilter);
-	ID3D11RasterizerState *getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode);
+	ID3D11RasterizerState *getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode, bool bDepthBias = false);
 	ID3D11DepthStencilState *getDepthStencilState(const uint32 InFlag);
 	ID3D11BlendState *getBlendState(const Graphic::Blend eBlend);
 private:
@@ -95,6 +95,7 @@ private:
 private:
 	std::vector<ID3D11SamplerState*>		Samplers;
 	std::vector<ID3D11RasterizerState*>		_rasterizerList;
+    ID3D11RasterizerState* DepthBiasRS = nullptr;
 	std::map<uint32, ID3D11DepthStencilState*>	_depthStencilStateList;
 	std::vector<ID3D11BlendState*>			_blendStateList;
 
