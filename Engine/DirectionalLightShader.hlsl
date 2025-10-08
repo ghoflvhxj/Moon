@@ -31,7 +31,7 @@ PixelOut_LightPass main(PixelIn pIn)
     [unroll]
     for (int i = 1; i < 4; ++i)
     {
-        if (PixelPosInCameraView.z < cascadeDistance[i])
+        if (PixelPosInCameraView.z < getComp(cascadeDistance, i))
         {
             CascadeIndex = i - 1;
             break;
@@ -65,8 +65,24 @@ PixelOut_LightPass main(PixelIn pIn)
 	float3 specularFactor = pow(saturate(dot(normalize(toEye), direction)), 10.f);
 	pOut.lightSpecular = float4(specular.xyz * specularFactor, 1.f);
     
+    /*
+        디버깅용 코드
+    */
     //pOut.lightDiffuse.xyz = PixelPosInWorld.xyz;
     //pOut.lightDiffuse.xyz = PixelPosInCameraView.xyz;
-    pOut.lightDiffuse.xyz = PixelPosInLightViewProj.xyz;
-	return pOut;
+    //pOut.lightDiffuse.xyz = PixelPosInLightViewProj.z;
+    //if (CascadeIndex == 0)
+    //{
+    //    pOut.lightDiffuse.x = 1.f;
+    //}
+    //else if(CascadeIndex == 1)
+    //{
+    //    pOut.lightDiffuse.y = 1.f;
+    //}
+    //else if (CascadeIndex == 2)
+    //{
+    //    pOut.lightDiffuse.z = 1.f;
+    //}
+
+    return pOut;
 }

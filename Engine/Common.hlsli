@@ -25,3 +25,14 @@ cbuffer CBuffer_PerTick : register(b1)
     row_major matrix lightViewProjMatrix[3];
     float4 cascadeDistance;
 };
+
+float getComp(float4 v, int i)
+{
+    if (i == 0)
+        return v.x;
+    if (i == 1)
+        return v.y;
+    if (i == 2)
+        return v.z;
+    return v.w;
+}

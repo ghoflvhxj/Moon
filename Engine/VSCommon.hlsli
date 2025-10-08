@@ -62,7 +62,7 @@ int getCascadeIndex(float3 pos)
     float4 posInView = mul(float4(pos, 1.f), viewMatrix);
     for (int i = 0; i < 3; ++i)
     {
-        if (posInView.z <= cascadeDistance[i])
+        if (posInView.z <= getComp(cascadeDistance, i))
         {
             cascadeIndex = i;
         }
