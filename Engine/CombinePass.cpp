@@ -19,6 +19,7 @@
 
 // 임시
 #include "LightComponent.h"
+#include "DirectionalLightComponent.h"
 #include "PointLightComponent.h"
 
 #undef max
@@ -36,11 +37,6 @@ DirectionalShadowDepthPass::DirectionalShadowDepthPass()
 {
 	SetUseOwningDepthStencilBuffer(ERenderTarget::DirectionalShadowDepth);
     bUseDefaultShaderOnly = true;
-}
-
-void DirectionalShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
-{
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 }
 
 bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
@@ -118,7 +114,7 @@ bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData)
 
 void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
 {
-	MPrimitiveComponent* PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock().get();
+	auto& PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock()->CastTo<MDirectionalLightComponent>();
     std::shared_ptr<MShader>& PixelShader = GetPixelShader(PrimitiveData);
 
 	Vec3 trans = PrimitiveComponent->getWorldTranslation();
@@ -131,14 +127,10 @@ void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &Prim
 		color.z = LightComp->getColor().z;
 	}
 	
-	XMVECTOR rotationVector = XMLoadFloat3(&PrimitiveComponent->getRotation());
-	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(rotationVector);
-	Mat4 rotMatrix = IDENTITYMATRIX;
-	XMStoreFloat4x4(&rotMatrix, rotationMatrix);
-	Vec3 look = { rotMatrix._31, rotMatrix._32, rotMatrix._33 };
+    const Vec3& Direction = PrimitiveComponent->GetDirection();
 
 	PixelShader->SetValue(TEXT("g_lightPosition"), transAndRange);
-	PixelShader->SetValue(TEXT("g_lightDirection"), look);
+	PixelShader->SetValue(TEXT("g_lightDirection"), Direction);
 	PixelShader->SetValue(TEXT("g_lightColor"), color);
 	PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), g_World->getMainCamera()->getInvesrViewMatrix());
 	PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), g_World->getMainCamera()->getInversePerspectiveProjectionMatrix());

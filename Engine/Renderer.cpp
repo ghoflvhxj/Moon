@@ -146,11 +146,11 @@ bool MRenderer::Initialize()
 		_renderTargets.emplace_back(std::make_shared<RenderTarget>(RenderTargetInfo));
 	}
 
-    RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();
-    {
-        RenderPasses[EnumToIndex(ERenderPass::ZPre)]->SetDefaultShader(TEXT("TexAnimVertexShader.cso"), nullptr);
-        RenderPasses[EnumToIndex(ERenderPass::ZPre)]->ApplyDefaultShaderOnly(true);
-    }
+    //RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();
+    //{
+    //    RenderPasses[EnumToIndex(ERenderPass::ZPre)]->SetDefaultShader(TEXT("TexAnimVertexShader.cso"), nullptr);
+    //    RenderPasses[EnumToIndex(ERenderPass::ZPre)]->ApplyDefaultShaderOnly(true);
+    //}
 
 #if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)] = CreateRenderPass<DirectionalShadowDepthPass>();
@@ -300,7 +300,7 @@ bool MRenderer::Initialize()
     addRenderTargetForDebug(ERenderTarget::Specular);
     addRenderTargetForDebug(ERenderTarget::LightDiffuse);
     addRenderTargetForDebug(ERenderTarget::LightSpecular);
-    //addRenderTargetForDebug(ERenderTarget::DirectionalShadowDepth);
+    addRenderTargetForDebug(ERenderTarget::DirectionalShadowDepth);
     //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
     addRenderTargetForDebug(ERenderTarget::Outline);
     addRenderTargetForDebug(ERenderTarget::Stencil);
@@ -695,9 +695,20 @@ void MRenderer::Render()
     {
         const std::shared_ptr<MLightComponent>& InLightComponent = std::static_pointer_cast<MLightComponent>(DirectionalLightPrimitive[0].PrimitiveComponent.lock());
 
-        float tanHalfVertical = tan(XMConvertToRadians(g_pSetting->getFov() / 2.f));
+        float tanHalfVertical = tanf(XMConvertToRadians(g_pSetting->getFov() / 2.f));
         float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();
-        XMMATRIX cameraWorldMatrix = XMLoadFloat4x4(&g_World->getMainCamera()->getInvesrViewMatrix());
+
+        //Mat4 LightWorldMat = {};
+        //TransformMatrix(LightWorldMat, VEC3ONE, InLightComponent->getRotation(), VEC3ZERO);
+        //XMMATRIX XMLightWorldMat = XMLoadFloat4x4(&LightWorldMat);
+
+        XMMATRIX XMCameraWorldMat = XMLoadFloat4x4(&g_World->getMainCamera()->getInvesrViewMatrix());
+        XMVECTOR LightDirection = XMVector3Normalize(XMLoadFloat3(&InLightComponent->GetDirection()));
+        XMVECTOR UpVector = XMLoadFloat3(&VEC3UP);
+        if (fabs(XMVectorGetX(XMVector3Dot(UpVector, LightDirection))) > 0.999f)
+        {
+            UpVector = XMVectorSet(1.f, 0, 0, 0);
+        }
 
         for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Far); ++cascadeIndex)
         {
@@ -722,49 +733,32 @@ void MRenderer::Render()
                 {-XFar,-YFar,NextDepth}
             };
 
-            // CascadeFrustum의 중심 위치를 구함
-            XMVECTOR CascadeCenter = XMVectorSet(VEC4ZERO.x, VEC4ZERO.y, VEC4ZERO.z, VEC4ZERO.w);
+            XMVECTOR CascadeCenterInWorld = {};
+            for (auto& FrustumVertex : FrustumVertices)
+            {
+                XMStoreFloat3(&FrustumVertex, XMVector3TransformCoord(XMLoadFloat3(&FrustumVertex), XMCameraWorldMat));
+                CascadeCenterInWorld += XMLoadFloat3(&FrustumVertex);
+            }
+            CascadeCenterInWorld /= static_cast<float>(FrustumVertices.size());
+
+            float Radius = 0.f;
             for (auto& vertex : FrustumVertices)
             {
-                CascadeCenter += XMLoadFloat3(&vertex);
+                float Length = XMVectorGetX(XMVector3Length(XMLoadFloat3(&vertex) - CascadeCenterInWorld));
+                Radius = std::max<float>(Length, Radius);
             }
-            CascadeCenter /= static_cast<float>(FrustumVertices.size());
+            Radius = std::ceil(Radius * 2.f) / 2.f;
 
-            // 중간위치와 가장 먼 점을 기준으로 Radius 설정
-            float radius = 0.f;
-            for (auto& vertex : FrustumVertices)
-            {
-                Vec3 Distance;
-                XMStoreFloat3(&Distance, XMVector3Length(XMLoadFloat3(&vertex) - CascadeCenter));
+            XMVECTOR Eye = CascadeCenterInWorld - (LightDirection * Radius);
+            XMVECTOR Focus = CascadeCenterInWorld;
+            XMMATRIX LightView = XMMatrixLookAtLH(Eye, Focus, UpVector);
 
-                radius = std::max<float>(Distance.x, radius);
-            }
-            //radius = std::ceil(radius * 2.f) / 2.f;
+            float Near = std::max(DepthCenter - Radius, 0.1f);
+            float Far = Radius * 2.f;
+            XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-Radius, Radius, -Radius, Radius, 0.f, Far);
 
-            XMVECTOR LightDirection = XMVector3Normalize(XMLoadFloat3(&InLightComponent->GetDirection()));
-            XMVECTOR CascadeCenterInWorld = XMVector3TransformCoord(CascadeCenter, cameraWorldMatrix);
-            XMVECTOR LightPositionInFrustume = CascadeCenterInWorld - (LightDirection * radius);
-            XMStoreFloat4(&CascadeLightPositions[cascadeIndex], LightPositionInFrustume);
-            CascadeLightPositions[cascadeIndex].w = 1.f;
-
-            float Near = std::max(DepthCenter - radius, 0.1f);
-            float Far = radius * 2.f;
-            XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-radius, radius, -radius, radius, Near, Far);
-
-            XMVECTOR UpVector = XMLoadFloat3(&VEC3UP);
-            if (fabs(XMVectorGetX(XMVector3Dot(UpVector, LightDirection))) > 0.999f)
-            {
-                UpVector = XMVectorSet(1.f, 0, 0, 0);
-            }
-            XMMATRIX LightView = XMMatrixLookAtLH(LightPositionInFrustume, LightPositionInFrustume + LightDirection, UpVector);
-            //XMVECTOR projCenter = XMVector3TransformCoord(CascadeCenter, LightView);
-            //float worldTexelSize = radius * 2.f / 2048.f;
-            //float snapX = roundf(XMVectorGetX(projCenter) / worldTexelSize) * worldTexelSize;
-            //float snapY = roundf(XMVectorGetY(projCenter) / worldTexelSize) * worldTexelSize;
-            //LightView.r[3].m128_f32[0] += (snapX - XMVectorGetX(projCenter));
-            //LightView.r[3].m128_f32[1] += (snapY - XMVectorGetY(projCenter));
-            XMMATRIX XMLightViewProj = LightView  * OrthoProjMatrix;
-            XMStoreFloat4x4(&CascadeLightMatrices[cascadeIndex], XMLightViewProj);
+            XMStoreFloat4(&CascadeLightPositions[cascadeIndex], Eye);
+            XMStoreFloat4x4(&CascadeLightMatrices[cascadeIndex], LightView * OrthoProjMatrix);
             CascadeLightMatrices[cascadeIndex]._42 = round(CascadeLightMatrices[cascadeIndex]._42 * 10.f) / 10.f;
             CascadeLightMatrices[cascadeIndex]._43 = round(CascadeLightMatrices[cascadeIndex]._43 * 10.f) / 10.f;
         }

@@ -20,7 +20,6 @@ public:
 	virtual ~DirectionalShadowDepthPass() = default;
 
 protected:
-    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
 
 protected:
