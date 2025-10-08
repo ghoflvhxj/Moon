@@ -5,9 +5,6 @@
 class ENGINE_DLL SceneComponent : public Component
 {
 public:
-	enum class Transform { Scale, Rotation, Translation, End };
-
-public:
 	explicit SceneComponent();
 	virtual ~SceneComponent();
 

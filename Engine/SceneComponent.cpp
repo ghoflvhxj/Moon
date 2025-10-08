@@ -24,20 +24,20 @@ SceneComponent::~SceneComponent()
 
 void SceneComponent::Update(const Time deltaTime)
 {
-	XMVECTOR vectors[(int)Transform::End] = {
+	XMVECTOR vectors[(int)ETransform::End] = {
 		XMLoadFloat3(&Scale),
 		XMLoadFloat3(&Rotation),
 		XMLoadFloat3(&Translation)
 	};
 
-	XMMATRIX matrices[(int)Transform::End] = {
-		XMMatrixScalingFromVector(vectors[(int)Transform::Scale]),
+	XMMATRIX matrices[(int)ETransform::End] = {
+		XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]),
 		GetRotationMatrix(),
-		XMMatrixTranslationFromVector(vectors[(int)Transform::Translation])
+		XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation])
 	};
 	
 	//XMMatrixMultiply()
-	XMStoreFloat4x4(&_worldMatrix, matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
+	XMStoreFloat4x4(&_worldMatrix, matrices[(int)ETransform::Scale] * matrices[(int)ETransform::Rotation] * matrices[(int)ETransform::Translation]);
     XMStoreFloat4x4(&InverseWorldMatrix, XMMatrixInverse(nullptr, XMLoadFloat4x4(&_worldMatrix)));
 
 	if (ChildComponents.size() > 0)
@@ -54,19 +54,19 @@ void SceneComponent::Update(const Time deltaTime)
 
 void SceneComponent::Update(const Time deltaTime, const XMMATRIX& ParentWorldMatrix)
 {
-	XMVECTOR vectors[(int)Transform::End] = {
+	XMVECTOR vectors[(int)ETransform::End] = {
 		XMLoadFloat3(&Scale),
 		XMLoadFloat3(&Rotation),
 		XMLoadFloat3(&RelativeTranslation)
 	};
 
-	XMMATRIX matrices[(int)Transform::End] = {
-		XMMatrixScalingFromVector(vectors[(int)Transform::Scale]),
+	XMMATRIX matrices[(int)ETransform::End] = {
+		XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]),
 		GetRotationMatrix(),
-		XMMatrixTranslationFromVector(vectors[(int)Transform::Translation])
+		XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation])
 	};
 
-	XMStoreFloat4x4(&_worldMatrix, ParentWorldMatrix * matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
+	XMStoreFloat4x4(&_worldMatrix, ParentWorldMatrix * matrices[(int)ETransform::Scale] * matrices[(int)ETransform::Rotation] * matrices[(int)ETransform::Translation]);
 
 	if (ChildComponents.size() > 0)
 	{

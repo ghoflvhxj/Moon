@@ -30,6 +30,14 @@ enum class ETextureType : uint32
 	, End
 };
 
+enum class ETransform 
+{ 
+    Scale, 
+    Rotation, 
+    Translation, 
+    End 
+};
+
 namespace Graphic
 {
 	enum class FillMode

@@ -34,13 +34,13 @@ void MDirectionalLightComponent::Update(const Time deltaTime)
     XMVECTOR translationVector = XMLoadFloat3(&trans);
     XMMATRIX IdentityMatrix = XMLoadFloat4x4(&IDENTITYMATRIX);
 
-    XMMATRIX matrices[(int)Transform::End] = {
+    XMMATRIX matrices[(int)ETransform::End] = {
         XMMatrixScalingFromVector(scaleVector),
         IdentityMatrix,
         XMMatrixTranslationFromVector(translationVector)
     };
 
-    XMStoreFloat4x4(&LightWorldMatrix, matrices[(int)Transform::Scale] * matrices[(int)Transform::Rotation] * matrices[(int)Transform::Translation]);
+    XMStoreFloat4x4(&LightWorldMatrix, matrices[(int)ETransform::Scale] * matrices[(int)ETransform::Rotation] * matrices[(int)ETransform::Translation]);
 }
 
 const bool MDirectionalLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)
