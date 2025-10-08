@@ -108,6 +108,14 @@ void MRenderPass::Begin()
 
         RectWidth = static_cast<float>(Width);
         RectHeight = static_cast<float>(Height);
+
+        UINT RectNum = 1;
+        D3D11_RECT Rect = {};
+        Rect.left = 0;
+        Rect.top = 0;
+        Rect.right = RectWidth;
+        Rect.bottom = RectHeight;
+        getGraphicDevice()->getContext()->RSSetScissorRects(RectNum, &Rect);
 	}
 }
 
@@ -393,14 +401,6 @@ void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
     {
         g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
     }
-
-    UINT RectNum = 1;
-    D3D11_RECT Rect = {};
-    Rect.left = 0;
-    Rect.top = 0;
-    Rect.right = RectWidth;
-    Rect.bottom = RectHeight;
-    getGraphicDevice()->getContext()->RSSetScissorRects(RectNum, &Rect);
 }
 
 void MRenderPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
