@@ -56,18 +56,18 @@ void MStaticMeshActor::tick(const Time deltaTime)
         return;
     }
 
-    std::string BoneName = "bone001";
+    //std::string BoneName = "bone001";
 
-    Vec3 Pos = Comp->GetJointPosition(BoneName);
-    Pos.x /= 2.54f;
-    Pos.y /= 2.54f;
-    Pos.z /= 2.54f;
-    SetWorldTranslation(Pos);
+    //Vec3 Pos = Comp->GetJointPosition(BoneName);
+    //Pos.x /= 2.54f;
+    //Pos.y /= 2.54f;
+    //Pos.z /= 2.54f;
+    //SetWorldTranslation(Pos);
 
-    Vec4 Quat = Comp->GetJointQuaternion(BoneName);
-    Vec3 Rot = {};
-    QuaternionToEuler_XYZ(Quat, Rot.x, Rot.y, Rot.z);
-    getComponent(ROOT_COMPONENT)->setRotation(Rot);
+    //Vec4 Quat = Comp->GetJointQuaternion(BoneName);
+    //Vec3 Rot = {};
+    //QuaternionToEuler_XYZ(Quat, Rot.x, Rot.y, Rot.z);
+    //getComponent(ROOT_COMPONENT)->setRotation(Rot);
 
     //std::cout << "Actor Pos: " << Pos << std::endl;
 
