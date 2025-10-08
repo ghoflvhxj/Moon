@@ -39,7 +39,13 @@ protected:
     virtual void HandleVertexShaderStage(const FPrimitiveData& PrimitiveData);
     virtual void HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData);
     virtual void HandlePixelShaderStage(const FPrimitiveData& PrimitiveData);
+
+protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData);
+protected:
+    float RectWidth = 0.f;
+    float RectHeight = 0.f;
+
     virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData);
 protected:
     bool bWriteDepthStencil = true;

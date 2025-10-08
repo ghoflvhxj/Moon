@@ -89,6 +89,9 @@ void MRenderPass::Begin()
         );
 	}
 
+    RectWidth = g_pSetting->getResolutionWidth<float>();
+    RectHeight = g_pSetting->getResolutionHeight<float>();
+
 	if (RenderTargetViewData.size() > 0)
 	{
 		uint32 Width = 0, Height = 0;
@@ -102,6 +105,9 @@ void MRenderPass::Begin()
 		Viewport.MinDepth = 0.f;
 		Viewport.MaxDepth = 1.f;
 		g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
+
+        RectWidth = static_cast<float>(Width);
+        RectHeight = static_cast<float>(Height);
 	}
 }
 
@@ -387,6 +393,14 @@ void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
     {
         g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
     }
+
+    UINT RectNum = 1;
+    D3D11_RECT Rect = {};
+    Rect.left = 0;
+    Rect.top = 0;
+    Rect.right = RectWidth;
+    Rect.bottom = RectHeight;
+    getGraphicDevice()->getContext()->RSSetScissorRects(RectNum, &Rect);
 }
 
 void MRenderPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
