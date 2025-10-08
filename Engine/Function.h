@@ -258,7 +258,7 @@ inline Vec3 GetPos(const Mat4& InMatrix)
     return { InMatrix.m[3][0], InMatrix.m[3][1], InMatrix.m[3][2] };
 }
 
-inline void GetTransform(const Mat4& InMatrix, Vec3& OutScale, Vec3& OutRot, Vec3& OutTrans)
+inline void DecomposeTransform(const Mat4& InMatrix, Vec3& OutScale, Vec3& OutRot, Vec3& OutTrans)
 {
     XMVECTOR XMScale, XMRot, XMTrans;
     XMVECTOR XMRotQuat;
@@ -276,4 +276,15 @@ inline void GetTransform(const Mat4& InMatrix, Vec3& OutScale, Vec3& OutRot, Vec
     XMStoreFloat3(&OutScale, XMScale);
     XMStoreFloat3(&OutRot, XMRot);
     XMStoreFloat3(&OutTrans, XMTrans);
+}
+
+inline void TransformMatrix(Mat4& OutMatrix, const Vec3& InScale, const Vec3& InRotation, const Vec3& InTranslation)
+{
+    XMVECTOR vectors[(int)ETransform::End] = {
+        XMLoadFloat3(&InScale),
+        XMLoadFloat3(&InRotation),
+        XMLoadFloat3(&InTranslation)
+    };
+
+    XMStoreFloat4x4(&OutMatrix, XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]) * XMMatrixRotationRollPitchYawFromVector(vectors[(int)ETransform::Rotation]) * XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation]));
 }

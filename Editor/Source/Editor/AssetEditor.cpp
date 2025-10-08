@@ -180,7 +180,7 @@ void MAssetEditor::HandleSkeleton(MSkeleton* InSkeleton, std::function<void(uint
         {
             const Mat4 Matrix = DynamicMeshComp->GetJointMatrix(SelectedJointIndex);
             Vec3 Pos = {}, Rot = {}, Scale = {};
-            GetTransform(Matrix, Scale, Rot, Pos);
+            DecomposeTransform(Matrix, Scale, Rot, Pos);
             getRenderer()->DrawCoordinate(Pos, Rot, { 0.3f, 0.3f, 0.3f });
         }
     }
