@@ -91,6 +91,21 @@ float4 PixelToWorld(float2 uv, float4 depth, matrix inverseProjectiveMatrix, mat
 	return pixelWorldPosition;
 }
 
+float4 PixelToWorld(float2 uv, float4 depth, matrix ScreenToWorldMatrix)
+{
+	// 역투영, uv좌표를 (0 <= x, y <= 1) 투영좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 1이다)
+    float4 pixelProjectionPosition = float4(0.f, 0.f, 0.f, 0.f);
+    pixelProjectionPosition.x = (uv.x * 2.f - 1.f) * depth.w;
+    pixelProjectionPosition.y = (uv.y * -2.f + 1.f) * depth.w;
+    pixelProjectionPosition.z = depth.x * depth.w;
+    pixelProjectionPosition.w = depth.w;
+
+	// 투영좌표에 역투영&뷰 행렬을 곱해 월드 좌표를 얻음
+    float4 pixelWorldPosition = mul(pixelProjectionPosition, ScreenToWorldMatrix);
+    
+    return pixelWorldPosition;
+}
+
 float4 PixelToView(float2 uv, float4 depth, matrix inverseProjectiveMatrix)
 {
     // 역투영, uv좌표를 (0 <= x, y <= 1) 투영좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 1이다)
@@ -100,8 +115,7 @@ float4 PixelToView(float2 uv, float4 depth, matrix inverseProjectiveMatrix)
     pixelProjectionPosition.z = depth.x * depth.w;
     pixelProjectionPosition.w = depth.w;
 
-	// 투영좌표에 역투영&뷰 행렬을 곱해 월드 좌표를 얻음
-    float4 pixelWorldPosition = mul(pixelProjectionPosition, inverseProjectiveMatrix);
+	float4 pixelWorldPosition = mul(pixelProjectionPosition, inverseProjectiveMatrix);
     return pixelWorldPosition;
 }
 

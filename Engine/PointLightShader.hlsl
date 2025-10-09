@@ -10,6 +10,7 @@ cbuffer PixelShaderConstantBuffer : register (b2)
     
 	row_major matrix g_inverseCameraViewMatrix;
 	row_major matrix g_inverseProjectiveMatrix;
+    row_major matrix ScreenToWorldMatrix;
 };
 
 PixelOut_LightPass main(PixelIn pIn)
@@ -21,7 +22,8 @@ PixelOut_LightPass main(PixelIn pIn)
     normal.w = 0.f;
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
 
-	float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
+	//float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
+    float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, ScreenToWorldMatrix).xyz;
 
     float3 PointLightPos    = g_lightPosition.xyz;
     float3 deltaPosition    = PointLightPos - pixelWorldPosition.xyz;
