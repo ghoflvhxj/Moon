@@ -97,11 +97,6 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
     End();
 }
 
-void PointShadowDepthPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
-{
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
-}
-
 bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
     if (MRenderPass::IsValidPrimitive(PrimitiveData))

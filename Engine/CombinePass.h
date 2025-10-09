@@ -36,7 +36,6 @@ public:
 
 private:
     virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
-    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
 };
 
