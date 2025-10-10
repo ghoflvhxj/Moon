@@ -117,6 +117,7 @@ bool GraphicDevice::Initialize()
 
 	m_pImmediateContext->RSSetViewports(1, &_viewport);
 
+
     initializeDirectXTK();
 
     buildSamplerState();
@@ -133,22 +134,30 @@ void GraphicDevice::Release()
     Super::Release();
 
     ShaderManager.reset();
+    for (auto& Shader : MShader::GetSharedConstantBuffers())
+    {
+        Shader.reset();
+    }
 
     _spriteFont.reset();
     _spriteBatch.reset();
 
-    SafeReleaseArray(Samplers);
-    SafeReleaseArray(_rasterizerList);
-    SafeReleaseArray(_blendStateList);
-    for (auto& [Flag, DepthStencilState] : _depthStencilStateList)
+    SafeReleaseArray(SamplerStates);
+    SafeReleaseArray(RasterizeStates);
+    SafeReleaseArray(BlendStates);
+    for (auto& [Flag, DepthStencilState] : DepthStencilStates)
     {
         SafeRelease(DepthStencilState);
     }
+
+    SafeRelease(DepthBiasRS);
 
     SafeRelease(m_pInputLayout);
     SafeRelease(m_pDepthStencilView);
     SafeRelease(m_pDepthStencilBuffer);
     SafeRelease(m_pRenderTargetView);
+
+    m_pSwapChain = nullptr;
 
 #ifdef MULTITHREAD
     m_pDeferredContext->ClearState();
@@ -254,7 +263,7 @@ void GraphicDevice::End()
 
 bool GraphicDevice::buildRasterizerState()
 {
-	_rasterizerList.reserve(CastValue<uint32>(Graphic::FillMode::Count) + CastValue<uint32>(Graphic::CullMode::Count));
+	RasterizeStates.reserve(CastValue<uint32>(Graphic::FillMode::Count) + CastValue<uint32>(Graphic::CullMode::Count));
 	ID3D11RasterizerState *pRasterizerState = nullptr;
 
 	//-------------------------------------------------------------------------------------
@@ -287,7 +296,7 @@ bool GraphicDevice::buildRasterizerState()
 			rd.CullMode = D3D11_CULL_MODE(cullMode);
 
             FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &pRasterizerState));
-            _rasterizerList.push_back(pRasterizerState);
+            RasterizeStates.push_back(pRasterizerState);
 		}
 	}
 
@@ -309,7 +318,7 @@ ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode
         return DepthBiasRS;
     }
 
-	return _rasterizerList[(EnumToIndex(eFillMode) * CastValue<uint32>(Graphic::CullMode::Count)) + EnumToIndex(eCullMode)];
+	return RasterizeStates[(EnumToIndex(eFillMode) * CastValue<uint32>(Graphic::CullMode::Count)) + EnumToIndex(eCullMode)];
 }
 
 bool GraphicDevice::buildDepthStencilState()
@@ -333,7 +342,7 @@ bool GraphicDevice::buildDepthStencilState()
 	//-------------------------------------------------------------------------------------
     {
         FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&dsd, &pDepthStencilState));
-        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilEnable)] = pDepthStencilState;
+        DepthStencilStates[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilEnable)] = pDepthStencilState;
     }
 
     //-------------------------------------------------------------------------------------
@@ -347,7 +356,7 @@ bool GraphicDevice::buildDepthStencilState()
         Copy.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
         Copy.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
         Copy.BackFace = Copy.FrontFace;
-        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilReadMask)] = pDepthStencilState;
+        DepthStencilStates[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilReadMask)] = pDepthStencilState;
     }
 
     //-------------------------------------------------------------------------------------
@@ -359,7 +368,7 @@ bool GraphicDevice::buildDepthStencilState()
         Copy.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
         Copy.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
         FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
-        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilDisable)] = pDepthStencilState;
+        DepthStencilStates[EnumToFlag(EDepthStencilMode::DepthEnable, EDepthStencilMode::StencilDisable)] = pDepthStencilState;
     }
 
 	//-------------------------------------------------------------------------------------
@@ -367,7 +376,7 @@ bool GraphicDevice::buildDepthStencilState()
         D3D11_DEPTH_STENCIL_DESC Copy = dsd;
         Copy.DepthEnable = FALSE;
         FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
-        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilEnable)] = pDepthStencilState;
+        DepthStencilStates[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilEnable)] = pDepthStencilState;
     }
 
     //-------------------------------------------------------------------------------------
@@ -382,7 +391,7 @@ bool GraphicDevice::buildDepthStencilState()
         Copy.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
         Copy.BackFace = Copy.FrontFace;
         FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
-        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilReadMask)] = pDepthStencilState;
+        DepthStencilStates[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilReadMask)] = pDepthStencilState;
     }
 
     //-------------------------------------------------------------------------------------
@@ -391,7 +400,7 @@ bool GraphicDevice::buildDepthStencilState()
         Copy.DepthEnable = FALSE;
         Copy.StencilEnable = FALSE;
         FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, &pDepthStencilState));
-        _depthStencilStateList[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilDisable)] = pDepthStencilState;
+        DepthStencilStates[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilDisable)] = pDepthStencilState;
     }
 
 	return true;
@@ -399,7 +408,7 @@ bool GraphicDevice::buildDepthStencilState()
 
 ID3D11DepthStencilState *GraphicDevice::getDepthStencilState(const uint32 InFlag)
 {
-	return _depthStencilStateList[InFlag];
+	return DepthStencilStates[InFlag];
 }
 
 bool GraphicDevice::buildBlendState()
@@ -426,7 +435,7 @@ bool GraphicDevice::buildBlendState()
 
 	//-------------------------------------------------------------------------------------
 	FAILED_CHECK_THROW(m_pDevice->CreateBlendState(&bd, &pBlendState));
-	_blendStateList.push_back(pBlendState);
+	BlendStates.push_back(pBlendState);
 
 	//-------------------------------------------------------------------------------------
 	bd.RenderTarget[0].BlendEnable = TRUE;
@@ -438,14 +447,14 @@ bool GraphicDevice::buildBlendState()
 		bd.RenderTarget[i] = bd.RenderTarget[0];
 	}
 	FAILED_CHECK_THROW(m_pDevice->CreateBlendState(&bd, &pBlendState));
-	_blendStateList.push_back(pBlendState);
+	BlendStates.push_back(pBlendState);
 
 	return true;
 }
 
 ID3D11BlendState *GraphicDevice::getBlendState(const Graphic::Blend eBlend)
 {
-	return _blendStateList[EnumToIndex(eBlend)];
+	return BlendStates[EnumToIndex(eBlend)];
 }
 
 bool GraphicDevice::buildSamplerState()
@@ -454,7 +463,7 @@ bool GraphicDevice::buildSamplerState()
 	{
 		ID3D11SamplerState* pSamplerState = nullptr;
         FAILED_CHECK(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState));
-		Samplers.emplace_back(pSamplerState);
+		SamplerStates.emplace_back(pSamplerState);
 	};
 
 	D3D11_SAMPLER_DESC SamplerDesc = {};
@@ -467,7 +476,7 @@ bool GraphicDevice::buildSamplerState()
 	SamplerDesc.BorderColor[3] = 1.f;
 	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	SamplerDesc.MaxAnisotropy = 1u;
-	SamplerDesc.MinLOD = 0;
+	SamplerDesc.MinLOD = -FLT_MAX;
 	SamplerDesc.MaxLOD = FLT_MAX;
 	SamplerDesc.MipLODBias = 0.f;
 
@@ -496,7 +505,7 @@ bool GraphicDevice::buildSamplerState()
     {
         ID3D11SamplerState* pSamplerState = nullptr;
         FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
-        Samplers.emplace_back(pSamplerState);
+        SamplerStates.emplace_back(pSamplerState);
         m_pImmediateContext->PSSetSamplers(1, 1, &pSamplerState);
     }
 
@@ -504,20 +513,20 @@ bool GraphicDevice::buildSamplerState()
         SamplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_GREATER;
         ID3D11SamplerState* pSamplerState = nullptr;
         FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
-        Samplers.emplace_back(pSamplerState);
+        SamplerStates.emplace_back(pSamplerState);
         m_pImmediateContext->PSSetSamplers(2, 1, &pSamplerState);
     }
 
-	m_pImmediateContext->PSSetSamplers(0, 1, &Samplers[0]);
+	m_pImmediateContext->PSSetSamplers(0, 1, &SamplerStates[0]);
 
 	return true;
 }
 
 ID3D11SamplerState* GraphicDevice::getSamplerState(ESamplerFilter SamplerFilter)
 {
-	if (EnumToIndex(SamplerFilter) < Samplers.size())
+	if (EnumToIndex(SamplerFilter) < SamplerStates.size())
 	{
-		return Samplers[EnumToIndex(SamplerFilter)];
+		return SamplerStates[EnumToIndex(SamplerFilter)];
 	}
 
 	return nullptr;

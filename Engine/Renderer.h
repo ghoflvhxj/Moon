@@ -133,7 +133,7 @@ protected:
 
 	// 렌더 타겟
 public:
-	void addRenderTargetForDebug(ERenderTarget InRenderTarget);
+	void DebugRenderTarget(ERenderTarget InRenderTarget);
 	std::shared_ptr<RenderTarget>& GetRenderTarget(ERenderTarget RenderTarget) { return _renderTargets[static_cast<int32>(RenderTarget)]; }
 private:
 	RenderTargets _renderTargets;

@@ -324,6 +324,8 @@ void MRenderer::Release()
     _renderTargets.clear();
     RenderPasses.clear();
 
+    DebugRenderTargetMehses.clear();
+
     // 객체가 삭제되는 것이 아니기에 여기서 직접 해제해줘야 메모리 로그가 안남음
     GizmoMeshComp.reset();
 
@@ -336,6 +338,9 @@ void MRenderer::Release()
     VertexBuffers.clear();
 
     PrimitiveDatasRenderPass.clear();
+
+    InstanceBuffer.reset();
+    InstanceBuffer2.reset();
 }
 
 void MRenderer::DrawCylinder(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation)
@@ -655,7 +660,7 @@ std::shared_ptr<MIndexBuffer> MRenderer::GetIndexBuffer(uint32 InId, uint32 InOf
     return nullptr;
 }
 
-void MRenderer::addRenderTargetForDebug(ERenderTarget InRenderTarget)
+void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
 {
 #ifdef _DEBUG
     std::shared_ptr<MMaterial> BaseMat = nullptr;

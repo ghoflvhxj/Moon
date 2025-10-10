@@ -93,11 +93,11 @@ private:
     bool buildBlendState();
 
 private:
-	std::vector<ID3D11SamplerState*>		Samplers;
-	std::vector<ID3D11RasterizerState*>		_rasterizerList;
+	std::vector<ID3D11SamplerState*>		SamplerStates;
+	std::vector<ID3D11RasterizerState*>		RasterizeStates;
     ID3D11RasterizerState* DepthBiasRS = nullptr;
-	std::map<uint32, ID3D11DepthStencilState*>	_depthStencilStateList;
-	std::vector<ID3D11BlendState*>			_blendStateList;
+	std::map<uint32, ID3D11DepthStencilState*>	DepthStencilStates;
+	std::vector<ID3D11BlendState*>			BlendStates;
 
 private:
 	const bool initializeDirectXTK();
@@ -121,20 +121,14 @@ private:
 
 private:
     ComPtr<IDXGISwapChain1> m_pSwapChain;
-	//IDXGISwapChain1 *m_pSwapChain;
 
 public:
     ID3D11RenderTargetView* m_pRenderTargetView;
-    ID3D11RenderTargetView* m_pRenderTargetView2;
 	ID3D11DepthStencilView *m_pDepthStencilView;
 	ID3D11Texture2D *m_pDepthStencilBuffer;
 	//---------------------------------------------
 public:
 	ID3D11InputLayout *m_pInputLayout;
-
-public:
-    // 피직스 테스트용
-    ID3D11InputLayout* SimpleLayout = nullptr;
 
 private:
 	D3D11_VIEWPORT _viewport;

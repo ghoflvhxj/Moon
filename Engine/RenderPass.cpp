@@ -96,7 +96,7 @@ void MRenderPass::Begin()
 	{
 		uint32 Width = 0, Height = 0;
 		RenderTargetViewData[0].ReourceView->AsTexture()->GetResolution(Width, Height);
-		D3D11_VIEWPORT Viewport;
+        D3D11_VIEWPORT Viewport = {};
 		UINT ViewportNum = 0;
 		Viewport.Width = static_cast<float>(Width);
 		Viewport.Height = static_cast<float>(Height);

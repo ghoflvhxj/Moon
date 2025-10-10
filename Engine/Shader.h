@@ -103,7 +103,7 @@ class MShader : public std::enable_shared_from_this<MShader>
 {
 public:
 	explicit MShader(const std::wstring &filePathName);
-	~MShader();
+	virtual ~MShader();
 
 	// d3d11 raw
 public:
@@ -167,6 +167,7 @@ private:
 
 public:
     static std::shared_ptr<MConstantBuffer>& GetSharedConstantBuffer(EConstantBufferLayer InLayer);
+    static std::vector<std::shared_ptr<MConstantBuffer>>& GetSharedConstantBuffers() { return SharedBuffers; }
 protected:
     // 모든 쉐이더가 공유하는 버퍼, 현재는 Global, Tick 이 해당됨.
     static std::vector<std::shared_ptr<MConstantBuffer>> SharedBuffers;
