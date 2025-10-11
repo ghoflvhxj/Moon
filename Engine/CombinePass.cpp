@@ -242,7 +242,18 @@ MDepthPre::MDepthPre()
 
 bool MDepthPre::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-    return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && MRenderPass::IsValidPrimitive(PrimitiveData);
+    if (MRenderPass::IsValidPrimitive(PrimitiveData))
+    {
+        bool bAlphaMasked = false;
+        if (std::shared_ptr<MMaterial> Material = PrimitiveData.Material.lock())
+        {
+            bAlphaMasked = Material->IsAlphaMasked();
+        }
+
+        return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && bAlphaMasked == false;
+    }
+
+    return false;
 }
 
 void MDepthPre::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
