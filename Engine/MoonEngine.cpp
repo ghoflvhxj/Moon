@@ -35,8 +35,8 @@ std::shared_ptr<MPhysicsEngine> g_pPhysics			= nullptr;
 
 std::shared_ptr<MWorld> g_World	= nullptr;
 
-std::unique_ptr<MainGameSetting> g_pSetting	= std::make_unique<MainGameSetting>();
-std::unique_ptr<MResourceManager> g_ResourceManager	= std::make_unique<MResourceManager>();
+std::unique_ptr<MainGameSetting> g_pSetting = std::make_unique<MainGameSetting>();
+std::unique_ptr<MResourceManager> g_ResourceManager = std::make_unique<MResourceManager>();
 
 FDelegate<void> PostLoopDeleagate;
 FDelegate<void> OnLevelChangedDelegate;
@@ -131,10 +131,21 @@ const bool EngineRelease()
 
 	g_World.reset();
 
-	g_ResourceManager->Release();
+    if (g_ResourceManager)
+    {
+	    g_ResourceManager->Release();
+    }
 
-    GetEngine()->Release();
-    getGraphicDevice()->Release();
+    if (GetEngine())
+    {
+        GetEngine()->Release();
+    }
+
+    // 수동 릴리즈
+    if (getGraphicDevice())
+    {
+        getGraphicDevice()->Release();
+    }
 
     GetEngine().reset();
 

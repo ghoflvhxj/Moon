@@ -138,11 +138,6 @@ bool DirectionalLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData)
     return PrimitiveData.PrimitiveType == EPrimitiveType::DirectionalLight && MRenderPass::IsValidPrimitive(PrimitiveData);
 }
 
-void DirectionalLightPass::HandleRasterizerStage(const FPrimitiveData& primitiveData)
-{
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
-}
-
 void DirectionalLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)
 {
     uint32 DepthStencilFlag = 0;
@@ -161,11 +156,6 @@ bool SkyPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 	}
 
 	return MRenderPass::IsValidPrimitive(PrimitiveData);
-}
-
-void SkyPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
-{
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Frontface));
 }
 
 void PointLightPass::End()
@@ -212,11 +202,6 @@ void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveD
 
 
     MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
-}
-
-void PointLightPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
-{
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface));
 }
 
 void PointLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)

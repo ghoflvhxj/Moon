@@ -110,9 +110,6 @@ const Time MWorld::getDeltaTime() const
 
 const bool MWorld::Initialize()
 {
-	//_pTimerManager = std::make_shared<MTimerManager>();
-	//_pFrameManager = std::make_shared<MFrameManager>(_pTimerManager);
-
     _pMainCamera = CreateActor<MCamera>(GetShared());
     _pMainCamera->setFov(g_pSetting->getFov());
     _pMainCamera->setLookMode(MCamera::LookMode::To);

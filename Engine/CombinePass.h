@@ -50,7 +50,6 @@ public:
 	virtual void UpdateObjectConstantBuffer(const FPrimitiveData &primitiveData) override;
 
 protected:
-    virtual void HandleRasterizerStage(const FPrimitiveData& primitiveData) override;
     virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
 };
 
@@ -66,7 +65,6 @@ public:
     virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData) override;
 
 protected:
-    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
 
 protected:
@@ -81,9 +79,6 @@ public:
 
 public:
 	virtual bool IsValidPrimitive(const FPrimitiveData &primitiveData) const override;
-
-protected:
-    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
 };
 
 class MLinePass : public MRenderPass
