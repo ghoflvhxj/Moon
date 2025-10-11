@@ -13,8 +13,8 @@ void ReleaseReflection()
 
     for (auto& [Name, TypeDesc] : GetTypeDescs())
     {
-        std::wstring str = StringToWString(TypeDesc->Name.c_str()) + TEXT(" Release");
-        LOG(str.c_str());
+        std::wstring str = StringToWString(TypeDesc->Name) + TEXT(" Release");
+        LOG(str);
 
         for (FPropertyDesc* Prop : TypeDesc->Properties)
         {

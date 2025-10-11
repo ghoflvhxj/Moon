@@ -93,26 +93,37 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
 
         virtual void Set(const void* InObject, void*& InKey, void*& InData) override
         {
-            // 값이면 복사 생성을 하니 문제는 없는데
-            // 포인터면 외부에서 할당 해제 시 댕글링 포인터가 될 수 있음
-
-            KeyType Key = *static_cast<KeyType*>(InKey);
-            ElemType Value;
-            
-            if constexpr (is_smart_ptr_v<ElemType>)
+            KeyType Key; 
+            if constexpr (std::is_pointer_v<KeyType>)
             {
-                ElemType* Data = static_cast<ElemType*>(InData);
-                Value = *Data;
+                KeyType Data = static_cast<KeyType>(InKey);
             }
             else
             {
-                Value = *static_cast<ElemType*>(InData);
+                KeyType* KeyPtr = static_cast<KeyType*>(InKey);
+                Key = *KeyPtr;
+                delete KeyPtr;
+                InKey = nullptr;
+            }
+
+            ElemType Value;
+            if constexpr (std::is_pointer_v<ElemType>)
+            {
+                Value = static_cast<ElemType>(InData);
+            }
+            else
+            {
+                ElemType* ValuePtr = static_cast<ElemType*>(InData);
+                Value = *ValuePtr;
+
+                if (bSharedValue == false)
+                {
+                    delete ValuePtr;
+                    InData = nullptr;
+                }
             }
             
             GetMap(InObject)[Key] = Value;
-
-            InKey = nullptr;
-            InData = nullptr;
         }
 
         virtual std::vector<const void*> GetKeys(const void* InObject) override

@@ -131,16 +131,6 @@ void MJsonDeserializer::PatchMap(FMapPropertyDesc* InContainerPropDesc, rapidjso
         {
             InContainerPropDesc->Set(InObject, Key, Value);
         }
-
-        if (Key != nullptr)
-        {
-            delete Key;
-        }
-
-        if (Value != nullptr)
-        {
-            delete Value;
-        }
     }
 }
 
