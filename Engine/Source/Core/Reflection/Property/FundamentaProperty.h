@@ -17,10 +17,6 @@ public:
     using PropType = std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<T>>;
     using ElemType = std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, T>;
 public:
- //   // 프로퍼티 자체를 얻는 Getter
-	//virtual PropType Get(const void* InObject) = 0;
- //   // 배열 요소 Getter
- //   virtual ElemType& Get(const void* InObject, size_t InIndex) = 0;
 
     // Setter
     virtual void Set(void* InObject, const T& InT) = 0;
@@ -233,7 +229,8 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
 
     SetType<ElemType>(NewDesc->Type, NewDesc->TypeDesc);
 
-	//cout << "Make Prop" << endl;
+    std::wstring Msg = TEXT("Make Prop ") + StringToWString(InName);
+    LOG(Msg);
 
 	return NewDesc;
 }

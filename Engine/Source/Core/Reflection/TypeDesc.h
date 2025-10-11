@@ -65,8 +65,13 @@ ENGINE_DLL void* Create(const FTypeDesc* InTypeDesc);
 template <class T>
 void AddTypeDesc(const FTypeDesc* InTypeDesc)
 {
-    if (GetTypeDescs().find(InTypeDesc->Name) == GetTypeDescs().end())
+    const auto& Iter = GetTypeDescs().find(InTypeDesc->Name); 
+
+    if (Iter == GetTypeDescs().end())
     {
+        std::wstring Msg = TEXT("Add Type ") + StringToWString(InTypeDesc->Name);
+        LOG(Msg);
+
         GetTypeDescs().emplace(InTypeDesc->Name, InTypeDesc);
 
         if constexpr (std::is_abstract_v<T> == false)
@@ -75,6 +80,11 @@ void AddTypeDesc(const FTypeDesc* InTypeDesc)
             GetFactory()[InTypeDesc] = NewFactory;
         }
     }
+    //else
+    //{
+    //    std::wstring Msg = TEXT("Overlapped Type ") + StringToWString(InTypeDesc->Name);
+    //    LOG(Msg);
+    //}
 }
 
 // 외부 타입의 Desc 생성을 위한 템플릿. 특수화하여 작업해야 함

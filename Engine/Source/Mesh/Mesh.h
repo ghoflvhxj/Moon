@@ -130,7 +130,7 @@ public:
     );
 };
 
-struct FCapsuleData
+struct ENGINE_DLL FCapsuleData
 {
     float HalfHeight = 1.f;
     float Radius = 1.f;
@@ -142,7 +142,7 @@ struct FCapsuleData
     );
 };
 
-struct FBodyCapsuleData
+struct ENGINE_DLL FBodyCapsuleData
 {
     int32 PrimitiveID = -1;
 

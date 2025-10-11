@@ -37,6 +37,8 @@ struct FPropertyDesc
 	// std::vector<const FTypeDesc*> ElementsDesc;
 
 public:
+    virtual ~FPropertyDesc() = default;
+
     std::string GetDisplayName() const
     {
         if (IsContainer())
