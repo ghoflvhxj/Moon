@@ -1,5 +1,7 @@
 ﻿#pragma once
-#ifndef __RENDER_TARGET_H__
+#include "Include.h"
+
+using namespace DirectX;
 
 class MTexture;
 
@@ -7,7 +9,8 @@ enum class ERenderTargetType
 {
     None,
     Default,
-    Depth
+    Depth,
+    Bool
 };
 
 struct FRenderTagetInfo
@@ -43,6 +46,9 @@ private:
 	std::shared_ptr<MTexture> RenderTargetTexture;	// uniqueptr로 변경하기
 	std::shared_ptr<MTexture> DepthStencilTexture;	// uniqueptr로 변경하기
 
+private:
+    DXGI_FORMAT GetFormat(const ERenderTargetType InRenderTargetType) const;
+
 public:
 	ID3D11RenderTargetView* AsRenderTargetView();
 private:
@@ -53,6 +59,3 @@ public:
 private:
 	ID3D11DepthStencilView *_pDepthStencilView;
 };
-
-#define __RENDER_TARGET_H__
-#endif

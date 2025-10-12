@@ -56,7 +56,7 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 	TextureDesc.ArraySize = TextureNum;
 	TextureDesc.MipLevels = 1;
 	TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-	TextureDesc.Format = bNotDepth ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_TYPELESS;
+	TextureDesc.Format = GetFormat(RenderTargetInfo.Type);
 	TextureDesc.CPUAccessFlags = 0;
 	TextureDesc.MiscFlags = RenderTargetInfo.bCube ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 
@@ -65,7 +65,7 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 
 	// RenderTarget 렌더 타겟 뷰
 	D3D11_RENDER_TARGET_VIEW_DESC RenderTargetViewDesc		= { };
-	RenderTargetViewDesc.Format								= bNotDepth ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
+	RenderTargetViewDesc.Format								= GetFormat(RenderTargetInfo.Type);
 	if (bSingleTexture)
 	{
 		RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
@@ -89,7 +89,7 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 
 	// RenderTarget 쉐이더 리소스 뷰
 	D3D11_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc	= { };
-	ShaderResourceViewDesc.Format							= bNotDepth ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R32_FLOAT;
+	ShaderResourceViewDesc.Format							= GetFormat(RenderTargetInfo.Type);
 	ShaderResourceViewDesc.ViewDimension					= bSingleTexture ? D3D11_SRV_DIMENSION_TEXTURE2D : RenderTargetInfo.bCube ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 	if (bSingleTexture)
 	{
@@ -164,6 +164,21 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 		DepthStencilViewDesc.Texture2DArray.MipSlice = 0;
 	}
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(DepthStencilTexture->GetTextureResource(), &DepthStencilViewDesc, &_pDepthStencilView));
+}
+
+DXGI_FORMAT RenderTarget::GetFormat(const ERenderTargetType InRenderTargetType) const
+{
+    switch (InRenderTargetType)
+    {
+    case ERenderTargetType::Default:
+        return DXGI_FORMAT_R32G32B32A32_FLOAT;
+    case ERenderTargetType::Depth:
+        return DXGI_FORMAT_R32_FLOAT;
+    case ERenderTargetType::Bool:
+        return DXGI_FORMAT_R1_UNORM;
+    default:
+        return DXGI_FORMAT_UNKNOWN;
+    }
 }
 
 ID3D11RenderTargetView* RenderTarget::AsRenderTargetView()

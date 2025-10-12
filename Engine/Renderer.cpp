@@ -126,17 +126,15 @@ bool MRenderer::Initialize()
             RenderTargetInfo = FRenderTagetInfo::GetCube();
             RenderTargetInfo.Width = 1024 * 2;
             RenderTargetInfo.Height = 1024 * 2;
-            RenderTargetInfo.Type = ERenderTargetType::Depth;
             RenderTargetInfo.TextrueNum *= MaxPointLightNum;
+            RenderTargetInfo.Type = ERenderTargetType::Depth;
         }
 		break;
-        //case ERenderTarget::DepthPre:
-        //{
-        //    RenderTargetInfo = FRenderTagetInfo::GetDefault( );
-        //    RenderTargetInfo.Type = ERenderTargetType::Depth;
-        //}
-        break;
-        case ERenderTarget::Depth:
+        case ERenderTarget::RimLight:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault();
+            RenderTargetInfo.Type = ERenderTargetType::Bool;
+        }
 		default:
 		{
 			RenderTargetInfo = FRenderTagetInfo::GetDefault();
