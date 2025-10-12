@@ -35,6 +35,7 @@ struct PixelOut_GeometryPass
 	float4 depth	: SV_TARGET1;
 	float4 normal	: SV_TARGET2;
 	float4 specular : SV_TARGET3;
+    float4 RimLight : SV_TARGET4;
 };
 
 struct PixelOut_CombinePass
@@ -67,6 +68,7 @@ Texture2D T_Collision                           : register(t8);
 Texture2D T_PointLightDiffuse                   : register(t9); 
 Texture2D T_Stencil                             : register(t10);
 Texture2D T_Outline                             : register(t11);
+Texture2D T_RimLight : register(t12);
 
 
 // 셰이더에서 사용하는 샘플러

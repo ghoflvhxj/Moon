@@ -46,6 +46,7 @@
 using namespace DirectX;
 
 #define MinimalRendering 0
+#define RenderPassPerformanceProfiling 0
 
 enum class EFrustumCascade
 {
@@ -180,15 +181,10 @@ bool MRenderer::Initialize()
             ERenderTarget::Diffuse,
             ERenderTarget::Depth,
             ERenderTarget::Normal,
-            ERenderTarget::Specular
-        );
-
-        RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindResourceViews(_renderTargets,
-            ERenderTarget::DirectionalShadowDepth,
-            ERenderTarget::PointShadowDepth
+            ERenderTarget::Specular,
+            ERenderTarget::RimLight
         );
     }
-
 
     RenderPasses[EnumToIndex(ERenderPass::Stencil)] = CreateRenderPass<MStencilPass>();
     {
@@ -212,7 +208,8 @@ bool MRenderer::Initialize()
             ERenderTarget::Depth,
             ERenderTarget::Normal,
             ERenderTarget::Specular,
-            ERenderTarget::DirectionalShadowDepth
+            ERenderTarget::DirectionalShadowDepth,
+            ERenderTarget::RimLight
         );
     }
 
@@ -227,6 +224,7 @@ bool MRenderer::Initialize()
             ERenderTarget::Specular,
             ERenderTarget::PointShadowDepth
         );
+        RenderPasses[EnumToIndex(ERenderPass::PointLight)]->SetClearTargets(false);
     }
 
     RenderPasses[EnumToIndex(ERenderPass::SkyPass)] = CreateRenderPass<SkyPass>();
@@ -294,17 +292,17 @@ bool MRenderer::Initialize()
     UpdateBuffer(GizmoMeshComp);
 
     //addRenderTargetForDebug(ERenderTarget::DepthPre);
-    addRenderTargetForDebug(ERenderTarget::Diffuse);
-    addRenderTargetForDebug(ERenderTarget::Depth);
-    addRenderTargetForDebug(ERenderTarget::Normal);
-    addRenderTargetForDebug(ERenderTarget::Specular);
-    addRenderTargetForDebug(ERenderTarget::LightDiffuse);
-    addRenderTargetForDebug(ERenderTarget::LightSpecular);
-    addRenderTargetForDebug(ERenderTarget::DirectionalShadowDepth);
+    DebugRenderTarget(ERenderTarget::Diffuse);
+    DebugRenderTarget(ERenderTarget::Depth);
+    DebugRenderTarget(ERenderTarget::Normal);
+    DebugRenderTarget(ERenderTarget::Specular);
+    DebugRenderTarget(ERenderTarget::LightDiffuse);
+    DebugRenderTarget(ERenderTarget::LightSpecular);
+    //DebugRenderTarget(ERenderTarget::DirectionalShadowDepth);
     //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
-    addRenderTargetForDebug(ERenderTarget::Outline);
-    addRenderTargetForDebug(ERenderTarget::Stencil);
-    addRenderTargetForDebug(ERenderTarget::Collision);
+    DebugRenderTarget(ERenderTarget::Outline);
+    DebugRenderTarget(ERenderTarget::Stencil);
+    DebugRenderTarget(ERenderTarget::Collision);
 
     Mesh::MakeSphere(SphereMesh, 16);
     SpherePID = MPrimitiveComponent::MakePrimitiveID();
@@ -348,7 +346,7 @@ void MRenderer::DrawCylinder(float InRadius, float InHalfHeight, Vec3& InRotatio
 
 }
 
-void MRenderer::DrawSphere(float InRadius, const Vec3& InTranslation)
+void MRenderer::DrawSphere(float InRadius, const Vec3& InTranslation, const DirectX::XMVECTORF32& InColor)
 {
     FInstancingData RenderData = {};
     RenderData.Scale = { InRadius, InRadius, InRadius };
@@ -876,8 +874,10 @@ void MRenderer::RenderScene()
 	{
         if (std::shared_ptr<MRenderPass>& CurrentRenderPass = RenderPasses[PassIndex])
         {
+#if RenderPassPerformanceProfiling == 1
             std::wstring Name = TEXT("Pass") + std::to_wstring(PassIndex) + TEXT(" :");
             PerformanceTimer Temp(Name);
+#endif
             CurrentRenderPass->RenderPass(RenderablePrimitiveData);
         }
 	}

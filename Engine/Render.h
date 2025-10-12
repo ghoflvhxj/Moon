@@ -23,7 +23,7 @@ enum class ERenderTarget
 	Diffuse,
 	Depth,
 	Normal,
-	Specular, // 여기 까지가 매터리얼에 할당된 텍스쳐들
+	Specular,
 
 	LightDiffuse,
 	LightSpecular,
@@ -36,6 +36,8 @@ enum class ERenderTarget
     PointLightDiffuse,
     Stencil,
     Outline,
+
+    RimLight,
 
 	Count
 };

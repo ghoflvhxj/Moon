@@ -440,7 +440,7 @@ bool GraphicDevice::buildBlendState()
 	//-------------------------------------------------------------------------------------
 	bd.RenderTarget[0].BlendEnable = TRUE;
 	bd.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	bd.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	bd.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 	bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 	for (uint32 i = 1; i < 8; ++i)
 	{

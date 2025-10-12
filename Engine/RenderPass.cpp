@@ -252,12 +252,15 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
             PS->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
             BOOL bAlphaMask = Material->IsAlphaMasked() ? TRUE : FALSE;
             PS->SetValue(TEXT("bAlphaMask"), bAlphaMask);
+            BOOL bRimLight = Material->IsRimLighted() ? TRUE : FALSE;
+            PS->SetValue(TEXT("bRimLight"), bRimLight);
         }
         else
         {
             PS->SetValue(TEXT("bUseNormalTexture"), FALSE);
             PS->SetValue(TEXT("bUseSpecularTexture"), FALSE);
             PS->SetValue(TEXT("bAlphaMask"), FALSE);
+            PS->SetValue(TEXT("bRimLight"), FALSE);
         }
     }
 }

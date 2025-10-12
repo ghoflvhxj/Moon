@@ -10,6 +10,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Material.h"
+#include "RenderTarget.h"
 
 // Game
 #include "World.h"
@@ -156,6 +157,16 @@ bool SkyPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 	}
 
 	return MRenderPass::IsValidPrimitive(PrimitiveData);
+}
+
+void PointLightPass::Begin()
+{
+    MRenderPass::Begin();
+
+    // TODO. Directional 패스에서 그린 Specular 를 지우지 않도록 임시 수정. 개선해야 함
+    auto& ViewBindData = RenderTargetViewData[0];
+    g_pGraphicDevice->getContext()->ClearRenderTargetView(ViewBindData.ReourceView->AsRenderTargetView(), reinterpret_cast<const float*>(&Color));
+    g_pGraphicDevice->getContext()->ClearDepthStencilView(ViewBindData.ReourceView->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 }
 
 void PointLightPass::End()

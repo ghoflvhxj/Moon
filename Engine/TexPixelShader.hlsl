@@ -5,11 +5,12 @@ cbuffer PS_CBuffer_Texture : register(b2)
 	bool bUseNormalTexture;
 	bool bUseSpecularTexture;
     bool bAlphaMask;
+    bool bRimLight;
 };
 
 PixelOut_GeometryPass main(PixelIn pIn)
 {
-	PixelOut_GeometryPass pOut;
+    PixelOut_GeometryPass pOut = (PixelOut_GeometryPass)0;
     
     float NDCDepth = pIn.Clip.x / pIn.Clip.y;
     
@@ -21,7 +22,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
     if (bAlphaMask)
     {
         clip(pOut.color.rgb - float3(0.01f, 0.01f, 0.01f));
-        pOut.color.rgb = smoothstep(0.f, 1.f, pOut.color.rgb);
+        //pOut.color.rgb = smoothstep(0.f, 1.f, pOut.color.rgb);
     }
 
     if (true == bUseNormalTexture)
@@ -39,6 +40,11 @@ PixelOut_GeometryPass main(PixelIn pIn)
     {
         float3 specular = g_Specular.Sample(g_Sampler, pIn.uv).xyz;
         pOut.specular = float4(specular, 1.f);
+    }
+    
+    if (bRimLight)
+    {
+        pOut.RimLight = float4(1.f, 1.f, 1.f, 1.f);
     }
 	
     // 테스트 를 위한 값 초기화

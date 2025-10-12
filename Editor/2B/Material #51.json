@@ -30,7 +30,8 @@
         "_eFillMode": 1,
         "_eCullMode": 2,
         "bUseAlpha": false,
-        "bAlphaMask": true
+        "bAlphaMask": true,
+        "bRimLight": true
     },
     "MAsset": {
         "Path": "2B\\Material #51.json"

@@ -50,7 +50,7 @@ protected:
 
 public:
     void DrawCylinder(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation);
-    void DrawSphere(float InRadius, const Vec3& InTranslation);
+    void DrawSphere(float InRadius, const Vec3& InTranslation, const DirectX::XMVECTORF32& InColor = EngineColors::White);
     void DrawCoordinate(const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale = VEC3ONE);
 protected:
     std::shared_ptr<MMaterial> SphereMaterial = nullptr;
@@ -101,6 +101,7 @@ protected:
     std::map<uint32, std::vector<std::shared_ptr<MIndexBuffer>>> IndexBuffers;
 
 public:
+    // TODO. 인스턴싱 임시 작업으로 제거해야 됨
     std::shared_ptr<MVertexBuffer> InstanceBuffer;
     std::shared_ptr<MVertexBuffer> InstanceBuffer2;
 
@@ -169,10 +170,12 @@ public:
 public:
     RENDERER_OPTION(DrawCollision);
     //bool bDrawCollision = false;
+    Vec3 Ambient = VEC3ONE;
 
     REFLECT(
-        MRenderer,
-        PROPERTY(bDrawCollision),
-        PROPERTY(bDebugRenderTargets)
+        MRenderer
+        , PROPERTY(bDrawCollision)
+        , PROPERTY(bDebugRenderTargets)
+        , PROPERTY(Ambient)
     )
 };

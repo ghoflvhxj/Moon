@@ -81,6 +81,11 @@ private:
 	bool bAlphaMask;
 
 public:
+    bool IsRimLighted() const { return bRimLight; }
+private:
+    bool bRimLight = false;
+
+public:
 	std::vector<FBufferVariable>& getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer);
 	std::vector<FBufferVariable>& getConstantBufferVariables(const ShaderType InShaderType, const uint32 index);
 	
@@ -99,5 +104,6 @@ public:
         PROPERTY(_eCullMode),
         PROPERTY(bUseAlpha),
         PROPERTY(bAlphaMask)
+        , PROPERTY(bRimLight)
     )
 };

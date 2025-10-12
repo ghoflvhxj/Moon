@@ -42,20 +42,11 @@ PixelOut_LightPass main(PixelIn pIn)
 
 	//-------------------------------------------------------------------------------------------------
     // Diffuse
-    float3 ambient = float3(0.4f, 0.4f, 0.4f);
+    float3 ambient = float3(0.f, 0.f, 0.f);
     float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
     
     float Dot = dot(normalInWorld, direction);
     float Bright = saturate(Dot); // 0 ~ 1
-
-	//-------------------------------------------------------------------------------------------------
-	// Specular
-    deltaPosition = pixelWorldPosition - PointLightPos;
-    direction = reflect(normalize(deltaPosition), normal.xyz);
-    float3 toEye = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - pixelWorldPosition;
-
-    float3 specularFactor = saturate(dot(direction, normalize(toEye)));
-    pOut.lightSpecular = float4(specular.xyz * attenuation * specularFactor, 1.f);
 
     //--------------------------------------------------------------------------------------------------
     // 그림자
@@ -82,6 +73,20 @@ PixelOut_LightPass main(PixelIn pIn)
     //float3 Direct = Bright * intensity * attenuation;
     //float3 InDirect = ambient * abs(Dot) * attenuation; // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
     pOut.lightDiffuse.xyz = color * Direct;
+
+	//-------------------------------------------------------------------------------------------------
+	// Specular
+    deltaPosition = pixelWorldPosition - PointLightPos;
+    direction = reflect(normalize(deltaPosition), normalInWorld.xyz);
+    
+    float3 CameraWorldPos = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]);
+    float3 PixelToCamera = normalize(CameraWorldPos - pixelWorldPosition.xyz);
+
+    float3 specularFactor = pow(saturate(dot(PixelToCamera, direction)), 10.f);
+    if (Bright > 0.f)
+    {
+        pOut.lightSpecular = float4(specular.xyz * specularFactor * (1.f - ShadowFactor), 1.f);
+    }
 
 	return pOut;
 }

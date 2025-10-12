@@ -60,6 +60,7 @@ public:
     virtual ~PointLightPass() = default;
 
 public:
+    virtual void Begin() override;
     virtual void End() override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
     virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData) override;

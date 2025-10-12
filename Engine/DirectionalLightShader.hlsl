@@ -43,27 +43,43 @@ PixelOut_LightPass main(PixelIn pIn)
     float4 PixelPosInLightViewProj = mul(float4(PixelPosInWorld.xyz, 1.f), lightViewProjMatrix[CascadeIndex]);
     float ShadowFactor = PixelCascadeSahdow(CascadeIndex, PixelPosInLightViewProj);
 
-	float3 direction = normalize(g_lightDirection.xyz);
+	float3 LightDirection = normalize(g_lightDirection.xyz);
 	float3 color = g_lightColor.xyz;
 	float intensity = g_lightColor.w;
     
+    float3 CameraWorldPos = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]);
+    float3 PixelToCamera = normalize(CameraWorldPos - PixelPosInWorld.xyz);
+    
 	//-------------------------------------------------------------------------------------------------
-    float3 ambient = float3(0.2f, 0.2f, 0.2f);
+    // 난반사
+    float3 ambient = float3(0.1f, 0.1f, 0.1f);
 	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
     
-    float Dot = dot(normalInWorld, -direction);
+    float Dot = dot(normalInWorld, -LightDirection);
     float Bright = saturate(Dot);                       // 0 ~ 1
     
     float3 Direct = Bright * intensity * (1.f - ShadowFactor);
     float3 InDirect = ambient * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
-    pOut.lightDiffuse.xyz = color * (max(0.4f, Direct) + InDirect);
+    pOut.lightDiffuse.xyz = color * (Direct + InDirect);
+    
+    if(T_RimLight.Sample(g_Sampler, pIn.uv).x > 0.f)
+    {
+        float Rim = 1.f - saturate(dot(PixelToCamera, normalInWorld));
+        Rim = pow(Rim, 2.f);
+        pOut.lightDiffuse.xyz += Rim;
+    }
 
 	//-------------------------------------------------------------------------------------------------
-    direction = normalize(reflect(direction, normal.xyz));
-    float3 toEye = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]) - PixelPosInLightViewProj.xyz;
-
-	float3 specularFactor = pow(saturate(dot(normalize(toEye), direction)), 10.f);
-	pOut.lightSpecular = float4(specular.xyz * specularFactor, 1.f);
+    // 정반사
+    float3 ReflectDirection = normalize(reflect(LightDirection, normalInWorld.xyz));
+    float3 specularFactor = pow(saturate(dot(PixelToCamera, ReflectDirection)), 10.f);
+    if (Bright > 0.f)
+    {
+        pOut.lightSpecular = float4(specular.xyz * specularFactor * (1.f - ShadowFactor), 1.f);
+    }
+    
+    //float3 specularFactor = saturate(dot(PixelToCamera, direction));
+    //pOut.lightSpecular = float4(PixelPosInWorld.xyz, 1.f);
     
     /*
         디버깅용 코드
