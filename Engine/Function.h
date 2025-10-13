@@ -115,6 +115,15 @@ inline void SafeReleaseArray(std::vector<T> &arr)
 	arr.clear();
 }
 
+template <class T, size_t N>
+inline void SafeReleaseArray(std::array<T, N>& InArray)
+{
+    for (T& p : InArray)
+    {
+        SafeRelease(p);
+    }
+}
+
 inline void WStringToString(const std::wstring& wstr, char Buffer[], size_t BufferSize)
 {
 	memset(Buffer, 0, BufferSize);

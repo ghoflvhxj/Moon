@@ -11,9 +11,6 @@
 
 #include "MainGameSetting.h"
 
-#include <dxgidebug.h>
-#include <dxgi1_6.h>
-
 #pragma comment(lib, "dxgi.lib")
 
 
@@ -25,7 +22,6 @@ GraphicDevice::GraphicDevice()
 	, m_pImmediateContext{ nullptr }
 	, m_pDeferredContext{ nullptr }
 	, m_pSwapChain{ nullptr }
-	, m_pRenderTargetView{ nullptr }
 	, m_pDepthStencilView{ nullptr }
 	, m_pDepthStencilBuffer{ nullptr }
 	, _spriteBatch{ nullptr }
@@ -79,13 +75,16 @@ bool GraphicDevice::Initialize()
     swapDesc.Flags = 0;
 
     FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, g_hWnd, &swapDesc, nullptr, nullptr, &m_pSwapChain));
+    m_pSwapChain->QueryInterface(IID_PPV_ARGS(&SwapChain3));
 
 	// 렌더 타겟 뷰 생성
-	ID3D11Texture2D *pBackBuffer = nullptr;
-
-	FAILED_CHECK_THROW(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pBackBuffer));
-	FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pRenderTargetView));
-    SafeRelease(pBackBuffer);
+    std::array<ID3D11Texture2D*, 2> SawpChainBuffers = {};
+    for (uint32 i = 0; i < GetSize(SawpChainBuffers); ++i)
+    {
+        FAILED_CHECK_THROW(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&SawpChainBuffers[i]));
+        FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(SawpChainBuffers[i], nullptr, &RenderTargetViews[i]));
+    }
+    SafeReleaseArray(SawpChainBuffers);
 
 	// 깊이 스텐실 뷰 생성
 	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
@@ -104,9 +103,6 @@ bool GraphicDevice::Initialize()
 	m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &m_pDepthStencilBuffer);
 	FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(m_pDepthStencilBuffer, nullptr, &m_pDepthStencilView));
 
-	m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
-
 	// 뷰포트
 	_viewport.TopLeftX = 0;
 	_viewport.TopLeftY = 0;
@@ -116,7 +112,6 @@ bool GraphicDevice::Initialize()
 	_viewport.MinDepth = 0.f;
 
 	m_pImmediateContext->RSSetViewports(1, &_viewport);
-
 
     initializeDirectXTK();
 
@@ -155,10 +150,10 @@ void GraphicDevice::Release()
     SafeRelease(m_pInputLayout);
     SafeRelease(m_pDepthStencilView);
     SafeRelease(m_pDepthStencilBuffer);
-    SafeRelease(m_pRenderTargetView);
+    SafeReleaseArray(RenderTargetViews);
 
-    m_pSwapChain = nullptr;
-
+    m_pSwapChain.Reset();
+    SwapChain3.Reset();
 #ifdef MULTITHREAD
     m_pDeferredContext->ClearState();
     m_pDeferredContext->Flush();
@@ -175,7 +170,6 @@ void GraphicDevice::Release()
     SafeRelease(m_pDevice);
 
     IDXGIDebug1* debug = nullptr;
-    //g_pGraphicDevice->getDevice()->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&debug));
     DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug));
     OutputDebugStringW(TEXT("----------------ReportLiveObjectsBegin-------------------\r\n"));
     debug->ReportLiveObjects(DXGI_DEBUG_D3D11, DXGI_DEBUG_RLO_DETAIL);
@@ -251,13 +245,17 @@ bool GraphicDevice::Refresh()
 
 void GraphicDevice::Begin()
 {
-    getContext()->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
+    UINT BufferIndex = SwapChain3->GetCurrentBackBufferIndex();
+    getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    getContext()->OMSetRenderTargets(1, &RenderTargetViews[BufferIndex], m_pDepthStencilView);
 }
 
 void GraphicDevice::End()
 {
     m_pSwapChain->Present(0u, 0u);	
-    getContext()->ClearRenderTargetView(m_pRenderTargetView, reinterpret_cast<const float*>(&EngineColors::Blue));
+
+    UINT BufferIndex = SwapChain3->GetCurrentBackBufferIndex();
+    getContext()->ClearRenderTargetView(RenderTargetViews[BufferIndex], reinterpret_cast<const float*>(&EngineColors::Blue));
     getContext()->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 }
 

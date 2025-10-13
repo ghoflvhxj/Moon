@@ -4,6 +4,8 @@
 #include "Module/Module.h"
 
 #include <wrl/client.h>
+#include <dxgi1_6.h>
+#include <dxgidebug.h>
 
 // DirectXTK
 #include "DirectXTK/SpriteFont.h"
@@ -11,11 +13,10 @@
 #include "EngineException.h"
 #include "Vertex.h"
 
+#include "ShaderManager.h"
 class VertexShader;
 class PixelShader;
 class MGeometryShader;
-#include "ShaderManager.h"
-
 
 using Microsoft::WRL::ComPtr;
 
@@ -121,9 +122,11 @@ private:
 
 private:
     ComPtr<IDXGISwapChain1> m_pSwapChain;
+    ComPtr<IDXGISwapChain3> SwapChain3;
 
 public:
-    ID3D11RenderTargetView* m_pRenderTargetView;
+    std::array<ID3D11RenderTargetView*, 2> RenderTargetViews = {};
+
 	ID3D11DepthStencilView *m_pDepthStencilView;
 	ID3D11Texture2D *m_pDepthStencilBuffer;
 	//---------------------------------------------
