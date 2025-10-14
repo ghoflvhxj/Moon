@@ -9,7 +9,7 @@
 
 #include "MainGameSetting.h"
 
-RenderTarget::RenderTarget()
+MRenderTarget::MRenderTarget()
 	: RenderTargetTexture{ nullptr }
 	, _pRenderTargetView{ nullptr }
 	, DepthStencilTexture{ nullptr }
@@ -18,7 +18,7 @@ RenderTarget::RenderTarget()
 	initializeTexture(FRenderTagetInfo::GetDefault());
 }
 
-RenderTarget::RenderTarget(const FRenderTagetInfo& RenderTargetInfo)
+MRenderTarget::MRenderTarget(const FRenderTagetInfo& RenderTargetInfo)
 	: RenderTargetTexture{ nullptr }
 	, _pRenderTargetView{ nullptr }
 	, DepthStencilTexture{ nullptr }
@@ -27,18 +27,18 @@ RenderTarget::RenderTarget(const FRenderTagetInfo& RenderTargetInfo)
 	initializeTexture(RenderTargetInfo);
 }
 
-RenderTarget::~RenderTarget()
+MRenderTarget::~MRenderTarget()
 {
 	SafeRelease(_pRenderTargetView);
 	SafeRelease(_pDepthStencilView);
 }
 
-std::shared_ptr<MTexture> RenderTarget::AsTexture()
+std::shared_ptr<MTexture> MRenderTarget::AsTexture()
 {
 	return RenderTargetTexture;
 }
 
-void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
+void MRenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 {
 	bool bNotDepth = RenderTargetInfo.Type != ERenderTargetType::Depth;
 	bool bSingleTexture = RenderTargetInfo.bCube == false && RenderTargetInfo.TextrueNum == 1;
@@ -166,7 +166,7 @@ void RenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(DepthStencilTexture->GetTextureResource(), &DepthStencilViewDesc, &_pDepthStencilView));
 }
 
-DXGI_FORMAT RenderTarget::GetFormat(const ERenderTargetType InRenderTargetType) const
+DXGI_FORMAT MRenderTarget::GetFormat(const ERenderTargetType InRenderTargetType) const
 {
     switch (InRenderTargetType)
     {
@@ -181,12 +181,12 @@ DXGI_FORMAT RenderTarget::GetFormat(const ERenderTargetType InRenderTargetType) 
     }
 }
 
-ID3D11RenderTargetView* RenderTarget::AsRenderTargetView()
+ID3D11RenderTargetView* MRenderTarget::AsRenderTargetView()
 {
 	return _pRenderTargetView;
 }
 
-ID3D11DepthStencilView* RenderTarget::getDepthStencilView()
+ID3D11DepthStencilView* MRenderTarget::getDepthStencilView()
 {
 	return _pDepthStencilView;
 }

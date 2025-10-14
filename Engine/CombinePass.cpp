@@ -165,8 +165,8 @@ void PointLightPass::Begin()
 
     // TODO. Directional 패스에서 그린 Specular 를 지우지 않도록 임시 수정. 개선해야 함
     auto& ViewBindData = RenderTargetViewData[0];
-    g_pGraphicDevice->getContext()->ClearRenderTargetView(ViewBindData.ReourceView->AsRenderTargetView(), reinterpret_cast<const float*>(&Color));
-    g_pGraphicDevice->getContext()->ClearDepthStencilView(ViewBindData.ReourceView->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+    g_pGraphicDevice->getContext()->ClearRenderTargetView(ViewBindData.RenderTarget->AsRenderTargetView(), reinterpret_cast<const float*>(&Color));
+    g_pGraphicDevice->getContext()->ClearDepthStencilView(ViewBindData.RenderTarget->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 }
 
 void PointLightPass::End()

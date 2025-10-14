@@ -142,7 +142,7 @@ bool MRenderer::Initialize()
 		break;
 		}
 
-		_renderTargets.emplace_back(std::make_shared<RenderTarget>(RenderTargetInfo));
+		_renderTargets.emplace_back(std::make_shared<MRenderTarget>(RenderTargetInfo));
 	}
 
     RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();

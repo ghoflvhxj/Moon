@@ -9,7 +9,7 @@
 class SceneComponent;
 class StaticMeshComponent;
 class MVertexBuffer;
-class RenderTarget;
+class MRenderTarget;
 struct FMeshData;
 struct FInstancingData
 {
@@ -42,11 +42,6 @@ protected:
 private:
     void UpdateGlobalConstantBuffer();
     void UpdateTickConstantBuffer();
-
-public:
-    //void DrawCapsule(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation);
-protected:
-    //std::vector<FCapsuleRenderData> CapsuleRenderDatas;
 
 public:
     void DrawCylinder(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation);
@@ -110,11 +105,6 @@ public:
     void UpdatePrimitiveTransform(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation, const Vec3& InScale);
     void UpdatePrimitiveVertexPos(uint32 InPrimitiveID, const std::vector<Vertex>& InVertices);
 
-    // 라인 테스트
-protected:
-    std::shared_ptr<MVertexBuffer> V;
-    std::shared_ptr<MIndexBuffer> I;
-
 public:
     std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId, uint32 InOffset = 0);
     std::shared_ptr<MIndexBuffer> GetIndexBuffer(uint32 InId, uint32 InOffset = 0);
@@ -135,7 +125,7 @@ protected:
 	// 렌더 타겟
 public:
 	void DebugRenderTarget(ERenderTarget InRenderTarget);
-	std::shared_ptr<RenderTarget>& GetRenderTarget(ERenderTarget RenderTarget) { return _renderTargets[static_cast<int32>(RenderTarget)]; }
+	std::shared_ptr<MRenderTarget>& GetRenderTarget(ERenderTarget RenderTarget) { return _renderTargets[static_cast<int32>(RenderTarget)]; }
 private:
 	RenderTargets _renderTargets;
 

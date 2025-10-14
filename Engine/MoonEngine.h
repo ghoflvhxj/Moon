@@ -83,10 +83,12 @@ protected:
     FDelegate<void> OnUpdatedDelegate;
 
 public:
-    void Initialize();
-    void Update();
-    void Render();
-    void Release();
+    void InitializeModules();
+    // 모듈들의 Update를 호출함
+    void UpdateModules();
+    // 모듈들의 Render를 호출함
+    void RenderModules();
+    void ReleaseModules();
     // TODO. 단순히 모듈들을 순회해서 업데이트 호출하는 것이 아니라
     // 의존하는 모듈이 업데이트 된 후에 업데이트 해야함. 마치 톱니바퀴 처럼
     // 생각해보니 초기화도 그럴려나? 그런데 생성 순서를 사용자가 좀 만져주면 되긴 함
@@ -94,7 +96,7 @@ public:
 
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindow);
 ENGINE_DLL void EngineLoop();
-bool EngineUpdate();
+bool FrameLock();
 void EngineRender();
 ENGINE_DLL void EnginePostLoop();
 ENGINE_DLL const bool EngineRelease();

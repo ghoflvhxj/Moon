@@ -12,10 +12,10 @@ class MPrimitiveComponent;
 class MTexture;
 
 // 렌더
-class RenderTarget;
+class MRenderTarget;
 class MRenderPass;
 
-using RenderTargets = std::vector<std::shared_ptr<RenderTarget>>;
+using RenderTargets = std::vector<std::shared_ptr<MRenderTarget>>;
 
 // PixelShader랑 맞춰줘야 함
 enum class ERenderTarget

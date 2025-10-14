@@ -30,9 +30,7 @@
 using namespace DirectX;
 
 MRenderPass::MRenderPass()
-	: _pOldRenderTargetView{ nullptr }
-	, _pOldDepthStencilView{ nullptr }
-	, _vertexShader{ nullptr }
+	: _vertexShader{ nullptr }
 	, _pixelShader{ nullptr }
 	, _geometryShader{ nullptr }
 	, _bShaderSet{ false }
@@ -65,27 +63,24 @@ void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList
 
 void MRenderPass::Begin()
 {
-	// 기존 정보 저장
-	g_pGraphicDevice->getContext()->OMGetRenderTargets(1, &_pOldRenderTargetView, &_pOldDepthStencilView);
-
 	if (bRenderTarget)
 	{
 		std::vector<ID3D11RenderTargetView*> RawRenderTargets;
         RawRenderTargets.reserve(RenderTargetViewData.size());
-		for (const FViewBindData ViewBindData : RenderTargetViewData)
+		for (const FRenderTargetBindData& BindData : RenderTargetViewData)
 		{
-			RawRenderTargets.push_back(ViewBindData.ReourceView->AsRenderTargetView());
+			RawRenderTargets.push_back(BindData.RenderTarget->AsRenderTargetView());
 
 			if (true == bClearTargets)
 			{
-				g_pGraphicDevice->getContext()->ClearRenderTargetView(ViewBindData.ReourceView->AsRenderTargetView(), reinterpret_cast<const float*>(&Color));
-				g_pGraphicDevice->getContext()->ClearDepthStencilView(ViewBindData.ReourceView->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+                g_pGraphicDevice->ClearRenderTarget(BindData.RenderTarget, Color);
 			}
 		}
 
-		g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RawRenderTargets.size()), 
-            RawRenderTargets.data(), 
-            UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : _pOldDepthStencilView
+        g_pGraphicDevice->getContext()->OMSetRenderTargets(
+            static_cast<UINT>(RawRenderTargets.size()),
+            RawRenderTargets.data(),
+            UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : g_pGraphicDevice->GetDepthStencilView()
         );
 	}
 
@@ -95,7 +90,7 @@ void MRenderPass::Begin()
 	if (RenderTargetViewData.size() > 0)
 	{
 		uint32 Width = 0, Height = 0;
-		RenderTargetViewData[0].ReourceView->AsTexture()->GetResolution(Width, Height);
+		RenderTargetViewData[0].RenderTarget->AsTexture()->GetResolution(Width, Height);
         D3D11_VIEWPORT Viewport = {};
 		UINT ViewportNum = 0;
 		Viewport.Width = static_cast<float>(Width);
@@ -121,31 +116,7 @@ void MRenderPass::Begin()
 
 void MRenderPass::End()
 {
-    g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->m_pInputLayout);
-
-    // 쉐이더 리소스 뷰 해제
-    uint32 ResorceViewNum = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
-	std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
-	g_pGraphicDevice->getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
-
-    // 렌더 타겟 해제와 기존 정보 복구
-	uint32 RenderTargetNum = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
-	std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(RenderTargetNum, nullptr);
-	restoreRenderTargetViewArray[0] = _pOldRenderTargetView;
-	g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), _pOldDepthStencilView);
-
-	D3D11_VIEWPORT Viewport;
-	Viewport.Width = g_pSetting->getResolutionWidth<FLOAT>();
-	Viewport.Height = g_pSetting->getResolutionHeight<FLOAT>();
-	Viewport.TopLeftX = 0.f;
-	Viewport.TopLeftY = 0.f;
-	Viewport.MinDepth = 0.f;
-	Viewport.MaxDepth = 1.f;
-	g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
-
-	SafeRelease(_pOldRenderTargetView);
-	SafeRelease(_pOldDepthStencilView);
-
+    g_pGraphicDevice->SetToDefault();
 }
 
 bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
@@ -388,9 +359,9 @@ void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
         Material->SetTexturesToDevice();
     }
 
-    for (const FViewBindData& Data : ResourceViewData)
+    for (const FRenderTargetBindData& Data : ResourceViewData)
     {
-        g_pGraphicDevice->getContext()->PSSetShaderResources(Data.Index, 1, &Data.ReourceView->AsTexture()->getRawResourceViewPointer());
+        g_pGraphicDevice->getContext()->PSSetShaderResources(Data.Index, 1, &Data.RenderTarget->AsTexture()->getRawResourceViewPointer());
     }
 }
 

@@ -7,6 +7,8 @@
 #include "Vertex.h"
 #include "InputLayout.h"
 
+#include "RenderTarget.h"
+
 #include "ShaderLoader.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
@@ -169,6 +171,18 @@ bool GraphicDevice::BuildInputLayout()
 	return true;
 }
 
+void GraphicDevice::ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRenderTarget, DirectX::XMVECTORF32 InColor)
+{
+    getContext()->ClearRenderTargetView(InRenderTarget->AsRenderTargetView(), reinterpret_cast<const float*>(&InColor));
+    getContext()->ClearDepthStencilView(InRenderTarget->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+}
+
+ID3D11DepthStencilView* GraphicDevice::GetDepthStencilView()
+{
+    const FWindowRenderData& Test = WindowRenderDatas[WindowIndex];
+    return Test.DepthStencilView.Get();
+}
+
 void GraphicDevice::AddWindow(std::shared_ptr<MWindow>& InWindow)
 {
     ComPtr<IDXGIFactory2> factory = nullptr;
@@ -258,10 +272,45 @@ bool GraphicDevice::Refresh()
 	return true;
 }
 
+void GraphicDevice::SetToDefault()
+{
+    // 인풋 레이아웃은 수정할 일이 없긴 함
+    // g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->GetInputLayout());
+
+    const FWindowRenderData& WindowRenderData = WindowRenderDatas[WindowIndex];
+    UINT BufferIndex = WindowRenderData.SwapChain3->GetCurrentBackBufferIndex();
+
+    // 쉐이더 리소스 뷰 해제
+    uint32 ResorceViewNum = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
+    std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
+    g_pGraphicDevice->getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
+
+    // 렌더 타겟
+    uint32 RenderTargetNum = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+    std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(RenderTargetNum, nullptr);
+    restoreRenderTargetViewArray[0] = WindowRenderData.RenderTargetViews[BufferIndex].Get();
+    
+    g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), WindowRenderData.DepthStencilView.Get());
+
+    D3D11_VIEWPORT Viewport;
+    Viewport.Width = g_pSetting->getResolutionWidth<FLOAT>();
+    Viewport.Height = g_pSetting->getResolutionHeight<FLOAT>();
+    Viewport.TopLeftX = 0.f;
+    Viewport.TopLeftY = 0.f;
+    Viewport.MinDepth = 0.f;
+    Viewport.MaxDepth = 1.f;
+    g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
+}
+
 void GraphicDevice::Begin(uint32 InIndex)
 {
     if (InIndex >= GetSize(WindowRenderDatas))
+    {
+        WindowIndex = -1;
         return;
+    }
+
+    WindowIndex = InIndex;
 
     const FWindowRenderData& Test = WindowRenderDatas[InIndex];
     UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();
@@ -269,12 +318,14 @@ void GraphicDevice::Begin(uint32 InIndex)
     getContext()->OMSetRenderTargets(1, Test.RenderTargetViews[BufferIndex].GetAddressOf(), Test.DepthStencilView.Get());
 }
 
-void GraphicDevice::End(uint32 InIndex)
+void GraphicDevice::End()
 {
-    if (InIndex >= GetSize(WindowRenderDatas))
+    if (WindowIndex == -1)
+    {
         return;
+    }
 
-    const FWindowRenderData& Test = WindowRenderDatas[InIndex];
+    const FWindowRenderData& Test = WindowRenderDatas[WindowIndex];
     Test.SwapChain3->Present(0u, 0u);
 
     UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();

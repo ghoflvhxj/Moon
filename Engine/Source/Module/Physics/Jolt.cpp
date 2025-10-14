@@ -354,13 +354,13 @@ void MJoltPhysics::StartSimulate()
     {
         auto MeshComp = WeakMeshComp.lock();
 
-        std::shared_ptr<StaticMesh> Mesh = MeshComp->GetMesh();
+        std::shared_ptr<StaticMesh>& Mesh = MeshComp->GetMesh();
         if (Mesh == nullptr)
         {
             continue;
         }
 
-        std::shared_ptr<MPhysics> Physics = Mesh->GetPhysics();
+        std::shared_ptr<MPhysics>& Physics = Mesh->GetPhysics();
         if (Physics == nullptr)
         {
             continue;

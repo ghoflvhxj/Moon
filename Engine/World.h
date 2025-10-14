@@ -52,9 +52,11 @@ public:
 
 public:
 	virtual const bool Initialize();
+    virtual void render();
 
 public:
-	bool Loop();
+    // 액터들을 업데이트 함
+	bool Update();
 
 public:
     virtual void PlayGame();
@@ -63,9 +65,6 @@ protected:
     bool HasBegan = false;
     FDelegate<void> OnGameStartedDelegate;
 
-public:	
-	// 디버깅 할 때 쓰는 용도
-	virtual void render();	
 
 	// 업데이트 할 액터들을 관리
 public:

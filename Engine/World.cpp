@@ -43,7 +43,7 @@ MWorld::~MWorld()
     LOG(Msg);
 }
 
-bool MWorld::Loop()
+bool MWorld::Update()
 {
     _deltaTime = GetEngine()->FrameManager.GetTimePerFrame();
     if (_pMainCamera)

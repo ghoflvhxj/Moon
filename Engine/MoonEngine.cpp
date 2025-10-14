@@ -55,7 +55,7 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
     g_pRenderer = g_Engine->GetModule<MRenderer>();
     g_pPhysics = g_Engine->GetModule<MPhysicsEngine>();
     g_pGraphicDevice = g_Engine->GetModule<GraphicDevice>();
-    g_Engine->Initialize();
+    g_Engine->InitializeModules();
 
     g_World = std::make_unique<MWorld>();
     g_World->Initialize();
@@ -71,10 +71,11 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
 
 ENGINE_DLL void EngineLoop()
 {
-    if (EngineUpdate())
+    if (FrameLock())
     {
-        g_World->Loop();
-        GetEngine()->Update();
+        g_World->Update();
+        GetEngine()->UpdateModules();
+
         EngineRender();
 
         float Current = GetEngine()->TimerManager.GetCurrent();
@@ -85,7 +86,7 @@ ENGINE_DLL void EngineLoop()
     }
 }
 
-bool EngineUpdate()
+bool FrameLock()
 {
     MTimerManager& TimerManager = GetEngine()->TimerManager;
     MFrameManager& FrameManager = GetEngine()->FrameManager;
@@ -107,13 +108,13 @@ void EngineRender()
         g_pGraphicDevice->Begin();
         OnRenderStartedDelegate.Broadcast();
 
-        GetEngine()->Render();
+        GetEngine()->RenderModules();
 
         OnRenderFinishedDelegate.Broadcast();
         g_pGraphicDevice->End();
 
         g_pGraphicDevice->Begin(1);
-        g_pGraphicDevice->End(1);
+        g_pGraphicDevice->End();
     }
 }
 
@@ -137,7 +138,7 @@ const bool EngineRelease()
 
     if (GetEngine())
     {
-        GetEngine()->Release();
+        GetEngine()->ReleaseModules();
     }
 
     // 수동 릴리즈
@@ -235,7 +236,7 @@ ENGINE_DLL FDelegate<void>& GetRenderStartedDelegate()
     return OnRenderStartedDelegate;
 }
 
-void MEngine::Initialize()
+void MEngine::InitializeModules()
 {
     for (auto& Module : Modules)
     {
@@ -255,7 +256,7 @@ void MEngine::Initialize()
     PrevProcessTime = TimerManager.GetCurrent();
 }
 
-void MEngine::Update()
+void MEngine::UpdateModules()
 {
     for (auto& Module : Modules)
     {
@@ -265,7 +266,7 @@ void MEngine::Update()
     GetOnUpdated().Broadcast();
 }
 
-void MEngine::Render()
+void MEngine::RenderModules()
 {
     for (auto& Module : Modules)
     {
@@ -273,7 +274,7 @@ void MEngine::Render()
     }
 }
 
-void MEngine::Release()
+void MEngine::ReleaseModules()
 {
     for (auto& Module : Modules)
     {

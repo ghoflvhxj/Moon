@@ -5,13 +5,13 @@
 #include "Render.h"
 #include "PrimitiveComponent.h"
 
-struct FViewBindData
+struct FRenderTargetBindData
 {
-	FViewBindData() 
+	FRenderTargetBindData() 
 		: Index(-1)
 	{}
 	int32 Index;
-	std::shared_ptr<RenderTarget> ReourceView;
+	std::shared_ptr<MRenderTarget> RenderTarget;
 };
 
 class ENGINE_DLL MRenderPass
@@ -74,34 +74,29 @@ public:
 	}
 protected:
 	template<class T, class... TList>
-	void BindView(RenderTargets& Source, std::vector<FViewBindData>& Target, T arg)
+	void BindView(RenderTargets& Source, std::vector<FRenderTargetBindData>& Target, T arg)
 	{
 		int32 Index = CastValue<int32>(arg);
-		FViewBindData ResourceViewBindData;
+		FRenderTargetBindData ResourceViewBindData;
 		ResourceViewBindData.Index = Index;
-		ResourceViewBindData.ReourceView = Source[Index];
+		ResourceViewBindData.RenderTarget = Source[Index];
 
 		Target.push_back(ResourceViewBindData);
 	}
 	template<class T, class... TList>
-	void BindView(RenderTargets& Source, std::vector<FViewBindData>& Target, T arg, TList... args)
+	void BindView(RenderTargets& Source, std::vector<FRenderTargetBindData>& Target, T arg, TList... args)
 	{
 		BindView(Source, Target, arg);
 		BindView(Source, Target, args...);
 	}
 
 protected:
-	std::vector<FViewBindData> RenderTargetViewData;
-	std::vector<FViewBindData> ResourceViewData;
+	std::vector<FRenderTargetBindData> RenderTargetViewData;
+	std::vector<FRenderTargetBindData> ResourceViewData;
 	bool bRenderTarget = false;
 	RenderTargets CachedRenderTargets;
 	RenderTargets CachedResourceViews;
 
-
-private:
-	ID3D11RenderTargetView *_pOldRenderTargetView;
-	ID3D11DepthStencilView *_pOldDepthStencilView;
-	
 public:
 	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
 	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName);

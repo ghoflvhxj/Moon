@@ -32,12 +32,12 @@ struct FRenderTagetInfo
 	static const FRenderTagetInfo GetCube();
 };
 
-class RenderTarget
+class MRenderTarget
 {
 public:
-	explicit RenderTarget();
-	explicit RenderTarget(const FRenderTagetInfo& RenderTargetInfo);
-	virtual ~RenderTarget();
+	explicit MRenderTarget();
+	explicit MRenderTarget(const FRenderTagetInfo& RenderTargetInfo);
+	virtual ~MRenderTarget();
 	
 public:
 	std::shared_ptr<MTexture> AsTexture();

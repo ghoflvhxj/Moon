@@ -17,6 +17,7 @@
 class VertexShader;
 class PixelShader;
 class MGeometryShader;
+class MRenderTarget;
 
 using Microsoft::WRL::ComPtr;
 
@@ -74,10 +75,17 @@ public:
 
 public:
     void Begin(uint32 InIndex = 0);
-    void End(uint32 InIndex = 0);
+    void End();
     bool Refresh();
+    void SetToDefault();
+protected:
+    int32 WindowIndex = 0;
 
-	bool BuildInputLayout();
+public:
+    void ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRenderTarget, DirectX::XMVECTORF32 InColor);
+
+public:
+    ID3D11DepthStencilView* GetDepthStencilView();
 
 public:
     void AddWindow(std::shared_ptr<MWindow>& InWindow);
@@ -101,6 +109,7 @@ public:
 	ID3D11DepthStencilState *getDepthStencilState(const uint32 InFlag);
 	ID3D11BlendState *getBlendState(const Graphic::Blend eBlend);
 private:
+    bool BuildInputLayout();
     bool buildSamplerState();
     bool buildRasterizerState();
     bool buildDepthStencilState();
@@ -129,6 +138,7 @@ public:
 public:
 	ID3D11DeviceContext *getImmediateContext();
 	ID3D11DeviceContext *getDefferedContext();
+    ID3D11InputLayout* GetInputLayout() const { return m_pInputLayout; }
 private:
 	ID3D11DeviceContext *m_pImmediateContext;	// 즉시 문맥: 싱글 쓰레드용
 	ID3D11DeviceContext *m_pDeferredContext;	// 지연 문맥: 멀티 쓰레드용 CreateDeferredContext로 생성한다
