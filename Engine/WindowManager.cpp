@@ -44,6 +44,12 @@ const std::shared_ptr<MWindow> WindowManager::CreateWindow(LPCWSTR title, const 
 	return pWindow;
 }
 
+const std::shared_ptr<MWindow> WindowManager::CreateWindow(LPCWSTR title, const int width, const int height, HWND Parent, LPCWSTR className)
+{
+    auto pWindow = std::make_shared<MWindow>(title, width, height, className);
+    return pWindow;
+}
+
 const std::shared_ptr<MWindow> WindowManager::GetWindow(const HWND hWnd)
 {
 	std::shared_ptr<MWindow> pWindow = nullptr;

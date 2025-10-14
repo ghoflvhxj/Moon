@@ -4,7 +4,7 @@
 #include <memory>
 #include "Macro.h"
 
-extern HINSTANCE g_hInstance;
+extern ENGINE_DLL HINSTANCE g_hInstance;
 extern HWND g_hWnd;
 
 class MainGameSetting;

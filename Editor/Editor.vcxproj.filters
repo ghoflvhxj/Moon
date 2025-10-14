@@ -52,5 +52,6 @@
     <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.h" />
     <ClInclude Include="Source\Editor\AssetEditor.h" />
     <ClInclude Include="Source\Editor\DynamicMeshPhysicsEditor.h" />
+    <ClInclude Include="Launch.h" />
   </ItemGroup>
 </Project>

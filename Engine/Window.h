@@ -8,7 +8,8 @@ public:
 
 	//-------------------------------------------------------------------------------------------------------
 public:
-	explicit MWindow(const std::wstring &title, const int width, const int height, std::wstring &className);
+    explicit MWindow(const std::wstring& title, const int width, const int height, std::wstring& className);
+    explicit MWindow(const std::wstring& title, const int width, const int height, HWND Parent, std::wstring& className);
 	explicit MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className);
 	~MWindow() = default;
 

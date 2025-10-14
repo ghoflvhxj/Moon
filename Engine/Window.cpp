@@ -30,6 +30,18 @@ MWindow::MWindow(const std::wstring &title, const int width, const int height, s
 	ShowWindow(m_hWnd, SW_SHOW);
 }
 
+MWindow::MWindow(const std::wstring& title, const int width, const int height, HWND Parent, std::wstring& className)
+{
+    RECT rt = { 0, 0, width, height };
+    AdjustWindowRect(&rt, WS_OVERLAPPED, false);
+
+    m_hWnd = CreateWindow(className.c_str(), title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, Parent, 0, g_hInstance, 0);
+    if (m_hWnd == nullptr)
+        throw WINDOW_EXCEPTION(GetLastError());
+
+    ShowWindow(m_hWnd, SW_SHOW);
+}
+
 MWindow::MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
 	: m_hWnd{ 0 }
 {

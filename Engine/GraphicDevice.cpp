@@ -2,6 +2,8 @@
 
 #include "MoonEngine.h"
 
+#include "Window.h"
+
 #include "Vertex.h"
 #include "InputLayout.h"
 
@@ -21,9 +23,6 @@ GraphicDevice::GraphicDevice()
 	: m_pDevice{ nullptr }
 	, m_pImmediateContext{ nullptr }
 	, m_pDeferredContext{ nullptr }
-	, m_pSwapChain{ nullptr }
-	, m_pDepthStencilView{ nullptr }
-	, m_pDepthStencilBuffer{ nullptr }
 	, _spriteBatch{ nullptr }
 	, _spriteFont{ nullptr }
 
@@ -49,7 +48,6 @@ bool GraphicDevice::Initialize()
         }
     }
 
-
 	// 장치
     FAILED_CHECK_THROW(D3D11CreateDevice(
         nullptr,
@@ -61,47 +59,7 @@ bool GraphicDevice::Initialize()
         &m_pDevice, nullptr, &m_pImmediateContext
     ));
 
-    // 스왑체인
-    DXGI_SWAP_CHAIN_DESC1 swapDesc = {};
-    swapDesc.Width = g_pSetting->getResolutionWidth<UINT>();
-    swapDesc.Height = g_pSetting->getResolutionHeight<UINT>();
-    swapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swapDesc.SampleDesc.Count = 1;
-    swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapDesc.BufferCount = 2;
-    swapDesc.Scaling = DXGI_SCALING_NONE;
-    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-    swapDesc.Flags = 0;
-
-    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, g_hWnd, &swapDesc, nullptr, nullptr, &m_pSwapChain));
-    m_pSwapChain->QueryInterface(IID_PPV_ARGS(&SwapChain3));
-
-	// 렌더 타겟 뷰 생성
-    std::array<ID3D11Texture2D*, 2> SawpChainBuffers = {};
-    for (uint32 i = 0; i < GetSize(SawpChainBuffers); ++i)
-    {
-        FAILED_CHECK_THROW(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&SawpChainBuffers[i]));
-        FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(SawpChainBuffers[i], nullptr, &RenderTargetViews[i]));
-    }
-    SafeReleaseArray(SawpChainBuffers);
-
-	// 깊이 스텐실 뷰 생성
-	D3D11_TEXTURE2D_DESC depthStencilDesc = { };
-	depthStencilDesc.Width = g_pSetting->getResolutionWidth<UINT>();
-	depthStencilDesc.Height = g_pSetting->getResolutionHeight<UINT>();
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.CPUAccessFlags = 0;
-	depthStencilDesc.MiscFlags = 0;
-
-	m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, &m_pDepthStencilBuffer);
-	FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(m_pDepthStencilBuffer, nullptr, &m_pDepthStencilView));
+    AddWindow(GetMainWindow());
 
 	// 뷰포트
 	_viewport.TopLeftX = 0;
@@ -148,12 +106,9 @@ void GraphicDevice::Release()
     SafeRelease(DepthBiasRS);
 
     SafeRelease(m_pInputLayout);
-    SafeRelease(m_pDepthStencilView);
-    SafeRelease(m_pDepthStencilBuffer);
-    SafeReleaseArray(RenderTargetViews);
 
-    m_pSwapChain.Reset();
-    SwapChain3.Reset();
+    WindowRenderDatas.clear();
+
 #ifdef MULTITHREAD
     m_pDeferredContext->ClearState();
     m_pDeferredContext->Flush();
@@ -214,6 +169,67 @@ bool GraphicDevice::BuildInputLayout()
 	return true;
 }
 
+void GraphicDevice::AddWindow(std::shared_ptr<MWindow>& InWindow)
+{
+    ComPtr<IDXGIFactory2> factory = nullptr;
+    UINT flags = 0;
+    HRESULT hr = CreateDXGIFactory2(flags, IID_PPV_ARGS(&factory));
+    if (FAILED(hr)) {
+        // 폴백: CreateDXGIFactory1 사용해 볼 수도 있음
+        ComPtr<IDXGIFactory> factory1;
+        hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory1));
+        if (SUCCEEDED(hr)) {
+            factory1.As(&factory); // 가능하면 IDXGIFactory2로 업캐스트 시도
+        }
+    }
+
+    FWindowRenderData NewWindowRenderData = {};
+
+    // 스왑체인
+    DXGI_SWAP_CHAIN_DESC1 swapDesc = {};
+    swapDesc.Width = g_pSetting->getResolutionWidth<UINT>();
+    swapDesc.Height = g_pSetting->getResolutionHeight<UINT>();
+    swapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapDesc.SampleDesc.Count = 1;
+    swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapDesc.BufferCount = 2;
+    swapDesc.Scaling = DXGI_SCALING_NONE;
+    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+    swapDesc.Flags = 0;
+
+    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, InWindow->getHandle(), &swapDesc, nullptr, nullptr, NewWindowRenderData.SwapChain.GetAddressOf()));
+    NewWindowRenderData.SwapChain->QueryInterface(IID_PPV_ARGS(NewWindowRenderData.SwapChain3.GetAddressOf()));
+
+    // 렌더 타겟 뷰 생성
+    std::array<ID3D11Texture2D*, 2> SawpChainBuffers = {};
+    for (uint32 i = 0; i < GetSize(SawpChainBuffers); ++i)
+    {
+        FAILED_CHECK_THROW(NewWindowRenderData.SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&SawpChainBuffers[i]));
+        FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(SawpChainBuffers[i], nullptr, NewWindowRenderData.RenderTargetViews[i].GetAddressOf()));
+    }
+    SafeReleaseArray(SawpChainBuffers);
+
+    // 깊이 스텐실 뷰 생성
+    D3D11_TEXTURE2D_DESC depthStencilDesc = { };
+    depthStencilDesc.Width = g_pSetting->getResolutionWidth<UINT>();
+    depthStencilDesc.Height = g_pSetting->getResolutionHeight<UINT>();
+    depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthStencilDesc.SampleDesc.Count = 1;
+    depthStencilDesc.SampleDesc.Quality = 0;
+    depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilDesc.ArraySize = 1;
+    depthStencilDesc.MipLevels = 1;
+    depthStencilDesc.CPUAccessFlags = 0;
+    depthStencilDesc.MiscFlags = 0;
+
+    m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, NewWindowRenderData.DepthStencilBuffer.GetAddressOf());
+    FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(NewWindowRenderData.DepthStencilBuffer.Get(), nullptr, NewWindowRenderData.DepthStencilView.GetAddressOf()));
+
+    WindowRenderDatas.push_back(NewWindowRenderData);
+}
+
 bool GraphicDevice::GetVertexShader(const std::wstring InPath, std::shared_ptr<VertexShader>& OutShader)
 {
     return ShaderManager->getVertexShader(InPath.c_str(), OutShader);
@@ -238,25 +254,32 @@ bool GraphicDevice::Refresh()
 {
 	assert(m_pDevice);
 	assert(m_pImmediateContext);
-	assert(m_pSwapChain);
 
 	return true;
 }
 
-void GraphicDevice::Begin()
+void GraphicDevice::Begin(uint32 InIndex)
 {
-    UINT BufferIndex = SwapChain3->GetCurrentBackBufferIndex();
+    if (InIndex >= GetSize(WindowRenderDatas))
+        return;
+
+    const FWindowRenderData& Test = WindowRenderDatas[InIndex];
+    UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();
     getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    getContext()->OMSetRenderTargets(1, &RenderTargetViews[BufferIndex], m_pDepthStencilView);
+    getContext()->OMSetRenderTargets(1, Test.RenderTargetViews[BufferIndex].GetAddressOf(), Test.DepthStencilView.Get());
 }
 
-void GraphicDevice::End()
+void GraphicDevice::End(uint32 InIndex)
 {
-    m_pSwapChain->Present(0u, 0u);	
+    if (InIndex >= GetSize(WindowRenderDatas))
+        return;
 
-    UINT BufferIndex = SwapChain3->GetCurrentBackBufferIndex();
-    getContext()->ClearRenderTargetView(RenderTargetViews[BufferIndex], reinterpret_cast<const float*>(&EngineColors::Blue));
-    getContext()->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+    const FWindowRenderData& Test = WindowRenderDatas[InIndex];
+    Test.SwapChain3->Present(0u, 0u);
+
+    UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();
+    getContext()->ClearRenderTargetView(Test.RenderTargetViews[BufferIndex].Get(), reinterpret_cast<const float*>(&EngineColors::Blue));
+    getContext()->ClearDepthStencilView(Test.DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 }
 
 bool GraphicDevice::buildRasterizerState()

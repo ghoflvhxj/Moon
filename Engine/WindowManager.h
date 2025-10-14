@@ -21,7 +21,8 @@ public:
 	const bool AddWindowClass(const WNDCLASS &wndClass);
 
 public:		
-	const std::shared_ptr<MWindow> CreateWindow(LPCWSTR title, const int width, const int height, LPCWSTR className = DEFAULT_CLASSNAME);
+    const std::shared_ptr<MWindow> CreateWindow(LPCWSTR title, const int width, const int height, LPCWSTR className = DEFAULT_CLASSNAME);
+    const std::shared_ptr<MWindow> CreateWindow(LPCWSTR title, const int width, const int height, HWND Parent, LPCWSTR className = DEFAULT_CLASSNAME);
 	const std::shared_ptr<MWindow> GetWindow(const HWND hWnd);
 	const bool FindWindow(const HWND hWnd);
 	const bool AddWindow(const HWND hWnd, const std::shared_ptr<MWindow> pWindow);

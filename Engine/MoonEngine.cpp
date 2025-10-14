@@ -80,13 +80,9 @@ ENGINE_DLL void EngineLoop()
         float Current = GetEngine()->TimerManager.GetCurrent();
         float ElapsedTimeForUpdate = Current - GetEngine()->PrevProcessTime;
 
-        //std::cout << ElapsedTimeForUpdate << std::endl;
-
         GetEngine()->FrameManager.SetDeltaTime(ElapsedTimeForUpdate);
         GetEngine()->PrevProcessTime = GetEngine()->TimerManager.GetCurrent();
     }
-
-
 }
 
 bool EngineUpdate()
@@ -115,6 +111,9 @@ void EngineRender()
 
         OnRenderFinishedDelegate.Broadcast();
         g_pGraphicDevice->End();
+
+        g_pGraphicDevice->Begin(1);
+        g_pGraphicDevice->End(1);
     }
 }
 

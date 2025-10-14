@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h" />
+    <ClInclude Include="Launch.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Source\Editor\DynamicMeshPhysicsEditor.h" />
     <ClInclude Include="Source\Editor\AssetEditor.h" />

@@ -28,6 +28,16 @@ enum class ESamplerFilter
 	Count
 };
 
+struct FWindowRenderData
+{
+    ComPtr<IDXGISwapChain1> SwapChain;
+    ComPtr<IDXGISwapChain3> SwapChain3;
+    std::array<ComPtr<ID3D11RenderTargetView>, 2> RenderTargetViews = {};
+
+    ComPtr<ID3D11Texture2D> DepthStencilBuffer;
+    ComPtr<ID3D11DepthStencilView> DepthStencilView;
+};
+
 class ENGINE_DLL GraphicDevice : public MModule
 {
 public:
@@ -63,11 +73,14 @@ public:
 	virtual void Release() override;
 
 public:
-    void Begin();
-    void End();
+    void Begin(uint32 InIndex = 0);
+    void End(uint32 InIndex = 0);
     bool Refresh();
 
 	bool BuildInputLayout();
+
+public:
+    void AddWindow(std::shared_ptr<MWindow>& InWindow);
 
 public:
     void SetVertexShader(std::shared_ptr<VertexShader>& vertexShader);
@@ -119,19 +132,9 @@ public:
 private:
 	ID3D11DeviceContext *m_pImmediateContext;	// 즉시 문맥: 싱글 쓰레드용
 	ID3D11DeviceContext *m_pDeferredContext;	// 지연 문맥: 멀티 쓰레드용 CreateDeferredContext로 생성한다
-
+    ID3D11InputLayout *m_pInputLayout;
 private:
-    ComPtr<IDXGISwapChain1> m_pSwapChain;
-    ComPtr<IDXGISwapChain3> SwapChain3;
-
-public:
-    std::array<ID3D11RenderTargetView*, 2> RenderTargetViews = {};
-
-	ID3D11DepthStencilView *m_pDepthStencilView;
-	ID3D11Texture2D *m_pDepthStencilBuffer;
-	//---------------------------------------------
-public:
-	ID3D11InputLayout *m_pInputLayout;
+    std::vector<FWindowRenderData> WindowRenderDatas;
 
 private:
 	D3D11_VIEWPORT _viewport;
