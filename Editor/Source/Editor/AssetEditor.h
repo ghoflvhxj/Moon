@@ -8,6 +8,7 @@ class Renderer;
 class MJoltPhysics;
 class DynamicMesh;
 class MSkeleton;
+class MWindow;
 
 class MAssetEditor
 {
@@ -16,8 +17,8 @@ public:
 	virtual ~MAssetEditor() = default;
 
 public:
-	void Update();
-	virtual void Render() {}
+	virtual void Update();
+    virtual void Render();
 protected:
 	virtual void Test() {} // TODO 이름변경
 
@@ -45,7 +46,6 @@ protected:
     // 애셋을 들고있는 오브젝트
     MObject* AssetOwningObject = nullptr;
 
-
 public:
 	void HandleDynamicMesh(DynamicMesh* InDynamicMesh);
     void HandleSkeleton(MSkeleton* InSkeleton, std::function<void(uint32)> InContextMenu);
@@ -54,9 +54,16 @@ protected:
     int32 SelectedJointIndex = 0;
     std::shared_ptr<MActor> DynamicMeshActor = nullptr;
 
-
 public:
     FDelegate<void>& GetClosedDelegate() { return OnClosedDelegate; }
 protected:
     FDelegate<void> OnClosedDelegate;
+
+    std::shared_ptr<MWindow> T = nullptr;
+    std::shared_ptr<MWorld> W = nullptr;
+
+    struct ImGuiContext* Context = nullptr;
+
+
+    std::shared_ptr<MActor> Light = nullptr;
 };

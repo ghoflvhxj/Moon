@@ -1,7 +1,8 @@
 ﻿#include "MoonEngine.h"
 
-#include "MainGameSetting.h"
 #include "Window.h"
+#include "WindowManager.h"
+#include "MainGameSetting.h"
 #include "DirectInput.h"
 #include "GraphicDevice.h"
 #include "Renderer.h"
@@ -57,7 +58,7 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
     g_pGraphicDevice = g_Engine->GetModule<GraphicDevice>();
     g_Engine->InitializeModules();
 
-    g_World = std::make_unique<MWorld>();
+    g_World = std::make_shared<MWorld>();
     g_World->Initialize();
     g_World->GetGameStartedDelegate().Add([&]() {
         if (GetPhysics())
@@ -66,56 +67,68 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
         }
     });
 
+    // 그냥 파라미터 없이, 함수 내부에서 world와 윈도우를 생성하도록 하는 것은 어떤지?
+    GetEngine()->AddWorld(g_World, g_pMainWindow);
+
 	return true;
 }
 
 ENGINE_DLL void EngineLoop()
 {
-    if (FrameLock())
+    uint32 Num = GetEngine()->GetWorldNum();
+    for (uint32 i = 0; i < Num; ++i)
     {
-        g_World->Update();
-        GetEngine()->UpdateModules();
-
-        EngineRender();
-
-        float Current = GetEngine()->TimerManager.GetCurrent();
-        float ElapsedTimeForUpdate = Current - GetEngine()->PrevProcessTime;
-
-        GetEngine()->FrameManager.SetDeltaTime(ElapsedTimeForUpdate);
-        GetEngine()->PrevProcessTime = GetEngine()->TimerManager.GetCurrent();
+        GetEngine()->WorldFunc(i);
     }
+
+    //GetEngine()->WorldFunc(0);
+
+    //if (FrameLock())
+    //{
+    //    g_World->Update();
+    //    GetEngine()->UpdateModules();
+
+    //    EngineRender();
+
+    //    float Current = GetEngine()->TimerManager.GetCurrent();
+    //    float ElapsedTimeForUpdate = Current - GetEngine()->PrevProcessTime;
+
+    //    GetEngine()->FrameManager.SetDeltaTime(ElapsedTimeForUpdate);
+    //    GetEngine()->PrevProcessTime = GetEngine()->TimerManager.GetCurrent();
+    //}
 }
 
-bool FrameLock()
+bool FrameLock(const std::shared_ptr<MWorld>& InWorld)
 {
     MTimerManager& TimerManager = GetEngine()->TimerManager;
-    MFrameManager& FrameManager = GetEngine()->FrameManager;
-
     TimerManager.Tick();
-
     float Current = TimerManager.GetCurrent();
-    float ElapsedTimeForUpdate = Current - GetEngine()->PrevProcessTime;
+
+    auto& FrameManager = InWorld->getFrameManager();
+    float ElapsedTime = Current - FrameManager->PrevWorkFinishedTime;
 
     // 월드 업데이트&렌더의 완료에 걸리는 시간이 프레임 당 시간보다 적으면
     // 일찍 작업이 끝난거니 업데이트는 기다림
-    return ElapsedTimeForUpdate >= FrameManager.GetTimePerFrame();
+    return ElapsedTime >= FrameManager->GetTimePerFrame();
 }
 
 void EngineRender()
 {
-    if (g_pGraphicDevice)
-    {
-        g_pGraphicDevice->Begin();
-        OnRenderStartedDelegate.Broadcast();
+    /*
+    // World1 렌더링
+    g_pGraphicDevice->Begin();
+    OnRenderStartedDelegate.Broadcast();
 
-        GetEngine()->RenderModules();
+    GetEngine()->RenderModules();
 
-        OnRenderFinishedDelegate.Broadcast();
-        g_pGraphicDevice->End();
+    OnRenderFinishedDelegate.Broadcast();
+    g_pGraphicDevice->End();
 
-        g_pGraphicDevice->Begin(1);
-        g_pGraphicDevice->End();
-    }
+    // World2 렌더링
+    g_pGraphicDevice->Begin(1);
+    GetEngine()->RenderModules();
+    g_pGraphicDevice->End();
+    */
 }
 
 ENGINE_DLL void EnginePostLoop()
@@ -189,6 +202,12 @@ ENGINE_DLL std::shared_ptr<MPhysicsEngine>& GetPhysics()
     return g_pPhysics;
 }
 
+ENGINE_DLL std::shared_ptr<WindowManager>& GetWindowManager()
+{
+    static std::shared_ptr<WindowManager> WinMgr = std::make_shared<WindowManager>(g_hInstance);
+    return WinMgr;
+}
+
 void SetModule(std::unique_ptr<MModule>&& InModule)
 {
     //g_Module = std::move(InModule);
@@ -202,9 +221,12 @@ void RegisterComponent(std::shared_ptr<Component> InComponent)
         return;
     }
 
-    if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = InComponent->CastTo<MPrimitiveComponent>())
+    if (getRenderer())
     {
-        getRenderer()->AddPrimitiveComponent(std::static_pointer_cast<MPrimitiveComponent>(InComponent));
+        if (std::shared_ptr<MPrimitiveComponent>& PrimitiveComp = InComponent->CastTo<MPrimitiveComponent>())
+        {
+            getRenderer()->AddPrimitiveComponent(PrimitiveComp);
+        }
     }
 
     if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
@@ -234,6 +256,72 @@ ENGINE_DLL FDelegate<void>& GetRenderFinishedDelegate()
 ENGINE_DLL FDelegate<void>& GetRenderStartedDelegate()
 {
     return OnRenderStartedDelegate;
+}
+
+void MEngine::WorldFunc(uint32 InIndex)
+{
+    std::shared_ptr<MWorld>& World = WorldRenderInfos[InIndex].SrcWorld;
+
+    if (WorldRenderInfos[InIndex].DstWindow->IsDisabled())
+    {
+        return;
+    }
+
+    if (FrameLock(World))
+    {
+        UpdateWorld(InIndex);
+        RenderWorld(InIndex);
+
+        if (auto& Fm = World->getFrameManager())
+        {
+            World->getFrameManager()->PrevWorkFinishedTime = TimerManager.GetCurrent();
+        }
+    }
+}
+
+void MEngine::UpdateWorld(uint32 InIndex)
+{
+    const auto& WorldRenderInfo = WorldRenderInfos[InIndex];
+    WorldRenderInfo.SrcWorld->Update();
+
+    UpdateModules();
+}
+
+void MEngine::RenderWorld(uint32 InIndex)
+{
+    auto& _GraphicDevice = getGraphicDevice();
+    if (_GraphicDevice == nullptr)
+    {
+        return;
+    }
+
+    const auto& WorldRenderInfo = WorldRenderInfos[InIndex];
+    _GraphicDevice->Begin(WorldRenderInfo.DstWindow->GetID());
+    GetRenderStartedDelegate().Broadcast();
+
+    getRenderer()->RenderWorld(WorldRenderInfo.SrcWorld);
+    RenderModules();
+
+    WorldRenderInfo.DstWindow->Render();
+
+    GetRenderFinishedDelegate().Broadcast();
+    _GraphicDevice->End();
+}
+
+void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow)
+{
+    if (InWorld == nullptr || InWindow == nullptr)
+    {
+        return;
+    }
+
+    FWorldRenderInfo NewWorldRenderInfo = {};
+    NewWorldRenderInfo.SrcWorld = InWorld;
+    NewWorldRenderInfo.DstWindow = InWindow;
+
+    WorldRenderInfos.push_back(NewWorldRenderInfo);
+
+    OnWorldAdded.Broadcast(NewWorldRenderInfo);
 }
 
 void MEngine::InitializeModules()
@@ -268,9 +356,15 @@ void MEngine::UpdateModules()
 
 void MEngine::RenderModules()
 {
+    uint32 InWorldIndex = 0;
+    if (getGraphicDevice())
+    {
+        InWorldIndex = getGraphicDevice()->GetCurrentWindowIndex();
+    }
+
     for (auto& Module : Modules)
     {
-        Module->Render();
+        Module->Render(InWorldIndex);
     }
 }
 

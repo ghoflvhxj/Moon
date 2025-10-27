@@ -20,9 +20,9 @@ void MActor::PostConstruct()
 {
     for (auto& [Name, Comp] : _components)
     {
-        RegisterComponent(Comp);
         Comp->SetOwner(GetShared());
         Comp->setOwningActor(GetShared());
+        RegisterComponent(Comp);
     }
 }
 
@@ -74,7 +74,7 @@ void MActor::SetWorldTranslation(const Vec3& InTrans)
 {
     if (auto& RootComp = getComponent(ROOT_COMPONENT))
     {
-        return RootComp->setTranslation(InTrans);
+        RootComp->setTranslation(InTrans);
     }
 }
 

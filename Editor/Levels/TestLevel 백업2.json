@@ -2,6 +2,42 @@
     "MWorld": {
         "Actors": [
             {
+                "Key": "MCamera_0",
+                "Value": {
+                    "MCamera": {},
+                    "MActor": {
+                        "_components": [
+                            {
+                                "Key": "RootComponent",
+                                "Value": {
+                                    "SceneComponent": {
+                                        "Scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                        ],
+                                        "Rotation": [
+                                            0.24532,
+                                            0.61273,
+                                            0.0
+                                        ],
+                                        "Translation": [
+                                            -2.33435,
+                                            2.33014,
+                                            -1.86616
+                                        ],
+                                        "bUpdated": false
+                                    },
+                                    "Component": {},
+                                    "MObject": {}
+                                }
+                            }
+                        ]
+                    },
+                    "MObject": {}
+                }
+            },
+            {
                 "Key": "MStaticMeshActor_1",
                 "Value": {
                     "MStaticMeshActor": {},
@@ -61,29 +97,49 @@
                 }
             },
             {
-                "Key": "MCamera_0",
+                "Key": "MDirectionalLightActor_0",
                 "Value": {
-                    "MCamera": {},
+                    "MDirectionalLightActor": {},
                     "MActor": {
                         "_components": [
                             {
                                 "Key": "RootComponent",
                                 "Value": {
-                                    "SceneComponent": {
-                                        "Scale": [
+                                    "MDirectionalLightComponent": {},
+                                    "MLightComponent": {
+                                        "Color": [
                                             1.0,
                                             1.0,
                                             1.0
                                         ],
+                                        "Direction": [
+                                            0.0,
+                                            -0.2685,
+                                            -0.96327
+                                        ],
+                                        "Intensity": 1.0,
+                                        "bShow": true
+                                    },
+                                    "MPrimitiveComponent": {
+                                        "RenderMode": 1,
+                                        "bRendering": true,
+                                        "bDrawStencil": false
+                                    },
+                                    "SceneComponent": {
+                                        "Scale": [
+                                            1920.0,
+                                            1080.0,
+                                            1.0
+                                        ],
                                         "Rotation": [
-                                            0.24532,
-                                            0.61273,
+                                            2.86975,
+                                            0.0,
                                             0.0
                                         ],
                                         "Translation": [
-                                            -2.33435,
-                                            2.33014,
-                                            -1.86616
+                                            0.0,
+                                            0.0,
+                                            1.0
                                         ],
                                         "bUpdated": false
                                     },
@@ -135,79 +191,14 @@
                                             0.002
                                         ],
                                         "Rotation": [
-                                            0.0,
+                                            0.20906,
                                             -0.45083,
                                             0.0
                                         ],
                                         "Translation": [
-                                            -1.11263,
+                                            -2.83994,
                                             1.96298,
                                             0.0
-                                        ],
-                                        "bUpdated": false
-                                    },
-                                    "Component": {},
-                                    "MObject": {}
-                                }
-                            }
-                        ]
-                    },
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MActor_0",
-                "Value": {
-                    "MActor": {
-                        "_components": []
-                    },
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MDirectionalLightActor_0",
-                "Value": {
-                    "MDirectionalLightActor": {},
-                    "MActor": {
-                        "_components": [
-                            {
-                                "Key": "RootComponent",
-                                "Value": {
-                                    "MDirectionalLightComponent": {},
-                                    "MLightComponent": {
-                                        "Color": [
-                                            1.0,
-                                            1.0,
-                                            1.0
-                                        ],
-                                        "Direction": [
-                                            0.54246,
-                                            -0.43456,
-                                            0.71895
-                                        ],
-                                        "Intensity": 1.0,
-                                        "bShow": true
-                                    },
-                                    "MPrimitiveComponent": {
-                                        "RenderMode": 0,
-                                        "bRendering": true,
-                                        "bDrawStencil": false
-                                    },
-                                    "SceneComponent": {
-                                        "Scale": [
-                                            1920.0,
-                                            1080.0,
-                                            1.0
-                                        ],
-                                        "Rotation": [
-                                            0.44955,
-                                            0.64639,
-                                            0.0
-                                        ],
-                                        "Translation": [
-                                            0.0,
-                                            0.0,
-                                            1.0
                                         ],
                                         "bUpdated": false
                                     },
@@ -324,13 +315,13 @@
                                         ],
                                         "Rotation": [
                                             0.0,
-                                            -2.51414,
+                                            -2.51413,
                                             0.0
                                         ],
                                         "Translation": [
                                             -1.04024,
                                             0.72517,
-                                            -0.00001
+                                            -0.0
                                         ],
                                         "bUpdated": false
                                     },
@@ -366,13 +357,13 @@
                                             0.0,
                                             1.0
                                         ],
-                                        "Intensity": 3.0,
+                                        "Intensity": 1.0,
                                         "bShow": true
                                     },
                                     "MPrimitiveComponent": {
-                                        "RenderMode": 0,
+                                        "RenderMode": 1,
                                         "bRendering": true,
-                                        "bDrawStencil": false
+                                        "bDrawStencil": true
                                     },
                                     "SceneComponent": {
                                         "Scale": [
@@ -386,7 +377,7 @@
                                             0.0
                                         ],
                                         "Translation": [
-                                            -2.73038,
+                                            -3.3922,
                                             1.22071,
                                             0.43503
                                         ],
@@ -425,7 +416,7 @@
                                     "MPrimitiveComponent": {
                                         "RenderMode": 0,
                                         "bRendering": true,
-                                        "bDrawStencil": true
+                                        "bDrawStencil": false
                                     },
                                     "SceneComponent": {
                                         "Scale": [
@@ -454,6 +445,7 @@
                                 "Value": {
                                     "DynamicMeshComponent": {
                                         "AnimTime": 0.0,
+                                        "AnimSpeed": 1.0,
                                         "bAnimPlaying": false,
                                         "bPlayAnimAtBegin": true,
                                         "Animation": {
@@ -501,7 +493,7 @@
                                     "MPrimitiveComponent": {
                                         "RenderMode": 0,
                                         "bRendering": true,
-                                        "bDrawStencil": true
+                                        "bDrawStencil": false
                                     },
                                     "SceneComponent": {
                                         "Scale": [
@@ -530,6 +522,7 @@
                                 "Value": {
                                     "DynamicMeshComponent": {
                                         "AnimTime": 0.0,
+                                        "AnimSpeed": 1.0,
                                         "bAnimPlaying": false,
                                         "bPlayAnimAtBegin": true,
                                         "Animation": {
@@ -549,7 +542,7 @@
                                     "MPrimitiveComponent": {
                                         "RenderMode": 0,
                                         "bRendering": true,
-                                        "bDrawStencil": true
+                                        "bDrawStencil": false
                                     },
                                     "SceneComponent": {
                                         "Scale": [

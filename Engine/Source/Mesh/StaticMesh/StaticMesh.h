@@ -39,6 +39,7 @@ public:
 
 public:
     FMeshData& GetMeshData(const uint32 Index);
+    const std::vector<FMeshData>& GetMeshDatas() const { return MeshDatas; }
     const uint32 GetMeshNum() const { return GetSize(MeshDatas); }
 protected:
     std::vector<FMeshData> MeshDatas;
@@ -69,9 +70,10 @@ private:
 
     // 옷감 데이터
 public:
-    std::vector<FClothData>& GetClothDatas() { return ClothData; }
+    bool IsClothigMesh(uint32 InMeshIndex);
+    std::vector<FClothData>& GetClothDatas() { return ClothDatas; }
 protected:
-    std::vector<FClothData> ClothData;
+    std::vector<FClothData> ClothDatas;
 
     // 피직스 데이터
 public:
@@ -86,7 +88,7 @@ public:
         PROPERTY(MeshDatas),
         PROPERTY(Materials),
         PROPERTY(UsedMaterialIndices),
-        PROPERTY(ClothData),
+        PROPERTY(ClothDatas),
         PROPERTY(Physics)
     )
 };

@@ -46,7 +46,7 @@
 
 using namespace DirectX;
 
-const ImVec4 HighlightColor = { 1.f, 1.f, 0.f, 1.f };
+//const ImVec4 HighlightColor = { 1.f, 1.f, 0.f, 1.f };
 
 MEditor::MEditor()
 {
@@ -311,6 +311,7 @@ void MEditor::Update()
 
 void MEditor::Render()
 {
+    /*
     std::shared_ptr<MWorld> World = GetWorld<MWorld>();
 
     ImGui::Begin("World");
@@ -610,6 +611,12 @@ void MEditor::Render()
     }
 
 	ImGui::End();
+    */
+
+    for (auto& [Title, TempEditor] : Editors)
+    {
+        TempEditor->Update();
+    }
 }
 
 bool MEditor::IsPickable() const
@@ -946,17 +953,37 @@ void OpenAssetEditor(MObject* InAssetOwner, const FTypeDesc* InAssetTypeDesc, co
         return;
     }
 
-    std::shared_ptr<MAsset> AssetCopy = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(InAssetTypeDesc)));
-    AssetCopy->Load(InPath);
+    GetPostLoopDelegate().Add([InAssetOwner, InAssetTypeDesc, InPath]() {
+        std::shared_ptr<MAsset> AssetCopy = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(InAssetTypeDesc)));
+        AssetCopy->Load(InPath);
 
-    std::shared_ptr<MAssetEditor> NewAssetEditor = std::make_shared<MAssetEditor>(InAssetOwner);
-    // TODO. 하드 코딩을 제거하고 애셋에 맞는 에디터 인스턴스를 생성하도록
-    if (InAssetTypeDesc == MDynamicMeshPhysics::GetTypeDescStatic())
-    {
-        NewAssetEditor = std::make_shared<MDynamicMeshPhysicsEditor>(InAssetOwner);
-    }
+        std::shared_ptr<MAssetEditor> NewAssetEditor = nullptr;
+        // TODO. 하드 코딩을 제거하고 애셋에 맞는 에디터 인스턴스를 생성하도록
+        if (InAssetTypeDesc == MDynamicMeshPhysics::GetTypeDescStatic())
+        {
+            NewAssetEditor = std::make_shared<MDynamicMeshPhysicsEditor>(InAssetOwner);
+        }
+        else
+        {
+            NewAssetEditor = std::make_shared<MAssetEditor>(InAssetOwner);
+        }
 
-    NewAssetEditor->SetAsset(AssetCopy);
+        NewAssetEditor->SetAsset(AssetCopy);
 
-    GetEngine()->GetModule<MEditor>()->Editors.emplace(NewAssetEditor->GetTitle(), NewAssetEditor);
+        GetEngine()->GetModule<MEditor>()->Editors.emplace(NewAssetEditor->GetTitle(), NewAssetEditor);
+    });
+
+    //std::shared_ptr<MAsset> AssetCopy = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(InAssetTypeDesc)));
+    //AssetCopy->Load(InPath);
+
+    //std::shared_ptr<MAssetEditor> NewAssetEditor = std::make_shared<MAssetEditor>(InAssetOwner);
+    //// TODO. 하드 코딩을 제거하고 애셋에 맞는 에디터 인스턴스를 생성하도록
+    //if (InAssetTypeDesc == MDynamicMeshPhysics::GetTypeDescStatic())
+    //{
+    //    NewAssetEditor = std::make_shared<MDynamicMeshPhysicsEditor>(InAssetOwner);
+    //}
+
+    //NewAssetEditor->SetAsset(AssetCopy);
+
+    //GetEngine()->GetModule<MEditor>()->Editors.emplace(NewAssetEditor->GetTitle(), NewAssetEditor);
 }

@@ -28,7 +28,9 @@ MBillboardComponent::MBillboardComponent()
 
 Mat4& MBillboardComponent::getWorldMatrix()
 {
-    XMVECTOR Look = XMVector3Normalize(XMLoadFloat3(&getWorldTranslation()) - XMLoadFloat3(&g_World->getMainCamera()->GetWorldTranslation()));
+    auto& World = GetOwner()->GetOwner()->CastTo<MWorld>();
+
+    XMVECTOR Look = XMVector3Normalize(XMLoadFloat3(&getWorldTranslation()) - XMLoadFloat3(&World->getMainCamera()->GetWorldTranslation()));
     XMVECTOR Right = XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&VEC3UP), Look));
     XMVECTOR Up = XMVector3Normalize(XMVector3Cross(Look, Right));
 

@@ -32,9 +32,12 @@ using namespace DirectX;
 
 MWorld::MWorld()
 	: _deltaTime{ 0.f }
-	, _pTimerManager{ nullptr }
-	, _pFrameManager{ nullptr }
 {
+    _pFrameManager = std::make_shared<MFrameManager>();
+    _pTimerManager = std::make_shared<MTimerManager>();
+
+    static uint32 StaticID = 0;
+    ID = StaticID++;
 }
 
 MWorld::~MWorld()
@@ -117,19 +120,19 @@ const bool MWorld::Initialize()
 	return true;
 }
 
-const std::shared_ptr<MTimerManager> MWorld::getTimerManager() const
+std::shared_ptr<MTimerManager>& MWorld::getTimerManager() const
 {
-	return (_pTimerManager) ? _pTimerManager : nullptr;
+    return _pTimerManager;
 }
 
-MFrameManager& MWorld::getFrameManager() const
+std::shared_ptr<MFrameManager>& MWorld::getFrameManager() const
 {
-	return GetEngine()->FrameManager;
+	return _pFrameManager;
 }
 
 const Frame MWorld::getFrame() const
 {
-	return getFrameManager().GetFrame();
+	return getFrameManager()->GetFrame();
 }
 
 //const std::shared_ptr<MainGameSetting> MainGame::getSetting()

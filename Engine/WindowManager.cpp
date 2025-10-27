@@ -38,18 +38,6 @@ const bool WindowManager::AddWindowClass(const WNDCLASS &wndClass)
 	return RegisterClass(&wndClass);
 }
 
-const std::shared_ptr<MWindow> WindowManager::CreateWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
-{
-	auto pWindow = std::make_shared<MWindow>(title, width, height, className);
-	return pWindow;
-}
-
-const std::shared_ptr<MWindow> WindowManager::CreateWindow(LPCWSTR title, const int width, const int height, HWND Parent, LPCWSTR className)
-{
-    auto pWindow = std::make_shared<MWindow>(title, width, height, className);
-    return pWindow;
-}
-
 const std::shared_ptr<MWindow> WindowManager::GetWindow(const HWND hWnd)
 {
 	std::shared_ptr<MWindow> pWindow = nullptr;
@@ -63,9 +51,16 @@ const bool WindowManager::FindWindow(const HWND hWnd)
 	return MapUtility::Find(m_windowMap, hWnd);
 }
 
-const bool WindowManager::AddWindow(const HWND hWnd, const std::shared_ptr<MWindow> pWindow)
+const bool WindowManager::AddWindow(std::shared_ptr<MWindow> pWindow)
 {
-	return MapUtility::FindInsert(m_windowMap, hWnd, pWindow);
+    HWND Handle = pWindow->getHandle();
+    if (MapUtility::FindInsert(m_windowMap, Handle, pWindow))
+    {
+        pWindow->SetID(WindowIDCounter++);
+        return true;
+    }
+
+	return false;
 }
 
 const bool WindowManager::SetMainWindow(const std::shared_ptr<MWindow> pWindow)

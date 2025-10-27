@@ -30,6 +30,7 @@ public:
     }
 
 public:
+    std::shared_ptr<MObject> GetOwner() const { return Owner.lock(); }
     void SetOwner(std::shared_ptr<MObject> InObject)
     {
         Owner = InObject;

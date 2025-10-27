@@ -87,6 +87,8 @@ public:
 
 public:
     bool IsPickable() const;
+    void SetGizmoMode(EGizmoMode InGizmoMode) { GizmoMode = InGizmoMode; }
+    EGizmoMode GetGizmoMode() const { return GizmoMode; }
 private:
     Vec3 GizmoOffset = VEC3ZERO;
     EAxis GizmoAxis;
@@ -97,16 +99,14 @@ private:
 
 public:
     void SetClickedComp(std::shared_ptr<SceneComponent>& InComp);
+    const std::shared_ptr<SceneComponent> GetClickedComp() const { return ClickedComp.lock(); }
     void OnClickedCompChanged();
-
-public:
-    void OutLine(std::shared_ptr<MActor>& InActor, bool bOutLine);
-
 protected:
     std::weak_ptr<SceneComponent> ClickedComp;
 
+public:
+    void OutLine(std::shared_ptr<MActor>& InActor, bool bOutLine);
     float CameraSpeedScale = 1.f;
-
     Vec3 CurrentRot = {};
 
 public:

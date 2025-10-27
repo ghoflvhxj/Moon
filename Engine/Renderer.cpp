@@ -1,11 +1,13 @@
 ﻿#include "Renderer.h"
-
 #include "MoonEngine.h"
 
 #include "MapUtility.h"
+#include "Utility/PerformanceTimer.h"
 
 // DirectXTK
 #include "DirectXTK/SpriteFont.h"
+
+#include "Window.h"
 
 // Graphic
 #include "GraphicDevice.h"
@@ -22,6 +24,7 @@
 #include "Shader.h"
 
 #include "Mesh/StaticMesh/StaticMesh.h"
+#include "Mesh/DynamicMesh/DynamicMesh.h"
 
 // Framework
 #include "World.h"
@@ -31,6 +34,7 @@
 #include "MeshComponent.h"
 #include "LightComponent.h"
 #include "StaticMeshComponent.h"
+#include "DynamicMeshComponent.h"
 
 #include "Texture.h"
 
@@ -38,7 +42,7 @@
 
 #include "Core/ResourceManager.h"
 
-#include "Utility/PerformanceTimer.h"
+
 
 #undef max
 #undef min
@@ -75,7 +79,7 @@ MRenderer::MRenderer() noexcept
         PrimitiveDatasPerType.clear();
 
         PrimitiveComponents.clear();
-        PrimitiveDatasRenderPass.clear();
+        PrimitiveDatas.clear();
 
         if (GizmoMeshComp)
         {
@@ -100,6 +104,9 @@ bool MRenderer::Initialize()
 {
     Super::Initialize();
 
+    GetEngine()->GetOnWorldAddedDelegate().Add(this, &MRenderer::AddScene);
+
+    // TODO. 인스턴싱 테스트로 제거 해야함
     FVertex_Instance Temp = {};
     InstanceBuffer = std::make_shared<MVertexBuffer>((uint32)sizeof(FVertex_Instance), 1, &Temp);
     InstanceBuffer2 = std::make_shared<MVertexBuffer>((uint32)sizeof(FVertex_Instance), 1, &Temp);
@@ -333,7 +340,7 @@ void MRenderer::Release()
     IndexBuffers.clear();
     VertexBuffers.clear();
 
-    PrimitiveDatasRenderPass.clear();
+    PrimitiveDatas.clear();
 
     InstanceBuffer.reset();
     InstanceBuffer2.reset();
@@ -353,19 +360,14 @@ void MRenderer::DrawSphere(float InRadius, const Vec3& InTranslation, const Dire
     SphereRenderDatas.push_back(RenderData);
 }
 
-void MRenderer::DrawCoordinate(const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale)
+void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale)
 {
-    FInstancingData RenderData = {};
-    RenderData.Scale = InScale;
-    RenderData.Translation = InTranslation;
-    XMStoreFloat4(&RenderData.Quaternion, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InRotation)));
-
-    CoordinateRenderDatas.push_back(RenderData);
+    Scenes[InWorld->GetID()]->DrawCoordinate(InTranslation, InRotation, InScale);
 }
 
 uint32 MRenderer::DrawVertices(const FMeshData& InMeshData)
 {
-	std::vector<FPrimitiveData> PrimitiveDatas;
+	std::vector<FPrimitiveData> NewPrimitiveDatas;
 	FPrimitiveData NewPrimitivData = {};
 	NewPrimitivData.MeshData = &InMeshData;
 	NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
@@ -373,8 +375,8 @@ uint32 MRenderer::DrawVertices(const FMeshData& InMeshData)
 	MakeBuffer(PrimitiveID, InMeshData);
 	NewPrimitivData.VertexBuffer = VertexBuffers[PrimitiveID][0];
 	NewPrimitivData.IndexBuffer = IndexBuffers[PrimitiveID][0];
-	PrimitiveDatas.push_back(NewPrimitivData);
-    PrimitiveDatasRenderPass.emplace(PrimitiveID, PrimitiveDatas);
+    NewPrimitiveDatas.push_back(NewPrimitivData);
+    PrimitiveDatas.emplace(PrimitiveID, NewPrimitiveDatas);
 
 	return PrimitiveID;
 }
@@ -394,7 +396,7 @@ uint32 MRenderer::DrawLine(const std::vector<Vec3>& InWorldPositions)
         NewMeshData.Indices.push_back(GetSize(NewMeshData.Vertices) - 1);
     }
 
-    std::vector<FPrimitiveData> PrimitiveDatas;
+    std::vector<FPrimitiveData> NewPrimitiveDatas;
     FPrimitiveData NewPrimitivData = {};
     NewPrimitivData.MeshData = &NewMeshData;
     NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
@@ -402,8 +404,8 @@ uint32 MRenderer::DrawLine(const std::vector<Vec3>& InWorldPositions)
     MakeBuffer(PrimitiveID, NewMeshData);
     NewPrimitivData.VertexBuffer = VertexBuffers[PrimitiveID][0];
     NewPrimitivData.IndexBuffer = IndexBuffers[PrimitiveID][0];
-    PrimitiveDatas.push_back(NewPrimitivData);
-    PrimitiveDatasRenderPass.emplace(PrimitiveID, PrimitiveDatas);
+    NewPrimitiveDatas.push_back(NewPrimitivData);
+    PrimitiveDatas.emplace(PrimitiveID, NewPrimitiveDatas);
 
     return PrimitiveID;
 }
@@ -418,14 +420,14 @@ uint32 MRenderer::DrawCapsule(float InRadius, float InHalfHeight)
 	uint32 PrimitiveID = MPrimitiveComponent::MakePrimitiveID();
 	MakeBuffer(PrimitiveID, CapsuleMeshData);
 
-    std::vector<FPrimitiveData> PrimitiveDatas;
+    std::vector<FPrimitiveData> NewPrimitiveDatas;
     FPrimitiveData NewPrimitivData = {};
     NewPrimitivData.MeshData = &CapsuleMeshData;
     NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
     NewPrimitivData.VertexBuffer = VertexBuffers[PrimitiveID][0];
     NewPrimitivData.IndexBuffer = IndexBuffers[PrimitiveID][0];
-    PrimitiveDatas.push_back(NewPrimitivData);
-    PrimitiveDatasRenderPass.emplace(PrimitiveID, PrimitiveDatas);
+    NewPrimitiveDatas.push_back(NewPrimitivData);
+    PrimitiveDatas.emplace(PrimitiveID, NewPrimitiveDatas);
 
     return PrimitiveID;
 }
@@ -440,34 +442,42 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
     uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
     PrimitiveComponents[PrimitiveID] = InPrimitiveComponent;
 
-    GetPrimitiveDataFromComponent(InPrimitiveComponent);
-    InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &MRenderer::GetPrimitiveDataFromComponent);
+    if (auto& Actor = InPrimitiveComponent->getOwningActor())
+    {
+        if (auto& Owner = Actor->GetOwner())
+        {
+            if (auto& World = Owner->CastTo<MWorld>())
+            {
+                Scenes[World->GetID()]->AddPrimitiveComponent(InPrimitiveComponent);
+            }
+        }
+    }
+
+    //GetPrimitiveDataFromComponent(InPrimitiveComponent);
+    //InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &MRenderer::GetPrimitiveDataFromComponent);
 }
 
 void MRenderer::AddPrimitiveComponentTemp(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent)
 {
-    // 일반적은 용도는 아님.
-    // AddPrimitiveComponent, GetPrimitiveDataFromComponent 기능들을 혼합해 구현됨
-
     if (InPrimitiveComponent == nullptr)
     {
         return;
     }
 
     int32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
-    if (PrimitiveDatasNoRenderPass.find(PrimitiveID) == PrimitiveDatasNoRenderPass.end())
+    if (PrimitiveDatasUnManaged.find(PrimitiveID) == PrimitiveDatasUnManaged.end())
     {
         std::vector<FPrimitiveData> PrimitiveDatas;
         if (InPrimitiveComponent->GetPrimitiveData(PrimitiveDatas))
         {
-            PrimitiveDatasNoRenderPass[PrimitiveID] = PrimitiveDatas;
+            PrimitiveDatasUnManaged[PrimitiveID] = PrimitiveDatas;
         }
     }
 
     RemoveBuffer(PrimitiveID);
 
     // UpdateBuffer 함수가 NoRenderPass를 사용하지 않게 구현되어 있어서 구현부를 옮겨옴
-    for (FPrimitiveData& PrimitiveData : PrimitiveDatasNoRenderPass[PrimitiveID])
+    for (FPrimitiveData& PrimitiveData : PrimitiveDatasUnManaged[PrimitiveID])
     {
         if (PrimitiveData.MeshData == nullptr)
         {
@@ -487,16 +497,18 @@ void MRenderer::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponen
         return;
     }
 
+    // 프리미티브 데이터를 추출해 옴
     int32 PrimitiveID = InComponent->GetPrimitiveID();
-    if (PrimitiveDatasRenderPass.find(PrimitiveID) == PrimitiveDatasRenderPass.end())
+    if (PrimitiveDatas.find(PrimitiveID) == PrimitiveDatas.end())
     {
-        std::vector<FPrimitiveData> PrimitiveDatas;
-        if (InComponent->GetPrimitiveData(PrimitiveDatas))
+        std::vector<FPrimitiveData> NewPrimitiveDatas;
+        if (InComponent->GetPrimitiveData(NewPrimitiveDatas))
         {
-            PrimitiveDatasRenderPass[PrimitiveID] = PrimitiveDatas;
+            PrimitiveDatas[PrimitiveID] = NewPrimitiveDatas;
         }
     }
 
+    // 프리미티브 데이터에 버퍼를 채워줌
     UpdateBuffer(InComponent);
 
     if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
@@ -504,15 +516,16 @@ void MRenderer::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponen
         MeshComp->GetMeshChangedDelegate().Add(this, &MRenderer::UpdateBuffer);
     }
 
-    for (uint32 i=0; i<GetSize(PrimitiveDatasRenderPass[PrimitiveID]); ++i)
+    for (uint32 i=0; i<GetSize(PrimitiveDatas[PrimitiveID]); ++i)
     {
-        FPrimitiveData& PrimitiveData = PrimitiveDatasRenderPass[PrimitiveID][i];
+        FPrimitiveData& PrimitiveData = PrimitiveDatas[PrimitiveID][i];
         PrimitiveDatasPerType[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
     }
 }
 
 void MRenderer::MakeBuffer(uint32 InPrimitiveID, const FMeshData& InMeshData)
 {
+    // 그래픽 디바이스 쪽에 옮겨야 할 듯?
     uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
     uint32 VertexNum = GetSize(InMeshData.Vertices);
     std::shared_ptr<MVertexBuffer> VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, InMeshData.Vertices.data());
@@ -522,6 +535,17 @@ void MRenderer::MakeBuffer(uint32 InPrimitiveID, const FMeshData& InMeshData)
     uint32 IndexNum = GetSize(InMeshData.Indices);
     std::shared_ptr<MIndexBuffer> IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, InMeshData.Indices.data()) : nullptr;
     IndexBuffers[InPrimitiveID].push_back(IndexBuffer);
+}
+
+void MRenderer::MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData)
+{
+    uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
+    uint32 VertexNum = GetSize(InMeshData.Vertices);
+    OutBuffers.VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, InMeshData.Vertices.data());
+
+    uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
+    uint32 IndexNum = GetSize(InMeshData.Indices);
+    OutBuffers.IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, InMeshData.Indices.data()) : nullptr;
 }
 
 void MRenderer::RemoveBuffer(uint32 InPrimitiveID, int32 InIndex)
@@ -554,50 +578,120 @@ void MRenderer::UpdateBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
         return;
     }
 
-    UpdateBufferInternal(InComponent->GetPrimitiveID());
-}
-
-void MRenderer::UpdateBufferInternal(uint32 InPrimitiveID)
-{
-    for (FPrimitiveData& PrimitiveData : PrimitiveDatasRenderPass[InPrimitiveID])
+    std::shared_ptr<StaticMesh> Mesh = nullptr;
+    if (auto& MeshComp = InComponent->CastTo<MMeshComponent>())
     {
+        Mesh = MeshComp->GetMesh();
+    }
+    else if (auto& LightComp = InComponent->CastTo<MLightComponent>())
+    {
+        Mesh = LightComp->GetMesh();
+    }
+
+    if (Mesh == nullptr)
+    {
+        return;
+    }
+
+    uint32 PrimitiveID = InComponent->GetPrimitiveID();
+    uint32 Num = GetSize(PrimitiveDatas[PrimitiveID]);
+
+    if (Num == 0)
+    {
+        // PrimitiveData의 Buffer를 채우는 함수인데, PrimitiveData가 없으면 안됨
+        return;
+    }
+
+    const std::wstring& AssetPath = Mesh->GetAssetPath();
+    auto& Iter = SharedBuffers.find(AssetPath);
+    bool bCreateBuffer = Iter == SharedBuffers.end();
+
+    for (uint32 i = 0; i < Num; ++i)
+    {
+        FPrimitiveData& PrimitiveData = PrimitiveDatas[PrimitiveID][i];
         if (PrimitiveData.MeshData == nullptr)
         {
             continue;
         }
 
-        MakeBuffer(InPrimitiveID, *PrimitiveData.MeshData);
-        PrimitiveData.VertexBuffer = VertexBuffers[InPrimitiveID].back();
-        PrimitiveData.IndexBuffer = IndexBuffers[InPrimitiveID].back();
+        const FMeshData& MeshData = *PrimitiveData.MeshData;
+
+        if (bCreateBuffer)
+        {
+            FBuffers NewSharedBuffers = {};
+            MakeBuffer(NewSharedBuffers, MeshData);
+            SharedBuffers[AssetPath].AddBuffers(NewSharedBuffers);
+        }
+
+        PrimitiveData.VertexBuffer = SharedBuffers[AssetPath].VertexBuffers[i];
+        PrimitiveData.IndexBuffer = SharedBuffers[AssetPath].IndexBuffers[i];
+
+        // 클로딩 등으로 전용 버퍼가 필요한 경우
+        if (Mesh->IsClothigMesh(i))
+        {
+            FBuffers NewPrivateBuffers = {};
+            MakeBuffer(NewPrivateBuffers, MeshData);
+            PrimitiveData.VertexBuffer = NewPrivateBuffers.VertexBuffer;
+            PrimitiveData.IndexBuffer = NewPrivateBuffers.IndexBuffer;
+
+            PrivateBuffers[PrimitiveID].AddBuffers(NewPrivateBuffers);
+        }
     }
+
+    //// 공유하는 버퍼를 채움
+    //uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
+    //uint32 VertexNum = GetSize(MeshData.Vertices);
+    //std::shared_ptr<MVertexBuffer> VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData.Vertices.data());
+
+    //uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
+    //uint32 IndexNum = GetSize(MeshData.Indices);
+    //std::shared_ptr<MIndexBuffer> IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData.Indices.data()) : nullptr;
+
+    //SharedBuffers.VertexBuffers[_DynamicMesh->GetAssetPath()].push_back(VertexBuffer);
+    //SharedBuffers.IndexBuffers[_DynamicMesh->GetAssetPath()].push_back(IndexBuffer);
 }
+
+//void MRenderer::UpdateBufferInternal(uint32 InPrimitiveID)
+//{
+//    for (FPrimitiveData& PrimitiveData : PrimitiveDatas[InPrimitiveID])
+//    {
+//        if (PrimitiveData.MeshData == nullptr)
+//        {
+//            continue;
+//        }
+//
+//        MakeBuffer(InPrimitiveID, *PrimitiveData.MeshData);
+//        PrimitiveData.VertexBuffer = VertexBuffers[InPrimitiveID].back();
+//        PrimitiveData.IndexBuffer = IndexBuffers[InPrimitiveID].back();
+//    }
+//}
 
 const std::vector<FPrimitiveData>& MRenderer::GetPrimitiveDatas(uint32 InPrimitiveID)
 {
     {
-        auto& Iter = PrimitiveDatasRenderPass.find(InPrimitiveID);
-        if (Iter != PrimitiveDatasRenderPass.end())
+        auto& Iter = PrimitiveDatas.find(InPrimitiveID);
+        if (Iter != PrimitiveDatas.end())
         {
-            return PrimitiveDatasRenderPass[InPrimitiveID];
+            return PrimitiveDatas[InPrimitiveID];
         }
     }
     {
-        auto& Iter = PrimitiveDatasNoRenderPass.find(InPrimitiveID);
-        if (Iter != PrimitiveDatasNoRenderPass.end())
+        auto& Iter = PrimitiveDatasUnManaged.find(InPrimitiveID);
+        if (Iter != PrimitiveDatasUnManaged.end())
         {
-            return PrimitiveDatasNoRenderPass[InPrimitiveID];
+            return PrimitiveDatasUnManaged[InPrimitiveID];
         }
     }
 
 
-    return PrimitiveDatasRenderPass[-1];
+    return PrimitiveDatas[-1];
 }
 
 
 void MRenderer::UpdatePrimitiveTransform(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation, const Vec3& InScale)
 {
-    auto& Iter = PrimitiveDatasRenderPass.find(InPrimitiveID);
-    if (Iter == PrimitiveDatasRenderPass.end())
+    auto& Iter = PrimitiveDatas.find(InPrimitiveID);
+    if (Iter == PrimitiveDatas.end())
     {
         return;
     }
@@ -656,6 +750,11 @@ std::shared_ptr<MIndexBuffer> MRenderer::GetIndexBuffer(uint32 InId, uint32 InOf
     return nullptr;
 }
 
+const std::vector<FPrimitiveData>& MRenderer::GetPrimitives(EPrimitiveType InPrimitiveType)
+{
+    return Scenes[SceneID]->GetPrimitives(InPrimitiveType);
+}
+
 void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
 {
 #ifdef _DEBUG
@@ -690,21 +789,137 @@ void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
 
 void MRenderer::Render()
 {
-    // 디렉셔널 라이트 데이터 갱신
-    auto DirectionalLightPrimitive = GetPrimitives(EPrimitiveType::DirectionalLight);
-    if (DirectionalLightPrimitive.size() > 0)
+    /*
+    // 스피어 그리기
+    PrimitiveDatas[SpherePID].clear();
+    if (SphereRenderDatas.empty() == false)
     {
-        const std::shared_ptr<MLightComponent>& InLightComponent = std::static_pointer_cast<MLightComponent>(DirectionalLightPrimitive[0].PrimitiveComponent.lock());
+        std::vector<FVertex_Instance> InstanceDatas;
+        for (auto& SphereRenderData : SphereRenderDatas)
+        {
+            FVertex_Instance NewInstance = {};
+            XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&SphereRenderData.Scale)) * XMMatrixTranslationFromVector(XMLoadFloat3(&SphereRenderData.Translation));
+            XMStoreFloat4x4(&NewInstance.WorldMatrix, XMWorldMat);
+            InstanceDatas.push_back(NewInstance);
+        }
+
+        std::vector<FPrimitiveData> NewPrimitiveDatas;
+        FPrimitiveData NewPrimitivData = {};
+        NewPrimitivData.MeshData = &SphereMesh;
+        NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
+        NewPrimitivData.VertexBuffer = VertexBuffers[SpherePID][0];
+        NewPrimitivData.IndexBuffer = IndexBuffers[SpherePID][0];
+        NewPrimitivData.InstanceBuffer = InstanceBuffer;
+        NewPrimitivData.InstanceNum = GetSize(SphereRenderDatas);
+
+        InstanceBuffer->Update(InstanceDatas.data(), NewPrimitivData.InstanceNum);
+        NewPrimitiveDatas.push_back(NewPrimitivData);
+
+        PrimitiveDatas[SpherePID].insert(PrimitiveDatas[SpherePID].end(), NewPrimitiveDatas.begin(), NewPrimitiveDatas.end());
+    }
+    SphereRenderDatas.clear();
+    */
+
+    // 씬 그리기
+    //for (auto& [Temp, Scene] : Scenes)
+    //{
+    //    SceneID = Temp;
+    //    RenderScene(Scene);
+    //}
+    
+    /*
+    std::vector<FPrimitiveData> PostRenderPrimitiveDatas;
+
+    // 축 그리기
+    PrimitiveDatas[CoordinatePID].clear();
+    if (CoordinateRenderDatas.empty() == false)
+    {
+        std::vector<FVertex_Instance> InstanceDatas;
+        for (auto& CoordinateRenderData : CoordinateRenderDatas)
+        {
+            FVertex_Instance NewInstance = {};
+            XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&CoordinateRenderData.Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&CoordinateRenderData.Quaternion)) * XMMatrixTranslationFromVector(XMLoadFloat3(&CoordinateRenderData.Translation));
+            XMStoreFloat4x4(&NewInstance.WorldMatrix, XMWorldMat);
+            InstanceDatas.push_back(NewInstance);
+        }
+
+        std::vector<FPrimitiveData> PrimitiveDatas;
+        FPrimitiveData NewPrimitivData = {};
+        NewPrimitivData.MeshData = &CoordinateMesh;
+        NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
+        NewPrimitivData.VertexBuffer = VertexBuffers[CoordinatePID][0];
+        NewPrimitivData.IndexBuffer = IndexBuffers[CoordinatePID][0];
+        NewPrimitivData.InstanceBuffer = InstanceBuffer2;
+        NewPrimitivData.InstanceNum = GetSize(CoordinateRenderDatas);
+
+        InstanceBuffer2->Update(InstanceDatas.data(), NewPrimitivData.InstanceNum);
+        PrimitiveDatas.push_back(NewPrimitivData);
+
+        PostRenderPrimitiveDatas.insert(PostRenderPrimitiveDatas.end(), PrimitiveDatas.begin(), PrimitiveDatas.end());
+    }
+    CoordinateRenderDatas.clear();
+
+    // 기즈모
+    if (bGizmo)
+    {
+        float DistToScale = XMVectorGetX(XMVector3Length(XMLoadFloat3(&g_World->getMainCamera()->GetWorldTranslation()) - XMLoadFloat3(&GizmoPos))) / 10.f;
+
+        GizmoMeshComp->setTranslation(GizmoPos);
+        GizmoMeshComp->setScale(0.001f * DistToScale, 0.001f * DistToScale, 0.001f * DistToScale);
+        GizmoMeshComp->SceneComponent::Update(0.f);
+
+        const std::vector<FPrimitiveData>& GizmoPrimitives = GetPrimitiveDatas(GizmoMeshComp->GetPrimitiveID());
+        PostRenderPrimitiveDatas.insert(PostRenderPrimitiveDatas.end(), GizmoPrimitives.begin(), GizmoPrimitives.end());
+    }
+
+#ifdef _DEBUG
+    // 렌더 타겟
+    if (true == bDebugRenderTargets)
+    {
+        for (auto pair : DebugRenderTargetMehses)
+        {
+            auto& RenderTargetMesh = pair.second;
+            uint32 PID = RenderTargetMesh->GetPrimitiveID();
+            RenderTargetMesh->GetPrimitiveData(PostRenderPrimitiveDatas);
+            PostRenderPrimitiveDatas.back().VertexBuffer = VertexBuffers[PID][0];
+            PostRenderPrimitiveDatas.back().IndexBuffer = IndexBuffers[PID][0];
+        }
+    }
+#endif
+
+    RenderPasses[(int)ERenderPass::EditorGizmo]->RenderPass(PostRenderPrimitiveDatas);
+    */
+}
+
+void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
+{
+    std::unique_ptr<MScene> NewScene = std::make_unique<MScene>();
+    NewScene->SetWorld(InWorldRenderInfo.SrcWorld);
+    Scenes[InWorldRenderInfo.SrcWorld->GetID()] = std::move(NewScene);
+}
+
+void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
+{
+    if (InWorld == nullptr)
+    {
+        return;
+    }
+
+    SceneID = InWorld->GetID();
+    auto& Scene = Scenes[SceneID];
+
+
+    // Cascade Shadow
+    auto& DirectionalLightComponents = Scene->GetPrimitives(EPrimitiveType::DirectionalLight);
+    if (DirectionalLightComponents.empty() == false)
+    {
+        const std::shared_ptr<MLightComponent>& LightComponent = DirectionalLightComponents[0].PrimitiveComponent.lock()->CastTo<MLightComponent>();
 
         float tanHalfVertical = tanf(XMConvertToRadians(g_pSetting->getFov() / 2.f));
         float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();
 
-        //Mat4 LightWorldMat = {};
-        //TransformMatrix(LightWorldMat, VEC3ONE, InLightComponent->getRotation(), VEC3ZERO);
-        //XMMATRIX XMLightWorldMat = XMLoadFloat4x4(&LightWorldMat);
-
-        XMMATRIX XMCameraWorldMat = XMLoadFloat4x4(&g_World->getMainCamera()->getInvesrViewMatrix());
-        XMVECTOR LightDirection = XMVector3Normalize(XMLoadFloat3(&InLightComponent->GetDirection()));
+        XMMATRIX XMCameraWorldMat = XMLoadFloat4x4(&Scene->GetWorld()->getMainCamera()->getInvesrViewMatrix());
+        XMVECTOR LightDirection = XMVector3Normalize(XMLoadFloat3(&LightComponent->GetDirection()));
         XMVECTOR UpVector = XMLoadFloat3(&VEC3UP);
         if (fabs(XMVectorGetX(XMVector3Dot(UpVector, LightDirection))) > 0.999f)
         {
@@ -768,8 +983,18 @@ void MRenderer::Render()
     UpdateGlobalConstantBuffer();
     UpdateTickConstantBuffer();
 
+    RenderScene(Scene);
+}
+
+std::shared_ptr<MWorld> MRenderer::GetWorld()
+{
+    return Scenes[SceneID]->GetWorld();
+}
+
+void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
+{
     // 스피어 그리기
-    PrimitiveDatasRenderPass[SpherePID].clear();
+    PrimitiveDatas[SpherePID].clear();
     if (SphereRenderDatas.empty() == false)
     {
         std::vector<FVertex_Instance> InstanceDatas;
@@ -781,7 +1006,7 @@ void MRenderer::Render()
             InstanceDatas.push_back(NewInstance);
         }
 
-        std::vector<FPrimitiveData> PrimitiveDatas;
+        std::vector<FPrimitiveData> NewPrimitiveDatas;
         FPrimitiveData NewPrimitivData = {};
         NewPrimitivData.MeshData = &SphereMesh;
         NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
@@ -791,79 +1016,29 @@ void MRenderer::Render()
         NewPrimitivData.InstanceNum = GetSize(SphereRenderDatas);
 
         InstanceBuffer->Update(InstanceDatas.data(), NewPrimitivData.InstanceNum);
-        PrimitiveDatas.push_back(NewPrimitivData);
+        NewPrimitiveDatas.push_back(NewPrimitivData);
 
-        PrimitiveDatasRenderPass[SpherePID].insert(PrimitiveDatasRenderPass[SpherePID].end(), PrimitiveDatas.begin(), PrimitiveDatas.end());
+        PrimitiveDatas[SpherePID].insert(PrimitiveDatas[SpherePID].end(), NewPrimitiveDatas.begin(), NewPrimitiveDatas.end());
     }
     SphereRenderDatas.clear();
 
-    // 씬 그리기
-	RenderScene();
-    
-    std::vector<FPrimitiveData> PostRenderPrimitiveDatas;
+    TotalPrimitiveNum = GetSize(PrimitiveComponents);
+    FrustumCulling(InScene);
 
-    // 축 그리기
-    PrimitiveDatasRenderPass[CoordinatePID].clear();
-    if (CoordinateRenderDatas.empty() == false)
+    uint32 CombinePass = EnumToIndex(ERenderPass::Combine);
+    for (uint32 PassIndex = 0; PassIndex <= CombinePass; ++PassIndex)
     {
-        std::vector<FVertex_Instance> InstanceDatas;
-        for (auto& CoordinateRenderData : CoordinateRenderDatas)
+        if (std::shared_ptr<MRenderPass>& CurrentRenderPass = RenderPasses[PassIndex])
         {
-            FVertex_Instance NewInstance = {};
-            XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&CoordinateRenderData.Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&CoordinateRenderData.Quaternion)) * XMMatrixTranslationFromVector(XMLoadFloat3(&CoordinateRenderData.Translation));
-            XMStoreFloat4x4(&NewInstance.WorldMatrix, XMWorldMat);
-            InstanceDatas.push_back(NewInstance);
-        }
-
-        std::vector<FPrimitiveData> PrimitiveDatas;
-        FPrimitiveData NewPrimitivData = {};
-        NewPrimitivData.MeshData = &CoordinateMesh;
-        NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
-        NewPrimitivData.VertexBuffer = VertexBuffers[CoordinatePID][0];
-        NewPrimitivData.IndexBuffer = IndexBuffers[CoordinatePID][0];
-        NewPrimitivData.InstanceBuffer = InstanceBuffer2;
-        NewPrimitivData.InstanceNum = GetSize(CoordinateRenderDatas);
-
-        InstanceBuffer2->Update(InstanceDatas.data(), NewPrimitivData.InstanceNum);
-        PrimitiveDatas.push_back(NewPrimitivData);
-
-        PostRenderPrimitiveDatas.insert(PostRenderPrimitiveDatas.end(), PrimitiveDatas.begin(), PrimitiveDatas.end());
-    }
-    CoordinateRenderDatas.clear();
-
-    // 기즈모
-    if (bGizmo)
-    {
-        float DistToScale = XMVectorGetX(XMVector3Length(XMLoadFloat3(&g_World->getMainCamera()->GetWorldTranslation()) - XMLoadFloat3(&GizmoPos))) / 10.f;
-
-        GizmoMeshComp->setTranslation(GizmoPos);
-        GizmoMeshComp->setScale(0.001f * DistToScale, 0.001f * DistToScale, 0.001f * DistToScale);
-        GizmoMeshComp->SceneComponent::Update(0.f);
-
-        const std::vector<FPrimitiveData>& GizmoPrimitives = GetPrimitiveDatas(GizmoMeshComp->GetPrimitiveID());
-        PostRenderPrimitiveDatas.insert(PostRenderPrimitiveDatas.end(), GizmoPrimitives.begin(), GizmoPrimitives.end());
-    }
-
-#ifdef _DEBUG
-    // 렌더 타겟
-    if (true == bDebugRenderTargets)
-    {
-        for (auto pair : DebugRenderTargetMehses)
-        {
-            auto& RenderTargetMesh = pair.second;
-            uint32 PID = RenderTargetMesh->GetPrimitiveID();
-            RenderTargetMesh->GetPrimitiveData(PostRenderPrimitiveDatas);
-            PostRenderPrimitiveDatas.back().VertexBuffer = VertexBuffers[PID][0];
-            PostRenderPrimitiveDatas.back().IndexBuffer = IndexBuffers[PID][0];
-        }
-    }
+#if RenderPassPerformanceProfiling == 1
+            std::wstring Name = TEXT("Pass") + std::to_wstring(PassIndex) + TEXT(" :");
+            PerformanceTimer Temp(Name);
 #endif
+            CurrentRenderPass->RenderPass(RenderablePrimitiveData);
+        }
+    }
 
-    RenderPasses[(int)ERenderPass::EditorGizmo]->RenderPass(PostRenderPrimitiveDatas);
-}
-
-void MRenderer::RenderScene()
-{
+    /*
 	TotalPrimitiveNum = GetSize(PrimitiveComponents);
 	FrustumCulling();
 
@@ -879,6 +1054,7 @@ void MRenderer::RenderScene()
             CurrentRenderPass->RenderPass(RenderablePrimitiveData);
         }
 	}
+    */
 }
 
 void MRenderer::RenderText()
@@ -886,75 +1062,74 @@ void MRenderer::RenderText()
 
 }
 
-void MRenderer::FrustumCulling()
+void MRenderer::FrustumCulling(std::unique_ptr<MScene>& InScene)
 {
     RenderablePrimitiveData.clear();
 
-    const std::shared_ptr<MCamera>& Camera = g_World->getMainCamera();
+    std::vector<XMVECTOR> Planes;
+    if (const std::shared_ptr<MCamera>& Camera = InScene->GetWorld()->getMainCamera())
+    {
+        Planes.resize(6);
 
-	XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&g_World->getMainCameraProjectioinMatrix()));
-	XMStoreFloat4x4(&ViewPerspectiveProjMatrix, ViewProj);
+        XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&Camera->getPerspectiveProjectionMatrix()));
+        XMStoreFloat4x4(&ViewPerspectiveProjMatrix, ViewProj);
 
-    XMMATRIX XMOrthoViewProject = XMLoadFloat4x4(&Camera->getViewMatrix()) * XMLoadFloat4x4(&g_World->getMainCameraOrthographicProjectionMatrix());
-    XMStoreFloat4x4(&ViewOrthogonalProjMatrix, XMOrthoViewProject);
+        XMMATRIX XMOrthoViewProject = XMLoadFloat4x4(&Camera->getViewMatrix()) * XMLoadFloat4x4(&Camera->getOrthographicProjectionMatrix());
 
-    // 평면의 방정식 ax + by + cz + d = 0을 구해야 함
+        XMStoreFloat4x4(&ViewOrthogonalProjMatrix, XMOrthoViewProject);
 
-    // 절두체 Near 평면
-	std::vector<XMVECTOR> Planes(6);
-    float a = ViewPerspectiveProjMatrix._13;
-    float b = ViewPerspectiveProjMatrix._23;
-    float c = ViewPerspectiveProjMatrix._33;
-    float d = ViewPerspectiveProjMatrix._43;
-	Planes[0] = XMVectorSet(a, b, c, d);
-	Planes[0] = XMPlaneNormalize(Planes[0]);
+        // 평면의 방정식 ax + by + cz + d = 0을 구해야 함
+        // 절두체 Near 평면
+        float a = ViewPerspectiveProjMatrix._13;
+        float b = ViewPerspectiveProjMatrix._23;
+        float c = ViewPerspectiveProjMatrix._33;
+        float d = ViewPerspectiveProjMatrix._43;
+        Planes[0] = XMVectorSet(a, b, c, d);
+        Planes[0] = XMPlaneNormalize(Planes[0]);
 
-	// 절두체 Far 평면
-	a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._13);
-	b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._23);
-	c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._33);
-	d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._43);
-	Planes[1] = XMVectorSet(a, b, c, d);
-	Planes[1] = XMPlaneNormalize(Planes[1]);
+        // 절두체 Far 평면
+        a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._13);
+        b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._23);
+        c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._33);
+        d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._43);
+        Planes[1] = XMVectorSet(a, b, c, d);
+        Planes[1] = XMPlaneNormalize(Planes[1]);
 
-	// 절두체의 왼쪽 평면
-	a = (float)(ViewPerspectiveProjMatrix._14 + ViewPerspectiveProjMatrix._11);
-	b = (float)(ViewPerspectiveProjMatrix._24 + ViewPerspectiveProjMatrix._21);
-	c = (float)(ViewPerspectiveProjMatrix._34 + ViewPerspectiveProjMatrix._31);
-	d = (float)(ViewPerspectiveProjMatrix._44 + ViewPerspectiveProjMatrix._41);
-	Planes[2] = XMVectorSet(a, b, c, d);
-	Planes[2] = XMPlaneNormalize(Planes[2]);
+        // 절두체의 왼쪽 평면
+        a = (float)(ViewPerspectiveProjMatrix._14 + ViewPerspectiveProjMatrix._11);
+        b = (float)(ViewPerspectiveProjMatrix._24 + ViewPerspectiveProjMatrix._21);
+        c = (float)(ViewPerspectiveProjMatrix._34 + ViewPerspectiveProjMatrix._31);
+        d = (float)(ViewPerspectiveProjMatrix._44 + ViewPerspectiveProjMatrix._41);
+        Planes[2] = XMVectorSet(a, b, c, d);
+        Planes[2] = XMPlaneNormalize(Planes[2]);
 
-	// 절두체의 오른쪽 평면
-	a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._11);
-	b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._21);
-	c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._31);
-	d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._41);
-	Planes[3] = XMVectorSet(a, b, c, d);
-	Planes[3] = XMPlaneNormalize(Planes[3]);
+        // 절두체의 오른쪽 평면
+        a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._11);
+        b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._21);
+        c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._31);
+        d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._41);
+        Planes[3] = XMVectorSet(a, b, c, d);
+        Planes[3] = XMPlaneNormalize(Planes[3]);
 
-	// 절두체의 윗 평면
-	a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._12);
-	b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._22);
-	c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._32);
-	d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._42);
-	Planes[4] = XMVectorSet(a, b, c, d);
-	Planes[4] = XMPlaneNormalize(Planes[4]);
+        // 절두체의 윗 평면
+        a = (float)(ViewPerspectiveProjMatrix._14 - ViewPerspectiveProjMatrix._12);
+        b = (float)(ViewPerspectiveProjMatrix._24 - ViewPerspectiveProjMatrix._22);
+        c = (float)(ViewPerspectiveProjMatrix._34 - ViewPerspectiveProjMatrix._32);
+        d = (float)(ViewPerspectiveProjMatrix._44 - ViewPerspectiveProjMatrix._42);
+        Planes[4] = XMVectorSet(a, b, c, d);
+        Planes[4] = XMPlaneNormalize(Planes[4]);
 
-	// 절두체의 아래 평면
-	a = (float)(ViewPerspectiveProjMatrix._14 + ViewPerspectiveProjMatrix._12);
-	b = (float)(ViewPerspectiveProjMatrix._24 + ViewPerspectiveProjMatrix._22);
-	c = (float)(ViewPerspectiveProjMatrix._34 + ViewPerspectiveProjMatrix._32);
-	d = (float)(ViewPerspectiveProjMatrix._44 + ViewPerspectiveProjMatrix._42);
-	Planes[5] = XMVectorSet(a, b, c, d);
-	Planes[5] = XMPlaneNormalize(Planes[5]);
+        // 절두체의 아래 평면
+        a = (float)(ViewPerspectiveProjMatrix._14 + ViewPerspectiveProjMatrix._12);
+        b = (float)(ViewPerspectiveProjMatrix._24 + ViewPerspectiveProjMatrix._22);
+        c = (float)(ViewPerspectiveProjMatrix._34 + ViewPerspectiveProjMatrix._32);
+        d = (float)(ViewPerspectiveProjMatrix._44 + ViewPerspectiveProjMatrix._42);
+        Planes[5] = XMVectorSet(a, b, c, d);
+        Planes[5] = XMPlaneNormalize(Planes[5]);
 
-    //RenderablePrimitiveComponents.clear();
-    TotalPrimitiveNum = 0;
-    CulledPrimitiveNum = 0;
-    ShownPrimitiveNum = 0;
+    }
 
-    for (auto& [Id, PrimitiveDatas] : PrimitiveDatasRenderPass)
+    for (const auto& [Id, PrimitiveDatas] : InScene->GetPrimitiveDatas())
     {
         if (PrimitiveDatas.empty())
         {
@@ -963,21 +1138,25 @@ void MRenderer::FrustumCulling()
 
         TotalPrimitiveNum += GetSize(PrimitiveDatas);
 
-        if (const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = PrimitiveDatas[0].PrimitiveComponent.lock())
+        if (Planes.empty() == false)
         {
-            std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
-            // TODO 바운딩 박스가 없으면 일단 무조건 렌더링
-            //if (PrimitiveComponent->GetBoundingBox(BoundingBox))
-            //{
-            //    // 컬링
-            //    if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
-            //    {
-            //        CulledPrimitiveNum += GetSize(PrimitiveDatas);
-            //        continue;
-            //    }
-            //    
-            //}
+            if (const std::shared_ptr<MPrimitiveComponent>& PrimitiveComponent = PrimitiveDatas[0].PrimitiveComponent.lock())
+            {
+                std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
+                // TODO 바운딩 박스가 없으면 일단 무조건 렌더링
+                //if (PrimitiveComponent->GetBoundingBox(BoundingBox))
+                //{
+                //    // 컬링
+                //    if (BoundingBox->cullSphere(Planes, PrimitiveComponent->getWorldTranslation(), BoundingBox->GetLength(PrimitiveComponent->getScale()) / 2.f) == false)
+                //    {
+                //        CulledPrimitiveNum += GetSize(PrimitiveDatas);
+                //        continue;
+                //    }
+                //    
+                //}
+            }
         }
+
 
         RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), PrimitiveDatas.begin(), PrimitiveDatas.end());
         ShownPrimitiveNum += GetSize(PrimitiveDatas);
@@ -1010,22 +1189,217 @@ void MRenderer::UpdateTickConstantBuffer()
 {
     EConstantBufferLayer Layer = EConstantBufferLayer::Tick;
     uint32 LayerIndex = EnumToIndex(Layer);
-    std::shared_ptr<MConstantBuffer>& TickCBuffer = MShader::GetSharedConstantBuffer(Layer);
+    std::shared_ptr<MConstantBuffer>& TickBuffer = MShader::GetSharedConstantBuffer(Layer);
 
-    TickCBuffer->SetData(TEXT("cascadeDistance"), CascadeDistances.data());
-    TickCBuffer->SetData(TEXT("lightPos"), CascadeLightPositions.data());
-    TickCBuffer->SetData(TEXT("lightViewProjMatrix"), CascadeLightMatrices.data());
+    TickBuffer->SetData(TEXT("cascadeDistance"), CascadeDistances.data());
+    TickBuffer->SetData(TEXT("lightPos"), CascadeLightPositions.data());
+    TickBuffer->SetData(TEXT("lightViewProjMatrix"), CascadeLightMatrices.data());
 
-    TickCBuffer->SetData(TEXT("viewMatrix"), &g_World->getMainCameraViewMatrix());
-    TickCBuffer->SetData(TEXT("projectionMatrix"), &g_World->getMainCameraProjectioinMatrix());
-    TickCBuffer->SetData(TEXT("identityMatrix"), &IDENTITYMATRIX);
-    TickCBuffer->SetData(TEXT("orthographicProjectionMatrix"), &g_World->getMainCameraOrthographicProjectionMatrix());
-    TickCBuffer->SetData(TEXT("inverseOrthographicProjectionMatrix"), &g_World->getMainCamera()->getInverseOrthographicProjectionMatrix());
+    TickBuffer->SetData(TEXT("viewMatrix"), &GetWorld()->getMainCameraViewMatrix());
+    TickBuffer->SetData(TEXT("projectionMatrix"), &GetWorld()->getMainCameraProjectioinMatrix());
+    TickBuffer->SetData(TEXT("identityMatrix"), &IDENTITYMATRIX);
+    TickBuffer->SetData(TEXT("orthographicProjectionMatrix"), &GetWorld()->getMainCameraOrthographicProjectionMatrix());
+    TickBuffer->SetData(TEXT("inverseOrthographicProjectionMatrix"), &GetWorld()->getMainCamera()->getInverseOrthographicProjectionMatrix());
 
-    TickCBuffer->Commit();
+    TickBuffer->Commit();
 
-    ID3D11Buffer* DX_Buffer = TickCBuffer->getRaw();
+    ID3D11Buffer* DX_Buffer = TickBuffer->getRaw();
     g_pGraphicDevice->getContext()->PSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
     g_pGraphicDevice->getContext()->VSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
     g_pGraphicDevice->getContext()->GSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
+}
+
+MScene::MScene()
+    : CascadeDistances(4, 0.f)
+    , CascadeLightPositions(3, VEC4ZERO)
+    , CascadeLightMatrices(3, IDENTITYMATRIX)
+{
+    CascadeDistances[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
+    CascadeDistances[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
+    CascadeDistances[CastValue<int>(EFrustumCascade::Middle2)] = 18.f;
+    CascadeDistances[CastValue<int>(EFrustumCascade::Far)] = 1000.f;
+
+}
+
+std::shared_ptr<MWindow> MScene::GetWindow() const
+{
+    return Window.lock();
+}
+
+std::shared_ptr<MWorld> MScene::GetWorld() const
+{
+    return World.lock();
+}
+
+void MScene::UpdateGlobalConstantBuffer()
+{
+    std::shared_ptr<MConstantBuffer>& GlobalBuffer = MShader::GetSharedConstantBuffer(EConstantBufferLayer::Global);
+    if (GlobalBuffer == nullptr)
+    {
+        return;
+    }
+
+    Vec4 resolution = { GetWindow()->GetWidth<float>(),GetWindow()->GetHeight<float>(), 0.f, 0.f };
+    GlobalBuffer->SetData(TEXT("resolution"), &resolution);
+
+    BOOL bLight = TRUE;
+    GlobalBuffer->SetData(TEXT("bLight"), &bLight);
+
+    GlobalBuffer->Commit();
+
+    // 후순위로 개선하기
+    ID3D11Buffer* DX_Buffer = GlobalBuffer->getRaw();
+    g_pGraphicDevice->getContext()->VSSetConstantBuffers(0, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->PSSetConstantBuffers(0, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->GSSetConstantBuffers(0, 1, &DX_Buffer);
+}
+
+void MScene::UpdateTickConstantBuffer()
+{
+    EConstantBufferLayer Layer = EConstantBufferLayer::Tick;
+    uint32 LayerIndex = EnumToIndex(Layer);
+    std::shared_ptr<MConstantBuffer>& TickBuffer = MShader::GetSharedConstantBuffer(Layer);
+    if (TickBuffer == nullptr)
+    {
+        return;
+    }
+
+    TickBuffer->SetData(TEXT("cascadeDistance"), CascadeDistances.data());
+    TickBuffer->SetData(TEXT("lightPos"), CascadeLightPositions.data());
+    TickBuffer->SetData(TEXT("lightViewProjMatrix"), CascadeLightMatrices.data());
+
+    TickBuffer->SetData(TEXT("viewMatrix"), &GetWorld()->getMainCameraViewMatrix());
+    TickBuffer->SetData(TEXT("projectionMatrix"), &GetWorld()->getMainCameraProjectioinMatrix());
+    TickBuffer->SetData(TEXT("identityMatrix"), &IDENTITYMATRIX);
+    TickBuffer->SetData(TEXT("orthographicProjectionMatrix"), &GetWorld()->getMainCameraOrthographicProjectionMatrix());
+    TickBuffer->SetData(TEXT("inverseOrthographicProjectionMatrix"), &GetWorld()->getMainCamera()->getInverseOrthographicProjectionMatrix());
+
+    TickBuffer->Commit();
+
+    // 후순위로 개선하기
+    ID3D11Buffer* DX_Buffer = TickBuffer->getRaw();
+    g_pGraphicDevice->getContext()->PSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->VSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
+    g_pGraphicDevice->getContext()->GSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
+}
+
+void MScene::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimitiveComponent)
+{
+    if (InPrimitiveComponent == nullptr)
+    {
+        return;
+    }
+
+    uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
+    PrimitiveComponents[PrimitiveID] = InPrimitiveComponent;
+
+    GetPrimitiveDataFromComponent(InPrimitiveComponent);
+    InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &MScene::UpdatePrimtiveData);
+
+    if (auto& MeshComp = InPrimitiveComponent->CastTo<MMeshComponent>())
+    {
+        //MeshComp->GetMeshChangedDelegate().Add(this, &MRenderer::UpdateBuffer);
+    }
+}
+
+void MScene::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent)
+{
+    if (InComponent == nullptr)
+    {
+        return;
+    }
+
+    std::shared_ptr<StaticMesh> Mesh = nullptr;
+    if (auto& MeshComp = InComponent->CastTo<MMeshComponent>())
+    {
+        Mesh = MeshComp->GetMesh();
+    }
+    else if (auto& LightComp = InComponent->CastTo<MLightComponent>())
+    {
+        Mesh = LightComp->GetMesh();
+    }
+
+    if (Mesh == nullptr)
+    {
+        return;
+    }
+
+    // 프리미티브 데이터를 추출해 옴
+    int32 PrimitiveID = InComponent->GetPrimitiveID();
+    if (PrimitiveDatas.find(PrimitiveID) == PrimitiveDatas.end())
+    {
+        std::vector<FPrimitiveData> NewPrimitiveDatas;
+        if (InComponent->GetPrimitiveData(NewPrimitiveDatas))
+        {
+            PrimitiveDatas[PrimitiveID] = NewPrimitiveDatas;
+        }
+    }
+
+    // 프리미티브 데이터에 버퍼를 채워줌
+    if (getGraphicDevice())
+    {
+        getGraphicDevice()->BuildMeshBuffers(PrimitiveID, Mesh);
+    }
+
+    UpdateBuffer(PrimitiveID, Mesh);
+
+    for (uint32 i = 0; i < GetSize(PrimitiveDatas[PrimitiveID]); ++i)
+    {
+        FPrimitiveData& PrimitiveData = PrimitiveDatas[PrimitiveID][i];
+        PrimitiveDatasPerType[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
+    }
+}
+
+void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<StaticMesh>& InMesh)
+{
+    uint32 PrimitiveDataNum = GetSize(PrimitiveDatas[InPID]);
+
+    if (PrimitiveDataNum == 0)
+    {
+        // PrimitiveData의 Buffer를 채우는 함수인데, PrimitiveData가 없으면 안됨
+        return;
+    }
+
+    FBufferContainer Buffers = {};
+    getGraphicDevice()->GetBuffers(Buffers, InMesh);
+
+    for (uint32 i = 0; i < PrimitiveDataNum; ++i)
+    {
+        FPrimitiveData& PrimitiveData = PrimitiveDatas[InPID][i];
+
+        PrimitiveData.VertexBuffer = Buffers.VertexBuffers[i];
+        PrimitiveData.IndexBuffer = Buffers.IndexBuffers[i];
+    }
+}
+
+void MScene::UpdatePrimtiveData(std::shared_ptr<MPrimitiveComponent> InComponent)
+{
+    auto& Iter = PrimitiveDatas.find(InComponent->GetPrimitiveID());
+    if (Iter != PrimitiveDatas.end())
+    {
+        PrimitiveDatas.erase(InComponent->GetPrimitiveID());
+    }
+
+    GetPrimitiveDataFromComponent(InComponent);
+}
+
+void MScene::DrawCoordinate(const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale)
+{
+    FInstancingData RenderData = {};
+    RenderData.Scale = InScale;
+    RenderData.Translation = InTranslation;
+    XMStoreFloat4(&RenderData.Quaternion, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InRotation)));
+
+    CoordinateRenderDatas.push_back(RenderData);
+}
+
+void MScene::Func()
+{
+    const std::shared_ptr<MCamera>& Camera = GetWorld()->getMainCamera();
+
+    XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&Camera->getPerspectiveProjectionMatrix()));
+    XMStoreFloat4x4(&ViewPerspectiveProjMatrix, ViewProj);
+
+    XMMATRIX XMOrthoViewProject = XMLoadFloat4x4(&Camera->getViewMatrix()) * XMLoadFloat4x4(&Camera->getOrthographicProjectionMatrix());
+    XMStoreFloat4x4(&ViewOrthogonalProjMatrix, XMOrthoViewProject);
 }

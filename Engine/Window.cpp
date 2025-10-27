@@ -17,7 +17,19 @@ LRESULT MWindow::DefaultWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
-MWindow::MWindow(const std::wstring &title, const int width, const int height, std::wstring &className)
+MWindow::MWindow()
+{
+    RECT rt = { 0, 0, 1920, 1080 };
+    AdjustWindowRect(&rt, WS_OVERLAPPED, false);
+
+    m_hWnd = CreateWindow(TEXT("className"), TEXT("title"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
+    if (m_hWnd == nullptr)
+        throw WINDOW_EXCEPTION(GetLastError());
+
+    ShowWindow(m_hWnd, SW_SHOW);
+}
+
+MWindow::MWindow(const std::wstring &title, const int width, const int height, const std::wstring &className)
 	: m_hWnd{ 0 }
 {
 	RECT rt = { 0, 0, width, height };
@@ -30,7 +42,7 @@ MWindow::MWindow(const std::wstring &title, const int width, const int height, s
 	ShowWindow(m_hWnd, SW_SHOW);
 }
 
-MWindow::MWindow(const std::wstring& title, const int width, const int height, HWND Parent, std::wstring& className)
+MWindow::MWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
 {
     RECT rt = { 0, 0, width, height };
     AdjustWindowRect(&rt, WS_OVERLAPPED, false);
@@ -59,7 +71,7 @@ void MWindow::SetTitle(const std::wstring title)
 	SetWindowText(getHandle(), title.c_str());
 }
 
-const HWND MWindow::getHandle() const
+HWND MWindow::getHandle() const
 {
 	return m_hWnd;
 }

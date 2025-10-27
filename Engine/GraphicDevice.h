@@ -2,6 +2,7 @@
 
 #include "Include.h"
 #include "Module/Module.h"
+#include "EngineException.h"
 
 #include <wrl/client.h>
 #include <dxgi1_6.h>
@@ -10,14 +11,20 @@
 // DirectXTK
 #include "DirectXTK/SpriteFont.h"
 
-#include "EngineException.h"
 #include "Vertex.h"
-
 #include "ShaderManager.h"
+
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "ConstantBuffer.h"
+
 class VertexShader;
 class PixelShader;
 class MGeometryShader;
 class MRenderTarget;
+class StaticMesh;
+struct FMeshData;
+struct FWorldRenderInfo;
 
 using Microsoft::WRL::ComPtr;
 
@@ -37,6 +44,24 @@ struct FWindowRenderData
 
     ComPtr<ID3D11Texture2D> DepthStencilBuffer;
     ComPtr<ID3D11DepthStencilView> DepthStencilView;
+};
+
+struct FBuffers
+{
+    std::shared_ptr<MVertexBuffer> VertexBuffer = nullptr;
+    std::shared_ptr<MIndexBuffer> IndexBuffer = nullptr;
+};
+
+struct FBufferContainer
+{
+    void AddBuffers(const FBuffers& InBuffers)
+    {
+        VertexBuffers.push_back(InBuffers.VertexBuffer);
+        IndexBuffers.push_back(InBuffers.IndexBuffer);
+    }
+
+    std::vector<std::shared_ptr<MVertexBuffer>> VertexBuffers;
+    std::vector<std::shared_ptr<MIndexBuffer>> IndexBuffers;
 };
 
 class ENGINE_DLL GraphicDevice : public MModule
@@ -74,12 +99,14 @@ public:
 	virtual void Release() override;
 
 public:
-    void Begin(uint32 InIndex = 0);
+    void Begin(int32 InWindowID = 0);
     void End();
     bool Refresh();
     void SetToDefault();
+public:
+    int32 GetCurrentWindowIndex() const { return WindowID; }
 protected:
-    int32 WindowIndex = 0;
+    int32 WindowID = 0;
 
 public:
     void ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRenderTarget, DirectX::XMVECTORF32 InColor);
@@ -88,7 +115,8 @@ public:
     ID3D11DepthStencilView* GetDepthStencilView();
 
 public:
-    void AddWindow(std::shared_ptr<MWindow>& InWindow);
+    // 엔진에 윈도우가 추가되면 호출됨. 스왑체인 등을 생성해 WindowRenderData에 저장함
+    void AddWindow(const FWorldRenderInfo& InWorldRenderInfo);
 
 public:
     void SetVertexShader(std::shared_ptr<VertexShader>& vertexShader);
@@ -144,10 +172,24 @@ private:
 	ID3D11DeviceContext *m_pDeferredContext;	// 지연 문맥: 멀티 쓰레드용 CreateDeferredContext로 생성한다
     ID3D11InputLayout *m_pInputLayout;
 private:
-    std::vector<FWindowRenderData> WindowRenderDatas;
+    //std::vector<FWindowRenderData> WindowRenderDatas;
+    std::map<uint32, FWindowRenderData> WindowRenderDatas;
 
 private:
 	D3D11_VIEWPORT _viewport;
+
+/***************************************** 
+    렌더러 쪽 버퍼관련 기능들 가져오는 중 
+******************************************/
+public:
+    void GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<StaticMesh>& InMesh);
+    void BuildMeshBuffers(uint32 InPID, const std::shared_ptr<StaticMesh>& InMesh);
+    void MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData);
+protected:
+    // 메시들이 공유할 버퍼를 저장함
+    std::map<const std::wstring, FBufferContainer> SharedBuffers;
+    // PrimitiveComponent의 전용 버퍼를 저장함
+    std::map<uint32, FBufferContainer> PrivateBuffers;
 
     REFLECT(GraphicDevice)
 };

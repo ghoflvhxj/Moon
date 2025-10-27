@@ -5,6 +5,8 @@
 #include "DynamicMeshComponentUtility.h"
 #include "Core/ObjectPath.h"
 
+#include "Module/Physics/CharacterPhysics.h"
+
 class MSkeleton;
 class MFBXLoader;
 
@@ -38,10 +40,14 @@ public:
     // 조인트에 어태치 하여 피직스를 나타내는 캡슐들을 저장
     std::vector<FBodyCapsuleData> BodyCapsuleDatas;
 
+protected:
+    std::shared_ptr<MDynamicMeshPhysics> DynamicMeshPhysics = nullptr;
+
     REFLECT(
         DynamicMesh
         , PROPERTY(Skeleton)
         , PROPERTY(BodyCapsuleDatas)
+        , PROPERTY(DynamicMeshPhysics)
     );
 };
 

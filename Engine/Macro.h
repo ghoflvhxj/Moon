@@ -68,17 +68,17 @@
 	#define DEV_ASSERT_MSG(_msg)														
 #endif									
 
-#ifdef DEBUG
+//#ifdef DEBUG
 #define LOG(InMessage) \
 { \
     std::wcout << InMessage << std::endl; \
     InMessage += TEXT("\n"); \
     OutputDebugStringW(InMessage.c_str()); \
 }
-#else
-#define LOG(InMessage) \
-{   /*DoNothing*/  }
-#endif
+//#else
+//#define LOG(InMessage) \
+//{   /*DoNothing*/  }
+//#endif
 
 #ifdef DEBUG
 #define LOGTEXT(InText) \

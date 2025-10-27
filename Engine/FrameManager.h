@@ -47,6 +47,7 @@ private:
 
 	bool m_lock;
 
-private:
-	std::weak_ptr<MTimerManager> TimerManager;
+
+public:
+    Time PrevWorkFinishedTime = 0.f;
 };

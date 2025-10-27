@@ -3,6 +3,8 @@
 #include "Include.h"
 #include "Core/Object.h"
 
+class MWorld;
+
 class ENGINE_DLL MModule : public MObject
 {
 public:
@@ -13,6 +15,7 @@ public:
     virtual bool Initialize();
     virtual void Update() {};
     virtual void Render() {};
+    virtual void Render(uint32 InWorldIndex) { Render(); }
     virtual void Release();
     
 public:

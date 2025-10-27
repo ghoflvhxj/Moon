@@ -48,8 +48,8 @@ public:
 private:
 	bool bShow;
 
-protected:
-	std::shared_ptr<StaticMesh> getMesh() { return _pStaticMesh; }
+public:
+	std::shared_ptr<StaticMesh> GetMesh() { return _pStaticMesh; }
 private:
 	std::shared_ptr<StaticMesh> _pStaticMesh;
 

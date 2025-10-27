@@ -206,9 +206,9 @@ void DynamicMeshComponent::Clothing()
     MMeshComponent::Clothing();
 
     // 몸체
-    if (GetDynamicMesh()->GetPhysics())
+    if (std::shared_ptr<MPhysics>& PhyiscsAsset = GetDynamicMesh()->GetPhysics())
     {
-        if (std::shared_ptr< MDynamicMeshPhysics> DynamicMeshPhysics = GetDynamicMesh()->GetPhysics()->CastTo<MDynamicMeshPhysics>())
+        if (std::shared_ptr< MDynamicMeshPhysics>& DynamicMeshPhysics = PhyiscsAsset->CastTo<MDynamicMeshPhysics>())
         {
             for (FBodyCapsuleData& BodyCapsuleData : DynamicMeshPhysics->GetCapsules())
             {
@@ -216,7 +216,6 @@ void DynamicMeshComponent::Clothing()
             }
         }
     }
-
 
     Clothing2();
 
@@ -475,7 +474,7 @@ uint32 DynamicMeshComponent::GetAnimClipNum()
 
 std::shared_ptr<DynamicMesh> DynamicMeshComponent::GetDynamicMesh()
 {
-	return std::static_pointer_cast<DynamicMesh>(Mesh);
+	return Mesh;
 }
 
 void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTime)

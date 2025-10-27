@@ -4,10 +4,6 @@ VertexOut main(VertexIn vIn)
 {
     VertexOut vOut = (VertexOut)0;
 
-    //row_major matrix worldView = mul(worldMatrix, identityMatrix);
-    //row_major matrix worldViewProj = mul(worldView, orthographicProjectionMatrix);
-    //vOut.pos = mul(vIn.pos, WorldViewProj);
-    
     matrix worldView = mul(worldMatrix, identityMatrix);
     matrix worldViewProj = mul(worldView, orthographicProjectionMatrix);
     vOut.pos = mul(float4(vIn.pos.x, vIn.pos.y, vIn.pos.z, 1.f), worldViewProj);

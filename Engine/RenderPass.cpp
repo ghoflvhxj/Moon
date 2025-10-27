@@ -44,7 +44,7 @@ MRenderPass::~MRenderPass()
 }
 
 void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
-{
+{ 
     Begin();
 
     for (auto& PrimitiveData : PrimitiveDatList)
@@ -150,6 +150,7 @@ void MRenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
 
 void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
+    const auto& Camera = getRenderer()->GetWorld()->getMainCamera();
 	const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
 
     std::shared_ptr<MShader>& VS = GetVertexShader(PrimitiveData);
@@ -168,7 +169,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
             VS->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
 
             Mat4 WorldView = {};
-            XMStoreFloat4x4(&WorldView, XMLoadFloat4x4(&Primitive->getWorldMatrix()) * XMLoadFloat4x4(&g_World->getMainCameraViewMatrix()));
+            XMStoreFloat4x4(&WorldView, XMLoadFloat4x4(&Primitive->getWorldMatrix()) * XMLoadFloat4x4(&Camera->getViewMatrix()));
             VS->SetValue(TEXT("WorldView"), WorldView);
 
             Mat4 WorldViewProj = {};

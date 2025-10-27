@@ -40,6 +40,7 @@
     <ClCompile Include="InputLayout.cpp" />
     <ClCompile Include="Launch.cpp" />
     <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.cpp" />
     <ClCompile Include="Source\Module\Module.cpp" />
     <ClCompile Include="Source\Module\Physics\CapsuleBody.cpp" />
     <ClCompile Include="Source\Module\Physics\CharacterPhysics.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="InputLayout.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Macro.h" />
+    <ClInclude Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.h" />
     <ClInclude Include="Source\Module\Module.h" />
     <ClInclude Include="Source\Module\Physics\CapsuleBody.h" />
     <ClInclude Include="Source\Module\Physics\CharacterPhysics.h" />

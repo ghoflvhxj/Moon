@@ -10,7 +10,6 @@ PixelOut_CombinePass main(PixelIn pIn)
     float4 PointLight = T_PointLightDiffuse.Sample(g_Sampler, pIn.uv);
 	pOut.color = diffuse;
     
-    
     if (bLight)
     {
         pOut.color = diffuse * (DirectionalLight + PointLight + specular);

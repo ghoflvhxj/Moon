@@ -21,13 +21,38 @@ public:
 	const bool AddWindowClass(const WNDCLASS &wndClass);
 
 public:		
-    const std::shared_ptr<MWindow> CreateWindow(LPCWSTR title, const int width, const int height, LPCWSTR className = DEFAULT_CLASSNAME);
-    const std::shared_ptr<MWindow> CreateWindow(LPCWSTR title, const int width, const int height, HWND Parent, LPCWSTR className = DEFAULT_CLASSNAME);
+    template <class T>
+    const std::shared_ptr<T> CreateWindow(LPCWSTR title, const int width, const int height, LPCWSTR className = DEFAULT_CLASSNAME)
+    {
+        if (T::GetTypeDescStatic()->IsA<MWindow>() == false)
+        {
+            return nullptr;
+        }
+
+        auto pWindow = std::make_shared<T>(title, width, height, className);
+        AddWindow(pWindow);
+        return pWindow;
+    }
+
+    template <class T>
+    const std::shared_ptr<T> CreateWindow(LPCWSTR title, const int width, const int height, HWND Parent, LPCWSTR className = DEFAULT_CLASSNAME)
+    {
+        if (T::GetTypeDescStatic()->IsA<MWindow>() == false)
+        {
+            return nullptr;
+        }
+
+        auto pWindow = std::make_shared<MWindow>(title, width, height, className);
+        AddWindow(pWindow);
+        return pWindow;
+    }
+
 	const std::shared_ptr<MWindow> GetWindow(const HWND hWnd);
 	const bool FindWindow(const HWND hWnd);
-	const bool AddWindow(const HWND hWnd, const std::shared_ptr<MWindow> pWindow);
+	const bool AddWindow(std::shared_ptr<MWindow> pWindow);
 private:
 	WindowMap m_windowMap;
+    uint32 WindowIDCounter = 0;
 
 public:
 	const bool SetMainWindow(const std::shared_ptr<MWindow> pWindow);

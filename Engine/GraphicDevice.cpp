@@ -1,19 +1,17 @@
 ﻿#include "GraphicDevice.h"
-
 #include "MoonEngine.h"
 
+#include "MainGameSetting.h"
 #include "Window.h"
 
 #include "Vertex.h"
 #include "InputLayout.h"
-
 #include "RenderTarget.h"
-
 #include "ShaderLoader.h"
 #include "VertexShader.h"
 #include "PixelShader.h"
+#include "Mesh/StaticMesh/StaticMesh.h"
 
-#include "MainGameSetting.h"
 
 #pragma comment(lib, "dxgi.lib")
 
@@ -38,6 +36,8 @@ bool GraphicDevice::Initialize()
 {
     Super::Initialize();
 
+    GetEngine()->GetOnWorldAddedDelegate().Add(this, &GraphicDevice::AddWindow);
+
     ComPtr<IDXGIFactory2> factory = nullptr;
     UINT flags = 0;
     HRESULT hr = CreateDXGIFactory2(flags, IID_PPV_ARGS(&factory));
@@ -60,8 +60,6 @@ bool GraphicDevice::Initialize()
         D3D11_SDK_VERSION,
         &m_pDevice, nullptr, &m_pImmediateContext
     ));
-
-    AddWindow(GetMainWindow());
 
 	// 뷰포트
 	_viewport.TopLeftX = 0;
@@ -179,11 +177,11 @@ void GraphicDevice::ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRe
 
 ID3D11DepthStencilView* GraphicDevice::GetDepthStencilView()
 {
-    const FWindowRenderData& Test = WindowRenderDatas[WindowIndex];
+    const FWindowRenderData& Test = WindowRenderDatas[WindowID];
     return Test.DepthStencilView.Get();
 }
 
-void GraphicDevice::AddWindow(std::shared_ptr<MWindow>& InWindow)
+void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
 {
     ComPtr<IDXGIFactory2> factory = nullptr;
     UINT flags = 0;
@@ -212,7 +210,7 @@ void GraphicDevice::AddWindow(std::shared_ptr<MWindow>& InWindow)
     swapDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
     swapDesc.Flags = 0;
 
-    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, InWindow->getHandle(), &swapDesc, nullptr, nullptr, NewWindowRenderData.SwapChain.GetAddressOf()));
+    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, InWorldRenderInfo.DstWindow->getHandle(), &swapDesc, nullptr, nullptr, NewWindowRenderData.SwapChain.GetAddressOf()));
     NewWindowRenderData.SwapChain->QueryInterface(IID_PPV_ARGS(NewWindowRenderData.SwapChain3.GetAddressOf()));
 
     // 렌더 타겟 뷰 생성
@@ -241,7 +239,7 @@ void GraphicDevice::AddWindow(std::shared_ptr<MWindow>& InWindow)
     m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, NewWindowRenderData.DepthStencilBuffer.GetAddressOf());
     FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(NewWindowRenderData.DepthStencilBuffer.Get(), nullptr, NewWindowRenderData.DepthStencilView.GetAddressOf()));
 
-    WindowRenderDatas.push_back(NewWindowRenderData);
+    WindowRenderDatas[InWorldRenderInfo.DstWindow->GetID()] = NewWindowRenderData;
 }
 
 bool GraphicDevice::GetVertexShader(const std::wstring InPath, std::shared_ptr<VertexShader>& OutShader)
@@ -277,7 +275,7 @@ void GraphicDevice::SetToDefault()
     // 인풋 레이아웃은 수정할 일이 없긴 함
     // g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->GetInputLayout());
 
-    const FWindowRenderData& WindowRenderData = WindowRenderDatas[WindowIndex];
+    const FWindowRenderData& WindowRenderData = WindowRenderDatas[WindowID];
     UINT BufferIndex = WindowRenderData.SwapChain3->GetCurrentBackBufferIndex();
 
     // 쉐이더 리소스 뷰 해제
@@ -302,30 +300,32 @@ void GraphicDevice::SetToDefault()
     g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
 }
 
-void GraphicDevice::Begin(uint32 InIndex)
+void GraphicDevice::Begin(int32 InWindowID)
 {
-    if (InIndex >= GetSize(WindowRenderDatas))
+    auto& Iter = WindowRenderDatas.find(InWindowID);
+    if (Iter == WindowRenderDatas.end())
     {
-        WindowIndex = -1;
+        // HWND보다는 공통된 int 타입으로 관리하고 싶음
+        WindowID = -1;
         return;
     }
 
-    WindowIndex = InIndex;
+    WindowID = InWindowID;
 
-    const FWindowRenderData& Test = WindowRenderDatas[InIndex];
-    UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();
+    const FWindowRenderData& WindowRenderData = Iter->second;
+    UINT BufferIndex = WindowRenderData.SwapChain3->GetCurrentBackBufferIndex();
     getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    getContext()->OMSetRenderTargets(1, Test.RenderTargetViews[BufferIndex].GetAddressOf(), Test.DepthStencilView.Get());
+    getContext()->OMSetRenderTargets(1, WindowRenderData.RenderTargetViews[BufferIndex].GetAddressOf(), WindowRenderData.DepthStencilView.Get());
 }
 
 void GraphicDevice::End()
 {
-    if (WindowIndex == -1)
+    if (WindowID == -1)
     {
         return;
     }
 
-    const FWindowRenderData& Test = WindowRenderDatas[WindowIndex];
+    const FWindowRenderData& Test = WindowRenderDatas[WindowID];
     Test.SwapChain3->Present(0u, 0u);
 
     UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();
@@ -644,6 +644,62 @@ ID3D11DeviceContext *GraphicDevice::getImmediateContext()
 ID3D11DeviceContext *GraphicDevice::getDefferedContext()
 {
 	return m_pDeferredContext;
+}
+
+void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<StaticMesh>& InMesh)
+{
+    const std::wstring& AssetPath = InMesh->GetAssetPath();
+    auto& Iter = SharedBuffers.find(AssetPath);
+
+    if (SharedBuffers.end() == Iter)
+    {
+        return;
+    }
+
+    OutBuffers = Iter->second;
+}
+
+void GraphicDevice::BuildMeshBuffers(uint32 InPID, const std::shared_ptr<StaticMesh>& InMesh)
+{
+    if (InMesh == nullptr)
+    {
+        return;
+    }
+
+    const std::wstring& AssetPath = InMesh->GetAssetPath();
+    auto& Iter = SharedBuffers.find(AssetPath);
+    if (SharedBuffers.end() != Iter)
+    {
+        return;
+    }
+
+    for (uint32 i = 0; i < InMesh->GetMeshNum(); ++i)
+    {
+        const FMeshData& MeshData = InMesh->GetMeshData(i);
+
+        FBuffers NewSharedBuffers = {};
+        MakeBuffer(NewSharedBuffers, MeshData);
+        SharedBuffers[AssetPath].AddBuffers(NewSharedBuffers);
+
+        // 클로딩 등으로 전용 버퍼가 필요한 경우
+        if (InMesh->IsClothigMesh(i))
+        {
+            FBuffers NewPrivateBuffers = {};
+            MakeBuffer(NewPrivateBuffers, MeshData);
+            PrivateBuffers[InPID].AddBuffers(NewPrivateBuffers);
+        }
+    }
+}
+
+void GraphicDevice::MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData)
+{
+    uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
+    uint32 VertexNum = GetSize(InMeshData.Vertices);
+    OutBuffers.VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, InMeshData.Vertices.data());
+
+    uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
+    uint32 IndexNum = GetSize(InMeshData.Indices);
+    OutBuffers.IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, InMeshData.Indices.data()) : nullptr;
 }
 
 GraphicDevice::Exception::Exception(const int line, const char *file, const HRESULT hr)

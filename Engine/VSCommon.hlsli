@@ -75,6 +75,11 @@ int getCascadeIndex(float3 pos)
     return cascadeIndex;
 }
 
+float4 LocalToProj(float4 InLocalPos)
+{
+    return mul(float4(InLocalPos.xyz, 1.f), WorldViewProj);
+}
+
 float4 Temp(VertexIn vIn)
 {
     matrix boneTransform = identityMatrix;
@@ -88,6 +93,6 @@ float4 Temp(VertexIn vIn)
     }
     
     float3 animatedPos = mul(float4(vIn.pos.xyz, 1.f), boneTransform).xyz;
-    float4 ProjectedPos = mul(float4(animatedPos, 1.f), WorldViewProj);
+    float4 ProjectedPos = LocalToProj(float4(animatedPos, 1.f));
     return ProjectedPos;
 }

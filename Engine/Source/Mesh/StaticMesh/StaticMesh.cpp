@@ -180,3 +180,16 @@ const Vec3& StaticMesh::GetCenterPos() const
 {
     return CenterPos;
 }
+
+bool StaticMesh::IsClothigMesh(uint32 InMeshIndex)
+{
+    for (const FClothData& ClothData : ClothDatas)
+    {
+        if (ClothData.MeshIndex == InMeshIndex)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}

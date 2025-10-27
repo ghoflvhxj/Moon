@@ -1,18 +1,32 @@
 ﻿#include "DynamicMeshPhysicsEditor.h"
 
+#include "MoonEngine.h"
+#include "GraphicDevice.h"
 #include "Module/Physics/CharacterPhysics.h"
 
 #include "Renderer.h" // TODO Module/Rendering/Renderer.h
 
 #include "Mesh/DynamicMesh/DynamicMesh.h"
+
 #include "imgui.h"
+#include "ImGui/backends/imgui_impl_win32.h"
+#include "ImGui/backends/imgui_impl_dx11.h"
+
+// 임시
+#include "Launch.h"
 
 using namespace DirectX;
+using namespace ImGui;
 
 MDynamicMeshPhysicsEditor::MDynamicMeshPhysicsEditor(MObject* InObject)
     : MAssetEditor(InObject)
 {
     dynamicMesh = static_cast<DynamicMesh*>(InObject);
+}
+
+MDynamicMeshPhysicsEditor::~MDynamicMeshPhysicsEditor()
+{
+    ImGui::DestroyContext(Context);
 }
 
 void MDynamicMeshPhysicsEditor::Test()
@@ -46,4 +60,10 @@ void MDynamicMeshPhysicsEditor::Render()
 
         GetRenderer()->UpdatePrimitiveTransform(0, AttachedJoint.Position, Quat, VEC3ONE);
     }
+
+    ImGuiContext* PrevContext = ImGui::GetCurrentContext();
+
+    ImGui::SetCurrentContext(Context);
+
+    ImGui::SetCurrentContext(PrevContext);
 }

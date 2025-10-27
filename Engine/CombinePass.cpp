@@ -1,5 +1,5 @@
-﻿#include "Include.h"
-#include "CombinePass.h"
+﻿#include "CombinePass.h"
+#include "MoonEngine.h"
 
 #include "MainGameSetting.h"
 
@@ -116,20 +116,17 @@ void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &Prim
 	Vec3 trans = PrimitiveComponent->getWorldTranslation();
 	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
 	Vec4 color = { 1.f, 1.f, 1.f, 1.f };
-	if (std::shared_ptr<MLightComponent> LightComp = std::static_pointer_cast<MLightComponent>(PrimitiveData.PrimitiveComponent.lock()))
-	{
-		color.x = LightComp->getColor().x;
-		color.y = LightComp->getColor().y;
-		color.z = LightComp->getColor().z;
-	}
+	color.x = PrimitiveComponent->getColor().x;
+	color.y = PrimitiveComponent->getColor().y;
+	color.z = PrimitiveComponent->getColor().z;
 	
     const Vec3& Direction = PrimitiveComponent->GetDirection();
 
 	PixelShader->SetValue(TEXT("g_lightPosition"), transAndRange);
 	PixelShader->SetValue(TEXT("g_lightDirection"), Direction);
 	PixelShader->SetValue(TEXT("g_lightColor"), color);
-	PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), g_World->getMainCamera()->getInvesrViewMatrix());
-	PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), g_World->getMainCamera()->getInversePerspectiveProjectionMatrix());
+	PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), getRenderer()->GetWorld()->getMainCamera()->getInvesrViewMatrix());
+	PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), getRenderer()->GetWorld()->getMainCamera()->getInversePerspectiveProjectionMatrix());
 
 	MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }
@@ -209,8 +206,6 @@ void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveD
         XMStoreFloat4x4(&Mat, XMMat);
         PixelShader->SetValue(TEXT("ScreenToWorldMatrix"), Mat);
     }
-
-
 
     MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }

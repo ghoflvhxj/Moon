@@ -33,7 +33,7 @@ PixelOut_LightPass main(PixelIn pIn)
 	float Range				= g_lightPosition.w;
 	float intensity			= g_lightColor.w;
 
-	clip((distance < Range) ? 1 : -1);
+	//clip((distance < Range) ? 1 : -1);
 	
     float a0 = 0.f;
     float a1 = 1.f;

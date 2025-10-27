@@ -12,9 +12,34 @@ class GraphicDevice;
 class MRenderer;
 class MPhysicsEngine;
 
+class WindowManager;
+
+struct ENGINE_DLL FWorldRenderInfo
+{
+    std::shared_ptr<MWorld> SrcWorld;
+    std::shared_ptr<MWindow> DstWindow;
+
+    //FDelegate<int32 /*WindowID*/> OnRenderStartedDelegate;
+};
+
 class ENGINE_DLL MEngine
 {
     std::vector<std::shared_ptr<MModule>> Modules;
+
+public:
+    void WorldFunc(uint32 InIndex);
+    void AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow);
+    FDelegate<void, const FWorldRenderInfo&>& GetOnWorldAddedDelegate() { return OnWorldAdded; }
+    const FWorldRenderInfo& GetWorldInfo(uint32 InIndex) const { return WorldRenderInfos[InIndex]; }
+    uint32 GetWorldNum() const { return GetSize(WorldRenderInfos); }
+protected:
+    // 월드를 업데이트
+    void UpdateWorld(uint32 InIndex);
+    // 월드를 렌더링
+    void RenderWorld(uint32 InIndex);
+protected:
+    std::vector<FWorldRenderInfo> WorldRenderInfos;
+    FDelegate<void, const FWorldRenderInfo&> OnWorldAdded;
 
 public:
     template <class ...Args>
@@ -92,11 +117,12 @@ public:
     // TODO. 단순히 모듈들을 순회해서 업데이트 호출하는 것이 아니라
     // 의존하는 모듈이 업데이트 된 후에 업데이트 해야함. 마치 톱니바퀴 처럼
     // 생각해보니 초기화도 그럴려나? 그런데 생성 순서를 사용자가 좀 만져주면 되긴 함
+
 };
 
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindow);
 ENGINE_DLL void EngineLoop();
-bool FrameLock();
+bool FrameLock(const std::shared_ptr<MWorld>& InWorld);
 void EngineRender();
 ENGINE_DLL void EnginePostLoop();
 ENGINE_DLL const bool EngineRelease();
@@ -108,6 +134,8 @@ ENGINE_DLL std::shared_ptr<MWindow>& GetMainWindow();
 ENGINE_DLL std::shared_ptr<MRenderer>& getRenderer();
 ENGINE_DLL std::shared_ptr<MWorld>& GetMainWorld();
 ENGINE_DLL std::shared_ptr<MPhysicsEngine>& GetPhysics();
+
+ENGINE_DLL std::shared_ptr<WindowManager>& GetWindowManager();
 
 ENGINE_DLL std::unique_ptr<MainGameSetting>& getSetting();
 ENGINE_DLL void SetModule(std::unique_ptr<MModule>&& pGame);

@@ -9,7 +9,7 @@ class MDynamicMeshPhysicsEditor : public MAssetEditor
 {
 public:
     MDynamicMeshPhysicsEditor(MObject* InObject);
-    ~MDynamicMeshPhysicsEditor() = default;
+    virtual ~MDynamicMeshPhysicsEditor();
 
 public:
     virtual void Test() override;
@@ -19,4 +19,6 @@ public:
     std::shared_ptr<MDynamicMeshPhysics> GetDynamicMeshPhysics() { return std::static_pointer_cast<MDynamicMeshPhysics>(Asset);  }
 protected:
     DynamicMesh* dynamicMesh = nullptr;
+
+    std::shared_ptr<class MWindow> T = nullptr;
 };

@@ -1,10 +1,9 @@
 ﻿#include "Launch.h"
+#include "MoonEngine.h"
+#include "EngineException.h"
 
 #include "Window.h"
 #include "WindowManager.h"
-
-#include "MoonEngine.h"
-#include "EngineException.h"
 
 #include "Core/Delegate.h"
 
@@ -12,22 +11,18 @@
 #include "DirectInput.h"
 #include "GraphicDevice.h"
 #include "Renderer.h"
-
 #include "Module/Physics/Jolt.h"
-
-
 #include "Editor.h"
 
 #include "MainGameSetting.h"
+#include "World.h"
+#include "Utility/PerformanceTimer.h"
+
+#include "Editor/MainWindow.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
 #include "ImGui/backends/imgui_impl_dx11.h"
-
-#include "World.h"
-#include "Utility/PerformanceTimer.h"
-#include "Launch.h"
-
 
 LPCWSTR title = TEXT("ShootingGame");
 HWND g_hWnd;
@@ -70,10 +65,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		wndClass.lpszMenuName = nullptr;
 		pWindowManager->AddWindowClass(wndClass);
 
-        RECT rt = { 0, 0, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>() };
-		AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, FALSE);
-
-		pWindow = pWindowManager->CreateWindow(title, rt.right - rt.left, rt.bottom - rt.top, title);
+		pWindow = pWindowManager->CreateWindow<MEditorMainWindow>(title, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>(), title);
 		g_hWnd = pWindow->getHandle();
 
         GetEngine()->AddModule<MDirectInput>();
@@ -151,14 +143,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {    
-    if (hWnd != g_hWnd)
+    if (bImGuiInitialized && hWnd == g_hWnd)
     {
-        std::cout << hWnd << std::endl;
+        if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+        {
+            return 1;
+        }
     }
-
-    if (bImGuiInitialized && hWnd == g_hWnd && ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-        return true;
-
 
 	switch (msg)
 	{
@@ -178,16 +169,10 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
     case WM_CLOSE:
     {
-        int a = 0;
+        GetWindowManager()->GetWindow(hWnd)->Disable();
     }
-        break;
+    break;
 	}
 	return ::DefWindowProc(hWnd, msg, wParam, lParam);
-}
-
-std::shared_ptr<WindowManager>& GetWindowManager()
-{
-    static std::shared_ptr<WindowManager> WinMgr = std::make_shared<WindowManager>(g_hInstance);
-    return WinMgr;
 }
 

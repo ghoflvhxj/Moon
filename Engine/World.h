@@ -37,6 +37,11 @@ public:
 
 	MWorld &operator=(const MWorld &ref) = delete;
 
+public:
+    uint32 GetID() const { return ID; }
+protected:
+    uint32 ID = 0;
+
     // 임시
 public:
     virtual void OnLoaded() override
@@ -45,6 +50,7 @@ public:
 
         for (auto& [Name, Actor] : Actors)
         {
+            Actor->SetOwner(GetShared());
             Actor->PostConstruct();
             Actor->update(0.f);
         }
@@ -84,15 +90,15 @@ public:
 	Time _deltaTime;
 
 public:
-	const std::shared_ptr<MTimerManager> getTimerManager() const;
+	std::shared_ptr<MTimerManager>& getTimerManager() const;
 private:
 	mutable std::shared_ptr<MTimerManager> _pTimerManager;
 
 public:
-	MFrameManager& getFrameManager() const;
+    std::shared_ptr<MFrameManager>& getFrameManager() const;
 	const Frame getFrame() const;
 private:
-	std::shared_ptr<MFrameManager> _pFrameManager;
+    mutable std::shared_ptr<MFrameManager> _pFrameManager;
 
 public:
 	void SetMainCamera(std::shared_ptr<MCamera> pCamera);
@@ -122,24 +128,24 @@ public:
 };
 
 template <class T>
-std::shared_ptr<T> CreateActor(std::shared_ptr<MWorld> InGame)
+std::shared_ptr<T> CreateActor(std::shared_ptr<MWorld> InWorld)
 {
-    if (InGame == nullptr)
+    if (InWorld == nullptr)
     {
         return nullptr;
     }
 
     std::shared_ptr<T> NewActor = std::make_shared<T>();
-    NewActor->SetOwner(InGame);
+    NewActor->SetOwner(InWorld);
     NewActor->PostConstruct();
-    InGame->addActor(NewActor);
+    InWorld->addActor(NewActor);
 
     return NewActor;
 }
 
-inline std::shared_ptr<MActor> CreateActor(std::shared_ptr<MWorld> InGame, const FTypeDesc* InTypeDesc)
+inline std::shared_ptr<MActor> CreateActor(std::shared_ptr<MWorld> InWorld, const FTypeDesc* InTypeDesc)
 {
-    if (InGame == nullptr)
+    if (InWorld == nullptr)
     {
         return nullptr;
     }
@@ -155,9 +161,9 @@ inline std::shared_ptr<MActor> CreateActor(std::shared_ptr<MWorld> InGame, const
     }
 
     std::shared_ptr<MActor> NewActor(static_cast<MActor*>(Create(InTypeDesc)));
-    NewActor->SetOwner(InGame);
+    NewActor->SetOwner(InWorld);
     NewActor->PostConstruct();
-    InGame->addActor(NewActor);
+    InWorld->addActor(NewActor);
 
     return NewActor;
 }

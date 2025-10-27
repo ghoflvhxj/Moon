@@ -19,9 +19,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Launch.cpp">
-      <Filter>etc</Filter>
-    </ClCompile>
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Player.cpp">
       <Filter>Actor\Player</Filter>
@@ -35,6 +32,9 @@
     <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="Source\Editor\AssetEditor.cpp" />
     <ClCompile Include="Source\Editor\DynamicMeshPhysicsEditor.cpp" />
+    <ClCompile Include="Launch.cpp" />
+    <ClCompile Include="Source\Editor\MainWindow.cpp" />
+    <ClCompile Include="Source\Editor\DynamicMeshEditWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -53,5 +53,7 @@
     <ClInclude Include="Source\Editor\AssetEditor.h" />
     <ClInclude Include="Source\Editor\DynamicMeshPhysicsEditor.h" />
     <ClInclude Include="Launch.h" />
+    <ClInclude Include="Source\Editor\MainWindow.h" />
+    <ClInclude Include="Source\Editor\DynamicMeshEditWindow.h" />
   </ItemGroup>
 </Project>
