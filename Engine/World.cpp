@@ -261,13 +261,24 @@ bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& 
     return OutHitData.HitComponent.expired() == false;
 }
 
+bool MWorld::IsForegorund() const
+{
+    if (auto& Window = GetEngine()->GetWorldBoundedWindow(GetShared()))
+    {
+        return Window->IsForegorund();
+    }
+
+    return false;
+}
+
 bool MWorld::IsMouseInViewport() const
 {
-    float Width = g_pSetting->getResolutionWidth<float>();
-    float Height = g_pSetting->getResolutionHeight<float>();
+    if (auto& Window = GetEngine()->GetWorldBoundedWindow(GetShared()))
+    {
+        return Window->IsMouseInViewport();
+    }
 
-    Vec2 MousePos = GetMainWindow()->GetMousePos();
-    return MousePos.x >= 0.f && MousePos.x <= Width && MousePos.y >= 0.f && MousePos.y <= Height;
+    return false;
 }
 
 void MWorld::ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const

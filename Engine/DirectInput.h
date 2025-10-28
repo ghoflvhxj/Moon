@@ -1,6 +1,50 @@
 ﻿#pragma once
 
+#include "Include.h"
 #include "Module/Module.h"
+
+struct FWorldRenderInfo;
+
+struct FInputDevice
+{
+    FInputDevice() = default;
+
+    // 이동
+    FInputDevice(FInputDevice&& Rhs)
+    {
+        _pKeyboard = Rhs._pKeyboard;
+        Rhs._pKeyboard = nullptr;
+
+        _pMouse = Rhs._pMouse;
+        Rhs._pMouse = nullptr;
+    }
+    FInputDevice& operator=(FInputDevice&& Rhs)
+    {
+        _pKeyboard = Rhs._pKeyboard;
+        Rhs._pKeyboard = nullptr;
+
+        _pMouse = Rhs._pMouse;
+        Rhs._pMouse = nullptr;
+
+        return *this;
+    }
+
+    ~FInputDevice()
+    {
+        SafeRelease(_pKeyboard);
+        SafeRelease(_pMouse);
+    }
+
+    // 키보드
+    IDirectInputDevice8* _pKeyboard = nullptr;
+    unsigned char _keyboardState[256] = {};
+    unsigned char _prevKeyboardState[256] = {};
+
+    // 마우스
+    IDirectInputDevice8* _pMouse = nullptr;
+    DIMOUSESTATE _mouseState = {};
+    DIMOUSESTATE _prevMouseState = {};
+};
 
 class ENGINE_DLL MDirectInput : public MModule
 {
@@ -14,8 +58,8 @@ public:
     virtual void Release() override;
 
 private:
-	void updateKeyboard();
-	void updateMouse();
+	void updateKeyboard(IDirectInputDevice8* _pKeyboard, unsigned char* _prevKeyboardState, unsigned char* _keyboardState);
+	void updateMouse(IDirectInputDevice8* _pMouse, DIMOUSESTATE& _mouseState, DIMOUSESTATE& _prevMouseState);
 
 public:
 	const bool keyDown(unsigned char key);
@@ -29,18 +73,23 @@ public:
 	const LONG mouseMove(const EAxis eMouseAxis);
 private:
 	IDirectInput8 *_pDirectInput;
-	IDirectInputDevice8 *_pKeyboard;
-	IDirectInputDevice8 *_pMouse;
+	//IDirectInputDevice8 *_pKeyboard;
+	//IDirectInputDevice8 *_pMouse;
 
 private:
-	unsigned char _keyboardState[256];
-	unsigned char _prevKeyboardState[256];
+	//unsigned char _keyboardState[256];
+	//unsigned char _prevKeyboardState[256];
 
-	DIMOUSESTATE _mouseState;
-	DIMOUSESTATE _prevMouseState;
+	//DIMOUSESTATE _mouseState;
+	//DIMOUSESTATE _prevMouseState;
 
 private:
 	bool bFocused;
+
+public:
+    void AddDevice(const FWorldRenderInfo& InWorldBoundInfo);
+protected:
+    std::vector<FInputDevice> InputDevices;
 
     REFLECT(MDirectInput)
 };

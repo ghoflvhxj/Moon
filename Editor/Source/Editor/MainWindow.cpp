@@ -28,7 +28,7 @@ MEditorMainWindow::MEditorMainWindow(const std::wstring& title, const int width,
 {
 }
 
-void MEditorMainWindow::Render()
+void MEditorMainWindow::ImGuiRender()
 {
     const auto& EditorModule = GetEngine()->GetModule<MEditor>();
     const auto& ClickedComp = EditorModule->GetClickedComp();
@@ -322,4 +322,91 @@ void MEditorMainWindow::Render()
     }
 
     ImGui::End();
+}
+
+MEditorBaseWindow::~MEditorBaseWindow()
+{
+    if (Context != nullptr)
+    {
+        ImGui::SetCurrentContext(Context);
+
+        ImGui_ImplDX11_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext(Context);
+
+        Context = nullptr;
+    }
+}
+
+MEditorBaseWindow::MEditorBaseWindow(const std::wstring& title, const int width, const int height, const std::wstring& className)
+    : Super(title, width, height, className)
+{
+}
+
+MEditorBaseWindow::MEditorBaseWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
+    : Super(title, width, height, className)
+{
+}
+
+void MEditorBaseWindow::Initialize()
+{
+    InitImGui();
+}
+
+void MEditorBaseWindow::Render()
+{
+    Super::Render();
+
+    if (SetImGuiContext() == false)
+    {
+        return;
+    }
+
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
+    ImGuiRender();
+    GetOnImGuiRenderedDelegate().Broadcast();
+
+    ImGui::Render();
+    ImGui::EndFrame();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void MEditorBaseWindow::ImGuiRender()
+{
+    
+}
+
+void MEditorBaseWindow::InitImGui()
+{
+    if (getGraphicDevice() == nullptr)
+    {
+        return;
+    }
+
+    Context = ImGui::CreateContext();
+    ImGui::SetCurrentContext(Context);
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    std::wstring WFontPath = MFIleSystem::AbsolutePath("Resources/Fonts/NanumSquareRoundR.ttf");
+    std::string FontPath = WStringToString(WFontPath);
+    io.Fonts->AddFontFromFileTTF(FontPath.c_str(), 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
+
+    ImGui::StyleColorsDark();
+    ImGui_ImplWin32_Init(getHandle());
+    ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
+}
+
+bool MEditorBaseWindow::SetImGuiContext()
+{
+    if (Context != nullptr)
+    {
+        ImGui::SetCurrentContext(Context);
+        return true;
+    }
+
+    return false;
 }

@@ -63,6 +63,10 @@ std::shared_ptr<Self> GetShared() \
 { \
     return static_pointer_cast<Self>(shared_from_this()); \
 } \
+std::shared_ptr<const Self> GetShared() const \
+{ \
+    return static_pointer_cast<const Self>(shared_from_this()); \
+} \
 private: \
 inline static const FTypeDesc* MyClass##_Desc = GetTypeDescStatic(); 
 

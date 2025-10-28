@@ -20,8 +20,10 @@
 #include "GameFramework/DynamicMeshActor/DynamicMeshActor.h"
 #include "GameFramework/DirectionalLightActor/DirectionalLightActor.h"
 
-#include "WIndow.h"
+#include "MainWindow.h"
 #include "WindowManager.h"
+
+#include "Core/FileSystem.h"
 
 #include <commdlg.h>
 
@@ -32,8 +34,6 @@ MAssetEditor::MAssetEditor(MObject* InObject)
 {
     WeakJolt = GetEngine()->GetModule<MJoltPhysics>();
     WeakRenderer = GetEngine()->GetModule<MRenderer>();
-
-    //Context = ImGui::CreateContext();
 }
 
 void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
@@ -48,9 +48,13 @@ void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
 
     Title = AssetTypeDesc->Name + " Edit";
 
-    T = GetWindowManager()->CreateWindow<MWindow>(TEXT("A"), 300, 300, g_hWnd, TEXT("ShootingGame"));
+    T = GetWindowManager()->CreateWindow<MEditorBaseWindow>(TEXT("A"), 300, 300, g_hWnd, TEXT("ShootingGame"));
+    T->Initialize();
+    T->GetOnImGuiRenderedDelegate().Add(this, &MAssetEditor::Test);
+
     W = std::make_shared<MWorld>();
     W->Initialize();
+    W->PlayGame();
     GetEngine()->AddWorld(W, T);
 
     if (auto DA = CreateActor<MDynamicMeshActor>(W))
@@ -65,12 +69,6 @@ void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
 
 void MAssetEditor::Update()
 {
-    if (Light)
-    {
-        //Light->getComponent(ROOT_COMPONENT)->AddRotation({ 0.1f, 0.f, 0.f });
-        Light->update(0.f);
-    }
-    /*
     if (bOpen == false)
     {
         std::string t = Title;
@@ -79,7 +77,15 @@ void MAssetEditor::Update()
         });
         return;
     }
+}
 
+void MAssetEditor::Render()
+{
+
+}
+
+void MAssetEditor::Test()
+{
     if (ImGui::Begin(Title.c_str(), &bOpen))
     {
         if (ImGui::BeginMenu("File"))
@@ -109,6 +115,8 @@ void MAssetEditor::Update()
             ImGui::EndMenu();
         }
 
+        ImGui::Button("AssetEidtor Button");
+
         const FTypeDesc* Current = AssetTypeDesc;
         while (Current)
         {
@@ -136,21 +144,8 @@ void MAssetEditor::Update()
             }
         }
 
-        Test();
-
         ImGui::End();
     }
-    */
-}
-
-void MAssetEditor::Render()
-{
-    // 여기서 하는 것 보다는 월드마다 컨텍스트가 존재하도록 하는 게?
-    ImGuiContext* PrevContext = ImGui::GetCurrentContext();
-
-    //ImGui::SetCurrentContext(Context);
-
-    //ImGui::SetCurrentContext(PrevContext);
 }
 
 void MAssetEditor::HandleDynamicMesh(DynamicMesh* InDynamicMesh)

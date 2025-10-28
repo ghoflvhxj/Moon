@@ -26,7 +26,6 @@ MDynamicMeshPhysicsEditor::MDynamicMeshPhysicsEditor(MObject* InObject)
 
 MDynamicMeshPhysicsEditor::~MDynamicMeshPhysicsEditor()
 {
-    ImGui::DestroyContext(Context);
 }
 
 void MDynamicMeshPhysicsEditor::Test()
@@ -60,10 +59,4 @@ void MDynamicMeshPhysicsEditor::Render()
 
         GetRenderer()->UpdatePrimitiveTransform(0, AttachedJoint.Position, Quat, VEC3ONE);
     }
-
-    ImGuiContext* PrevContext = ImGui::GetCurrentContext();
-
-    ImGui::SetCurrentContext(Context);
-
-    ImGui::SetCurrentContext(PrevContext);
 }

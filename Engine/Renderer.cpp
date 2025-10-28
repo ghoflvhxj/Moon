@@ -984,6 +984,8 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
     UpdateTickConstantBuffer();
 
     RenderScene(Scene);
+
+    InWorld->GetOnRederedDelegate().Broadcast();
 }
 
 std::shared_ptr<MWorld> MRenderer::GetWorld()

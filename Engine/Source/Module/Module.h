@@ -11,6 +11,10 @@ public:
     MModule() = default;
     virtual ~MModule();
 
+    MModule(const MModule&) = delete;
+    MModule& operator=(const MModule&) = delete;
+
+
 public:
     virtual bool Initialize();
     virtual void Update() {};

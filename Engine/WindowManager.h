@@ -42,7 +42,7 @@ public:
             return nullptr;
         }
 
-        auto pWindow = std::make_shared<MWindow>(title, width, height, className);
+        auto pWindow = std::make_shared<T>(title, width, height, className);
         AddWindow(pWindow);
         return pWindow;
     }

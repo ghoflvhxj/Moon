@@ -31,6 +31,7 @@ public:
     void AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow);
     FDelegate<void, const FWorldRenderInfo&>& GetOnWorldAddedDelegate() { return OnWorldAdded; }
     const FWorldRenderInfo& GetWorldInfo(uint32 InIndex) const { return WorldRenderInfos[InIndex]; }
+    std::shared_ptr<MWindow>& GetWorldBoundedWindow(std::shared_ptr<const MWorld>& InWorld);
     uint32 GetWorldNum() const { return GetSize(WorldRenderInfos); }
 protected:
     // 월드를 업데이트
@@ -38,6 +39,7 @@ protected:
     // 월드를 렌더링
     void RenderWorld(uint32 InIndex);
 protected:
+    // 월드와 윈도우 창 바인딩 정보를 저장
     std::vector<FWorldRenderInfo> WorldRenderInfos;
     FDelegate<void, const FWorldRenderInfo&> OnWorldAdded;
 

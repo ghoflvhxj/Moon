@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Include.h"
 #include "Core/Object.h"
+#include "Core/Delegate.h"
 
 class ENGINE_DLL MWindow : public MObject
 {
@@ -16,6 +17,7 @@ public:
 	~MWindow() = default;
 
 public:
+    virtual void Initialize() {}
     virtual void Render() {}
 
 public:
@@ -60,6 +62,8 @@ public:
         return { static_cast<float>(MousePos.x), static_cast<float>(MousePos.y) };
     }
 
+    bool IsMouseInViewport() const;
+    bool IsForegorund() const;
 public:
     REFLECT(MWindow)
 };

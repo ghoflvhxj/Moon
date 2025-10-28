@@ -20,7 +20,7 @@ public:
 	virtual void Update();
     virtual void Render();
 protected:
-	virtual void Test() {} // TODO 이름변경
+    virtual void Test();
 
 public:
 	void SetAsset(std::shared_ptr<MAsset>& InAsset);
@@ -59,11 +59,7 @@ public:
 protected:
     FDelegate<void> OnClosedDelegate;
 
-    std::shared_ptr<MWindow> T = nullptr;
+    std::shared_ptr<class MEditorBaseWindow> T = nullptr;
     std::shared_ptr<MWorld> W = nullptr;
-
-    struct ImGuiContext* Context = nullptr;
-
-
     std::shared_ptr<MActor> Light = nullptr;
 };

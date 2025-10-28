@@ -72,9 +72,14 @@ void MEditor::Release()
 
 void MEditor::Update()
 {
-    std::shared_ptr<MWorld> World = GetWorld<MWorld>();
+    std::shared_ptr<MWorld> World = GetMainWorld();
 
-    if (auto CameraComponent = GetMainWorld()->getMainCamera()->getComponent(TEXT("RootComponent")))
+    if (World->IsMouseInViewport() == false || World->IsForegorund() == false)
+    {
+        return;
+    }
+
+    if (auto CameraComponent = World->getMainCamera()->getComponent(TEXT("RootComponent")))
     {
         float DeltaTime = World->getDeltaTime();
         Vec3 trans = CameraComponent->getTranslation();
@@ -112,11 +117,8 @@ void MEditor::Update()
             trans.z -= right.z * speed;
         }
 
-        if (GetMainWorld()->IsMouseInViewport())
-        {
-            CameraSpeedScale += static_cast<float>(InputManager::mouseMove(EAxis::Z)) / 10.f;
-        }
-        CameraSpeedScale = CameraSpeedScale >= 1.f ? CameraSpeedScale : 1.f;
+        CameraSpeedScale += static_cast<float>(InputManager::mouseMove(EAxis::Z)) / 10.f;
+        CameraSpeedScale = std::max(CameraSpeedScale, 1.f);
 
         CameraComponent->setTranslation(trans);
 
@@ -307,6 +309,11 @@ void MEditor::Update()
     {
         ClickedComp.reset();
     }
+
+    //for (auto& [Title, TempEditor] : Editors)
+    //{
+    //    TempEditor->Update();
+    //}
 }
 
 void MEditor::Render()
@@ -613,10 +620,10 @@ void MEditor::Render()
 	ImGui::End();
     */
 
-    for (auto& [Title, TempEditor] : Editors)
-    {
-        TempEditor->Update();
-    }
+    //for (auto& [Title, TempEditor] : Editors)
+    //{
+    //    TempEditor->Render();
+    //}
 }
 
 bool MEditor::IsPickable() const

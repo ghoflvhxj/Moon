@@ -5,7 +5,7 @@
 #include "Macro.h"
 
 extern ENGINE_DLL HINSTANCE g_hInstance;
-extern HWND g_hWnd;
+extern ENGINE_DLL HWND g_hWnd;
 
 class MainGameSetting;
 extern std::unique_ptr<MainGameSetting> g_pSetting;

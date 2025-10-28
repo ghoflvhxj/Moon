@@ -70,6 +70,8 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
     // 그냥 파라미터 없이, 함수 내부에서 world와 윈도우를 생성하도록 하는 것은 어떤지?
     GetEngine()->AddWorld(g_World, g_pMainWindow);
 
+    g_pMainWindow->Initialize();
+
 	return true;
 }
 
@@ -322,6 +324,11 @@ void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow>
     WorldRenderInfos.push_back(NewWorldRenderInfo);
 
     OnWorldAdded.Broadcast(NewWorldRenderInfo);
+}
+
+std::shared_ptr<MWindow>& MEngine::GetWorldBoundedWindow(std::shared_ptr<const MWorld>& InWorld)
+{
+    return WorldRenderInfos[InWorld->GetID()].DstWindow;
 }
 
 void MEngine::InitializeModules()

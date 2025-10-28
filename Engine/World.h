@@ -71,6 +71,11 @@ protected:
     bool HasBegan = false;
     FDelegate<void> OnGameStartedDelegate;
 
+public:
+    FDelegate<void>& GetOnRederedDelegate() { return OnRendered; }
+protected:
+    FDelegate<void> OnRendered;
+
 
 	// 업데이트 할 액터들을 관리
 public:
@@ -115,6 +120,7 @@ public:
     bool Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData);
 
 public:
+    bool IsForegorund() const;
     bool IsMouseInViewport() const;
     void ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const;
     void WorldToScreen(const Vec3& InPos, Vec2& OutPos) const;

@@ -76,6 +76,17 @@ HWND MWindow::getHandle() const
 	return m_hWnd;
 }
 
+bool MWindow::IsMouseInViewport() const
+{
+    Vec2 MousePos = GetMousePos();
+    return MousePos.x >= 0.f && MousePos.x <= Width && MousePos.y >= 0.f && MousePos.y <= Height;
+}
+
+bool MWindow::IsForegorund() const
+{
+    return getHandle() == GetForegroundWindow();
+}
+
 //Window::Exception::Exception(const int line, const char *file, const HRESULT hr)
 //	: EngineException(line, file)
 //	, m_hResult{ hr }

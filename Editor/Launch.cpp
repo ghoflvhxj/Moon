@@ -1,5 +1,6 @@
-﻿#include "Launch.h"
-#include "MoonEngine.h"
+﻿#include "MoonEngine.h"
+
+#include "Launch.h"
 #include "EngineException.h"
 
 #include "Window.h"
@@ -25,7 +26,6 @@
 #include "ImGui/backends/imgui_impl_dx11.h"
 
 LPCWSTR title = TEXT("ShootingGame");
-HWND g_hWnd;
 bool bImGuiInitialized = false;
 
 
@@ -46,7 +46,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     g_hInstance = hInstance;
 
-	std::shared_ptr<MWindow> pWindow = nullptr;
     ImGuiContext* Context = nullptr;
 
 	try
@@ -65,45 +64,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		wndClass.lpszMenuName = nullptr;
 		pWindowManager->AddWindowClass(wndClass);
 
-		pWindow = pWindowManager->CreateWindow<MEditorMainWindow>(title, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>(), title);
-		g_hWnd = pWindow->getHandle();
-
         GetEngine()->AddModule<MDirectInput>();
         GetEngine()->AddModule<GraphicDevice>();
         GetEngine()->AddModule<MJoltPhysics>();
         GetEngine()->AddModule<MRenderer>();
         GetEngine()->AddModule<MEditor>();
 
-        EngineInit(hInstance, pWindow);
+        auto& Window = pWindowManager->CreateWindow<MEditorMainWindow>(title, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>(), title);
+        EngineInit(hInstance, Window);
 
-        if (getGraphicDevice())
-        {
-            IMGUI_CHECKVERSION();
-            
-            Context = ImGui::CreateContext();
-
-            ImGuiIO& io = ImGui::GetIO();
-            io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-            io.Fonts->AddFontFromFileTTF("Resources/Fonts/NanumSquareRoundR.ttf", 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
-
-            ImGui::StyleColorsDark();
-            ImGui_ImplWin32_Init(g_hWnd);
-            ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
-
-            GetRenderStartedDelegate().Add([]() {
-                ImGui_ImplDX11_NewFrame();
-                ImGui_ImplWin32_NewFrame();
-                ImGui::NewFrame();
-            });
-
-            GetRenderFinishedDelegate().Add([]() {
-                ImGui::Render();
-                ImGui::EndFrame();
-                ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-            });
-
-            bImGuiInitialized = true;
-        }
+        IMGUI_CHECKVERSION();
 
         GetEngine()->GetOnUpdated().Add([]() {
             std::wstring Frame = std::to_wstring(GetMainWorld()->getFrame());
@@ -129,13 +99,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         EnginePostLoop();
 	}
 
-    if (bImGuiInitialized)
-    {
-        ImGui_ImplDX11_Shutdown();
-        ImGui_ImplWin32_Shutdown();
-        ImGui::DestroyContext(Context);
-    }
-
 	EngineRelease();
 
 	return 0;
@@ -143,13 +106,20 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {    
-    if (bImGuiInitialized && hWnd == g_hWnd)
+    if (auto Window = GetWindowManager()->GetWindow(hWnd))
     {
-        if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+        if (auto EditorWindow = Window->CastTo<MEditorBaseWindow>())
         {
-            return 1;
+            if (EditorWindow->SetImGuiContext())
+            {
+                if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+                {
+                    return 1;
+                }
+            }
         }
     }
+
 
 	switch (msg)
 	{
