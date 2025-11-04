@@ -4,6 +4,13 @@
 #include "Core/Physics/Physics.h"
 #include "Core/ResourceManager.h"
 
+void MMeshComponent::SetMaterial(uint32 InIndex, std::shared_ptr<MMaterial> InMaterial)
+{
+    Materials[InIndex] = InMaterial;
+
+    GetPrimitiveChangedDelegate().Broadcast(GetShared());
+}
+
 void MMeshComponent::AddForce(const Vec3& InForce)
 {
     if (PhysicsObject)

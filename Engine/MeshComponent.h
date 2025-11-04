@@ -35,7 +35,7 @@ protected:
     FDelegate<void, std::shared_ptr<MPrimitiveComponent>> OnMeshChangedDelegate;
 
 public:
-    void SetMaterial(uint32 InIndex, std::shared_ptr<MMaterial> InMaterial) { Materials[InIndex] = InMaterial; }
+    void SetMaterial(uint32 InIndex, std::shared_ptr<MMaterial> InMaterial);
 protected:
     std::vector<std::shared_ptr<MMaterial>> Materials;
 

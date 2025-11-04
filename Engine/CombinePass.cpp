@@ -44,7 +44,13 @@ bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& Primitiv
 {
     if (MRenderPass::IsValidPrimitive(PrimitiveData))
     {
-        return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && PrimitiveData.PrimitiveComponent.lock()->IsShadowing();
+        if (PrimitiveData.PrimitiveType == EPrimitiveType::Mesh)
+        {
+            if (PrimitiveData.PrimitiveComponent.lock())
+            {
+                return PrimitiveData.PrimitiveComponent.lock()->IsShadowing();
+            }
+        }
     }
 
     return false;

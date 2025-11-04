@@ -7,11 +7,6 @@ class SceneComponent;
 class ENGINE_DLL MCamera : public MActor
 {
 public:
-	enum class ProjectMode
-	{
-		Perspective, Orthograhpic, End
-	};
-
 	enum class LookMode
 	{
 		At, To, End
@@ -56,7 +51,7 @@ private:
 	Mat4 _inverseOrthographicProjectionMatrix;
 
 private:
-	ProjectMode _eProjection;
+	EProjectionType _eProjection;
 
 public:
 	void setLookMode(const LookMode lookMode);

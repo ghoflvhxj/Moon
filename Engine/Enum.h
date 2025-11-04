@@ -15,6 +15,11 @@ enum class EAxis
 	X, Y, Z, END
 };
 
+enum class EProjectionType
+{
+    Perspective, Orthograhpic, End
+};
+
 enum class ETextureType : uint32
 {
 	// 기본

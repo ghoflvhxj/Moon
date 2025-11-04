@@ -14,7 +14,7 @@ MCamera::MCamera()
 	: MActor()
 	, _viewMatrix()
 	, _perspectiveProjectionMatrix()
-	, _eProjection{ ProjectMode::Perspective }
+	, _eProjection{ EProjectionType::Perspective }
 	, _eLookMode{ LookMode::To }
 	, _fov{ g_pSetting->getFov() }
 	, _pSceneComponent{ nullptr }
@@ -26,7 +26,7 @@ MCamera::MCamera(const float fov)
 	: MActor()
 	, _viewMatrix()
 	, _perspectiveProjectionMatrix()
-	, _eProjection{ ProjectMode::Perspective }
+	, _eProjection{ EProjectionType::Perspective }
 	, _eLookMode{ LookMode::To }
 	, _fov{ fov }
 	, _pSceneComponent{ nullptr }
@@ -112,11 +112,11 @@ const Mat4& MCamera::getProjectionMatrix()
 {
 	switch (_eProjection)
 	{
-	case ProjectMode::Perspective:
+	case EProjectionType::Perspective:
 	{
 		return _perspectiveProjectionMatrix;
 	}
-	case ProjectMode::Orthograhpic:
+	case EProjectionType::Orthograhpic:
 	{
 		return _orthographicProjectionMatrix;
 	}
@@ -142,11 +142,11 @@ const Mat4& MCamera::getInverseProjectionMatrix()
 {
 	switch (_eProjection)
 	{
-	case ProjectMode::Perspective:
+	case EProjectionType::Perspective:
 	{
 		return _inversePerspectiveProjectionMatrix;
 	}
-	case ProjectMode::Orthograhpic:
+	case EProjectionType::Orthograhpic:
 	{
 		return _inverseOrthographicProjectionMatrix;
 	}

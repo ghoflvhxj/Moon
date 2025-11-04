@@ -22,27 +22,27 @@ public:
 
 public:		
     template <class T>
-    const std::shared_ptr<T> CreateWindow(LPCWSTR title, const int width, const int height, LPCWSTR className = DEFAULT_CLASSNAME)
+    const std::shared_ptr<T> CreateWindow(const std::wstring& InTitle, const int width, const int height, LPCWSTR className = DEFAULT_CLASSNAME)
     {
         if (T::GetTypeDescStatic()->IsA<MWindow>() == false)
         {
             return nullptr;
         }
 
-        auto pWindow = std::make_shared<T>(title, width, height, className);
+        auto pWindow = std::make_shared<T>(InTitle.c_str(), width, height, className);
         AddWindow(pWindow);
         return pWindow;
     }
 
     template <class T>
-    const std::shared_ptr<T> CreateWindow(LPCWSTR title, const int width, const int height, HWND Parent, LPCWSTR className = DEFAULT_CLASSNAME)
+    const std::shared_ptr<T> CreateWindow(const std::wstring& InTitle, const int width, const int height, HWND Parent, LPCWSTR className = DEFAULT_CLASSNAME)
     {
         if (T::GetTypeDescStatic()->IsA<MWindow>() == false)
         {
             return nullptr;
         }
 
-        auto pWindow = std::make_shared<T>(title, width, height, className);
+        auto pWindow = std::make_shared<T>(InTitle.c_str(), width, height, className);
         AddWindow(pWindow);
         return pWindow;
     }

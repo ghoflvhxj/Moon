@@ -300,7 +300,6 @@ void MRenderer::Release()
 
     DebugRenderTargetMehses.clear();
 
-    //RenderablePrimitiveData.clear();
     PrimitiveDatasPerType.clear();
 
     PrimitiveComponents.clear();
@@ -483,310 +482,6 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
     }
 }
 
-//void MRenderer::AddPrimitiveComponentTemp(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent)
-//{
-//    if (InPrimitiveComponent == nullptr)
-//    {
-//        return;
-//    }
-//
-//    int32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
-//    if (PrimitiveDatasUnManaged.find(PrimitiveID) == PrimitiveDatasUnManaged.end())
-//    {
-//        std::vector<FPrimitiveData> PrimitiveDatas;
-//        if (InPrimitiveComponent->GetPrimitiveData(PrimitiveDatas))
-//        {
-//            PrimitiveDatasUnManaged[PrimitiveID] = PrimitiveDatas;
-//        }
-//    }
-//
-//    if (auto& Actor = InPrimitiveComponent->getOwningActor())
-//    {
-//        if (auto& Owner = Actor->GetOwner())
-//        {
-//            if (auto& World = Owner->CastTo<MWorld>())
-//            {
-//                Scenes[World->GetID()]->AddPrimitiveComponent(InPrimitiveComponent);
-//            }
-//        }
-//    }
-//
-//    //RemoveBuffer(PrimitiveID);
-//
-//    //// UpdateBuffer 함수가 NoRenderPass를 사용하지 않게 구현되어 있어서 구현부를 옮겨옴
-//    //for (FPrimitiveData& PrimitiveData : PrimitiveDatasUnManaged[PrimitiveID])
-//    //{
-//    //    if (PrimitiveData.MeshData == nullptr)
-//    //    {
-//    //        continue;
-//    //    }
-//
-//    //    MakeBuffer(PrimitiveID, *PrimitiveData.MeshData);
-//    //    PrimitiveData.VertexBuffer = VertexBuffers[PrimitiveID].back();
-//    //    PrimitiveData.IndexBuffer = IndexBuffers[PrimitiveID].back();
-//    //}
-//}
-
-//void MRenderer::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent)
-//{
-//    if (InComponent == nullptr)
-//    {
-//        return;
-//    }
-//
-//    // 프리미티브 데이터를 추출해 옴
-//    int32 PrimitiveID = InComponent->GetPrimitiveID();
-//    if (PrimitiveDatas.find(PrimitiveID) == PrimitiveDatas.end())
-//    {
-//        std::vector<FPrimitiveData> NewPrimitiveDatas;
-//        if (InComponent->GetPrimitiveData(NewPrimitiveDatas))
-//        {
-//            PrimitiveDatas[PrimitiveID] = NewPrimitiveDatas;
-//        }
-//    }
-//
-//    // 프리미티브 데이터에 버퍼를 채워줌
-//    UpdateBuffer(InComponent);
-//
-//    if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
-//    {
-//        MeshComp->GetMeshChangedDelegate().Add(this, &MRenderer::UpdateBuffer);
-//    }
-//
-//    for (uint32 i=0; i<GetSize(PrimitiveDatas[PrimitiveID]); ++i)
-//    {
-//        FPrimitiveData& PrimitiveData = PrimitiveDatas[PrimitiveID][i];
-//        PrimitiveDatasPerType[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
-//    }
-//}
-
-//void MRenderer::MakeBuffer(uint32 InPrimitiveID, const FMeshData& InMeshData)
-//{
-//    // 그래픽 디바이스 쪽에 옮겨야 할 듯?
-//    uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
-//    uint32 VertexNum = GetSize(InMeshData.Vertices);
-//    std::shared_ptr<MVertexBuffer> VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, InMeshData.Vertices.data());
-//    VertexBuffers[InPrimitiveID].push_back(VertexBuffer);
-//
-//    uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
-//    uint32 IndexNum = GetSize(InMeshData.Indices);
-//    std::shared_ptr<MIndexBuffer> IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, InMeshData.Indices.data()) : nullptr;
-//    IndexBuffers[InPrimitiveID].push_back(IndexBuffer);
-//}
-//
-//void MRenderer::MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData)
-//{
-//    uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
-//    uint32 VertexNum = GetSize(InMeshData.Vertices);
-//    OutBuffers.VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, InMeshData.Vertices.data());
-//
-//    uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
-//    uint32 IndexNum = GetSize(InMeshData.Indices);
-//    OutBuffers.IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, InMeshData.Indices.data()) : nullptr;
-//}
-
-//void MRenderer::RemoveBuffer(uint32 InPrimitiveID, int32 InIndex)
-//{
-//    auto& Iter = VertexBuffers.find(InPrimitiveID);
-//
-//    if (Iter == VertexBuffers.end())
-//    {
-//        return;
-//    }
-//
-//    if (InIndex == -1)
-//    {
-//        VertexBuffers.erase(InPrimitiveID);
-//        IndexBuffers.erase(InPrimitiveID);
-//    }
-//    else
-//    {
-//        if (GetSize(Iter->second) > static_cast<uint32>(InIndex))
-//        {
-//            Iter->second[InIndex] = nullptr;
-//        }
-//    }
-//}
-
-//void MRenderer::UpdateBuffer(std::shared_ptr<MPrimitiveComponent> InComponent)
-//{
-//    if (InComponent == nullptr)
-//    {
-//        return;
-//    }
-//
-//    std::shared_ptr<StaticMesh> Mesh = nullptr;
-//    if (auto& MeshComp = InComponent->CastTo<MMeshComponent>())
-//    {
-//        Mesh = MeshComp->GetMesh();
-//    }
-//    else if (auto& LightComp = InComponent->CastTo<MLightComponent>())
-//    {
-//        Mesh = LightComp->GetMesh();
-//    }
-//
-//    if (Mesh == nullptr)
-//    {
-//        return;
-//    }
-//
-//    uint32 PrimitiveID = InComponent->GetPrimitiveID();
-//    uint32 Num = GetSize(PrimitiveDatas[PrimitiveID]);
-//
-//    if (Num == 0)
-//    {
-//        // PrimitiveData의 Buffer를 채우는 함수인데, PrimitiveData가 없으면 안됨
-//        return;
-//    }
-//
-//    const std::wstring& AssetPath = Mesh->GetAssetPath();
-//    auto& Iter = SharedBuffers.find(AssetPath);
-//    bool bCreateBuffer = Iter == SharedBuffers.end();
-//
-//    for (uint32 i = 0; i < Num; ++i)
-//    {
-//        FPrimitiveData& PrimitiveData = PrimitiveDatas[PrimitiveID][i];
-//        if (PrimitiveData.MeshData == nullptr)
-//        {
-//            continue;
-//        }
-//
-//        const FMeshData& MeshData = *PrimitiveData.MeshData;
-//
-//        if (bCreateBuffer)
-//        {
-//            FBuffers NewSharedBuffers = {};
-//            MakeBuffer(NewSharedBuffers, MeshData);
-//            SharedBuffers[AssetPath].AddBuffers(NewSharedBuffers);
-//        }
-//
-//        PrimitiveData.VertexBuffer = SharedBuffers[AssetPath].VertexBuffers[i];
-//        PrimitiveData.IndexBuffer = SharedBuffers[AssetPath].IndexBuffers[i];
-//
-//        // 클로딩 등으로 전용 버퍼가 필요한 경우
-//        if (Mesh->IsClothigMesh(i))
-//        {
-//            FBuffers NewPrivateBuffers = {};
-//            MakeBuffer(NewPrivateBuffers, MeshData);
-//            PrimitiveData.VertexBuffer = NewPrivateBuffers.VertexBuffer;
-//            PrimitiveData.IndexBuffer = NewPrivateBuffers.IndexBuffer;
-//
-//            PrivateBuffers[PrimitiveID].AddBuffers(NewPrivateBuffers);
-//        }
-//    }
-//
-//    //// 공유하는 버퍼를 채움
-//    //uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
-//    //uint32 VertexNum = GetSize(MeshData.Vertices);
-//    //std::shared_ptr<MVertexBuffer> VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, MeshData.Vertices.data());
-//
-//    //uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
-//    //uint32 IndexNum = GetSize(MeshData.Indices);
-//    //std::shared_ptr<MIndexBuffer> IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, MeshData.Indices.data()) : nullptr;
-//
-//    //SharedBuffers.VertexBuffers[_DynamicMesh->GetAssetPath()].push_back(VertexBuffer);
-//    //SharedBuffers.IndexBuffers[_DynamicMesh->GetAssetPath()].push_back(IndexBuffer);
-//}
-
-//void MRenderer::UpdateBufferInternal(uint32 InPrimitiveID)
-//{
-//    for (FPrimitiveData& PrimitiveData : PrimitiveDatas[InPrimitiveID])
-//    {
-//        if (PrimitiveData.MeshData == nullptr)
-//        {
-//            continue;
-//        }
-//
-//        MakeBuffer(InPrimitiveID, *PrimitiveData.MeshData);
-//        PrimitiveData.VertexBuffer = VertexBuffers[InPrimitiveID].back();
-//        PrimitiveData.IndexBuffer = IndexBuffers[InPrimitiveID].back();
-//    }
-//}
-
-//const std::vector<FPrimitiveData>& MRenderer::GetPrimitiveDatas(uint32 InPrimitiveID)
-//{
-//    {
-//        auto& Iter = PrimitiveDatas.find(InPrimitiveID);
-//        if (Iter != PrimitiveDatas.end())
-//        {
-//            return PrimitiveDatas[InPrimitiveID];
-//        }
-//    }
-//    {
-//        auto& Iter = PrimitiveDatasUnManaged.find(InPrimitiveID);
-//        if (Iter != PrimitiveDatasUnManaged.end())
-//        {
-//            return PrimitiveDatasUnManaged[InPrimitiveID];
-//        }
-//    }
-//
-//
-//    return PrimitiveDatas[-1];
-//}
-
-
-//void MRenderer::UpdatePrimitiveTransform(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation, const Vec3& InScale)
-//{
-//    auto& Iter = PrimitiveDatas.find(InPrimitiveID);
-//    if (Iter == PrimitiveDatas.end())
-//    {
-//        return;
-//    }
-//
-//    for (auto& PrimitiveData : Iter->second)
-//    {
-//        PrimitiveData.Scale = InScale;
-//        PrimitiveData.Rotation = InRotation;
-//        PrimitiveData.Translation = InTranslation;
-//    }
-//}
-
-//void MRenderer::UpdatePrimitiveVertexPos(uint32 InPrimitiveID, const std::vector<Vertex>& InVertices)
-//{
-//    FMeshData NewMeshData = {};
-//    NewMeshData.Vertices.reserve(InVertices.size());
-//    for (const Vertex& TempVertex : InVertices)
-//    {
-//		NewMeshData.Vertices.push_back(TempVertex);
-//    }
-//
-//    auto& Iter = VertexBuffers.find(InPrimitiveID);
-//    if (Iter == VertexBuffers.end())
-//    {
-//        return;
-//    }
-//
-//    if (Iter->second.empty())
-//    {
-//        return;
-//    }
-//
-//    auto& VertexBuffer = Iter->second.front();
-//    VertexBuffer->Update(NewMeshData.Vertices.data());
-//}
-
-//std::shared_ptr<MVertexBuffer> MRenderer::GetVertexBuffer(uint32 InId, uint32 InOffset)
-//{
-//    auto& Buffers = VertexBuffers[InId];
-//    if (Buffers.empty() == false)
-//    {
-//        return Buffers[InOffset];
-//    }
-//
-//    return nullptr;
-//}
-//
-//std::shared_ptr<MIndexBuffer> MRenderer::GetIndexBuffer(uint32 InId, uint32 InOffset)
-//{
-//    auto& Buffers = IndexBuffers[InId];
-//    if (Buffers.empty() == false)
-//    {
-//        return IndexBuffers[InId][InOffset];
-//    }
-//
-//    return nullptr;
-//}
-
 const std::vector<FPrimitiveData>& MRenderer::GetPrimitives(EPrimitiveType InPrimitiveType)
 {
     return Scenes[CurrentSceneID]->GetPrimitives(InPrimitiveType);
@@ -878,13 +573,6 @@ void MRenderer::Render()
     }
     SphereRenderDatas.clear();
     */
-
-    // 씬 그리기
-    //for (auto& [Temp, Scene] : Scenes)
-    //{
-    //    SceneID = Temp;
-    //    RenderScene(Scene);
-    //}
     
     /*
     std::vector<FPrimitiveData> PostRenderPrimitiveDatas;
@@ -1047,24 +735,8 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
     TotalPrimitiveNum = GetSize(PrimitiveComponents);
     FrustumCulling(InScene);
 
-    /*
-    uint32 RenderPassNum = EnumToIndex(ERenderPass::Combine);
-    for (uint32 PassIndex = 0; PassIndex <= RenderPassNum; ++PassIndex)
-    {
-        if (std::shared_ptr<MRenderPass>& CurrentRenderPass = RenderPasses[PassIndex])
-        {
-#if RenderPassPerformanceProfiling == 1
-            std::wstring Name = TEXT("Pass") + std::to_wstring(PassIndex) + TEXT(" :");
-            PerformanceTimer Temp(Name);
-#endif
-            CurrentRenderPass->RenderPass(RenderablePrimitiveData);
-        }
-    }
-    */
-
     const auto& RenderablePrimitiveDatas = InScene->GetRenderablePrimitiveData();
 
-    // 프로그램에서 등록한 렌더 패스의 수를 가져와서
     uint32 RenderPassNum = EnumToIndex(ERenderPass::End);
     for (uint32 PassIndex = 0; PassIndex < RenderPassNum; ++PassIndex)
     {
@@ -1374,11 +1046,6 @@ void MScene::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimi
 
     GetPrimitiveDataFromComponent(InPrimitiveComponent, InMesh);
     InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &MScene::UpdatePrimtiveData);
-
-    if (auto& MeshComp = InPrimitiveComponent->CastTo<MMeshComponent>())
-    {
-        //MeshComp->GetMeshChangedDelegate().Add(this, &MRenderer::UpdateBuffer);
-    }
 }
 
 void MScene::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent, std::shared_ptr<StaticMesh>& InMesh)
