@@ -237,17 +237,6 @@ bool MLinePass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
     return g_pRenderer->IsDrawCollision() && PrimitiveData.PrimitiveType == EPrimitiveType::Collision && MRenderPass::IsValidPrimitive(PrimitiveData);
 }
 
-MEditorPass::MEditorPass()
-    : MRenderPass()
-{
-    DefaultTopology = D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
-}
-
-bool MEditorPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
-{
-    return MRenderPass::IsValidPrimitive(PrimitiveData);
-}
-
 MDepthPre::MDepthPre()
 {
 }

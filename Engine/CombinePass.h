@@ -92,15 +92,6 @@ public:
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
 };
 
-class MEditorPass : public MRenderPass
-{
-public:
-    explicit MEditorPass();
-
-public:
-    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-};
-
 class MDepthPre : public MRenderPass
 {
 public:

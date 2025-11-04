@@ -35,6 +35,7 @@
     <ClCompile Include="Launch.cpp" />
     <ClCompile Include="Source\Editor\MainWindow.cpp" />
     <ClCompile Include="Source\Editor\DynamicMeshEditWindow.cpp" />
+    <ClCompile Include="Source\Renderer\EditorPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -55,5 +56,6 @@
     <ClInclude Include="Launch.h" />
     <ClInclude Include="Source\Editor\MainWindow.h" />
     <ClInclude Include="Source\Editor\DynamicMeshEditWindow.h" />
+    <ClInclude Include="Source\Renderer\EditorPass.h" />
   </ItemGroup>
 </Project>

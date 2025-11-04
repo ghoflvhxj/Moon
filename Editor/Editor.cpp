@@ -36,13 +36,12 @@
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 
-
-
 // FBX
 #include "FBXLoader.h"
 
 #include "Editor/AssetEditor.h"
 #include "Editor/DynamicMeshPhysicsEditor.h"
+#include "Renderer/EditorPass.h"
 
 using namespace DirectX;
 
@@ -60,6 +59,10 @@ bool MEditor::Initialize()
 {
     Super::Initialize();
 
+    g_ResourceManager->Load<StaticMesh>(TEXT("Base/Gizmo.json"), GizmoMesh);
+
+    getRenderer()->AddRenderPass(ERenderPass::CustomPass0, MRenderer::CreateRenderPass<MEditorPass>());
+
     return true;
 }
 
@@ -74,138 +77,143 @@ void MEditor::Update()
 {
     std::shared_ptr<MWorld> World = GetMainWorld();
 
-    if (World->IsMouseInViewport() == false || World->IsForegorund() == false)
+    if (World->IsMouseInViewport() && World->IsForegorund())
     {
-        return;
-    }
-
-    if (auto CameraComponent = World->getMainCamera()->getComponent(TEXT("RootComponent")))
-    {
-        float DeltaTime = World->getDeltaTime();
-        Vec3 trans = CameraComponent->getTranslation();
-        Vec3 look = CameraComponent->GetForward();
-        Vec3 right = CameraComponent->getRight();
-        float speed = CameraSpeedScale * DeltaTime;
-
-        if (InputManager::keyPress(DIK_LSHIFT))
+        if (auto CameraComponent = World->getMainCamera()->getComponent(TEXT("RootComponent")))
         {
-            speed *= 5.f;
-        }
+            float DeltaTime = World->getDeltaTime();
+            Vec3 trans = CameraComponent->getTranslation();
+            Vec3 look = CameraComponent->GetForward();
+            Vec3 right = CameraComponent->getRight();
+            float speed = CameraSpeedScale * DeltaTime;
 
-        if (InputManager::keyPress(DIK_W))
-        {
-            trans.x += look.x * speed;
-            trans.y += look.y * speed;
-            trans.z += look.z * speed;
-        }
-        else if (InputManager::keyPress(DIK_S))
-        {
-            trans.x -= look.x * speed;
-            trans.y -= look.y * speed;
-            trans.z -= look.z * speed;
-        }
-        else if (InputManager::keyPress(DIK_D))
-        {
-            trans.x += right.x * speed;
-            trans.y += right.y * speed;
-            trans.z += right.z * speed;
-        }
-        else if (InputManager::keyPress(DIK_A))
-        {
-            trans.x -= right.x * speed;
-            trans.y -= right.y * speed;
-            trans.z -= right.z * speed;
-        }
-
-        CameraSpeedScale += static_cast<float>(InputManager::mouseMove(EAxis::Z)) / 10.f;
-        CameraSpeedScale = std::max(CameraSpeedScale, 1.f);
-
-        CameraComponent->setTranslation(trans);
-
-        if (InputManager::mousePress(MOUSEBUTTON::RB))
-        {
-            Vec3 CameraRot = CameraComponent->getRotation();
-            Vec3 TargetRot = CameraRot;
-            float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X));
-            float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y));
-
-            TargetRot.x += mouseY * DeltaTime * 0.2f;
-            TargetRot.y += mouseX * DeltaTime * 0.2f;
-
-            float t = 0.5f;
-            CurrentRot.x = ((1.f - t) * CurrentRot.x) + (t * TargetRot.x);
-            CurrentRot.y = ((1.f - t) * CurrentRot.y) + (t * TargetRot.y);
-            CurrentRot.z = ((1.f - t) * CurrentRot.z) + (t * TargetRot.z);
-
-            CameraComponent->setRotation(CurrentRot);
-        }
-    }
-
-    if (InputManager::keyDown(DIK_1))
-    {
-        GizmoMode = EGizmoMode::Trans;
-    }
-    if (InputManager::keyDown(DIK_2))
-    {
-        GizmoMode = EGizmoMode::Rot;
-    }
-    if (InputManager::keyDown(DIK_3))
-    {
-        GizmoMode = EGizmoMode::Scale;
-    }
-
-    if (InputManager::mouseDown(MOUSEBUTTON::LB) && IsPickable())
-    {
-        FHitData HitData = {};
-        std::vector<FPrimitiveData> GizmoPrimitiveDatas;
-        getRenderer()->GizmoMeshComp->GetPrimitiveData(GizmoPrimitiveDatas);
-
-        if (World->Raycast(GizmoPrimitiveDatas, HitData))
-        {
-            if (bControlGizmo == false)
+            if (InputManager::keyPress(DIK_LSHIFT))
             {
-                bSetGizmoOffset = true;
-                bControlGizmo = true;
+                speed *= 5.f;
             }
 
-            switch (HitData.PrimitiveIndex)
+            if (InputManager::keyPress(DIK_W))
             {
-            case 0:
-                GizmoAxis = EAxis::Z;
-                break;
-            case 1:
-                GizmoAxis = EAxis::Y;
-                break;
-            case 2:
-                GizmoAxis = EAxis::X;
-                break;
+                trans.x += look.x * speed;
+                trans.y += look.y * speed;
+                trans.z += look.z * speed;
+            }
+            else if (InputManager::keyPress(DIK_S))
+            {
+                trans.x -= look.x * speed;
+                trans.y -= look.y * speed;
+                trans.z -= look.z * speed;
+            }
+            else if (InputManager::keyPress(DIK_D))
+            {
+                trans.x += right.x * speed;
+                trans.y += right.y * speed;
+                trans.z += right.z * speed;
+            }
+            else if (InputManager::keyPress(DIK_A))
+            {
+                trans.x -= right.x * speed;
+                trans.y -= right.y * speed;
+                trans.z -= right.z * speed;
+            }
+
+            CameraSpeedScale += static_cast<float>(InputManager::mouseMove(EAxis::Z)) / 10.f;
+            CameraSpeedScale = std::max(CameraSpeedScale, 1.f);
+
+            CameraComponent->setTranslation(trans);
+
+            if (InputManager::mousePress(MOUSEBUTTON::RB))
+            {
+                Vec3 CameraRot = CameraComponent->getRotation();
+                Vec3 TargetRot = CameraRot;
+                float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X));
+                float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y));
+
+                TargetRot.x += mouseY * DeltaTime * 0.2f;
+                TargetRot.y += mouseX * DeltaTime * 0.2f;
+
+                float t = 0.5f;
+                CurrentRot.x = ((1.f - t) * CurrentRot.x) + (t * TargetRot.x);
+                CurrentRot.y = ((1.f - t) * CurrentRot.y) + (t * TargetRot.y);
+                CurrentRot.z = ((1.f - t) * CurrentRot.z) + (t * TargetRot.z);
+
+                CameraComponent->setRotation(CurrentRot);
             }
         }
-        else
+
+        if (InputManager::keyDown(DIK_1))
+        {
+            GizmoMode = EGizmoMode::Trans;
+        }
+        if (InputManager::keyDown(DIK_2))
+        {
+            GizmoMode = EGizmoMode::Rot;
+        }
+        if (InputManager::keyDown(DIK_3))
+        {
+            GizmoMode = EGizmoMode::Scale;
+        }
+
+        if (InputManager::keyDown(DIK_ESCAPE))
+        {
+            ClickedComp.reset();
+        }
+
+        if (InputManager::mouseDown(MOUSEBUTTON::LB) && IsPickable())
+        {
+            auto& TemporalPrimitives = getRenderer()->GetScene(GetMainWorld()->GetID())->GetTemporalPrimitiveDatas();
+
+            FHitData HitData = {};
+            if (World->Raycast(TemporalPrimitives, HitData, (uint8)EPrimitiveType::CustomPrimitiveType0))
+            {
+                if (bControlGizmo == false)
+                {
+                    bSetGizmoOffset = true;
+                    bControlGizmo = true;
+                }
+
+                switch (HitData.PrimitiveIndex)
+                {
+                case 0:
+                    GizmoAxis = EAxis::Z;
+                    break;
+                case 1:
+                    GizmoAxis = EAxis::Y;
+                    break;
+                case 2:
+                    GizmoAxis = EAxis::X;
+                    break;
+                }
+            }
+            else
+            {
+                auto& Primitives = getRenderer()->GetScene(GetMainWorld()->GetID())->GetRenderablePrimitiveData();
+                bControlGizmo = false;
+                if (World->Raycast(Primitives, HitData, (uint8)EPrimitiveType::Mesh))
+                {
+                    std::shared_ptr<SceneComponent> Temp = HitData.HitComponent.lock()->CastTo<SceneComponent>();
+                    SetClickedComp(Temp);
+                }
+            }
+        }
+
+        if (bControlGizmo && InputManager::mouseUp(MOUSEBUTTON::LB))
         {
             bControlGizmo = false;
-            if (World->Raycast(getRenderer()->GetRenderablePrimitiveData(), HitData))
-            {
-                std::shared_ptr<SceneComponent> Temp = HitData.HitComponent.lock()->CastTo<SceneComponent>();
-                SetClickedComp(Temp);
-            }
         }
-    }
-
-    if (ClickedComp.expired() == false)
-    {
-        getRenderer()->bGizmo = true;
-        getRenderer()->GizmoPos = std::static_pointer_cast<MPrimitiveComponent>(ClickedComp.lock())->getWorldTranslation();
-    }
-
-    if (bControlGizmo && InputManager::mouseUp(MOUSEBUTTON::LB))
-    {
-        bControlGizmo = false;
     }
 
     if (auto GizmoTargetComp = std::static_pointer_cast<MPrimitiveComponent>(ClickedComp.lock()))
     {
-        getRenderer()->GizmoPos = GizmoTargetComp->getWorldTranslation();
+        const Vec3& CameraPos = GetMainWorld()->getMainCamera()->GetWorldTranslation();
+        const Vec3& GizmoPos = GizmoTargetComp->getTranslation();
+        Vec3 Scale = { 0.001f, 0.001f, 0.001f };
+        float DistToScale = XMVectorGetX(XMVector3Length(XMLoadFloat3(&CameraPos) - XMLoadFloat3(&GizmoPos))) / 10.f;
+
+        Scale.x *= DistToScale;
+        Scale.y *= DistToScale;
+        Scale.z *= DistToScale;
+        getRenderer()->DrawPrimitive(GetMainWorld().get(), GizmoMesh, GizmoTargetComp->getTranslation(), VEC3ZERO, Scale, EPrimitiveType::CustomPrimitiveType0);
 
         if (bControlGizmo)
         {
@@ -305,15 +313,10 @@ void MEditor::Update()
         }
     }
 
-    if (InputManager::keyDown(DIK_ESCAPE))
+    for (auto& [Title, TempEditor] : Editors)
     {
-        ClickedComp.reset();
+        TempEditor->Update();
     }
-
-    //for (auto& [Title, TempEditor] : Editors)
-    //{
-    //    TempEditor->Update();
-    //}
 }
 
 void MEditor::Render()
@@ -619,11 +622,6 @@ void MEditor::Render()
 
 	ImGui::End();
     */
-
-    //for (auto& [Title, TempEditor] : Editors)
-    //{
-    //    TempEditor->Render();
-    //}
 }
 
 bool MEditor::IsPickable() const
@@ -633,17 +631,17 @@ bool MEditor::IsPickable() const
 
 void MEditor::SetClickedComp(std::shared_ptr<SceneComponent>& InComp)
 {
-    const std::shared_ptr<SceneComponent> Old = ClickedComp.lock();
+    std::shared_ptr<SceneComponent> Old = ClickedComp.lock();
     if (Old != InComp)
     {
         if (Old)
         {
-            OutLine(Old->getOwningActor(), false);
+            OutLine(Old->getOwningActor().get(), false);
         }
 
         if (InComp)
         {
-            OutLine(InComp->getOwningActor(), true);
+            OutLine(InComp->getOwningActor().get(), true);
         }
 
         ClickedComp = InComp;

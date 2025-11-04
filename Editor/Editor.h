@@ -19,6 +19,7 @@ class MCamera;
 class MActor;
 class Player;
 class MAsset;
+class StaticMesh;
 
 enum class EGizmoMode
 {
@@ -90,6 +91,7 @@ public:
     void SetGizmoMode(EGizmoMode InGizmoMode) { GizmoMode = InGizmoMode; }
     EGizmoMode GetGizmoMode() const { return GizmoMode; }
 private:
+    std::shared_ptr<StaticMesh> GizmoMesh = nullptr;
     Vec3 GizmoOffset = VEC3ZERO;
     EAxis GizmoAxis;
     bool bSetGizmoOffset = false;
@@ -105,7 +107,7 @@ protected:
     std::weak_ptr<SceneComponent> ClickedComp;
 
 public:
-    void OutLine(std::shared_ptr<MActor>& InActor, bool bOutLine);
+    void OutLine(MActor* InActor, bool bOutLine);
     float CameraSpeedScale = 1.f;
     Vec3 CurrentRot = {};
 

@@ -26,6 +26,7 @@
     <ClCompile Include="Source\Editor\DynamicMeshPhysicsEditor.cpp" />
     <ClCompile Include="Source\Editor\AssetEditor.cpp" />
     <ClCompile Include="Source\Editor\MainWindow.cpp" />
+    <ClCompile Include="Source\Renderer\EditorPass.cpp" />
     <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="Source\ThirdParty\ImGui\imgui.cpp" />
@@ -42,6 +43,7 @@
     <ClInclude Include="Source\Editor\DynamicMeshPhysicsEditor.h" />
     <ClInclude Include="Source\Editor\AssetEditor.h" />
     <ClInclude Include="Source\Editor\MainWindow.h" />
+    <ClInclude Include="Source\Renderer\EditorPass.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\backends\imgui_impl_win32.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\imconfig.h" />
