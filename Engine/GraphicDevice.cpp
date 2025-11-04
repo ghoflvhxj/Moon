@@ -649,7 +649,12 @@ ID3D11DeviceContext *GraphicDevice::getDefferedContext()
 void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<StaticMesh>& InMesh)
 {
     const std::wstring& AssetPath = InMesh->GetAssetPath();
-    auto& Iter = SharedBuffers.find(AssetPath);
+    GetBuffers(OutBuffers, AssetPath);
+}
+
+void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::wstring InKey)
+{
+    auto& Iter = SharedBuffers.find(InKey);
 
     if (SharedBuffers.end() == Iter)
     {
@@ -659,7 +664,35 @@ void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::shared_p
     OutBuffers = Iter->second;
 }
 
-void GraphicDevice::BuildMeshBuffers(uint32 InPID, const std::shared_ptr<StaticMesh>& InMesh)
+void GraphicDevice::GetPrivateBuffers(FBufferContainer& OutBuffers, uint32 InPID)
+{
+    auto& Iter = PrivateBuffers.find(InPID);
+
+    if (PrivateBuffers.end() == Iter)
+    {
+        return;
+    }
+
+    OutBuffers = Iter->second;
+}
+
+void GraphicDevice::BuildMeshBuffer(const std::wstring InKey, const FMeshData& InMeshData, uint32 InIndex)
+{
+    FBuffers NewSharedBuffers = {};
+    MakeBuffer(NewSharedBuffers, InMeshData);
+    SharedBuffers[InKey].AddBuffers(InIndex, NewSharedBuffers);
+}
+
+void GraphicDevice::BuildMeshBuffers(const std::wstring InKey, const std::vector<FMeshData>& InMeshDatas)
+{
+    uint32 Num = GetSize(InMeshDatas);
+    for (uint32 i = 0; i < Num; ++i)
+    {
+        BuildMeshBuffer(InKey, InMeshDatas[i], i);
+    }
+}
+
+void GraphicDevice::BuildMeshBuffers(int32 InPID, const std::shared_ptr<StaticMesh>& InMesh)
 {
     if (InMesh == nullptr)
     {
@@ -677,16 +710,19 @@ void GraphicDevice::BuildMeshBuffers(uint32 InPID, const std::shared_ptr<StaticM
     {
         const FMeshData& MeshData = InMesh->GetMeshData(i);
 
-        FBuffers NewSharedBuffers = {};
-        MakeBuffer(NewSharedBuffers, MeshData);
-        SharedBuffers[AssetPath].AddBuffers(NewSharedBuffers);
-
         // 클로딩 등으로 전용 버퍼가 필요한 경우
-        if (InMesh->IsClothigMesh(i))
+        if (InMesh->IsClothigMesh(i) && InPID != -1)
         {
             FBuffers NewPrivateBuffers = {};
             MakeBuffer(NewPrivateBuffers, MeshData);
-            PrivateBuffers[InPID].AddBuffers(NewPrivateBuffers);
+            PrivateBuffers[InPID].AddBuffers(i, NewPrivateBuffers);
+        }
+        else
+        {
+
+            FBuffers NewSharedBuffers = {};
+            MakeBuffer(NewSharedBuffers, MeshData);
+            SharedBuffers[AssetPath].AddBuffers(i, NewSharedBuffers);
         }
     }
 }

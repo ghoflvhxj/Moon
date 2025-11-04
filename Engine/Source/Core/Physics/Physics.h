@@ -81,7 +81,6 @@ public:
     virtual ~MPhysicsObject() = default;
 
 public:
-    virtual void UpdateVertices(std::vector<Graphic::VERTEX_COMMON>& InVertices) {}
     virtual void MoveTo(const ::Vec3& TargetPos) {}
     virtual void Remove() {}
 

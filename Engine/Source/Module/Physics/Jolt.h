@@ -138,7 +138,6 @@ public:
     }
 
 public:
-    virtual void UpdateVertices(std::vector<::Vertex>& InVertices) override;
     virtual void MoveTo(const ::Vec3& TargetPos) override;
     virtual void Remove() override;
 public:

@@ -933,7 +933,10 @@ void MJoltPhysics::Update()
 				Vertices[i].Pos.z = -SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ();
             }
 
-            if (std::shared_ptr<MVertexBuffer> VertexBuffer = g_pRenderer->GetVertexBuffer(PhysicObject->GetPrimitiveComponent()->GetPrimitiveID(), MeshIndex))
+            FBufferContainer BufferContainer = {};
+            getGraphicDevice()->GetPrivateBuffers(BufferContainer, PhysicObject->GetPrimitiveComponent()->GetPrimitiveID());
+
+            if (std::shared_ptr<MVertexBuffer> VertexBuffer = BufferContainer.VertexBuffers[MeshIndex])
             {
                 VertexBuffer->Update(Vertices.data());
             }
@@ -969,14 +972,6 @@ MBodyObject::MBodyObject(const FBodyConstructData& InData)
     : MPhysicsObject(InData.PrimitiveComponent, InData.Mesh)
 {
 
-}
-
-void MBodyObject::UpdateVertices(std::vector<::Vertex>& InVertices)
-{
-    if (std::shared_ptr<MVertexBuffer> VertexBuffer = g_pRenderer->GetVertexBuffer(GetPrimitiveComponent()->GetPrimitiveID()))
-    {
-        VertexBuffer->Update(InVertices.data());
-    }
 }
 
 void MBodyObject::MoveTo(const ::Vec3& TargetPos)

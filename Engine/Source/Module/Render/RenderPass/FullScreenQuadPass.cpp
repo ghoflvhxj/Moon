@@ -10,7 +10,9 @@ MFullScreenQuadPass::MFullScreenQuadPass()
 {
     Mesh::MakeRect(MeshData);
     PID = MPrimitiveComponent::MakePrimitiveID();
-    getRenderer()->MakeBuffer(PID, MeshData);
+    
+    //getRenderer()->MakeBuffer(PID, MeshData);
+    getGraphicDevice()->BuildMeshBuffer(TEXT("Plane"), MeshData, 0);
 
     bWriteDepthStencil = false;
     bDepthEnable = false;
@@ -20,14 +22,17 @@ void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& Primitiv
 {
     Begin();
 
+    FBufferContainer BufferContainer = {};
+    getGraphicDevice()->GetBuffers(BufferContainer, TEXT("Plane"));
+
     FPrimitiveData NewPrimitivData = {};
     NewPrimitivData.MeshData = &MeshData;
     NewPrimitivData.PrimitiveType = EPrimitiveType::Mesh;
-    NewPrimitivData.VertexBuffer = getRenderer()->GetVertexBuffer(PID);
-    NewPrimitivData.IndexBuffer = getRenderer()->GetIndexBuffer(PID);
+    NewPrimitivData.VertexBuffer = BufferContainer.VertexBuffers[0];
+    NewPrimitivData.IndexBuffer = BufferContainer.IndexBuffers[0];
     NewPrimitivData.Scale.x = g_pSetting->getResolutionWidth<float>();
     NewPrimitivData.Scale.y = g_pSetting->getResolutionHeight<float>();
-    NewPrimitivData.Translation.z = 1.f;
+    NewPrimitivData.ProjectionType = EProjectionType::Orthograhpic;
 
     if (IsValidPrimitive(NewPrimitivData))
     {

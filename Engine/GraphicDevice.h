@@ -54,14 +54,17 @@ struct FBuffers
 
 struct FBufferContainer
 {
-    void AddBuffers(const FBuffers& InBuffers)
+    void AddBuffers(uint32 InIndex, const FBuffers& InBuffers)
     {
-        VertexBuffers.push_back(InBuffers.VertexBuffer);
-        IndexBuffers.push_back(InBuffers.IndexBuffer);
+        //VertexBuffers.push_back(InBuffers.VertexBuffer);
+        //IndexBuffers.push_back(InBuffers.IndexBuffer);
+
+        VertexBuffers[InIndex] = InBuffers.VertexBuffer;
+        IndexBuffers[InIndex] = InBuffers.IndexBuffer;
     }
 
-    std::vector<std::shared_ptr<MVertexBuffer>> VertexBuffers;
-    std::vector<std::shared_ptr<MIndexBuffer>> IndexBuffers;
+    std::map<uint32, std::shared_ptr<MVertexBuffer>> VertexBuffers;
+    std::map<uint32, std::shared_ptr<MIndexBuffer>> IndexBuffers;
 };
 
 class ENGINE_DLL GraphicDevice : public MModule
@@ -183,7 +186,11 @@ private:
 ******************************************/
 public:
     void GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<StaticMesh>& InMesh);
-    void BuildMeshBuffers(uint32 InPID, const std::shared_ptr<StaticMesh>& InMesh);
+    void GetBuffers(FBufferContainer& OutBuffers, const std::wstring InKey);
+    void GetPrivateBuffers(FBufferContainer& OutBuffers, uint32 InPID);
+    void BuildMeshBuffer(const std::wstring InKey, const FMeshData& InMeshData, uint32 InIndex);
+    void BuildMeshBuffers(const std::wstring InKey, const std::vector<FMeshData>& InMeshDatas);
+    void BuildMeshBuffers(int32 InPID, const std::shared_ptr<StaticMesh>& InMesh);
     void MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData);
 protected:
     // 메시들이 공유할 버퍼를 저장함

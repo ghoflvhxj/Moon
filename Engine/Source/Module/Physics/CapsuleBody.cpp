@@ -62,10 +62,10 @@ void MCapsuleBody::Render()
         const Vec3& JointScale = VEC3ONE;
         if (BodyCapsuleData.PrimitiveID == -1)
         {
-            BodyCapsuleData.PrimitiveID = Renderer->DrawCapsule(BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight);
+            //BodyCapsuleData.PrimitiveID = Renderer->DrawCapsule(BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight);
         }
 
-        Renderer->UpdatePrimitiveTransform(BodyCapsuleData.PrimitiveID, BodyPos, DxBodyQuat, JointScale);
+        //Renderer->UpdatePrimitiveTransform(BodyCapsuleData.PrimitiveID, BodyPos, DxBodyQuat, JointScale);
     }
 }
 

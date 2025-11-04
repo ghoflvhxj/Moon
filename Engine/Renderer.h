@@ -58,7 +58,7 @@ protected:
     void AddScene(const FWorldRenderInfo& InWorldRenderInfo);
     void RenderScene(std::unique_ptr<MScene>& InScene);
     void RenderText();
-    uint32 SceneID = 0;
+    uint32 CurrentSceneID = 0;
 
     /**********************************
         HLSL ConstantBuffer 업데이트
@@ -74,6 +74,7 @@ public:
     void DrawCylinder(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation);
     void DrawSphere(float InRadius, const Vec3& InTranslation, const DirectX::XMVECTORF32& InColor = EngineColors::White);
     void DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale = VEC3ONE);
+    void DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType);
 protected:
     std::shared_ptr<MMaterial> SphereMaterial = nullptr;
     std::vector<FInstancingData> SphereRenderDatas;
@@ -81,17 +82,19 @@ protected:
     FMeshData SphereMesh = {};
     FMeshData CoordinateMesh = {};
     FMeshData CapsuleMeshData = {};
+public:
     uint32 SpherePID = 0;
     uint32 CoordinatePID = 0;
 
 public:
-    uint32 DrawVertices(const FMeshData& InMeshData);
-    uint32 DrawLine(const std::vector<Vec3>& InWorldPositions);
+    //uint32 DrawVertices(const FMeshData& InMeshData);
+    //uint32 DrawLine(const std::vector<Vec3>& InWorldPositions);
     //void DrawCapsule(float InRadius, float InHalfHeight);
-    uint32 DrawCapsule(float InRadius, float InHalfHeight);
+    //uint32 DrawCapsule(float InRadius, float InHalfHeight);
     
+public:
+    MScene* GetScene(uint32 InWorldID);
 protected:
-    // 
     std::map<uint32, std::unique_ptr<MScene>> Scenes;
 
 	// 렌더할 PrimitiveComponent 추가하는 함수. 렌더 패스에 들어감.
@@ -102,36 +105,20 @@ protected:
 
     // 렌더할 PrimitiveComponent 추가하되, 렌더 패스에 안들어감.
 public:
-    void AddPrimitiveComponentTemp(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent);
+    //void AddPrimitiveComponentTemp(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent);
 protected:
-    std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatasUnManaged;
+    //std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatasUnManaged;
 
 public:
     // PrimitiveComponent의 GetPrimitiveData로 데이터를 가져오며, 버텍스 버퍼도 만듬.
-    void GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent);
-    // PrimitveData에 버퍼를 설정하는 함수
-    void UpdateBuffer(std::shared_ptr<MPrimitiveComponent> InComponent);
-    //void UpdateBufferInternal(uint32 InPrimitiveID);
-    // 버텍스, 인덱스 버퍼를 만드는 함수
-    void MakeBuffer(uint32 InPrimitiveID, const FMeshData& InMeshData);
-    void MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData);
+    //void GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent);
 
-    // 버퍼를 지우는 함수
-    void RemoveBuffer(uint32 InPrimitiveID, int32 InIndex = -1);
 public:
-    const std::vector<FPrimitiveData>& GetPrimitiveDatas(uint32 InPrimitiveID);
+    //const std::vector<FPrimitiveData>& GetPrimitiveDatas(uint32 InPrimitiveID);
+
 protected:
     // 모든 PrimitiveComponent
 	std::map<uint32, std::shared_ptr<MPrimitiveComponent>> PrimitiveComponents;
-
-protected:
-    // PrimitiveID - 버텍스 버퍼 쌍을 저장함, ConstantBuffer는 쉐이더에서 하는데 모든 버퍼를 Renderer가 관리할지, Shader가 할지 
-    std::map<uint32, std::vector<std::shared_ptr<MVertexBuffer>>> VertexBuffers;
-    std::map<uint32, std::vector<std::shared_ptr<MIndexBuffer>>> IndexBuffers;
-    // 메시들이 공유할 버퍼를 저장함
-    std::map<const std::wstring, FBufferContainer> SharedBuffers;
-    // PrimitiveComponent의 전용 버퍼를 저장함
-    std::map<uint32, FBufferContainer> PrivateBuffers;
 
 public:
     // TODO. 인스턴싱 임시 작업으로 제거해야 됨
@@ -140,12 +127,8 @@ public:
 
 public:
     // 컴포넌트 없는 PrimitiveData 업데이트
-    void UpdatePrimitiveTransform(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation, const Vec3& InScale);
-    void UpdatePrimitiveVertexPos(uint32 InPrimitiveID, const std::vector<Vertex>& InVertices);
-
-public:
-    std::shared_ptr<MVertexBuffer> GetVertexBuffer(uint32 InId, uint32 InOffset = 0);
-    std::shared_ptr<MIndexBuffer> GetIndexBuffer(uint32 InId, uint32 InOffset = 0);
+    //void UpdatePrimitiveTransform(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation, const Vec3& InScale);
+    //void UpdatePrimitiveVertexPos(uint32 InPrimitiveID, const std::vector<Vertex>& InVertices);
 
 public:
     // 현재 그리는 씬에서 PrimitiveData를 얻어옴
@@ -156,10 +139,10 @@ public:
 private:
     void FrustumCulling(std::unique_ptr<MScene>& InScene);
 public:
-    const std::vector<FPrimitiveData>& GetRenderablePrimitiveData() const { return RenderablePrimitiveData; }
+    //const std::vector<FPrimitiveData>& GetRenderablePrimitiveData() const { return RenderablePrimitiveData; }
 protected:
     // 컬링 등의 과정 후 실제로 렌더링되는 PrimitiveData
-    std::vector<FPrimitiveData> RenderablePrimitiveData;
+    //std::vector<FPrimitiveData> RenderablePrimitiveData;
 
 	// 렌더 타겟
 public:
@@ -169,6 +152,8 @@ private:
 	RenderTargets _renderTargets;
 
 	// 렌더 패스
+public:
+    void AddRenderPass(ERenderPass InRenderPassIndex, const std::shared_ptr<MRenderPass>& InRenderPass);
 private:
 	std::vector<std::shared_ptr<MRenderPass>> RenderPasses;
 
@@ -180,12 +165,6 @@ public:
 private:
     std::unordered_map<ERenderTarget, std::shared_ptr<StaticMeshComponent>> DebugRenderTargetMehses;
 	bool bDebugRenderTargets = true;
-
-    // TODO. Editor 기능이므로 해당 프로젝트로 옮겨야 함
-public:
-    bool bGizmo = false;
-    Vec3 GizmoPos = VEC3ZERO;
-    std::shared_ptr<StaticMeshComponent> GizmoMeshComp = nullptr;
 
     // Cascade Shadow 구현을 위한 멤버들
 protected:
@@ -217,6 +196,10 @@ public:
     MScene();
 
 public:
+    // 이름 임시
+    void Begin();
+    void End();
+public:
     std::shared_ptr<MWindow> GetWindow() const;
 protected:
     std::weak_ptr<MWindow> Window;
@@ -231,18 +214,34 @@ public:
     void UpdateGlobalConstantBuffer();
     void UpdateTickConstantBuffer();
 
+public:
+    void MakeSpherePrimitives();
+    void MakeCoordinatePrimitives();
+
     /* 렌더링에 필요한 PrimitiveData를 관리함 */
 public:
     // 렌더할 PrimitiveComponent 추가하는 함수.렌더 패스에 들어감.
-    void AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimitiveComponent);
+    void AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimitiveComponent, std::shared_ptr<StaticMesh>& InMesh);
     // PrimitiveData를 Component로부터 추출해 오는 함수. 버텍스 버퍼도 만듬.
-    void GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent);
+    void GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent, std::shared_ptr<StaticMesh>& InMesh);
     // PrimitveData에 버퍼를 설정하는 함수
     void UpdateBuffer(uint32 InPID, std::shared_ptr<StaticMesh>& InMesh);
-    const std::map<uint32, std::vector<FPrimitiveData>>& GetPrimitiveDatas() const { return PrimitiveDatas; }
     void UpdatePrimtiveData(std::shared_ptr<MPrimitiveComponent> InComponent);
+public:
+    void AddPrimitiveDatas(uint32 InPID, std::vector<FPrimitiveData> InPrimitiveDatas);
+    void ClearPrimtiveDatas(uint32 InPID);
+    const std::vector<FPrimitiveData>& GetPrimitiveDatas(uint32 InPrimitiveID);
+    const std::map<uint32, std::vector<FPrimitiveData>>& GetPrimitiveDatas() const;
 protected:
+    // PrimitiveComponent로 부터 얻어낸 PrimitiveID, PrimitiveData 쌍을 저장함
     std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatas;
+
+public:
+    void AddRenderablePrimitiveDatas(const std::vector<FPrimitiveData>& InPrimitiveDatas);
+    const std::vector<FPrimitiveData>& GetRenderablePrimitiveData() const;
+protected:
+    // 컬링 후 실제로 렌더링되는 PrimitiveData를 저장함
+    std::vector<FPrimitiveData> RenderablePrimitiveData;
 
 public:
     const std::vector<FPrimitiveData>& GetPrimitives(EPrimitiveType InPrimitiveType) { return PrimitiveDatasPerType[InPrimitiveType]; }
@@ -255,6 +254,14 @@ protected:
 public:
     void DrawSphere(float InRadius, const Vec3& InTranslation, const DirectX::XMVECTORF32& InColor = EngineColors::White);
     void DrawCoordinate(const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale = VEC3ONE);
+    void DrawPrimitive(const FPrimitiveData& InPrimitiveData);
+public:
+    const std::vector<FPrimitiveData>& GetTemporalPrimitiveDatas() const;
+protected:
+    // 휘발성 PrimitiveData. 현재 틱이 끝나면 클리어됨
+    std::vector<FPrimitiveData> TemporalPrimitiveDatas;
+    std::vector<FPrimitiveData> CachedTemporalPrimitiveDatas;
+
 protected:
     std::vector<FInstancingData> SphereRenderDatas;
     std::vector<FInstancingData> CoordinateRenderDatas;
