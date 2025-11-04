@@ -63,7 +63,7 @@ void MDirectInput::updateKeyboard(IDirectInputDevice8* _pKeyboard, unsigned char
 	}
 }
 
-void MDirectInput::updateMouse(IDirectInputDevice8* _pMouse, DIMOUSESTATE& _mouseState, DIMOUSESTATE& _prevMouseState)
+void MDirectInput::updateMouse(IDirectInputDevice8* _pMouse, DIMOUSESTATE& _prevMouseState, DIMOUSESTATE& _mouseState)
 {
 	memcpy(&_prevMouseState, &_mouseState, sizeof(DIMOUSESTATE));
 	_pMouse->GetDeviceState(sizeof(_mouseState), static_cast<void*>(&_mouseState));

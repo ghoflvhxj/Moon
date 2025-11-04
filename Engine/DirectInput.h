@@ -59,7 +59,7 @@ public:
 
 private:
 	void updateKeyboard(IDirectInputDevice8* _pKeyboard, unsigned char* _prevKeyboardState, unsigned char* _keyboardState);
-	void updateMouse(IDirectInputDevice8* _pMouse, DIMOUSESTATE& _mouseState, DIMOUSESTATE& _prevMouseState);
+	void updateMouse(IDirectInputDevice8* _pMouse, DIMOUSESTATE& _prevMouseState, DIMOUSESTATE& _mouseState);
 
 public:
 	const bool keyDown(unsigned char key);
@@ -73,15 +73,6 @@ public:
 	const LONG mouseMove(const EAxis eMouseAxis);
 private:
 	IDirectInput8 *_pDirectInput;
-	//IDirectInputDevice8 *_pKeyboard;
-	//IDirectInputDevice8 *_pMouse;
-
-private:
-	//unsigned char _keyboardState[256];
-	//unsigned char _prevKeyboardState[256];
-
-	//DIMOUSESTATE _mouseState;
-	//DIMOUSESTATE _prevMouseState;
 
 private:
 	bool bFocused;
