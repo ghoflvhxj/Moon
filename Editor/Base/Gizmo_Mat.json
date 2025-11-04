@@ -1,24 +1,30 @@
 {
     "MMaterial": {
-        "_vertexShaderFileName": "TexVertexShader.cso",
-        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_vertexShaderFileName": "VS_VertexColorOut.cso",
+        "_pixelShaderFileName": "PS_VertexColorOut.cso",
         "_textureList": {
             "0": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "1": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "2": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "3": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "4": {
+                "MTexture": {},
                 "MAsset": {}
             },
             "5": {
+                "MTexture": {},
                 "MAsset": {}
             }
         },
@@ -26,11 +32,9 @@
         "_eFillMode": 1,
         "_eCullMode": 2,
         "bUseAlpha": false,
-        "bAlphaMask": false,
-        "bRimLight": false
+        "bAlphaMask": false
     },
     "MAsset": {
-        "Path": "Base\\DefulatMaterial.json"
-    },
-    "MObject": {}
+        "Path": "Base\\Gizmo_Mat.json"
+    }
 }
