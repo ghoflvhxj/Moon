@@ -50,13 +50,13 @@ void MDynamicMeshPhysicsEditor::Render()
 
     for (FBodyCapsuleData& BodyCapsule : BodyCapsules)
     {
-        GetRenderer()->DrawCapsule(BodyCapsule.GetRadius(), BodyCapsule.GetHalfHeight());
+        //GetRenderer()->DrawCapsule(BodyCapsule.GetRadius(), BodyCapsule.GetHalfHeight());
 
-        const FJoint& AttachedJoint = dynamicMesh->GetJoint(BodyCapsule.AttachJointIndex);
+        //const FJoint& AttachedJoint = dynamicMesh->GetJoint(BodyCapsule.AttachJointIndex);
 
-        Vec4 Quat = {};
-        XMStoreFloat4(&Quat, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&AttachedJoint.Rotation)));
+        //Vec4 Quat = {};
+        //XMStoreFloat4(&Quat, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&AttachedJoint.Rotation)));
 
-        GetRenderer()->UpdatePrimitiveTransform(0, AttachedJoint.Position, Quat, VEC3ONE);
+        //GetRenderer()->UpdatePrimitiveTransform(0, AttachedJoint.Position, Quat, VEC3ONE);
     }
 }

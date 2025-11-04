@@ -94,9 +94,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-
-        EngineLoop();
-        EnginePostLoop();
+        else
+        {
+            EngineLoop();
+            EnginePostLoop();
+        }
 	}
 
 	EngineRelease();
@@ -120,7 +122,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
     }
 
-
 	switch (msg)
 	{
 	case WM_SYSCOMMAND:
@@ -134,7 +135,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         else
         {
-            return true;
+            GetWindowManager()->GetWindow(hWnd)->Disable();
         }
 		break;
     case WM_CLOSE:
@@ -143,6 +144,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     break;
 	}
+
 	return ::DefWindowProc(hWnd, msg, wParam, lParam);
 }
 

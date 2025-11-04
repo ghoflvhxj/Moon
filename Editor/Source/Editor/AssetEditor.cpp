@@ -1,6 +1,8 @@
 ﻿#include "AssetEditor.h"
 #include "MoonEngine.h"
 
+#include "DirectInput.h"
+
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
 #include "ImGui/backends/imgui_impl_dx11.h"
@@ -16,9 +18,12 @@
 #include "World.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
+#include "StaticMeshComponent.h"
 #include "DynamicMeshComponent.h"
 #include "GameFramework/DynamicMeshActor/DynamicMeshActor.h"
 #include "GameFramework/DirectionalLightActor/DirectionalLightActor.h"
+#include "GameFramework/StaticMeshActor/StaticMeshActor.h"
+#include "Camera.h"
 
 #include "MainWindow.h"
 #include "WindowManager.h"
@@ -46,22 +51,48 @@ void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
     Asset = InAsset;
     AssetTypeDesc = InAsset->GetTypeDesc();
 
-    Title = AssetTypeDesc->Name + " Edit";
+    Title = AssetTypeDesc->Name + " Editor" + "(" + WStringToString(Asset->GetAssetPath()) + ")";
 
-    T = GetWindowManager()->CreateWindow<MEditorBaseWindow>(TEXT("A"), 300, 300, g_hWnd, TEXT("ShootingGame"));
+    T = GetWindowManager()->CreateWindow<MEditorBaseWindow>(StringToWString(Title), 300, 300, g_hWnd, TEXT("ShootingGame"));
     T->Initialize();
     T->GetOnImGuiRenderedDelegate().Add(this, &MAssetEditor::Test);
 
     W = std::make_shared<MWorld>();
     W->Initialize();
     W->PlayGame();
+    W->getMainCamera()->SetWorldTranslation({ 0.f, 0.f, -2.f });
+    W->getMainCamera()->setLookMode(MCamera::LookMode::At);
     GetEngine()->AddWorld(W, T);
 
-    if (auto DA = CreateActor<MDynamicMeshActor>(W))
+    if (Asset->IsA<DynamicMesh>())
     {
-        DA->SetDynamicMesh(InAsset->GetAssetPath());
-        DA->SetWorldTranslation({ 0.f, 0.f, 3.f });
-        DA->update(0.f);
+        if (auto DA = CreateActor<MDynamicMeshActor>(W))
+        {
+            DA->SetDynamicMesh(InAsset->GetAssetPath());
+            DA->SetWorldTranslation({ 0.f, 0.f, 3.f });
+            DA->update(0.f);
+            Target = DA;
+        }
+    }
+    else if(Asset->IsA<StaticMesh>())
+    {
+        if (auto SA = CreateActor<MStaticMeshActor>(W))
+        {
+            SA->SetStaticMesh(InAsset->GetAssetPath());
+            SA->SetWorldTranslation({ 0.f, 0.f, 10.f });
+            SA->update(0.f);
+            Target = SA;
+        }
+    }
+    else if (Asset->IsA<MMaterial>())
+    {
+        if (auto SA = CreateActor<MStaticMeshActor>(W))
+        {
+            SA->SetStaticMesh(TEXT("Base/Sphere.json"));
+            SA->update(0.f);
+            SA->GetStaticMeshCompoent()->SetMaterial(0, Asset->CastTo<MMaterial>());
+            Target = SA;
+        }
     }
 
     Light = CreateActor<MDirectionalLightActor>(W);
@@ -69,6 +100,44 @@ void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
 
 void MAssetEditor::Update()
 {
+    if (W->IsMouseInViewport() && W->IsForegorund())
+    {
+        if (auto RootComponent = Target->getComponent(ROOT_COMPONENT))
+        {
+            if (InputManager::mousePress(MOUSEBUTTON::RB))
+            {
+                Vec2 CurrentMouesPos = T->GetMousePos();
+
+                if (bControl)
+                {
+                    Vec3 DeltaMousePos = { CurrentMouesPos.x - PrevMousePos.x, CurrentMouesPos.y - PrevMousePos.y, 0.f };
+                    //XMStoreFloat3(&DeltaMousePos, XMVector3TransformCoord(XMLoadFloat3(&DeltaMousePos), XMLoadFloat4x4(&RotMat)));
+
+                    RootComponent->AddRotation({ DeltaMousePos.y / 20.f, DeltaMousePos.x / 20.f, 0.f });
+                }
+                else
+                {
+                    bControl = true;
+
+                }
+
+                PrevMousePos = CurrentMouesPos;
+
+                //Vec3 Forward = CameraComponent->GetForward();
+                //Vec3 NewPos = {};
+                //XMStoreFloat3(&NewPos, XMLoadFloat3(&Forward) * 2.f);
+                //CameraComponent->setTranslation(NewPos);
+            }
+            else
+            {
+                XMStoreFloat4x4(&RotMat, RootComponent->GetRotationMatrix());
+                bControl = false;
+            }
+        }
+    }
+
+    //Light->getComponent(ROOT_COMPONENT)->AddRotation({ 0.05f, 0.f, 0.f });
+
     if (bOpen == false)
     {
         std::string t = Title;
@@ -206,7 +275,6 @@ void MAssetEditor::HandleSkeleton(MSkeleton* InSkeleton, std::function<void(uint
 
     DrawTree(-1);
 
-    /*
     // 본 축 표시
     if (auto DynamicMeshComp = AssetOwningObject->CastTo<DynamicMeshComponent>())
     {
@@ -226,5 +294,4 @@ void MAssetEditor::HandleSkeleton(MSkeleton* InSkeleton, std::function<void(uint
         Vec3 Rot = ToRadian(Joint.Rotation);
         getRenderer()->DrawCoordinate(W.get(), Trans, Rot, { 0.3f, 0.3f, 0.3f });
     }
-    */
 }

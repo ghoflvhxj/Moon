@@ -62,4 +62,10 @@ protected:
     std::shared_ptr<class MEditorBaseWindow> T = nullptr;
     std::shared_ptr<MWorld> W = nullptr;
     std::shared_ptr<MActor> Light = nullptr;
+    std::shared_ptr<MActor> Target = nullptr;
+
+    // 애셋 표시하는 액터 컨트롤
+    Vec2 PrevMousePos = {};
+    bool bControl = false;
+    Mat4 RotMat = {};
 };
