@@ -652,7 +652,7 @@ void MEditor::OnClickedCompChanged()
 {
 }
 
-void MEditor::OutLine(std::shared_ptr<MActor>& InActor, bool bOutLine)
+void MEditor::OutLine(MActor* InActor, bool bOutLine)
 {
     if (InActor == nullptr)
     {
@@ -975,7 +975,7 @@ void OpenAssetEditor(MObject* InAssetOwner, const FTypeDesc* InAssetTypeDesc, co
 
         NewAssetEditor->SetAsset(AssetCopy);
 
-        GetEngine()->GetModule<MEditor>()->Editors.emplace(NewAssetEditor->GetTitle(), NewAssetEditor);
+        GetEngine()->GetModule<MEditor>()->Editors[NewAssetEditor->GetTitle()] = NewAssetEditor;
     });
 
     //std::shared_ptr<MAsset> AssetCopy = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(InAssetTypeDesc)));
