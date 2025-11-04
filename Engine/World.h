@@ -4,6 +4,8 @@
 #include "Core/Delegate.h"
 #include "Core/Object.h"
 
+#include "Core/Physics/PhysicsEnum.h"
+
 // 리플렉션을 위한 include
 #include "Actor.h"
 
@@ -23,8 +25,13 @@ struct FHitData
 {
     std::weak_ptr<class MPrimitiveComponent> HitComponent;
     Vec3 HitPos = VEC3ZERO;
-    float Distance = 0.f;
+    float Distance = FLT_MAX;
     uint32 PrimitiveIndex = 0;
+
+    bool IsValid() const
+    {
+        return Distance != FLT_MAX;
+    }
 };
 
 class ENGINE_DLL MWorld : public MObject
@@ -117,7 +124,8 @@ private:
 
 public:
     virtual bool IsPickable() const { return true; }
-    bool Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData);
+    bool Raycast(FHitData& OutHitData, ECollisionType InCollisionType);
+    bool Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData, uint8 InPrimitiveType);
 
 public:
     bool IsForegorund() const;

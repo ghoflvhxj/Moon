@@ -54,9 +54,14 @@ enum class ERenderPass
 	SkyPass,
     Line,               // 캡슐, 스피어 등의 표시용
     Outline,            // 클릭 된 오브젝트 외각선 표시용
-	Combine,            
-    EditorGizmo,
-	Count
+	Combine,        
+                        
+    CustomPass0,
+    CustomPass1,
+    CustomPass2,
+    CustomPass3,
+
+	End
 };
 
 enum class CBufferElementType
@@ -79,10 +84,13 @@ enum class EPrimitiveType
 	
 	Collision,
 
+    CustomPrimitiveType0,
+    CustomPrimitiveType1,
+    CustomPrimitiveType2,
+    CustomPrimitiveType3,
+
 	Count
 };
-
-//std::vector<EPrimitiveType> EPrimitiveTypes = { EPrimitiveType::Mesh, EPrimitiveType::Sky, EPrimitiveType::DirectionalLight, EPrimitiveType::PointLight, EPrimitiveType::Collision };
 
 struct FMeshData;
 class MPrimitiveComponent;
@@ -106,6 +114,8 @@ struct FPrimitiveData
 	std::weak_ptr<MPrimitiveComponent> PrimitiveComponent;
 	std::weak_ptr<MMaterial> Material;
 	EPrimitiveType PrimitiveType = EPrimitiveType::Count;
+
+    EProjectionType ProjectionType = EProjectionType::Perspective;
 
     // 컴포넌트 없이 렌더 시 월드변환을 위한 데이터
     Vec3 Scale = VEC3ONE;

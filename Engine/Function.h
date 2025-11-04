@@ -297,3 +297,14 @@ inline void TransformMatrix(Mat4& OutMatrix, const Vec3& InScale, const Vec3& In
 
     XMStoreFloat4x4(&OutMatrix, XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]) * XMMatrixRotationRollPitchYawFromVector(vectors[(int)ETransform::Rotation]) * XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation]));
 }
+
+inline void TransformMatrix(Mat4& OutMatrix, const Vec3& InScale, const Vec4& InQuatRotation, const Vec3& InTranslation)
+{
+    XMVECTOR vectors[(int)ETransform::End] = {
+        XMLoadFloat3(&InScale),
+        XMLoadFloat4(&InQuatRotation),
+        XMLoadFloat3(&InTranslation)
+    };
+
+    XMStoreFloat4x4(&OutMatrix, XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]) * XMMatrixRotationQuaternion(vectors[(int)ETransform::Rotation]) * XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation]));
+}

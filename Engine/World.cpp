@@ -165,22 +165,38 @@ const Mat4& MWorld::getMainCameraOrthographicProjectionMatrix() const
 	return (nullptr == _pMainCamera) ? IDENTITYMATRIX : _pMainCamera->getOrthographicProjectionMatrix();
 }
 
-bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData)
+bool MWorld::Raycast(FHitData& OutHitData, ECollisionType InCollisionType)
+{
+    //for (auto& [Name, Actor] : Actors)
+    //{
+    //    Actor->
+    //}
+
+    /*
+    const auto& Scene = getRenderer()->GetScene(GetID());
+    return Raycast(Scene->GetRenderablePrimitiveData(), OutHitData);
+    */
+
+    return false;
+}
+
+bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& OutHitData, uint8 InPrimitiveType)
 {
     POINT MousePos;
     GetCursorPos(&MousePos);
     ScreenToClient(g_hWnd, &MousePos);
 
     // 스크린 -> NDC
+    // TODO. 뷰포트를 가져와서 크기를 얻어내야 함.
     UINT Width = g_pSetting->getResolutionWidth<UINT>();
     UINT Height = g_pSetting->getResolutionHeight<UINT>();
-    Vec3 NearNdc, FarNdc;
+    Vec3 NearNdc = {}, FarNdc = {};
     NearNdc.x = FarNdc.x = MousePos.x / (Width / 2.f) - 1.f;
     NearNdc.y = FarNdc.y = MousePos.y / -(Height / 2.f) + 1.f;
     NearNdc.z = 0.f;
     FarNdc.z = 1.f;
 
-    // NearNDC -> NDC -> 뷰 -> 월드
+    // NDC -> 투영 -> 뷰 -> 월드
     XMVECTOR NearViewPos = XMVector3TransformCoord(XMLoadFloat3(&NearNdc), XMLoadFloat4x4(&getMainCamera()->getInverseProjectionMatrix()));
     XMVECTOR NearWorldPos = XMVector3TransformCoord(NearViewPos, XMLoadFloat4x4(&getMainCamera()->getInvesrViewMatrix()));
 
@@ -195,30 +211,41 @@ bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& 
     OutHitData = {};
     OutHitData.Distance = FLT_MAX;
 
+    EPrimitiveType PrimitiveType = static_cast<EPrimitiveType>(InPrimitiveType);
+
     uint32 DataNum = GetSize(InPrimitives);
     for (uint32 DataIndex = 0; DataIndex < DataNum; ++DataIndex)
     {
+        XMMATRIX XMWorldMat = {};
+        XMMATRIX XMInverseWorldMat = {};
+
         auto& PrimitiveData = InPrimitives[DataIndex];
-        std::shared_ptr<MPrimitiveComponent> PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock();
-
-        if (PrimitiveComponent == nullptr)
+        if (PrimitiveData.PrimitiveType != PrimitiveType)
         {
             continue;
         }
-
-        if (PrimitiveComponent->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)
+        
+        if (std::shared_ptr<MPrimitiveComponent> PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock())
         {
-            continue;
+            if (PrimitiveComponent->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)
+            {
+                continue;
+            }
+
+            XMWorldMat = XMLoadFloat4x4(&PrimitiveComponent->getWorldMatrix());
+            XMInverseWorldMat = XMLoadFloat4x4(&PrimitiveComponent->GetInverseWorldMatrix());
+        }
+        else
+        {
+            Mat4 WorldMat = {};
+            TransformMatrix(WorldMat, PrimitiveData.Scale, VEC3ZERO, PrimitiveData.Translation);
+
+            XMWorldMat = XMLoadFloat4x4(&WorldMat);
+            XMInverseWorldMat = XMMatrixInverse(nullptr, XMWorldMat);
         }
 
-        if (PrimitiveData.PrimitiveType != EPrimitiveType::Mesh)
-        {
-            continue;
-        }
-
-        XMMATRIX InverseWorldMat = XMLoadFloat4x4(&PrimitiveComponent->GetInverseWorldMatrix());
-        XMVECTOR Start = XMVector3TransformCoord(NearWorldPos, InverseWorldMat);
-        XMVECTOR End = XMVector3TransformCoord(FarWorldPos, InverseWorldMat);
+        XMVECTOR Start = XMVector3TransformCoord(NearWorldPos, XMInverseWorldMat);
+        XMVECTOR End = XMVector3TransformCoord(FarWorldPos, XMInverseWorldMat);
         XMVECTOR Dir = XMVector3Normalize(End - Start);
 
         if (XMVectorGetX(XMVectorIsNaN(Start)) != 0 || XMVectorGetX(XMVectorIsNaN(End)) != 0)
@@ -242,7 +269,7 @@ bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& 
             if (TriangleTests::Intersects(Start, Dir, Lambda(Vertices[Indices[i * 3 + 0]].Pos), Lambda(Vertices[Indices[i * 3 + 1]].Pos), Lambda(Vertices[Indices[i * 3 + 2]].Pos), LocalDistance))
             {
                 XMVECTOR LocalHitPos = Start + (Dir * LocalDistance);
-                XMVECTOR WorldHitPos = XMVector3TransformCoord(LocalHitPos, XMLoadFloat4x4(&PrimitiveComponent->getWorldMatrix()));
+                XMVECTOR WorldHitPos = XMVector3TransformCoord(LocalHitPos, XMWorldMat);
 
                 float WorldDistance = XMVectorGetX(XMVector3Length(WorldHitPos - NearWorldPos));
                 if (WorldDistance > OutHitData.Distance)
@@ -258,7 +285,7 @@ bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& 
         }
     }
 
-    return OutHitData.HitComponent.expired() == false;
+    return OutHitData.IsValid();
 }
 
 bool MWorld::IsForegorund() const

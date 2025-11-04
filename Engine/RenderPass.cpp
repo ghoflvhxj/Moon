@@ -195,11 +195,11 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
             VS->SetValue(TEXT("worldMatrix"), WorldMatrix);
 
             Mat4 WorldView = {};
-            XMStoreFloat4x4(&WorldView, XMWorldMat * XMLoadFloat4x4(&IDENTITYMATRIX));
+            XMStoreFloat4x4(&WorldView, XMWorldMat * XMLoadFloat4x4(&Camera->getViewMatrix()));
             VS->SetValue(TEXT("WorldView"), WorldView);
 
             Mat4 WorldViewProj = {};
-            XMStoreFloat4x4(&WorldViewProj, XMWorldMat * XMLoadFloat4x4(&getRenderer()->ViewPerspectiveProjMatrix));
+            XMStoreFloat4x4(&WorldViewProj, XMWorldMat * XMLoadFloat4x4(&GetViewProjMatrix(PrimitiveData.ProjectionType == EProjectionType::Orthograhpic)));
             VS->SetValue(TEXT("WorldViewProj"), WorldViewProj);
 
             Mat4 InvWorldMatrix = {};
