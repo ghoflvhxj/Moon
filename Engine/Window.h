@@ -44,6 +44,8 @@ protected:
     bool bDisble = false;
 
 public:
+    void UpdateSize();
+public:
     template <class T>
     T GetWidth() const { return static_cast<T>(Width); }
     template <class T>
@@ -51,6 +53,16 @@ public:
 protected:
     uint32 Width = 1920;
     uint32 Height = 1080;
+
+public:
+    float GetAspectRatio() const { return AspectRatio; }
+protected:
+    float AspectRatio = 1920.f / 1080.f;
+
+public:
+    FDelegate<void, uint32, uint32, uint32>& GetOnViewportSizeChangedDelegate() { return OnViewportSizeChanged; }
+protected:
+    FDelegate<void, uint32, uint32, uint32> OnViewportSizeChanged;
 
 public:
     const Vec2 GetMousePos() const

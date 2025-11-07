@@ -108,7 +108,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {    
-    if (auto Window = GetWindowManager()->GetWindow(hWnd))
+    auto Window = GetWindowManager()->GetWindow(hWnd);
+    if (Window)
     {
         if (auto EditorWindow = Window->CastTo<MEditorBaseWindow>())
         {
@@ -124,25 +125,37 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
-	case WM_SYSCOMMAND:
-		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
-			return 0;
-		break;
-	case WM_DESTROY:
-        if (hWnd == g_hWnd)
+        case WM_SYSCOMMAND:
         {
-		    ::PostQuitMessage(0);
+            if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+                return 0;
         }
-        else
+	    break;
+        case WM_DESTROY:
         {
-            GetWindowManager()->GetWindow(hWnd)->Disable();
+            if (hWnd == g_hWnd)
+            {
+                ::PostQuitMessage(0);
+            }
+            else
+            {
+                Window->Disable();
+            }
         }
-		break;
-    case WM_CLOSE:
-    {
-        GetWindowManager()->GetWindow(hWnd)->Disable();
-    }
-    break;
+	    break;
+        case WM_CLOSE:
+        {
+            Window->Disable();
+        }
+        break;
+        case WM_SIZE:
+        {
+            if (Window)
+            {
+                Window->UpdateSize();
+            }
+        }
+        break;
 	}
 
 	return ::DefWindowProc(hWnd, msg, wParam, lParam);

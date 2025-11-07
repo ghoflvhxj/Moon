@@ -1,6 +1,10 @@
 ﻿#include "Include.h"
 #include "Camera.h"
 
+#include "MoonEngine.h"
+#include "World.h"
+#include "Window.h"
+
 // Utility
 #include "Factory.h"
 
@@ -82,12 +86,23 @@ void MCamera::updateProjectionMatrix()
 {
 	XMMATRIX matrix = XMMatrixIdentity();
 
-	matrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(getFov()), g_pSetting->getAspectRatio(), Near, Far);
+    float Width = g_pSetting->getResolutionWidth<float>();
+    float Height = g_pSetting->getResolutionHeight<float>();
+    float AspectRatio = g_pSetting->getAspectRatio();
+    if (auto& World = GetOwner()->CastTo<MWorld>())
+    {
+        auto& WorldInfo = GetEngine()->GetWorldInfo(World->GetID());
+        AspectRatio = WorldInfo.DstWindow->GetAspectRatio();
+        Width = WorldInfo.DstWindow->GetWidth<float>();
+        Height = WorldInfo.DstWindow->GetHeight<float>();
+    }
+
+	matrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(getFov()), AspectRatio, Near, Far);
 	XMStoreFloat4x4(&_perspectiveProjectionMatrix, matrix);
 	matrix = XMMatrixInverse(nullptr, matrix);
 	XMStoreFloat4x4(&_inversePerspectiveProjectionMatrix, matrix);
 
-	matrix = XMMatrixOrthographicLH(g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), Near, Far);
+	matrix = XMMatrixOrthographicLH(Width, Height, Near, Far);
 	XMStoreFloat4x4(&_orthographicProjectionMatrix, matrix);
 	matrix = XMMatrixInverse(nullptr, matrix);
 	XMStoreFloat4x4(&_inverseOrthographicProjectionMatrix, matrix);

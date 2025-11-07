@@ -256,6 +256,14 @@ inline void DXQuaternionToEuler(::Vec4 q, float& outPitch, float& outYaw, float&
     }
 }
 
+inline Vec4 EulerToQuaternion(const Vec3& InEulerAngles)
+{
+    Vec4 OutQuat = {};
+    XMStoreFloat4(&OutQuat, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InEulerAngles)));
+
+    return OutQuat;
+}
+
 inline Vec3 GetAxis(const Mat4& InMatrix, const EAxis InAxis)
 {
     uint32 Index = EnumToIndex(InAxis);
@@ -289,13 +297,15 @@ inline void DecomposeTransform(const Mat4& InMatrix, Vec3& OutScale, Vec3& OutRo
 
 inline void TransformMatrix(Mat4& OutMatrix, const Vec3& InScale, const Vec3& InRotation, const Vec3& InTranslation)
 {
+    const Vec4& QuatRot = EulerToQuaternion(InRotation);
+
     XMVECTOR vectors[(int)ETransform::End] = {
         XMLoadFloat3(&InScale),
-        XMLoadFloat3(&InRotation),
+        XMLoadFloat4(&QuatRot),
         XMLoadFloat3(&InTranslation)
     };
 
-    XMStoreFloat4x4(&OutMatrix, XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]) * XMMatrixRotationRollPitchYawFromVector(vectors[(int)ETransform::Rotation]) * XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation]));
+    XMStoreFloat4x4(&OutMatrix, XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]) * XMMatrixRotationQuaternion(vectors[(int)ETransform::Rotation]) * XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation]));
 }
 
 inline void TransformMatrix(Mat4& OutMatrix, const Vec3& InScale, const Vec4& InQuatRotation, const Vec3& InTranslation)

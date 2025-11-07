@@ -102,14 +102,18 @@ public:
 	virtual void Release() override;
 
 public:
-    void Begin(int32 InWindowID = 0);
+    void Begin(int32 InWindowID, float InWidth, float InHeight);
     void End();
     bool Refresh();
     void SetToDefault();
 public:
     int32 GetCurrentWindowIndex() const { return WindowID; }
+    bool IsResized() const { return bResized; }
 protected:
     int32 WindowID = 0;
+    uint32 Width = {};
+    uint32 Height = {};
+    bool bResized = false;
 
 public:
     void ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRenderTarget, DirectX::XMVECTORF32 InColor);
@@ -120,6 +124,7 @@ public:
 public:
     // 엔진에 윈도우가 추가되면 호출됨. 스왑체인 등을 생성해 WindowRenderData에 저장함
     void AddWindow(const FWorldRenderInfo& InWorldRenderInfo);
+    void UpdateWindowSize(uint32 InWindowID, uint32 InWidth, uint32 InHeight);
 
 public:
     void SetVertexShader(std::shared_ptr<VertexShader>& vertexShader);
@@ -188,8 +193,8 @@ public:
     void GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<StaticMesh>& InMesh);
     void GetBuffers(FBufferContainer& OutBuffers, const std::wstring InKey);
     void GetPrivateBuffers(FBufferContainer& OutBuffers, uint32 InPID);
-    void BuildMeshBuffer(const std::wstring InKey, const FMeshData& InMeshData, uint32 InIndex);
-    void BuildMeshBuffers(const std::wstring InKey, const std::vector<FMeshData>& InMeshDatas);
+    void BuildMeshBuffer(const std::wstring& InKey, const FMeshData& InMeshData, uint32 InIndex);
+    void BuildMeshBuffers(const std::wstring& InKey, const std::vector<FMeshData>& InMeshDatas);
     void BuildMeshBuffers(int32 InPID, const std::shared_ptr<StaticMesh>& InMesh);
     void MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData);
 protected:

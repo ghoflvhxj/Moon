@@ -3,19 +3,17 @@
 
 #include "Manager.h"
 
-using TimerFunction = std::function<void(void)>;
-
 struct TimerData
 {
 	TimerHandle handle;
-	TimerFunction function;
+    std::function<void(void)> Timerfunction;
 
 	bool loop;
 	float rate;
 
 	TimerData()
 		: handle{ NULL }
-		, function{ nullptr }
+		, Timerfunction{ nullptr }
 		, loop{ false }
 		, rate{ 1.f }
 	{
@@ -38,7 +36,7 @@ public:
     Time GetCurrent() const;
 
 public:
-	const bool SetTimer(TimerHandle &handle, const TimerFunction &function, const bool loop, const float rate);
+	const bool SetTimer(TimerHandle &handle, const std::function<void(void)>& Infunction, const bool loop, const float rate);
 
 	const Time GetDeltaTime() const;
 	const Time GetTotalTime() const;

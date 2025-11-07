@@ -271,6 +271,9 @@ void MEngine::WorldFunc(uint32 InIndex)
 
     if (FrameLock(World))
     {
+        float DeltaTime = TimerManager.GetCurrent() - World->getFrameManager()->PrevWorkFinishedTime;
+        World->getFrameManager()->SetDeltaTime(DeltaTime);
+
         UpdateWorld(InIndex);
         RenderWorld(InIndex);
 
@@ -298,13 +301,15 @@ void MEngine::RenderWorld(uint32 InIndex)
     }
 
     const auto& WorldRenderInfo = WorldRenderInfos[InIndex];
-    _GraphicDevice->Begin(WorldRenderInfo.DstWindow->GetID());
+    const auto& Window = WorldRenderInfo.DstWindow;
+
+    _GraphicDevice->Begin(Window->GetID(), Window->GetWidth<float>(), Window->GetHeight<float>());
     GetRenderStartedDelegate().Broadcast();
 
     getRenderer()->RenderWorld(WorldRenderInfo.SrcWorld);
     RenderModules();
 
-    WorldRenderInfo.DstWindow->Render();
+    Window->Render();
 
     GetRenderFinishedDelegate().Broadcast();
     _GraphicDevice->End();
@@ -326,7 +331,7 @@ void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow>
     OnWorldAdded.Broadcast(NewWorldRenderInfo);
 }
 
-std::shared_ptr<MWindow>& MEngine::GetWorldBoundedWindow(std::shared_ptr<const MWorld>& InWorld)
+std::shared_ptr<MWindow>& MEngine::GetWorldBoundedWindow(const std::shared_ptr<const MWorld>& InWorld)
 {
     return WorldRenderInfos[InWorld->GetID()].DstWindow;
 }

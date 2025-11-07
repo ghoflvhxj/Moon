@@ -33,7 +33,7 @@ MWindow::MWindow(const std::wstring &title, const int width, const int height, c
 	: m_hWnd{ 0 }
 {
 	RECT rt = { 0, 0, width, height };
-	AdjustWindowRect(&rt, WS_OVERLAPPED, false);
+	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
 
 	m_hWnd = CreateWindow(className.c_str(), title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
 	if (m_hWnd == nullptr)
@@ -74,6 +74,29 @@ void MWindow::SetTitle(const std::wstring title)
 HWND MWindow::getHandle() const
 {
 	return m_hWnd;
+}
+
+void MWindow::UpdateSize()
+{
+    RECT Rect = {};
+    if (GetClientRect(getHandle(), &Rect) == FALSE)
+    {
+        return;
+    }
+
+    uint32 NewWidth = Rect.right - Rect.left;
+    uint32 NewHeight = Rect.bottom - Rect.top;
+
+    if (NewWidth == Width && NewHeight == Height)
+    {
+        return;
+    }
+
+    Width = NewWidth;
+    Height = NewHeight;
+    AspectRatio = static_cast<float>(Width) / Height;
+
+    GetOnViewportSizeChangedDelegate().Broadcast(ID, Width, Height);
 }
 
 bool MWindow::IsMouseInViewport() const

@@ -5,6 +5,7 @@
 #include "Core/ResourceManager.h"
 #include "Renderer.h"
 #include "MoonEngine.h"
+#include "Window.h"
 
 MFullScreenQuadPass::MFullScreenQuadPass()
 {
@@ -25,13 +26,17 @@ void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& Primitiv
     FBufferContainer BufferContainer = {};
     getGraphicDevice()->GetBuffers(BufferContainer, TEXT("Plane"));
 
+    auto& Window = getRenderer()->GetCurrentScene()->GetWindow();
+
     FPrimitiveData NewPrimitivData = {};
     NewPrimitivData.MeshData = &MeshData;
     NewPrimitivData.PrimitiveType = EPrimitiveType::Mesh;
     NewPrimitivData.VertexBuffer = BufferContainer.VertexBuffers[0];
     NewPrimitivData.IndexBuffer = BufferContainer.IndexBuffers[0];
-    NewPrimitivData.Scale.x = g_pSetting->getResolutionWidth<float>();
-    NewPrimitivData.Scale.y = g_pSetting->getResolutionHeight<float>();
+    //NewPrimitivData.Scale.x =  g_pSetting->getResolutionWidth<float>();
+    //NewPrimitivData.Scale.y = g_pSetting->getResolutionHeight<float>();
+    NewPrimitivData.Scale.x =  Window->GetWidth<float>();
+    NewPrimitivData.Scale.y = Window->GetHeight<float>();
     NewPrimitivData.ProjectionType = EProjectionType::Orthograhpic;
 
     if (IsValidPrimitive(NewPrimitivData))

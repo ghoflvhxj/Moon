@@ -183,6 +183,9 @@ ID3D11DepthStencilView* GraphicDevice::GetDepthStencilView()
 
 void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
 {
+    auto& Window = InWorldRenderInfo.DstWindow;
+    Window->GetOnViewportSizeChangedDelegate().Add(this, &GraphicDevice::UpdateWindowSize);
+
     ComPtr<IDXGIFactory2> factory = nullptr;
     UINT flags = 0;
     HRESULT hr = CreateDXGIFactory2(flags, IID_PPV_ARGS(&factory));
@@ -199,8 +202,8 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
 
     // 스왑체인
     DXGI_SWAP_CHAIN_DESC1 swapDesc = {};
-    swapDesc.Width = g_pSetting->getResolutionWidth<UINT>();
-    swapDesc.Height = g_pSetting->getResolutionHeight<UINT>();
+    swapDesc.Width = Window->GetWidth<UINT>();
+    swapDesc.Height = Window->GetHeight<UINT>();
     swapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     swapDesc.SampleDesc.Count = 1;
     swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -224,8 +227,8 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
 
     // 깊이 스텐실 뷰 생성
     D3D11_TEXTURE2D_DESC depthStencilDesc = { };
-    depthStencilDesc.Width = g_pSetting->getResolutionWidth<UINT>();
-    depthStencilDesc.Height = g_pSetting->getResolutionHeight<UINT>();
+    depthStencilDesc.Width = Window->GetWidth<UINT>();
+    depthStencilDesc.Height = Window->GetHeight<UINT>();
     depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     depthStencilDesc.SampleDesc.Count = 1;
     depthStencilDesc.SampleDesc.Quality = 0;
@@ -240,6 +243,61 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(NewWindowRenderData.DepthStencilBuffer.Get(), nullptr, NewWindowRenderData.DepthStencilView.GetAddressOf()));
 
     WindowRenderDatas[InWorldRenderInfo.DstWindow->GetID()] = NewWindowRenderData;
+}
+
+void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InWidth, uint32 InHeight)
+{
+    std::cout << "Update Window Size" << std::endl;
+
+    GetPostLoopDelegate().Add([&, InWindowID, InWidth, InHeight]() {
+        //getContext()->ClearState();
+
+        UINT Width = static_cast<UINT>(InWidth);
+        UINT Height = static_cast<UINT>(InHeight);
+
+        auto& WindowRenderData = WindowRenderDatas[InWindowID];
+
+        WindowRenderData.DepthStencilBuffer.Reset();
+        WindowRenderData.DepthStencilView.Reset();
+        WindowRenderData.RenderTargetViews[0].Reset();
+        WindowRenderData.RenderTargetViews[1].Reset();
+
+        HRESULT HR = WindowRenderData.SwapChain->ResizeBuffers(0, InWidth, InHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+        if (HR == S_OK)
+        {
+            // 렌더 타겟 뷰 생성
+            std::array<ID3D11Texture2D*, 2> SawpChainBuffers = {};
+            for (uint32 i = 0; i < GetSize(SawpChainBuffers); ++i)
+            {
+                FAILED_CHECK_THROW(WindowRenderData.SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&SawpChainBuffers[i]));
+                D3D11_TEXTURE2D_DESC De = {};
+                SawpChainBuffers[i]->GetDesc(&De);
+
+                FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(SawpChainBuffers[i], nullptr, WindowRenderData.RenderTargetViews[i].GetAddressOf()));
+            }
+            SafeReleaseArray(SawpChainBuffers);
+
+            D3D11_RENDER_TARGET_VIEW_DESC Desc = {};
+            WindowRenderData.RenderTargetViews[0]->GetDesc(&Desc);
+
+            // 깊이 스텐실 버퍼, 뷰 생성
+            D3D11_TEXTURE2D_DESC depthStencilDesc = { };
+            depthStencilDesc.Width = Width;
+            depthStencilDesc.Height = Height;
+            depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+            depthStencilDesc.SampleDesc.Count = 1;
+            depthStencilDesc.SampleDesc.Quality = 0;
+            depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+            depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+            depthStencilDesc.ArraySize = 1;
+            depthStencilDesc.MipLevels = 1;
+            depthStencilDesc.CPUAccessFlags = 0;
+            depthStencilDesc.MiscFlags = 0;
+
+            m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, WindowRenderData.DepthStencilBuffer.GetAddressOf());
+            FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(WindowRenderData.DepthStencilBuffer.Get(), nullptr, WindowRenderData.DepthStencilView.GetAddressOf()));
+        }
+    });
 }
 
 bool GraphicDevice::GetVertexShader(const std::wstring InPath, std::shared_ptr<VertexShader>& OutShader)
@@ -291,8 +349,8 @@ void GraphicDevice::SetToDefault()
     g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), WindowRenderData.DepthStencilView.Get());
 
     D3D11_VIEWPORT Viewport;
-    Viewport.Width = g_pSetting->getResolutionWidth<FLOAT>();
-    Viewport.Height = g_pSetting->getResolutionHeight<FLOAT>();
+    Viewport.Width = static_cast<FLOAT>(Width);
+    Viewport.Height = static_cast<FLOAT>(Height);
     Viewport.TopLeftX = 0.f;
     Viewport.TopLeftY = 0.f;
     Viewport.MinDepth = 0.f;
@@ -300,7 +358,7 @@ void GraphicDevice::SetToDefault()
     g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
 }
 
-void GraphicDevice::Begin(int32 InWindowID)
+void GraphicDevice::Begin(int32 InWindowID, float InWidth, float InHeight)
 {
     auto& Iter = WindowRenderDatas.find(InWindowID);
     if (Iter == WindowRenderDatas.end())
@@ -312,10 +370,33 @@ void GraphicDevice::Begin(int32 InWindowID)
 
     WindowID = InWindowID;
 
+    if (Width != InWidth || Height != InHeight)
+    {
+        bResized = true;
+        Width = InWidth;
+        Height = InHeight;
+    }
+
     const FWindowRenderData& WindowRenderData = Iter->second;
+
     UINT BufferIndex = WindowRenderData.SwapChain3->GetCurrentBackBufferIndex();
     getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     getContext()->OMSetRenderTargets(1, WindowRenderData.RenderTargetViews[BufferIndex].GetAddressOf(), WindowRenderData.DepthStencilView.Get());
+
+    std::array<ID3D11Texture2D*, 2> SawpChainBuffers = {};
+    FAILED_CHECK_THROW(WindowRenderData.SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&SawpChainBuffers[BufferIndex]));
+    D3D11_TEXTURE2D_DESC De = {};
+    SawpChainBuffers[BufferIndex]->GetDesc(&De);
+    SafeRelease(SawpChainBuffers[BufferIndex]);
+
+    D3D11_VIEWPORT Viewport = {};
+    Viewport.Width = InWidth;
+    Viewport.Height = InHeight;
+    Viewport.TopLeftX = 0.f;
+    Viewport.TopLeftY = 0.f;
+    Viewport.MinDepth = 0.f;
+    Viewport.MaxDepth = 1.f;
+    g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
 }
 
 void GraphicDevice::End()
@@ -324,6 +405,8 @@ void GraphicDevice::End()
     {
         return;
     }
+
+    bResized = false;
 
     const FWindowRenderData& Test = WindowRenderDatas[WindowID];
     Test.SwapChain3->Present(0u, 0u);
@@ -676,14 +759,14 @@ void GraphicDevice::GetPrivateBuffers(FBufferContainer& OutBuffers, uint32 InPID
     OutBuffers = Iter->second;
 }
 
-void GraphicDevice::BuildMeshBuffer(const std::wstring InKey, const FMeshData& InMeshData, uint32 InIndex)
+void GraphicDevice::BuildMeshBuffer(const std::wstring& InKey, const FMeshData& InMeshData, uint32 InIndex)
 {
     FBuffers NewSharedBuffers = {};
     MakeBuffer(NewSharedBuffers, InMeshData);
     SharedBuffers[InKey].AddBuffers(InIndex, NewSharedBuffers);
 }
 
-void GraphicDevice::BuildMeshBuffers(const std::wstring InKey, const std::vector<FMeshData>& InMeshDatas)
+void GraphicDevice::BuildMeshBuffers(const std::wstring& InKey, const std::vector<FMeshData>& InMeshDatas)
 {
     uint32 Num = GetSize(InMeshDatas);
     for (uint32 i = 0; i < Num; ++i)

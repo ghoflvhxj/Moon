@@ -42,15 +42,15 @@
 
 #include "Core/ResourceManager.h"
 
-
-
 #undef max
 #undef min
 
 using namespace DirectX;
 
-#define MinimalRendering 0
+#define MinimalRendering 1
 #define RenderPassPerformanceProfiling 0
+
+constexpr wchar_t* CoordinateKey = TEXT("Coordinate");
 
 enum class EFrustumCascade
 {
@@ -137,7 +137,9 @@ bool MRenderer::Initialize()
 		break;
 		}
 
-		_renderTargets.emplace_back(std::make_shared<MRenderTarget>(RenderTargetInfo));
+        auto& NewRenderTarget = std::make_shared<MRenderTarget>();
+        NewRenderTarget->initializeTexture(RenderTargetInfo);
+		_renderTargets.emplace_back(NewRenderTarget);
 	}
 
     RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();
@@ -179,6 +181,7 @@ bool MRenderer::Initialize()
         );
     }
 
+#if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::Stencil)] = CreateRenderPass<MStencilPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::Stencil)]->BindRenderTargets(_renderTargets,
@@ -189,7 +192,6 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::Stencil)]->SetDepthEnable(false);
     }
 
-#if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] = CreateRenderPass<DirectionalLightPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
@@ -286,7 +288,7 @@ bool MRenderer::Initialize()
 
     Mesh::MakeCoordinate(CoordinateMesh);
     CoordinatePID = MPrimitiveComponent::MakePrimitiveID();
-    //MakeBuffer(CoordinatePID, CoordinateMesh);
+    getGraphicDevice()->BuildMeshBuffer(CoordinateKey, CoordinateMesh, 0);
 
     return EnumToIndex(ERenderPass::End) == GetSize(RenderPasses);
 }
@@ -326,8 +328,29 @@ void MRenderer::DrawSphere(float InRadius, const Vec3& InTranslation, const Dire
 
 void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale)
 {
-    Scenes[InWorld->GetID()]->DrawCoordinate(InTranslation, InRotation, InScale);
+    FPrimitiveData NewPrimitiveData = {};
+    NewPrimitiveData.MeshData = &CoordinateMesh;
+    NewPrimitiveData.PrimitiveType = EPrimitiveType::CustomPrimitiveType0;
+
+    NewPrimitiveData.Translation = InTranslation;
+    NewPrimitiveData.Rotation = EulerToQuaternion(InRotation);
+    NewPrimitiveData.Scale = InScale;
+
+    FBufferContainer Buffers;
+    getGraphicDevice()->GetBuffers(Buffers, CoordinateKey);
+    NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
+    NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
+
+    Scenes[InWorld->GetID()]->DrawPrimitive(NewPrimitiveData);
+
+    //FInstancingData InstancingData = {};
+    //InstancingData.Scale = InScale;
+    //InstancingData.Translation = InTranslation;
+    //XMStoreFloat4(&InstancingData.RotationQuat, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InRotation)));
+
+    //Scenes[InWorld->GetID()]->DrawCoordinate(InTranslation, InRotation, InScale);
 }
+
 void MRenderer::DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType)
 {
     uint32 WorldID = InWorld->GetID();
@@ -340,24 +363,24 @@ void MRenderer::DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMe
 
         NewPrimitiveData.MeshData = &InMesh->GetMeshData(i);
         NewPrimitiveData.Material = InMesh->getMaterial(0);
+        NewPrimitiveData.PrimitiveType = InPrimitiveType;
+
+        NewPrimitiveData.Translation = InTranslation;
+        NewPrimitiveData.Rotation = EulerToQuaternion(InRotation);
+        NewPrimitiveData.Scale = InScale;
 
         FBufferContainer Buffers;
         getGraphicDevice()->GetBuffers(Buffers, InMesh);
-
         NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[i];
         NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[i];
 
-        Vec4 QuatRot = {};
-        XMStoreFloat4(&QuatRot, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InRotation)));
-
-        NewPrimitiveData.Translation = InTranslation;
-        NewPrimitiveData.Rotation = QuatRot;
-        NewPrimitiveData.Scale = InScale;
-
-        NewPrimitiveData.PrimitiveType = InPrimitiveType;
-
         Scenes[WorldID]->DrawPrimitive(NewPrimitiveData);
     }
+}
+
+MScene* MRenderer::GetCurrentScene()
+{
+    return Scenes[CurrentSceneID].get();
 }
 
 MScene* MRenderer::GetScene(uint32 InWorldID)
@@ -727,6 +750,15 @@ std::shared_ptr<MWorld> MRenderer::GetWorld()
 
 void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
 {
+    auto& Window = InScene->GetWindow();
+    if (getGraphicDevice()->IsResized())
+    {
+        for (auto& RenderTarget : _renderTargets)
+        {
+            RenderTarget->UpdateResolution(InScene->GetWindow()->GetWidth<float>(), InScene->GetWindow()->GetHeight<float>());
+        }
+    }
+
     InScene->Begin();
 
     InScene->MakeSpherePrimitives();
@@ -869,7 +901,10 @@ void MRenderer::UpdateGlobalConstantBuffer()
         return;
     }
 
-    Vec4 resolution = { g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 0.f, 0.f };
+    auto& Window = GetEngine()->GetWorldBoundedWindow(GetWorld());
+
+    Vec4 resolution = { Window->GetWidth<float>(), Window->GetHeight<float>(), 0.f, 0.f };
+    //Vec4 resolution = { g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 0.f, 0.f };
     GlobalCBuffer->SetData(TEXT("resolution"), &resolution);
 
     BOOL bLight = TRUE;
@@ -931,7 +966,7 @@ void MScene::End()
 
 std::shared_ptr<MWindow> MScene::GetWindow() const
 {
-    return Window.lock();
+    return GetEngine()->GetWorldBoundedWindow(GetWorld());
 }
 
 std::shared_ptr<MWorld> MScene::GetWorld() const
@@ -1164,12 +1199,9 @@ const std::vector<FPrimitiveData>& MScene::GetRenderablePrimitiveData() const
 
 void MScene::DrawCoordinate(const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale)
 {
-    FInstancingData RenderData = {};
-    RenderData.Scale = InScale;
-    RenderData.Translation = InTranslation;
-    XMStoreFloat4(&RenderData.Quaternion, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InRotation)));
+    //CoordinateRenderDatas.push_back(RenderData);
 
-    CoordinateRenderDatas.push_back(RenderData);
+    //TemporalPrimitiveDatas.push_back()
 }
 
 void MScene::DrawPrimitive(const FPrimitiveData& InPrimitiveData)

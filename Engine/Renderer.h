@@ -20,7 +20,7 @@ struct FInstancingData
 {
     Vec3 Scale = VEC3ONE;
     Vec3 Translation = VEC3ZERO;
-    Vec4 Quaternion = IDENTITY3;
+    Vec4 RotationQuat = IDENTITY3;
 };
 
 class ENGINE_DLL MRenderer : public MModule
@@ -93,6 +93,7 @@ public:
     //uint32 DrawCapsule(float InRadius, float InHalfHeight);
     
 public:
+    MScene* GetCurrentScene();
     MScene* GetScene(uint32 InWorldID);
 protected:
     std::map<uint32, std::unique_ptr<MScene>> Scenes;
@@ -199,10 +200,9 @@ public:
     // 이름 임시
     void Begin();
     void End();
+
 public:
     std::shared_ptr<MWindow> GetWindow() const;
-protected:
-    std::weak_ptr<MWindow> Window;
 
 public:
     void SetWorld(std::shared_ptr<MWorld> InWorld) { World = InWorld; }

@@ -36,15 +36,21 @@ class MRenderTarget
 {
 public:
 	explicit MRenderTarget();
-	explicit MRenderTarget(const FRenderTagetInfo& RenderTargetInfo);
 	virtual ~MRenderTarget();
 	
 public:
 	std::shared_ptr<MTexture> AsTexture();
-private:
-	void initializeTexture(const FRenderTagetInfo& RenderTargetInfo);
-	std::shared_ptr<MTexture> RenderTargetTexture;	// uniqueptr로 변경하기
-	std::shared_ptr<MTexture> DepthStencilTexture;	// uniqueptr로 변경하기
+protected:
+    std::shared_ptr<MTexture> RenderTargetTexture;	// uniqueptr로 변경하기
+    std::shared_ptr<MTexture> DepthStencilTexture;	// uniqueptr로 변경하기
+
+public:
+	void initializeTexture(const FRenderTagetInfo& InRenderTargetInfo);
+protected:
+    FRenderTagetInfo RenderTargetInfo;
+
+public:
+    void UpdateResolution(float InWidth, float InHeight);
 
 private:
     DXGI_FORMAT GetFormat(const ERenderTargetType InRenderTargetType) const;

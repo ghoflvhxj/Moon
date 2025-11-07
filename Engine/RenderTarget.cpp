@@ -18,15 +18,6 @@ MRenderTarget::MRenderTarget()
 	initializeTexture(FRenderTagetInfo::GetDefault());
 }
 
-MRenderTarget::MRenderTarget(const FRenderTagetInfo& RenderTargetInfo)
-	: RenderTargetTexture{ nullptr }
-	, _pRenderTargetView{ nullptr }
-	, DepthStencilTexture{ nullptr }
-	, _pDepthStencilView{ nullptr }
-{
-	initializeTexture(RenderTargetInfo);
-}
-
 MRenderTarget::~MRenderTarget()
 {
 	SafeRelease(_pRenderTargetView);
@@ -38,8 +29,10 @@ std::shared_ptr<MTexture> MRenderTarget::AsTexture()
 	return RenderTargetTexture;
 }
 
-void MRenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
+void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo)
 {
+    RenderTargetInfo = InRenderTargetInfo;
+
 	bool bNotDepth = RenderTargetInfo.Type != ERenderTargetType::Depth;
 	bool bSingleTexture = RenderTargetInfo.bCube == false && RenderTargetInfo.TextrueNum == 1;
     constexpr uint32 CubeTexNum = 6;
@@ -64,6 +57,7 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&TextureDesc, nullptr, &RenderTargetTexture->GetTextureResource()));
 
 	// RenderTarget 렌더 타겟 뷰
+    SafeRelease(_pRenderTargetView);
 	D3D11_RENDER_TARGET_VIEW_DESC RenderTargetViewDesc		= { };
 	RenderTargetViewDesc.Format								= GetFormat(RenderTargetInfo.Type);
 	if (bSingleTexture)
@@ -142,6 +136,7 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&DepthStencilTextureDesc, nullptr, &DepthStencilTexture->GetTextureResource()));
 
 	// DepthStencil 뎁스 스텐실 뷰
+    SafeRelease(_pDepthStencilView);
 	D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
 	DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	if (bSingleTexture)
@@ -164,6 +159,17 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& RenderTargetInfo)
 		DepthStencilViewDesc.Texture2DArray.MipSlice = 0;
 	}
 	FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(DepthStencilTexture->GetTextureResource(), &DepthStencilViewDesc, &_pDepthStencilView));
+}
+
+void MRenderTarget::UpdateResolution(float InWidth, float InHeight)
+{
+    if (RenderTargetInfo.bCube == false)
+    {
+        RenderTargetInfo.Width = InWidth;
+        RenderTargetInfo.Height = InHeight;
+
+        initializeTexture(RenderTargetInfo);
+    }
 }
 
 DXGI_FORMAT MRenderTarget::GetFormat(const ERenderTargetType InRenderTargetType) const

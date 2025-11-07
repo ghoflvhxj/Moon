@@ -31,7 +31,7 @@ public:
     void AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow);
     FDelegate<void, const FWorldRenderInfo&>& GetOnWorldAddedDelegate() { return OnWorldAdded; }
     const FWorldRenderInfo& GetWorldInfo(uint32 InIndex) const { return WorldRenderInfos[InIndex]; }
-    std::shared_ptr<MWindow>& GetWorldBoundedWindow(std::shared_ptr<const MWorld>& InWorld);
+    std::shared_ptr<MWindow>& GetWorldBoundedWindow(const std::shared_ptr<const MWorld>& InWorld);
     uint32 GetWorldNum() const { return GetSize(WorldRenderInfos); }
 protected:
     // 월드를 업데이트
