@@ -245,15 +245,15 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     WindowRenderDatas[InWorldRenderInfo.DstWindow->GetID()] = NewWindowRenderData;
 }
 
-void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InWidth, uint32 InHeight)
+void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight)
 {
     std::cout << "Update Window Size" << std::endl;
 
-    GetPostLoopDelegate().Add([&, InWindowID, InWidth, InHeight]() {
+    GetPostLoopDelegate().Add([&, InWindowID, InNewWidth, InNewHeight]() {
         //getContext()->ClearState();
 
-        UINT Width = static_cast<UINT>(InWidth);
-        UINT Height = static_cast<UINT>(InHeight);
+        UINT Width = static_cast<UINT>(InNewWidth);
+        UINT Height = static_cast<UINT>(InNewHeight);
 
         auto& WindowRenderData = WindowRenderDatas[InWindowID];
 
@@ -262,7 +262,7 @@ void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InWidth, uint32 I
         WindowRenderData.RenderTargetViews[0].Reset();
         WindowRenderData.RenderTargetViews[1].Reset();
 
-        HRESULT HR = WindowRenderData.SwapChain->ResizeBuffers(0, InWidth, InHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+        HRESULT HR = WindowRenderData.SwapChain->ResizeBuffers(0, InNewWidth, InNewHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
         if (HR == S_OK)
         {
             // 렌더 타겟 뷰 생성

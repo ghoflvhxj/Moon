@@ -61,13 +61,6 @@ protected:
     uint32 CurrentSceneID = 0;
 
     /**********************************
-        HLSL ConstantBuffer 업데이트
-    **********************************/
-private:
-    void UpdateGlobalConstantBuffer();
-    void UpdateTickConstantBuffer();
-
-    /**********************************
         간단한 Geometry 렌더링
     **********************************/
 public:
@@ -104,19 +97,6 @@ public:
 protected:
     std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatas;
 
-    // 렌더할 PrimitiveComponent 추가하되, 렌더 패스에 안들어감.
-public:
-    //void AddPrimitiveComponentTemp(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent);
-protected:
-    //std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatasUnManaged;
-
-public:
-    // PrimitiveComponent의 GetPrimitiveData로 데이터를 가져오며, 버텍스 버퍼도 만듬.
-    //void GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent);
-
-public:
-    //const std::vector<FPrimitiveData>& GetPrimitiveDatas(uint32 InPrimitiveID);
-
 protected:
     // 모든 PrimitiveComponent
 	std::map<uint32, std::shared_ptr<MPrimitiveComponent>> PrimitiveComponents;
@@ -139,18 +119,19 @@ public:
 
 private:
     void FrustumCulling(std::unique_ptr<MScene>& InScene);
-public:
-    //const std::vector<FPrimitiveData>& GetRenderablePrimitiveData() const { return RenderablePrimitiveData; }
-protected:
-    // 컬링 등의 과정 후 실제로 렌더링되는 PrimitiveData
-    //std::vector<FPrimitiveData> RenderablePrimitiveData;
 
-	// 렌더 타겟
+    /**********************************
+        렌더 타겟 관리
+    **********************************/
 public:
+    void AddRenderTargets(uint32 InWidth, uint32 InHeight);
+    void ResizeRenderTargets(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight);
 	void DebugRenderTarget(ERenderTarget InRenderTarget);
-	std::shared_ptr<MRenderTarget>& GetRenderTarget(ERenderTarget RenderTarget) { return _renderTargets[static_cast<int32>(RenderTarget)]; }
+public:
+    std::shared_ptr<MRenderTarget> GetRenderTarget(ERenderTarget InRenderTarget);
 private:
-	RenderTargets _renderTargets;
+	//RenderTargets _renderTargets;
+    std::map<std::tuple<uint32, uint32>, RenderTargets> RenderTargetss;
 
 	// 렌더 패스
 public:
@@ -169,9 +150,9 @@ private:
 
     // Cascade Shadow 구현을 위한 멤버들
 protected:
-    std::vector<float> CascadeDistances;
-    std::vector<Vec4> CascadeLightPositions;
-    std::vector<Mat4> CascadeLightMatrices;
+    //std::vector<float> CascadeDistances;
+    //std::vector<Vec4> CascadeLightPositions;
+    //std::vector<Mat4> CascadeLightMatrices;
 
 public:
     Mat4 ViewPerspectiveProjMatrix = {};
@@ -214,6 +195,9 @@ public:
     void UpdateGlobalConstantBuffer();
     void UpdateTickConstantBuffer();
 
+    /**********************************
+        HLSL ConstantBuffer 업데이트
+    **********************************/
 public:
     void MakeSpherePrimitives();
     void MakeCoordinatePrimitives();
@@ -269,15 +253,18 @@ protected:
     /*********************************
         Cascade Shadow 구현
     **********************************/
+public:
+    float GetCascadeDistance(uint32 InIndex) const { return CascadeDistances[InIndex]; }
+    void SetLightInfoCascadeShadow(uint32 InIndex, const XMVECTOR& InXMLightPos, const XMMATRIX& InXMLightMat);
 protected:
     std::vector<float> CascadeDistances;
     std::vector<Vec4> CascadeLightPositions;
     std::vector<Mat4> CascadeLightMatrices;
 
     /* 카메라 */
-public:
-    void Func(); // 카메라의 데이터를 가져옴
-protected:
-    Mat4 ViewPerspectiveProjMatrix = {};
-    Mat4 ViewOrthogonalProjMatrix = {};
+//public:
+//    void Func(); // 카메라의 데이터를 가져옴
+//protected:
+//    Mat4 ViewPerspectiveProjMatrix = {};
+//    Mat4 ViewOrthogonalProjMatrix = {};
 };

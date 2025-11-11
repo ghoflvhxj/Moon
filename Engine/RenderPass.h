@@ -8,10 +8,12 @@
 struct FRenderTargetBindData
 {
 	FRenderTargetBindData() 
-		: Index(-1)
-	{}
-	int32 Index;
-	std::shared_ptr<MRenderTarget> RenderTarget;
+        :Index(ERenderTarget::Count)
+	{
+    }
+    ERenderTarget Index;
+	//int32 Index;
+	//std::shared_ptr<MRenderTarget> RenderTarget;
 };
 
 class ENGINE_DLL MRenderPass
@@ -59,27 +61,27 @@ protected:
 public:
 	// 렌더 타겟 바인드
 	template<class... TList>
-	void BindRenderTargets(RenderTargets& renderTargetList, TList... args)
+	void BindRenderTargets(RenderTargets& InRenderTargets, TList... args)
 	{
 		bRenderTarget = true;
-		CachedRenderTargets = renderTargetList;
-		BindView(renderTargetList, RenderTargetViewData, args...);
+		//CachedRenderTargets = renderTargetList;
+		BindView(InRenderTargets, RenderTargetViewData, args...);
 	}
 	// 쉐이더 리소스 뷰 바인드
 	template<class... TList>
-	void BindResourceViews(RenderTargets& renderTargetList, TList... args)
+	void BindResourceViews(RenderTargets& InRenderTargets, TList... args)
 	{
-		CachedResourceViews = renderTargetList;
-		BindView(renderTargetList, ResourceViewData, args...);
+		//CachedResourceViews = InRenderTargets;
+		BindView(InRenderTargets, ResourceViewData, args...);
 	}
 protected:
 	template<class T, class... TList>
 	void BindView(RenderTargets& Source, std::vector<FRenderTargetBindData>& Target, T arg)
 	{
-		int32 Index = CastValue<int32>(arg);
+		//int32 Index = CastValue<int32>(arg);
 		FRenderTargetBindData ResourceViewBindData;
-		ResourceViewBindData.Index = Index;
-		ResourceViewBindData.RenderTarget = Source[Index];
+		ResourceViewBindData.Index = arg;
+		//ResourceViewBindData.RenderTarget = Source[Index];
 
 		Target.push_back(ResourceViewBindData);
 	}
@@ -94,8 +96,8 @@ protected:
 	std::vector<FRenderTargetBindData> RenderTargetViewData;
 	std::vector<FRenderTargetBindData> ResourceViewData;
 	bool bRenderTarget = false;
-	RenderTargets CachedRenderTargets;
-	RenderTargets CachedResourceViews;
+	//RenderTargets CachedRenderTargets;
+	//RenderTargets CachedResourceViews;
 
 public:
 	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);

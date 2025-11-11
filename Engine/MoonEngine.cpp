@@ -328,7 +328,7 @@ void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow>
 
     WorldRenderInfos.push_back(NewWorldRenderInfo);
 
-    OnWorldAdded.Broadcast(NewWorldRenderInfo);
+    GetOnWorldAddedDelegate().Broadcast(NewWorldRenderInfo);
 }
 
 std::shared_ptr<MWindow>& MEngine::GetWorldBoundedWindow(const std::shared_ptr<const MWorld>& InWorld)

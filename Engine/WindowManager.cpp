@@ -46,12 +46,25 @@ const std::shared_ptr<MWindow> WindowManager::GetWindow(const HWND hWnd)
 	return pWindow;
 }
 
-const bool WindowManager::FindWindow(const HWND hWnd)
+void WindowManager::FilterWindow(std::function<bool(std::shared_ptr<MWindow>)> InFilterFunc, std::vector<std::shared_ptr<MWindow>>& OutWindows)
+{
+    OutWindows.reserve(m_windowMap.size());
+
+    for (auto& [Handle, Window] : m_windowMap)
+    {
+        if (InFilterFunc(Window))
+        {
+            OutWindows.push_back(Window);
+        }
+    }
+}
+
+bool WindowManager::FindWindow(const HWND hWnd)
 {
 	return MapUtility::Find(m_windowMap, hWnd);
 }
 
-const bool WindowManager::AddWindow(std::shared_ptr<MWindow> pWindow)
+bool WindowManager::AddWindow(std::shared_ptr<MWindow> pWindow)
 {
     HWND Handle = pWindow->getHandle();
     if (MapUtility::FindInsert(m_windowMap, Handle, pWindow))

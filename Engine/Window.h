@@ -60,9 +60,9 @@ protected:
     float AspectRatio = 1920.f / 1080.f;
 
 public:
-    FDelegate<void, uint32, uint32, uint32>& GetOnViewportSizeChangedDelegate() { return OnViewportSizeChanged; }
+    FDelegate<void, uint32, uint32, uint32, uint32, uint32>& GetOnViewportSizeChangedDelegate() { return OnViewportSizeChanged; }
 protected:
-    FDelegate<void, uint32, uint32, uint32> OnViewportSizeChanged;
+    FDelegate<void, uint32, uint32, uint32, uint32, uint32> OnViewportSizeChanged;
 
 public:
     const Vec2 GetMousePos() const

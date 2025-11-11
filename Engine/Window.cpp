@@ -84,10 +84,12 @@ void MWindow::UpdateSize()
         return;
     }
 
+    uint32 OldWidth = Width;
+    uint32 OldHeight = Height;
     uint32 NewWidth = Rect.right - Rect.left;
     uint32 NewHeight = Rect.bottom - Rect.top;
 
-    if (NewWidth == Width && NewHeight == Height)
+    if (NewWidth == OldWidth && NewHeight == OldHeight)
     {
         return;
     }
@@ -96,7 +98,7 @@ void MWindow::UpdateSize()
     Height = NewHeight;
     AspectRatio = static_cast<float>(Width) / Height;
 
-    GetOnViewportSizeChangedDelegate().Broadcast(ID, Width, Height);
+    GetOnViewportSizeChangedDelegate().Broadcast(ID, OldWidth, OldHeight, NewWidth, NewHeight);
 }
 
 bool MWindow::IsMouseInViewport() const

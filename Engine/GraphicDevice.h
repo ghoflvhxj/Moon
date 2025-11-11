@@ -109,10 +109,11 @@ public:
 public:
     int32 GetCurrentWindowIndex() const { return WindowID; }
     bool IsResized() const { return bResized; }
+    std::tuple<uint32, uint32> GetViewportSize() const { return { Width, Height }; }
 protected:
     int32 WindowID = 0;
-    uint32 Width = {};
-    uint32 Height = {};
+    uint32 Width = 0;
+    uint32 Height = 0;
     bool bResized = false;
 
 public:
@@ -124,7 +125,7 @@ public:
 public:
     // 엔진에 윈도우가 추가되면 호출됨. 스왑체인 등을 생성해 WindowRenderData에 저장함
     void AddWindow(const FWorldRenderInfo& InWorldRenderInfo);
-    void UpdateWindowSize(uint32 InWindowID, uint32 InWidth, uint32 InHeight);
+    void UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight);
 
 public:
     void SetVertexShader(std::shared_ptr<VertexShader>& vertexShader);

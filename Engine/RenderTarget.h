@@ -28,7 +28,7 @@ struct FRenderTagetInfo
 	bool bCube;
     ERenderTargetType Type;
 
-	static const FRenderTagetInfo GetDefault();
+	static const FRenderTagetInfo GetDefault(uint32 InWidth, uint32 InHeight);
 	static const FRenderTagetInfo GetCube();
 };
 

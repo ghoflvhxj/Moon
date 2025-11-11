@@ -1,5 +1,4 @@
 ﻿#pragma once
-#ifndef __WINDOW_MANAGER_H__
 
 #include "Manager.h"
 
@@ -48,8 +47,9 @@ public:
     }
 
 	const std::shared_ptr<MWindow> GetWindow(const HWND hWnd);
-	const bool FindWindow(const HWND hWnd);
-	const bool AddWindow(std::shared_ptr<MWindow> pWindow);
+    void FilterWindow(std::function<bool(std::shared_ptr<MWindow>)> InFilterFunc, std::vector<std::shared_ptr<MWindow>>& OutWindows);
+	bool FindWindow(const HWND hWnd);
+    bool AddWindow(std::shared_ptr<MWindow> pWindow);
 private:
 	WindowMap m_windowMap;
     uint32 WindowIDCounter = 0;
@@ -61,8 +61,3 @@ private:
 	std::shared_ptr<MWindow> m_pMainWindow;
 
 };
-
-
-
-#define __WINDOW_MANAGER_H__
-#endif

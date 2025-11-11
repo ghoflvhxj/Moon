@@ -15,7 +15,7 @@ MRenderTarget::MRenderTarget()
 	, DepthStencilTexture{ nullptr }
 	, _pDepthStencilView{ nullptr }
 {
-	initializeTexture(FRenderTagetInfo::GetDefault());
+	//initializeTexture(FRenderTagetInfo::GetDefault());
 }
 
 MRenderTarget::~MRenderTarget()
@@ -197,13 +197,13 @@ ID3D11DepthStencilView* MRenderTarget::getDepthStencilView()
 	return _pDepthStencilView;
 }
 
-const FRenderTagetInfo FRenderTagetInfo::GetDefault()
+const FRenderTagetInfo FRenderTagetInfo::GetDefault(uint32 InWidth, uint32 InHeight)
 {
 	FRenderTagetInfo RenderTargetInfo = {};
 	RenderTargetInfo.bCube = false;
 	RenderTargetInfo.TextrueNum = 1;
-	RenderTargetInfo.Width = g_pSetting->getResolutionWidth<UINT>();
-	RenderTargetInfo.Height = g_pSetting->getResolutionHeight<UINT>();
+	RenderTargetInfo.Width = InWidth;
+	RenderTargetInfo.Height = InHeight;
     RenderTargetInfo.Type = ERenderTargetType::Default;
 
 	return RenderTargetInfo;

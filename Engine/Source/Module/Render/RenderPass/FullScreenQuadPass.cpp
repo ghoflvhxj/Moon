@@ -33,8 +33,6 @@ void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& Primitiv
     NewPrimitivData.PrimitiveType = EPrimitiveType::Mesh;
     NewPrimitivData.VertexBuffer = BufferContainer.VertexBuffers[0];
     NewPrimitivData.IndexBuffer = BufferContainer.IndexBuffers[0];
-    //NewPrimitivData.Scale.x =  g_pSetting->getResolutionWidth<float>();
-    //NewPrimitivData.Scale.y = g_pSetting->getResolutionHeight<float>();
     NewPrimitivData.Scale.x =  Window->GetWidth<float>();
     NewPrimitivData.Scale.y = Window->GetHeight<float>();
     NewPrimitivData.ProjectionType = EProjectionType::Orthograhpic;

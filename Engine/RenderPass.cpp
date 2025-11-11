@@ -67,20 +67,24 @@ void MRenderPass::Begin()
 	{
 		std::vector<ID3D11RenderTargetView*> RawRenderTargets;
         RawRenderTargets.reserve(RenderTargetViewData.size());
+
 		for (const FRenderTargetBindData& BindData : RenderTargetViewData)
 		{
-			RawRenderTargets.push_back(BindData.RenderTarget->AsRenderTargetView());
+            auto& RenderTarget = getRenderer()->GetRenderTarget(BindData.Index);
+
+			RawRenderTargets.push_back(RenderTarget->AsRenderTargetView());
 
 			if (true == bClearTargets)
 			{
-                g_pGraphicDevice->ClearRenderTarget(BindData.RenderTarget, Color);
+                g_pGraphicDevice->ClearRenderTarget(RenderTarget, Color);
 			}
 		}
 
         g_pGraphicDevice->getContext()->OMSetRenderTargets(
             static_cast<UINT>(RawRenderTargets.size()),
             RawRenderTargets.data(),
-            UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : g_pGraphicDevice->GetDepthStencilView()
+            //UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : g_pGraphicDevice->GetDepthStencilView()
+            UsedDepthStencilBuffer != ERenderTarget::Count ? getRenderer()->GetRenderTarget(UsedDepthStencilBuffer)->getDepthStencilView() : g_pGraphicDevice->GetDepthStencilView()
         );
 	}
 
@@ -179,6 +183,8 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 
             Mat4 WorldViewProj = {};
             XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&Primitive->getWorldMatrix()) * XMLoadFloat4x4(&GetViewProjMatrix(Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)));
+            //const Mat4& Proj = Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? Camera->getOrthographicProjectionMatrix() : Camera->getPerspectiveProjectionMatrix();
+            //XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&WorldView) * XMLoadFloat4x4(&Proj));
             VS->SetValue(TEXT("WorldViewProj"), WorldViewProj);
 
             VS->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
@@ -367,7 +373,7 @@ void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
 
     for (const FRenderTargetBindData& Data : ResourceViewData)
     {
-        g_pGraphicDevice->getContext()->PSSetShaderResources(Data.Index, 1, &Data.RenderTarget->AsTexture()->getRawResourceViewPointer());
+        g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(Data.Index), 1, &getRenderer()->GetRenderTarget(Data.Index)->AsTexture()->getRawResourceViewPointer());
     }
 }
 
