@@ -84,13 +84,18 @@ void MRenderPass::Begin()
         );
 	}
 
-    RectWidth = g_pSetting->getResolutionWidth<float>();
-    RectHeight = g_pSetting->getResolutionHeight<float>();
+    //RectWidth = g_pSetting->getResolutionWidth<float>();
+    //RectHeight = g_pSetting->getResolutionHeight<float>();
+
+    auto& ViewportSize = getGraphicDevice()->GetViewportSize();
+    RectWidth = std::get<0>(ViewportSize);
+    RectHeight = std::get<1>(ViewportSize);
 
 	if (RenderTargetViewData.size() > 0)
 	{
-		uint32 Width = 0, Height = 0;
-		RenderTargetViewData[0].RenderTarget->AsTexture()->GetResolution(Width, Height);
+        uint32 Width = 0, Height = 0;
+        getRenderer()->GetRenderTarget(RenderTargetViewData[0].Index)->AsTexture()->GetResolution(Width, Height);
+
         D3D11_VIEWPORT Viewport = {};
 		UINT ViewportNum = 0;
 		Viewport.Width = static_cast<float>(Width);
@@ -103,15 +108,15 @@ void MRenderPass::Begin()
 
         RectWidth = static_cast<float>(Width);
         RectHeight = static_cast<float>(Height);
-
-        UINT RectNum = 1;
-        D3D11_RECT Rect = {};
-        Rect.left = 0;
-        Rect.top = 0;
-        Rect.right = RectWidth;
-        Rect.bottom = RectHeight;
-        getGraphicDevice()->getContext()->RSSetScissorRects(RectNum, &Rect);
 	}
+
+    UINT RectNum = 1;
+    D3D11_RECT Rect = {};
+    Rect.left = 0;
+    Rect.top = 0;
+    Rect.right = RectWidth;
+    Rect.bottom = RectHeight;
+    getGraphicDevice()->getContext()->RSSetScissorRects(RectNum, &Rect);
 }
 
 void MRenderPass::End()
