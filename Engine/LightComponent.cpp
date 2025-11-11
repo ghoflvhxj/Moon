@@ -1,9 +1,13 @@
 ﻿#include "LightComponent.h"
 
+#include "MoonEngine.h"
+#include "World.h"
+#include "Window.h"
 #include "Renderer.h"
 #include "MainGameSetting.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Core/ResourceManager.h"
+#include "Actor.h"
 
 using namespace DirectX;
 
@@ -31,6 +35,12 @@ void MLightComponent::Update(const Time deltaTime)
 {
     Super::Update(deltaTime);
     setRenderMode(ERenderMode::Orthogonal);
+
+    if (auto& World = getOwningActor()->GetOwner()->CastTo<MWorld>())
+    {
+        auto& WorldInfo = GetEngine()->GetWorldInfo(World->GetID());
+        setScale(WorldInfo.DstWindow->GetWidth<float>(), WorldInfo.DstWindow->GetHeight<float>(), 1.f);
+    }
 
     Direction = GetForward();
 }
