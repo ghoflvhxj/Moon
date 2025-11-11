@@ -45,6 +45,12 @@ public:
         DelegateDatas.push_back(NewData);
     }
 
+    template <class T>
+    void Add(T* InObject, std::function<ReturnType(ParamTypes...)> InFunc)
+    {
+        Lambdas.push_back(InFunc);
+    }
+
     void Add(std::function<ReturnType(ParamTypes...)> InFunc)
     {
         Lambdas.push_back(InFunc);

@@ -62,7 +62,12 @@ bool MEditor::Initialize()
     g_ResourceManager->Load<StaticMesh>(TEXT("Base/Gizmo.json"), GizmoMesh);
 
     getRenderer()->AddRenderPass(ERenderPass::CustomPass0, MRenderer::CreateRenderPass<MEditorPass>());
-
+    GetMainWindow()->GetOnViewportSizeChangedDelegate().Add(this, [&](uint32 a, uint32 b, uint32 c, uint32 d, uint32 e){
+        for (auto& [Name, Actor] : GetMainWorld()->GetActors())
+        {
+            Actor->update(0.f);
+        }
+    });
     return true;
 }
 

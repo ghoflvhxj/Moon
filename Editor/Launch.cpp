@@ -150,6 +150,10 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_SIZE:
         {
+        }
+        break;
+        case WM_EXITSIZEMOVE:
+        {
             if (Window)
             {
                 Window->UpdateSize();
