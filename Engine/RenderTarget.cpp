@@ -181,7 +181,7 @@ DXGI_FORMAT MRenderTarget::GetFormat(const ERenderTargetType InRenderTargetType)
     case ERenderTargetType::Depth:
         return DXGI_FORMAT_R32_FLOAT;
     case ERenderTargetType::Bool:
-        return DXGI_FORMAT_R1_UNORM;
+        return DXGI_FORMAT_R8_UNORM;
     default:
         return DXGI_FORMAT_UNKNOWN;
     }
