@@ -580,7 +580,8 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
     {
         MeshIndices.push_back(ClothData.MeshIndex);
         const FMeshData& MeshData = InData.Mesh->GetMeshData(ClothData.MeshIndex);
-        
+        const FJoint& Joint = InData.PrimitiveComponent->CastTo<DynamicMeshComponent>()->GetJoint("bone001"); // 임시코드
+
         for (uint32 i = 0; i < GetSize(MeshData.Vertices); ++i)
         {
             const ::Vec4& VtxPos = MeshData.Vertices[i].Pos;
@@ -593,11 +594,12 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
 
             VertexIndex[VertexKey] = GetSize(NewSharedSettings->mVertices);
 
-            const JPH::Vec3 JoltVtxPos = ToJPHPos(VtxPos);
+            JPH::Vec3 JoltVtxPos = ToJPHPos(VtxPos);
+            JoltVtxPos -= ToJPHPos(Joint.Position);
 
             SoftBodySharedSettings::Vertex NewVertex;
             JoltVtxPos.StoreFloat3(&NewVertex.mPosition);
-            NewVertex.mInvMass = JoltVtxPos.GetY() > 1.f ? 0.f : 1.f;
+            NewVertex.mInvMass = VtxPos.y > 1.f ? 0.f : 1.f;
             NewSharedSettings->mVertices.push_back(NewVertex);
         }
 
@@ -885,6 +887,7 @@ void MJoltPhysics::Update()
 
         getRenderer()->DrawCoordinate(GetMainWorld().get(), DXPos, DxBodyQuat);
         getRenderer()->DrawCapsule(GetMainWorld().get(), 0.02f, 0.02f, DXPos, DxBodyQuat);
+        const FJoint& Joint = PhysicObject->GetPrimitiveComponent()->CastTo<DynamicMeshComponent>()->GetJoint("bone001");
 
         for (uint32 MeshIndex : PhysicObject->GetMeshIndices())
         {
@@ -894,9 +897,9 @@ void MJoltPhysics::Update()
             {
                 uint32 SoftBodyVertexIndex = PhysicObject->GetVertexIndex(::Vec3{ Vertices[i].Pos.x , Vertices[i].Pos.y, Vertices[i].Pos.z });
 
-				Vertices[i].Pos.x = SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetX();
-				Vertices[i].Pos.y = SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetY();
-				Vertices[i].Pos.z = -SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ();
+				Vertices[i].Pos.x = SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetX() + Joint.Position.x;
+				Vertices[i].Pos.y = SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetY() + Joint.Position.y;
+				Vertices[i].Pos.z = -(SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ() + Joint.Position.z);
             }
 
             FBufferContainer BufferContainer = {};
