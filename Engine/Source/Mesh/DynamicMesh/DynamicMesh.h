@@ -17,8 +17,6 @@ public:
 
 public:
     virtual void InitializeFromFBX(MFBXLoader& FbxLoaderm, const std::wstring& FilePath) override;
-    virtual void Test() override;
-
 
 public:
     const std::vector<MAnimation>& GetAnimClips() { return _animationClipList; }
