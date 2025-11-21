@@ -111,22 +111,6 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
 				pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot) 
             };
 
-            for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
-            {
-                FbxTime currentTime;
-                currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
-
-                FbxAMatrix MeshGlobal = pMeshNode->EvaluateGlobalTransform(currentTime);
-
-                for (uint32 j = 0; j < GetSize(Joints); ++j) {
-                    FbxNode* jointNode = JointNodes[j];
-                    if (!jointNode) continue;
-                    FbxAMatrix JointGlobal = jointNode->EvaluateGlobalTransform(currentTime);
-                    FbxAMatrix localToMesh = MeshGlobal.Inverse() * JointGlobal;
-                    XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(j), ToXMMatrix(localToMesh));
-                }
-            }
-
 			int deformerCount = pMesh->GetDeformerCount();
 			for (int deformerIndex = 0; deformerIndex < deformerCount; ++deformerIndex)
 			{
@@ -148,20 +132,23 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
                     std::wstring str = TEXT("JointName: ") + StringToWString(JointName) + TEXT(", JointIndex: ") + std::to_wstring(JointIndex);
                     LOG(str);
 
-                    FbxAMatrix b = {
-                        pCluster->GetLink()->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
-                        pCluster->GetLink()->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
-                        pCluster->GetLink()->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot)
-                    };
-
                     // 바인드 포즈 역행렬 = 조인트 역행렬 * 클러스터 행렬
                     FbxAMatrix JointTransformMatrix;
 					pCluster->GetTransformLinkMatrix(JointTransformMatrix);
                     FbxAMatrix ClusterTransformMatrix;
 					pCluster->GetTransformMatrix(ClusterTransformMatrix);
                     FbxAMatrix globalBindPoseInverseMatrix;
-					globalBindPoseInverseMatrix = (JointTransformMatrix * b).Inverse() * (ClusterTransformMatrix * geometryTransform);
+                    globalBindPoseInverseMatrix = JointTransformMatrix.Inverse() * ClusterTransformMatrix * geometryTransform;
                     XMStoreFloat4x4(&Joints[JointIndex]._globalBindPoseInverseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
+
+                    auto& BindPose = globalBindPoseInverseMatrix.Inverse();
+                    auto& Scale = BindPose.GetS();
+                    auto& Rot = BindPose.GetR();
+                    auto& Trans = BindPose.GetT();
+
+                    Joints[JointIndex].Scale = { (float)Scale[0], (float)Scale[1], (float)Scale[2] };
+                    Joints[JointIndex].Rotation = { ToRadian((float)Rot[0]), ToRadian((float)Rot[1]), ToRadian((float)Rot[2]) };
+                    Joints[JointIndex].Position = { (float)Trans[0], (float)Trans[1], (float)Trans[2] };
 
                     // 조인트가 영향을 주는 정점들을 찾아서, 자신의 정보를 저장시킴
 					double* ControlPointWeights = pCluster->GetControlPointWeights();
@@ -191,20 +178,20 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
                         }
 					}
 
-                    //for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
-                    //{
-                    //    FbxTime currentTime;
-                    //    currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
+                    for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
+                    {
+                        FbxTime currentTime;
+                        currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
 
-                    //    // 메시 글로벌 
-                    //    FbxAMatrix MeshGlobal = pMeshNode->EvaluateGlobalTransform(currentTime);
-                    //    // 조인트 글로벌
-                    //    FbxAMatrix JointGlobal = pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
+                        // 메시 글로벌 
+                        FbxAMatrix MeshGlobal = pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform;
+                        // 조인트 글로벌
+                        FbxAMatrix JointGlobal = pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
 
-                    //    // 메시의 로컬에서 조인트 글로벌로 변환
-                    //    FbxAMatrix& Test = MeshGlobal.Inverse() * JointGlobal;
-                    //    XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex), ToXMMatrix(Test));
-                    //}
+                        // 메시의 로컬에서 조인트 글로벌로 변환
+                        FbxAMatrix& Test = MeshGlobal.Inverse() * JointGlobal;
+                        XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex), ToXMMatrix(Test));
+                    }
 
 #ifdef _DEBUG
 					std::string log;
@@ -857,15 +844,36 @@ void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName
         NewJoint._parentIndex = NameToJointIndex[parentName];
 	}
 
-    FbxAMatrix& GlobalTransform = pNode->EvaluateGlobalTransform();
+    FbxAMatrix& GlobalTransform = pNode->EvaluateGlobalTransform(FBXSDK_TIME_INFINITE, FbxNode::eSourcePivot, true, false);
     auto& Scale = GlobalTransform.GetS();
     auto& Rot = GlobalTransform.GetR();
     auto& Trans = GlobalTransform.GetT();
+
+
+    int PoseNum = _pScene->GetPoseCount();
+    for (int i = 0; i < PoseNum; ++i)
+    {
+        if (FbxPose* Pose = _pScene->GetPose(i))
+        {
+            int NodeIndex = Pose->Find(pNode);
+            if (NodeIndex != -1)
+            {
+                FbxMatrix PoseMat = Pose->GetMatrix(NodeIndex); // bind-pose transform (world/model)
+                FbxAMatrix APoseMat;
+
+                memcpy((double*)APoseMat, (double*)PoseMat, sizeof(PoseMat.mData));
+                Trans = APoseMat.GetT();
+                Rot = APoseMat.GetR();
+                Scale = APoseMat.GetS();
+            }
+        }
+    }
+
     NewJoint.Scale = { (float)Scale[0], (float)Scale[1], (float)Scale[2] };
     NewJoint.Rotation = { ToRadian((float)Rot[0]), ToRadian((float)Rot[1]), ToRadian((float)Rot[2]) };
     NewJoint.Position = { (float)Trans[0], (float)Trans[1], (float)Trans[2] };
 
-	Joints.push_back(NewJoint);
+    Joints.push_back(NewJoint);
     JointNodes.push_back(pNode);
 }
 
