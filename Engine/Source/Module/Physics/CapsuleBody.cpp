@@ -9,40 +9,27 @@ using namespace DirectX;
 
 void MCapsuleBody::Update(float DeltaTime)
 {
-    static float TotalTime = 0.f;
-    TotalTime += DeltaTime;
-
-    JPH::Vec3 JoltPos = {};
-    JPH::Quat JoltQuat = JPH::Quat::sIdentity();
-
     auto& DynamicMeshComp = GetDynamicMeshComponent();
     if (DynamicMeshComp == nullptr)
     {
         return;
     }
 
-    //uint32 JointIndex = CapsuleData.AttachJointIndex;
-    uint32 JointIndex = DynamicMeshComp->GetDynamicMesh()->GetJointIndex("bone019");
+    uint32 JointIndex = BodyCapsuleData.AttachJointIndex;
+    const FJoint& Joint = DynamicMeshComp->GetJoint(JointIndex);
 
-    Mat4 Matrix = {};
-    XMStoreFloat4x4(&Matrix, XMMatrixTranslationFromVector(XMLoadFloat3(&BodyCapsuleData.TranslationOffset)) * XMLoadFloat4x4(&DynamicMeshComp->GetJointMatrix(JointIndex)));
-    Vec3 XMPos = GetPos(Matrix);
-    XMPos.x /= 2.54f;
-    XMPos.y /= 2.54f;
-    XMPos.z /= 2.54f;
-    JoltPos = MJoltPhysics::ToJPHPos(XMPos);
+    const ::Vec3& DXJointPos = DynamicMeshComp->GetJointPosition(JointIndex);
+    const JPH::Vec3& JoltJointPos = MJoltPhysics::ToJPHPos(DXJointPos);
 
-    ::Vec4 JointQuat = { 0.f, 0.f, 0.f, 1.f };
-    JointQuat = DynamicMeshComp->GetJointQuaternion(JointIndex);
-    JoltQuat = MJoltPhysics::DXQuatToJPHQuat(JointQuat);
+    const ::Vec4& DXJointQuat = DynamicMeshComp->GetJointQuaternion(JointIndex);
+    const JPH::Quat& JoltJointQuat = MJoltPhysics::DXQuatToJPHQuat(DXJointQuat);
 
-    JPH::Vec3 tt = JoltQuat.GetEulerAngles();
+    GetPhysicsSystem()->GetBodyInterface().MoveKinematic(GetBodyID(), JoltJointPos, JoltJointQuat, DeltaTime);
+    
+    std::cout << "bone019 Jolt Pos: " << JoltJointPos.GetX() << ", " << JoltJointPos.GetY() << ", " << JoltJointPos.GetZ() << std::endl;
 
-    //std::cout << "XM Pos: " << JointPos << std::endl;
-    //std::cout << "XM Angle: " << ToDegree(JointAngle.x) << ", " << ToDegree(JointAngle.y) << ", " << ToDegree(JointAngle.z) << std::endl;
-    //std::cout << "Jolt Angle: " << ToDegree(tt.GetX()) << ", " << ToDegree(tt.GetY()) << ", " << ToDegree(tt.GetZ()) << std::endl;
-
-    GetPhysicsSystem()->GetBodyInterface().MoveKinematic(GetBodyID(), JoltPos, JoltQuat, DeltaTime);
+    //getRenderer()->DrawCoordinate(GetMainWorld().get(), DynamicMeshComp->GetJointPosition("bone019"), DynamicMeshComp->GetJointQuaternion("bone019"));
+    //getRenderer()->DrawCapsule(GetMainWorld().get(), BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight, DynamicMeshComp->GetJointPosition(JointIndex), DynamicMeshComp->GetJointQuaternion(JointIndex));
 }
 
 void MCapsuleBody::Render()
@@ -50,23 +37,17 @@ void MCapsuleBody::Render()
     auto& Renderer = getRenderer();
 
     JPH::Vec3 JoltBodyPos = GetBody().GetPosition();
-    ::Vec3 BodyPos = { JoltBodyPos.GetX(), JoltBodyPos.GetY(), -JoltBodyPos.GetZ() };
-    //::Vec3 BodyPos = GetPos(DynamicMeshComp->GetJointMatrix(JointIndex));
+    ::Vec3 DXBodyPos = { JoltBodyPos.GetX(), JoltBodyPos.GetY(), -JoltBodyPos.GetZ() };
 
-    ::Vec4 DxBodyQuat = {};
-    JPH::Vec3 JoltBodyRot = GetBody().GetRotation().GetEulerAngles();
-    XMStoreFloat4(&DxBodyQuat, XMQuaternionNormalize(XMQuaternionRotationRollPitchYaw(-JoltBodyRot.GetX(), -JoltBodyRot.GetY(), JoltBodyRot.GetZ())));
+    JPH::Quat JoltBodyRot = GetBody().GetRotation();
+    ::Vec4 DxBodyQuat = MJoltPhysics::JoltQuatToDXQuat(JoltBodyRot);
 
     if (BodyCapsuleData.AttachJointIndex != -1)
     {
-        const Vec3& JointScale = VEC3ONE;
-        if (BodyCapsuleData.PrimitiveID == -1)
-        {
-            //BodyCapsuleData.PrimitiveID = Renderer->DrawCapsule(BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight);
-        }
-
-        //Renderer->UpdatePrimitiveTransform(BodyCapsuleData.PrimitiveID, BodyPos, DxBodyQuat, JointScale);
+        //Renderer->DrawCoordinate(GetMainWorld().get(), DXBodyPos, DxBodyQuat);
+        Renderer->DrawCapsule(GetMainWorld().get(), BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight, DXBodyPos, DxBodyQuat);
     }
+
 }
 
 std::shared_ptr<DynamicMeshComponent> MCapsuleBody::GetDynamicMeshComponent()

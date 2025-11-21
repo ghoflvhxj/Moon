@@ -83,6 +83,7 @@ public:
 public:
     static JPH::Quat DXQuatToJPHQuat(const ::Vec4& InQuat);
     static JPH::Quat DXAngleToJPHQuat(const ::Vec3& InRot);
+    static ::Vec4 JoltQuatToDXQuat(JPH::Quat InQuat);
     static JPH::Vec3 ToJPHPos(const ::Vec3& InPos);
     static JPH::Vec3 ToJPHPos(const ::Vec4& InPos);
 public:

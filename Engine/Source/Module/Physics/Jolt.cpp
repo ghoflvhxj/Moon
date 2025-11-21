@@ -417,42 +417,32 @@ void MJoltPhysics::StartSimulate()
 
 JPH::Quat MJoltPhysics::DXQuatToJPHQuat(const::Vec4& InQuat)
 {
-    ::Vec3 Angle = {};
-    DXQuaternionToEuler(InQuat, Angle.x, Angle.y, Angle.z);
-    return DXAngleToJPHQuat(Angle);
+    return JPH::Quat(-InQuat.x, -InQuat.y, InQuat.z, InQuat.w).Normalized();
 }
-
-Quat FromAxisAngle(float ax, float ay, float az, float angle) {
-    // axis must be normalized for correct result; here we assume axis is unit or single-axis.
-    float s = std::sin(angle * 0.5f);
-    float c = std::cos(angle * 0.5f);
-    return Quat(ax * s, ay * s, az * s, c).Normalized();
-}
-
 
 JPH::Quat MJoltPhysics::DXAngleToJPHQuat(const ::Vec3& InRot)
 {
-    
-    // 오른손 좌표계 xyz 회전 행렬. x,y 각도의 -처리는 행렬 계산 쪽에서 해줌.
-    //::Vec3 RhRot = { InRot.x, InRot.y - PI / 2.f, InRot.z };
-    //XMMATRIX XMRotMat = RH_RotationZ(RhRot.z) * RH_RotationY(RhRot.y) * RH_RotationX(RhRot.x);
+    ::Vec4 DXQuat = {};
+    XMStoreFloat4(&DXQuat, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InRot)));
+    return DXQuatToJPHQuat(DXQuat);
+}
 
-    //::Vec4 FQuat = {};
-    //XMVECTOR XMQuat = MakeQuat(XMRotMat);
-    //XMStoreFloat4(&FQuat, XMQuat);
+::Vec4 MJoltPhysics::JoltQuatToDXQuat(JPH::Quat InQuat)
+{
+    JPH::Vec3 Angle = InQuat.GetEulerAngles();
 
-    //// z축 반전
-    //JPH::Quat JoltQuat = { -FQuat.x, -FQuat.y, FQuat.z, FQuat.w };
-    //return JoltQuat.Normalized();
-    
+    JPH::Quat QuatX = JPH::Quat::sEulerAngles({ -Angle.GetX(), 0.f, 0.f });
+    JPH::Quat QuatY = JPH::Quat::sEulerAngles({ 0.f, -Angle.GetY(), 0.f });
+    JPH::Quat QuatZ = JPH::Quat::sEulerAngles({ 0.f, 0.f, Angle.GetZ() });
 
-    ::Vec3 RhRot = { -InRot.x, -InRot.y, InRot.z };
-    Quat qx = FromAxisAngle(1.0f, 0.0f, 0.0f, RhRot.x);
-    Quat qy = FromAxisAngle(0.0f, 1.0f, 0.0f, RhRot.y);
-    Quat qz = FromAxisAngle(0.0f, 0.0f, 1.0f, RhRot.z);
+    JPH::Quat QxPrime = QuatY * QuatX * QuatY.Conjugated();
+    JPH::Quat QyPrime = QuatY;
+    QxPrime = QxPrime.Normalized();
+    QyPrime = QyPrime.Normalized();
 
-    Quat OutQuat = qz * qy * qx;
-    return OutQuat.Normalized();
+    JPH::Quat QuatYXZ = ((QuatZ * QxPrime) * QyPrime).Normalized();
+
+    return { QuatYXZ.GetX(), QuatYXZ.GetY(), QuatYXZ.GetZ(), QuatYXZ.GetW() };
 }
 
 JPH::Vec3 MJoltPhysics::ToJPHPos(const::Vec3& InPos)
@@ -709,19 +699,15 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
 
 void MJoltPhysics::AddCharacterBody(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData)
 {
-    //RefConst<Shape> shape = MakeCapsule(5.f, 0.2f).Create().Get();
-    //InBodyCapsuleData.HalfHeight = 5.f;
-    //InBodyCapsuleData.Radius = 0.2f;
+    //RefConst<Shape> shape = MakeCapsule(0.2f, 0.05f).Create().Get();
+    //InBodyCapsuleData.CapsuleData.HalfHeight = 0.2f;
+    //InBodyCapsuleData.CapsuleData.Radius = 0.05f;
 
-    RefConst<Shape> shape = MakeCapsule(0.15f, 0.12f).Create().Get();
-    InBodyCapsuleData.CapsuleData.HalfHeight = 0.15f;
-    InBodyCapsuleData.CapsuleData.Radius = 0.12f;
+    //RefConst<Shape> shape = MakeCapsule(0.5f, 0.1f).Create().Get();
+    //InBodyCapsuleData.CapsuleData.HalfHeight = 0.5f;
+    //InBodyCapsuleData.CapsuleData.Radius = 0.1f;
 
-    //RefConst<Shape> shape = MakeCapsule(0.15f, 0.08f).Create().Get();
-    //InBodyCapsuleData.HalfHeight = 0.15f;
-    //InBodyCapsuleData.Radius = 0.08f;
-
-	//RefConst<Shape> shape = MakeSphere(0.2f).Create().Get();
+    RefConst<Shape> shape = MakeCapsule(InBodyCapsuleData.GetHalfHeight(), InBodyCapsuleData.GetRadius()).Create().Get();
 
     FBodyConstructData BodyConstructData = {};
     BodyConstructData.PhysicsType = EPhysicsType::Kinematic;
@@ -836,8 +822,8 @@ void MJoltPhysics::Update()
             continue;
         }
 
-        JPH::Vec3 JoltPos = {};
-        JPH::Quat JoltQuat = JPH::Quat::sIdentity();
+        JPH::Vec3 JoltJointPos = { 0.f, 0.f, 0.f };
+        JPH::Quat JoltJointQuat = JPH::Quat::sIdentity();
         Array<SoftBodyMotionProperties::Vertex> SoftBodyVertices;
         {
             BodyLockWrite lock(physics_system->GetBodyLockInterface(), PhysicObject->GetBodyID());
@@ -851,45 +837,21 @@ void MJoltPhysics::Update()
 
         if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = PhysicObject->GetPrimitiveComponent()->CastTo<DynamicMeshComponent>())
         {
-            ::Vec3 JointPos = {};   
-            ::Vec3 JointAngle = {};
+            const FJoint Joint = DynamicMeshComp->GetJoint("bone001");
 
-            XMVECTOR XMBase =  XMLoadFloat3(&DynamicMeshComp->GetDynamicMesh()->GetJoint("bone001").Position);
-            ::Vec3 Base = {};
-            XMStoreFloat3(&Base, XMBase);
+            ::Vec3 DXJointPos = DynamicMeshComp->GetJointPosition("bone001");
+            ::Vec4 DXJointQuat = DynamicMeshComp->GetJointQuaternion("bone001");
 
-            ::Vec3 CurrentPos = DynamicMeshComp->GetJointPosition("bone014");
-            CurrentPos.x /= 2.54f;
-            CurrentPos.y /= 2.54f;
-            CurrentPos.z /= 2.54f;
-            CurrentPos.y -= 1.f;
+            JoltJointPos = ToJPHPos(DXJointPos);
+            JoltJointQuat = DXQuatToJPHQuat(DXJointQuat);
 
-            //::Vec3 CurrentPos = DynamicMeshComp->GetJointPosition("bone4094");
-            JointPos = CurrentPos;
+            std::cout << "Bone001 Jolt Pos: " << JoltJointPos.GetX() << ", " << JoltJointPos.GetY() << ", " << JoltJointPos.GetZ() << std::endl;
 
-            //JointPos.y = -0.15f;
-            //XMStoreFloat3(&JointPos, XMLoadFloat3(&DynamicMeshComp->getWorldTranslation()) + XMLoadFloat3(&CurrentPos) - XMBase);
-            //XMStoreFloat3(&JointPos, XMLoadFloat3(&DynamicMeshComp->getWorldTranslation()));
-            JoltPos = ToJPHPos(JointPos);
-
-            ::Vec4 JointQuat = DynamicMeshComp->GetJointQuaternion("bone014");
-            JoltQuat = DXQuatToJPHQuat(DynamicMeshComp->GetJointQuaternion("bone014"));
-            JoltQuat.SetX(0.f);
-            JoltQuat.SetZ(0.f);
-            JoltQuat = JoltQuat.Normalized();
-
-            std::cout << "XM Pos: " << JointPos << std::endl;
-            //std::cout << "XM Angle: " << ToDegree(JointAngle.x) << ", " << ToDegree(JointAngle.y) << ", " << ToDegree(JointAngle.z) << std::endl;
-
-            //JPH::Quat JoltBodyRot = PhysicObject->GetBody().GetRotation();
-            //JPH::Vec3 JoltBodyAngle = JoltBodyRot.GetEulerAngles();
-            //std::cout << "Body Angle: " << ToDegree(JoltBodyAngle.GetX()) << ", " << ToDegree(JoltBodyAngle.GetY()) << ", " << ToDegree(JoltBodyAngle.GetZ()) << std::endl;
-
-            //JPH::Vec3 tt = JoltQuat.GetEulerAngles();
-            //std::cout << "New Body Angle: " << ToDegree(tt.GetX()) << ", " << ToDegree(tt.GetY()) << ", " << ToDegree(tt.GetZ()) << std::endl;
+            //getRenderer()->DrawCapsule(GetMainWorld().get(), , ::Vec3{ JoltJointPos.GetX(), JoltJointPos.GetY(), -JoltJointPos.GetZ() }, VEC3ZERO);
+            //getRenderer()->DrawCoordinate(GetMainWorld().get(), ::Vec3{ JoltJointPos.GetX(), JoltJointPos.GetY(), -JoltJointPos.GetZ() }, VEC3ZERO);
         }
 
-        physics_system->GetBodyInterface().SetPositionAndRotation(PhysicObject->GetBodyID(), JoltPos, JoltQuat, EActivation::Activate);
+        physics_system->GetBodyInterface().SetPositionAndRotation(PhysicObject->GetBodyID(), JoltJointPos, JoltJointQuat, EActivation::Activate);
     }
 
     // SoftBody의 정점위치 갱신
@@ -917,8 +879,12 @@ void MJoltPhysics::Update()
 				BodyRot = SoftBody.GetRotation();
             }
         }
-		//std::cout << "SoftBody Pos: " << BodyPos.GetX() << ", " << BodyPos.GetY() << ", " << BodyPos.GetZ() << std::endl;
-		//std::cout << "SoftBody Rot: " << BodyRot.GetX() << ", " << BodyRot.GetY() << ", " << BodyRot.GetZ() << ", " << BodyRot.GetZ() << std::endl;
+
+        ::Vec4 DxBodyQuat = JoltQuatToDXQuat(BodyRot);
+        ::Vec3 DXPos = { BodyPos.GetX(), BodyPos.GetY(), -BodyPos.GetZ() };
+
+        getRenderer()->DrawCoordinate(GetMainWorld().get(), DXPos, DxBodyQuat);
+        getRenderer()->DrawCapsule(GetMainWorld().get(), 0.02f, 0.02f, DXPos, DxBodyQuat);
 
         for (uint32 MeshIndex : PhysicObject->GetMeshIndices())
         {
@@ -1012,20 +978,7 @@ void MBodyObject::SetPos(const ::Vec3& InPos)
     JPH::Vec3 JInPos = MJoltPhysics::ToJPHPos(InPos);
 
     Body& body = GetBody();
-    if (body.IsSoftBody())
-    {
-		//if (CachePos != JInPos)
-		//{
-		//	GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, JInPos, EActivation::Activate);
-		//	CachePos = JInPos;
-		//}
-
-		GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, JInPos, EActivation::Activate);
-    }
-    else
-    {
-        GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, JInPos, EActivation::Activate);
-    }
+    GetPhysicsSystem()->GetBodyInterface().SetPosition(BodyIDCache, JInPos, EActivation::Activate);
 }
 
 void MBodyObject::SetRotation(const ::Vec4& InRotation)
