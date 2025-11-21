@@ -4,7 +4,7 @@
 
 void DynamicMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
 {
-    StaticMesh::InitializeFromFBX(FbxLoader, FilePath);
+    MMesh::InitializeFromFBX(FbxLoader, FilePath);
     FbxLoader.LoadFBXAnim(_animationClipList);
 
     for (std::shared_ptr<MMaterial>& Material : Materials)
@@ -58,6 +58,19 @@ int32 DynamicMesh::GetJointIndex(const std::string& InName)
 const std::shared_ptr<MSkeleton>& DynamicMesh::GetSkeleton()
 {
     return Skeleton;
+}
+
+void DynamicMesh::SetPhysics(std::shared_ptr<MPhysics> InPhysics)
+{
+    if (auto DynamicMeshPhysics = InPhysics->CastTo<MDynamicMeshPhysics>())
+    {
+        Physics = DynamicMeshPhysics;
+    }
+}
+
+std::shared_ptr<MPhysics> DynamicMesh::GetPhysics()
+{
+    return Physics;
 }
 
 void MSkeleton::OnLoaded()

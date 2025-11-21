@@ -10,13 +10,15 @@
 class MSkeleton;
 class MFBXLoader;
 
-class ENGINE_DLL DynamicMesh : public StaticMesh
+class ENGINE_DLL DynamicMesh : public MMesh
 {
 public:
     DynamicMesh() = default;
 
 public:
     virtual void InitializeFromFBX(MFBXLoader& FbxLoaderm, const std::wstring& FilePath) override;
+    virtual void Test() override;
+
 
 public:
     const std::vector<MAnimation>& GetAnimClips() { return _animationClipList; }
@@ -37,17 +39,20 @@ public:
     std::shared_ptr<MSkeleton> Skeleton = nullptr;
 
 public:
+    virtual void SetPhysics(std::shared_ptr<MPhysics> InPhysics) override;
+    std::shared_ptr<MPhysics> GetPhysics();
+protected:
+    std::shared_ptr<MDynamicMeshPhysics> Physics = nullptr;
+
+public:
     // 조인트에 어태치 하여 피직스를 나타내는 캡슐들을 저장
     std::vector<FBodyCapsuleData> BodyCapsuleDatas;
-
-protected:
-    std::shared_ptr<MDynamicMeshPhysics> DynamicMeshPhysics = nullptr;
 
     REFLECT(
         DynamicMesh
         , PROPERTY(Skeleton)
         , PROPERTY(BodyCapsuleDatas)
-        , PROPERTY(DynamicMeshPhysics)
+        , PROPERTY(Physics)
     );
 };
 

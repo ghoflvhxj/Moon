@@ -286,7 +286,15 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath, bool bMesh /*= true*/
         }
     }
 
-    std::shared_ptr<StaticMesh> NewMesh = bDynamic ? std::make_shared<DynamicMesh>() : std::make_shared<StaticMesh>();
+    std::shared_ptr<MMesh> NewMesh = nullptr;
+    if (bDynamic)
+    {
+        NewMesh = std::make_shared<DynamicMesh>();
+    }
+    else
+    {
+        NewMesh = std::make_shared<StaticMesh>();
+    }
     NewMesh->LoadFromFBX(InPath, *this);
 
     std::set<uint32> UniqueMaterialIndices;

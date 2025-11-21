@@ -354,7 +354,7 @@ void MJoltPhysics::StartSimulate()
     {
         auto MeshComp = WeakMeshComp.lock();
 
-        std::shared_ptr<StaticMesh>& Mesh = MeshComp->GetMesh();
+        std::shared_ptr<MMesh>& Mesh = MeshComp->GetMesh();
         if (Mesh == nullptr)
         {
             continue;
@@ -476,7 +476,7 @@ void MJoltPhysics::LoadTest()
     Ref<Shape> NewShape = Test->Create().Get();
 }
 
-void MJoltPhysics::SaveTest(std::shared_ptr<StaticMesh> InMesh)
+void MJoltPhysics::SaveTest(std::shared_ptr<MMesh> InMesh)
 {
     if (InMesh == nullptr)
     {

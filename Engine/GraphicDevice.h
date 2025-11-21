@@ -23,6 +23,7 @@ class PixelShader;
 class MGeometryShader;
 class MRenderTarget;
 class StaticMesh;
+class MMesh;
 struct FMeshData;
 struct FWorldRenderInfo;
 
@@ -191,12 +192,14 @@ private:
     렌더러 쪽 버퍼관련 기능들 가져오는 중 
 ******************************************/
 public:
-    void GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<StaticMesh>& InMesh);
+    void GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<MMesh>& InMesh);
     void GetBuffers(FBufferContainer& OutBuffers, const std::wstring InKey);
     void GetPrivateBuffers(FBufferContainer& OutBuffers, uint32 InPID);
     void BuildMeshBuffer(const std::wstring& InKey, const FMeshData& InMeshData, uint32 InIndex);
     void BuildMeshBuffers(const std::wstring& InKey, const std::vector<FMeshData>& InMeshDatas);
-    void BuildMeshBuffers(int32 InPID, const std::shared_ptr<StaticMesh>& InMesh);
+    void BuildMeshBuffersFromComponent(int32 InPID, const std::shared_ptr<MMesh>& InMesh);
+    void BuildMeshSharedBuffers(int32 InPID, const std::shared_ptr<MMesh>& InMesh);
+    void BuildMeshPrivateBuffers(int32 InPID, const std::shared_ptr<MMesh>& InMesh);
     void MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData);
 protected:
     // 메시들이 공유할 버퍼를 저장함

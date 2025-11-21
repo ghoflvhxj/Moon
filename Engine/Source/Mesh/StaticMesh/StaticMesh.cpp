@@ -22,7 +22,7 @@
 using namespace rapidjson;
 using namespace DirectX;
 
-void StaticMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
+void MMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
 {
     InitializeFromFBX(FbxLoader, Path);
 
@@ -41,13 +41,13 @@ void StaticMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
     OnLoaded();
 }
 
-void StaticMesh::LoadFromFBX(const std::wstring& FilePath)
+void MMesh::LoadFromFBX(const std::wstring& FilePath)
 {
     MFBXLoader FbxLoader;
     LoadFromFBX(MFIleSystem::AbsolutePath(FilePath), FbxLoader);
 }
 
-bool StaticMesh::Load(const std::wstring& InPath)
+bool MMesh::Load(const std::wstring& InPath)
 {
     MeshDatas.clear();
     Materials.clear();
@@ -55,7 +55,7 @@ bool StaticMesh::Load(const std::wstring& InPath)
     return Super::Load(InPath);
 }
 
-void StaticMesh::OnLoaded()
+void MMesh::OnLoaded()
 {
     // 로드된 데이터로 정보 설정
     TotalVertexNum = 0;
@@ -90,7 +90,7 @@ void StaticMesh::OnLoaded()
     CenterPos.z /= CastValue<float>(TotalVertexNum);
 }
 
-void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
+void MMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& FilePath)
 {
     FbxLoader.LoadFBXMesh(FilePath);
 
@@ -129,23 +129,23 @@ void StaticMesh::InitializeFromFBX(MFBXLoader& FbxLoader, const std::wstring& Fi
     // 바운딩 박스
     Vec3 Min, Max;
     FbxLoader.getBoundingBoxInfo(Min, Max);
-    _pBoundingBox = std::make_shared<MBoundingBox>(Min, Max);
+    //_pBoundingBox = std::make_shared<MBoundingBox>(Min, Max);
 
     // 바운딩 스피어
     float Radius = XMVectorGetX(XMVector3Length(XMLoadFloat3(&Min) - XMLoadFloat3(&Max)));
 }
 
-const std::vector<uint32>& StaticMesh::getGeometryLinkMaterialIndex() const
+const std::vector<uint32>& MMesh::getGeometryLinkMaterialIndex() const
 {
     return UsedMaterialIndices;
 }
 
-const std::vector<::Vec3>& StaticMesh::GetAllVertexPosition() const
+const std::vector<::Vec3>& MMesh::GetAllVertexPosition() const
 {
     return AllVertexPosition;
 }
 
-FMeshData& StaticMesh::GetMeshData(const uint32 Index)
+FMeshData& MMesh::GetMeshData(const uint32 Index)
 {
     if (Index < GetMeshNum())
     {
@@ -156,32 +156,32 @@ FMeshData& StaticMesh::GetMeshData(const uint32 Index)
     return Empty;
 }
 
-MaterialList& StaticMesh::getMaterials()
+MaterialList& MMesh::getMaterials()
 {
     return Materials;
 }
 
-std::shared_ptr<MMaterial> StaticMesh::getMaterial(const uint32 index)
+std::shared_ptr<MMaterial> MMesh::getMaterial(const uint32 index)
 {
     return Materials[index];
 }
 
-const uint32 StaticMesh::GetMaterialNum() const
+const uint32 MMesh::GetMaterialNum() const
 {
     return CastValue<uint32>(Materials.size());
 }
 
-std::shared_ptr<MBoundingBox> StaticMesh::GetBoundingBox()
+std::shared_ptr<MBoundingBox> MMesh::GetBoundingBox()
 {
     return _pBoundingBox;
 }
 
-const Vec3& StaticMesh::GetCenterPos() const
+const Vec3& MMesh::GetCenterPos() const
 {
     return CenterPos;
 }
 
-bool StaticMesh::IsClothigMesh(uint32 InMeshIndex)
+bool MMesh::IsClothigMesh(uint32 InMeshIndex)
 {
     for (const FClothData& ClothData : ClothDatas)
     {

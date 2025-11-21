@@ -729,7 +729,7 @@ ID3D11DeviceContext *GraphicDevice::getDefferedContext()
 	return m_pDeferredContext;
 }
 
-void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<StaticMesh>& InMesh)
+void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<MMesh>& InMesh)
 {
     const std::wstring& AssetPath = InMesh->GetAssetPath();
     GetBuffers(OutBuffers, AssetPath);
@@ -775,7 +775,13 @@ void GraphicDevice::BuildMeshBuffers(const std::wstring& InKey, const std::vecto
     }
 }
 
-void GraphicDevice::BuildMeshBuffers(int32 InPID, const std::shared_ptr<StaticMesh>& InMesh)
+void GraphicDevice::BuildMeshBuffersFromComponent(int32 InPID, const std::shared_ptr<MMesh>& InMesh)
+{
+    BuildMeshSharedBuffers(InPID, InMesh);
+    BuildMeshPrivateBuffers(InPID, InMesh);
+}
+
+void GraphicDevice::BuildMeshSharedBuffers(int32 InPID, const std::shared_ptr<MMesh>& InMesh)
 {
     if (InMesh == nullptr)
     {
@@ -793,20 +799,43 @@ void GraphicDevice::BuildMeshBuffers(int32 InPID, const std::shared_ptr<StaticMe
     {
         const FMeshData& MeshData = InMesh->GetMeshData(i);
 
-        // 클로딩 등으로 전용 버퍼가 필요한 경우
-        if (InMesh->IsClothigMesh(i) && InPID != -1)
-        {
-            FBuffers NewPrivateBuffers = {};
-            MakeBuffer(NewPrivateBuffers, MeshData);
-            PrivateBuffers[InPID].AddBuffers(i, NewPrivateBuffers);
-        }
-        else
-        {
+        FBuffers NewSharedBuffers = {};
+        MakeBuffer(NewSharedBuffers, MeshData);
+        SharedBuffers[AssetPath].AddBuffers(i, NewSharedBuffers);
+    }
+}
 
-            FBuffers NewSharedBuffers = {};
-            MakeBuffer(NewSharedBuffers, MeshData);
-            SharedBuffers[AssetPath].AddBuffers(i, NewSharedBuffers);
+void GraphicDevice::BuildMeshPrivateBuffers(int32 InPID, const std::shared_ptr<MMesh>& InMesh)
+{
+    if (InMesh == nullptr)
+    {
+        return;
+    }
+
+    if (InPID == -1)
+    {
+        return;
+    }
+
+    auto& Iter = PrivateBuffers.find(InPID);
+    if (PrivateBuffers.end() != Iter)
+    {
+        return;
+    }
+
+    for (uint32 i = 0; i < InMesh->GetMeshNum(); ++i)
+    {
+        const FMeshData& MeshData = InMesh->GetMeshData(i);
+
+        // 클로딩 등으로 전용 버퍼가 필요한 경우
+        if (InMesh->IsClothigMesh(i) == false)
+        {
+            continue;
         }
+
+        FBuffers NewPrivateBuffers = {};
+        MakeBuffer(NewPrivateBuffers, MeshData);
+        PrivateBuffers[InPID].AddBuffers(i, NewPrivateBuffers);
     }
 }
 

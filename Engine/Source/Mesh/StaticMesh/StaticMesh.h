@@ -13,13 +13,11 @@ class MBoundingBox;
 class MMaterial;
 class MPhysics;
 
-class ENGINE_DLL StaticMesh : public MAsset
+class ENGINE_DLL MMesh : public MAsset
 {
 public:
-    StaticMesh() = default;
-    virtual ~StaticMesh() = default;
+    MMesh() = default;
 
-    // Fbx
 public:
     void LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader);
     void LoadFromFBX(const std::wstring& Path);
@@ -30,12 +28,8 @@ public:
     virtual void OnLoaded() override;
 
 public:
-    const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
-    const std::vector<::Vec3>& GetAllVertexPosition() const;
-    //std::vector<TextureList>	Textures;
-    // 각 메시의 매터리얼 인덱스
-    std::vector<uint32>			UsedMaterialIndices;
-    std::vector<Vec3>			AllVertexPosition;
+    virtual void SetPhysics(std::shared_ptr<MPhysics> InPhysics) {}
+    virtual std::shared_ptr<MPhysics> GetPhysics() { return nullptr; }
 
 public:
     FMeshData& GetMeshData(const uint32 Index);
@@ -43,6 +37,14 @@ public:
     const uint32 GetMeshNum() const { return GetSize(MeshDatas); }
 protected:
     std::vector<FMeshData> MeshDatas;
+
+    // 옷감 데이터
+public:
+    bool IsClothigMesh(uint32 InMeshIndex);
+    std::vector<FClothData>& GetClothDatas() { return ClothDatas; }
+protected:
+    std::vector<FClothData> ClothDatas;
+
 
 public:
     MaterialList& getMaterials();
@@ -52,7 +54,18 @@ protected:
     MaterialList Materials;
 
 public:
-    //std::vector<std::wstring> MaterialPaths;
+    const std::vector<uint32>& getGeometryLinkMaterialIndex() const;
+    // 각 메시의 매터리얼 인덱스
+    std::vector<uint32>	UsedMaterialIndices;
+
+public:
+    const std::vector<::Vec3>& GetAllVertexPosition() const;
+    std::vector<Vec3> AllVertexPosition;
+
+public:
+    const Vec3& GetCenterPos() const;
+private:
+    Vec3 CenterPos = VEC3ZERO;
 
 public:
     const uint32 getVertexCount() const;
@@ -64,31 +77,33 @@ private:
     std::shared_ptr<MBoundingBox> _pBoundingBox;
 
 public:
-    const Vec3& GetCenterPos() const;
-private:
-    Vec3 CenterPos = VEC3ZERO;
+    virtual void Test() {}
 
-    // 옷감 데이터
+
+    REFLECT(
+        MMesh,
+        PROPERTY(MeshDatas),
+        PROPERTY(Materials),
+        PROPERTY(UsedMaterialIndices),
+        PROPERTY(ClothDatas),
+    )
+};
+
+class ENGINE_DLL StaticMesh : public MMesh
+{
 public:
-    bool IsClothigMesh(uint32 InMeshIndex);
-    std::vector<FClothData>& GetClothDatas() { return ClothDatas; }
-protected:
-    std::vector<FClothData> ClothDatas;
+    StaticMesh() = default;
 
     // 피직스 데이터
 public:
-    void SetPhysics(std::shared_ptr<MPhysics> InPhysics) { Physics = InPhysics; }
-    std::shared_ptr<MPhysics> GetPhysics() { return Physics; }
+    virtual void SetPhysics(std::shared_ptr<MPhysics> InPhysics) override { Physics = InPhysics; }
+    virtual std::shared_ptr<MPhysics> GetPhysics() override { return Physics; }
 protected:
     std::shared_ptr<MPhysics> Physics = nullptr;
 
 public:
     REFLECT(
         StaticMesh,
-        PROPERTY(MeshDatas),
-        PROPERTY(Materials),
-        PROPERTY(UsedMaterialIndices),
-        PROPERTY(ClothDatas),
         PROPERTY(Physics)
     )
 };

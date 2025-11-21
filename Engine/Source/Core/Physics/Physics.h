@@ -9,7 +9,7 @@
 #include "Vertex.h"
 #include "Mesh/Mesh.h" // FClothData 참조
 
-class StaticMesh;
+class MMesh;
 class MPhysicsObject;
 class MPrimitiveComponent;
 class MMeshComponent;
@@ -20,7 +20,7 @@ struct FBodyCapsuleData;
 struct FBodyConstructData
 {
 	std::shared_ptr<MPrimitiveComponent> PrimitiveComponent;
-	std::shared_ptr<StaticMesh> Mesh;
+	std::shared_ptr<MMesh> Mesh;
 	EPhysicsType PhysicsType;
     ::Vec3 Pos = VEC3ZERO;
     ::Vec4 Rot = VEC4ZERO;
@@ -39,7 +39,7 @@ public:
 
 public:
     virtual void LoadTest() {}
-    virtual void SaveTest(std::shared_ptr<StaticMesh> Mesh) {}
+    virtual void SaveTest(std::shared_ptr<MMesh> Mesh) {}
 
 public:
     virtual void StartSimulate();
@@ -72,7 +72,7 @@ protected:
 class ENGINE_DLL MPhysicsObject : std::enable_shared_from_this<MPhysicsObject>
 {
 public:
-	MPhysicsObject(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent, std::shared_ptr<StaticMesh> InMesh)
+	MPhysicsObject(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent, std::shared_ptr<MMesh> InMesh)
 		: Owner(InPrimitiveComponent)
 		, MeshCache(InMesh)
     {
@@ -108,7 +108,7 @@ protected:
 	std::weak_ptr<MPrimitiveComponent> Owner;
 
 public:
-	std::shared_ptr<StaticMesh> GetMesh() { return MeshCache.lock(); }
+	std::shared_ptr<MMesh> GetMesh() { return MeshCache.lock(); }
 protected:
-    std::weak_ptr<StaticMesh> MeshCache;
+    std::weak_ptr<MMesh> MeshCache;
 };

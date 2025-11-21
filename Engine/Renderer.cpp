@@ -471,7 +471,7 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
         return;
     }
 
-    std::shared_ptr<StaticMesh> Mesh = nullptr;
+    std::shared_ptr<MMesh> Mesh = nullptr;
     if (auto& MeshComp = InPrimitiveComponent->CastTo<MMeshComponent>())
     {
         Mesh = MeshComp->GetMesh();
@@ -1104,7 +1104,7 @@ void MScene::MakeCoordinatePrimitives()
     */
 }
 
-void MScene::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimitiveComponent, std::shared_ptr<StaticMesh>& InMesh)
+void MScene::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimitiveComponent, std::shared_ptr<MMesh>& InMesh)
 {
     if (InPrimitiveComponent == nullptr)
     {
@@ -1118,7 +1118,7 @@ void MScene::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimi
     InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &MScene::UpdatePrimtiveData);
 }
 
-void MScene::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent, std::shared_ptr<StaticMesh>& InMesh)
+void MScene::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent, std::shared_ptr<MMesh>& InMesh)
 {
     if (InComponent == nullptr)
     {
@@ -1146,7 +1146,7 @@ void MScene::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> 
     }
 }
 
-void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<StaticMesh>& InMesh)
+void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh)
 {
     uint32 PrimitiveDataNum = GetSize(PrimitiveDatas[InPID]);
 
@@ -1176,7 +1176,7 @@ void MScene::UpdatePrimtiveData(std::shared_ptr<MPrimitiveComponent> InComponent
         PrimitiveDatas.erase(InComponent->GetPrimitiveID());
     }
 
-    std::shared_ptr<StaticMesh> Mesh = nullptr;
+    std::shared_ptr<MMesh> Mesh = nullptr;
     if (auto& MeshComp = InComponent->CastTo<MMeshComponent>())
     {
         Mesh = MeshComp->GetMesh();

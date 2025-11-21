@@ -26,7 +26,7 @@ public:
     // 메시 관련
 public:
     virtual void SetMesh(const std::wstring& InPath) override;
-    virtual std::shared_ptr<StaticMesh> GetMesh() override { return Mesh; }
+    virtual std::shared_ptr<MMesh> GetMesh() override { return Mesh; }
 protected:
     std::shared_ptr<StaticMesh> Mesh;
     

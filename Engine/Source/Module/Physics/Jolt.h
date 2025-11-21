@@ -88,7 +88,7 @@ public:
 public:
     // 메시의 ConvexHull을 만들어 저장함
     virtual void LoadTest() override;
-    virtual void SaveTest(std::shared_ptr<StaticMesh> Mesh) override;
+    virtual void SaveTest(std::shared_ptr<MMesh> Mesh) override;
 
     JPH::ConvexHullShapeSettings MakeConvexHull(FBodyConstructData& InData);
     JPH::MeshShapeSettings MakeMeshShape(std::shared_ptr<StaticMesh> InMesh);
