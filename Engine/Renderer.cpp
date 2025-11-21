@@ -406,7 +406,7 @@ void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const
 void MRenderer::DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType)
 {
     uint32 WorldID = InWorld->GetID();
-    getGraphicDevice()->BuildMeshBuffers(0, InMesh);
+    getGraphicDevice()->BuildMeshSharedBuffers(0, InMesh);
 
     uint32 Num = InMesh->GetMeshNum();
     for (uint32 i = 0; i < Num; ++i)
@@ -521,7 +521,7 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
 
     uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
     PrimitiveComponents[PrimitiveID] = InPrimitiveComponent;
-    getGraphicDevice()->BuildMeshBuffers(PrimitiveID, Mesh);
+    getGraphicDevice()->BuildMeshBuffersFromComponent(PrimitiveID, Mesh);
 
     if (auto& Actor = InPrimitiveComponent->getOwningActor())
     {
@@ -1189,15 +1189,24 @@ void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh)
         return;
     }
 
-    FBufferContainer Buffers = {};
-    getGraphicDevice()->GetBuffers(Buffers, InMesh);
+    FBufferContainer SharedBuffers = {};
+    getGraphicDevice()->GetBuffers(SharedBuffers, InMesh);
+
+    FBufferContainer PrivateBuffers = {};
+    getGraphicDevice()->GetPrivateBuffers(PrivateBuffers, InPID);
 
     for (uint32 i = 0; i < PrimitiveDataNum; ++i)
     {
         FPrimitiveData& PrimitiveData = PrimitiveDatas[InPID][i];
 
-        PrimitiveData.VertexBuffer = Buffers.VertexBuffers[i];
-        PrimitiveData.IndexBuffer = Buffers.IndexBuffers[i];
+        auto& Iter = PrivateBuffers.VertexBuffers.find(i);
+        PrimitiveData.VertexBuffer = Iter == PrivateBuffers.VertexBuffers.end() ? SharedBuffers.VertexBuffers[i] : Iter->second;
+
+        auto& Iter2 = PrivateBuffers.IndexBuffers.find(i);
+        PrimitiveData.IndexBuffer = Iter2 == PrivateBuffers.IndexBuffers.end() ? SharedBuffers.IndexBuffers[i] : Iter2->second;
+
+        //PrimitiveData.VertexBuffer = Buffers.VertexBuffers[i];
+        //PrimitiveData.IndexBuffer = Buffers.IndexBuffers[i];
     }
 }
 
@@ -1224,7 +1233,7 @@ void MScene::UpdatePrimtiveData(std::shared_ptr<MPrimitiveComponent> InComponent
         return;
     }
 
-    getGraphicDevice()->BuildMeshBuffers(-1, Mesh);
+    getGraphicDevice()->BuildMeshSharedBuffers(-1, Mesh);
 
     GetPrimitiveDataFromComponent(InComponent, Mesh);
 }
