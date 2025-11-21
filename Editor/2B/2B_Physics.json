@@ -1,0 +1,45 @@
+{
+    "MDynamicMeshPhysics": {
+        "BodyCapsules": {
+            "0": {
+                "AttachJointIndex": 104,
+                "CapsuleData": {
+                    "HalfHeight": 0.2,
+                    "Radius": 0.1
+                },
+                "TranslationOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "RotationOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "1": {
+                "AttachJointIndex": 108,
+                "CapsuleData": {
+                    "HalfHeight": 0.2,
+                    "Radius": 0.1
+                },
+                "TranslationOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "RotationOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        }
+    },
+    "MPhysics": {},
+    "MAsset": {
+        "Path": "2B\\2B_Physics.json"
+    },
+    "MObject": {}
+}
