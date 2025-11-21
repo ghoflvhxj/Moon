@@ -211,49 +211,61 @@ inline static std::ostream& operator<<(std::ostream& InOutStream, const Vec3& In
     return InOutStream;
 }
 
+// YXZ 쿼터니언으로부터 YXZ 앵글을 얻음
 inline void DXQuaternionToEuler(::Vec4 q, float& outPitch, float& outYaw, float& outRoll)
 {
-    // normalize
-    float mag = std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
-    if (mag == 0.0f) { outPitch = outYaw = outRoll = 0.0f; return; }
-    float x = q.x / mag, y = q.y / mag, z = q.z / mag, w = q.w / mag;
+    // Normalize to be safe
+    XMVECTOR qn = XMQuaternionNormalize(XMLoadFloat4(&q));
 
-    // build rotation matrix elements (from quaternion)
-    float R00 = 1.0f - 2.0f * (y * y + z * z);
-    float R01 = 2.0f * (x * y - w * z);
-    float R02 = 2.0f * (x * z + w * y);
+    float qx = XMVectorGetX(qn);
+    float qy = XMVectorGetY(qn);
+    float qz = XMVectorGetZ(qn);
+    float qw = XMVectorGetW(qn);
 
-    float R10 = 2.0f * (x * y + w * z);
-    float R11 = 1.0f - 2.0f * (x * x + z * z);
-    float R12 = 2.0f * (y * z - w * x);
+    // Rotation matrix elements (row-major) from quaternion (Wikipedia form)
+    float r00 = 1.0f - 2.0f * (qy * qy + qz * qz);
+    float r01 = 2.0f * (qx * qy - qw * qz);
+    float r02 = 2.0f * (qw * qy + qx * qz);
 
-    float R20 = 2.0f * (x * z - w * y);
-    float R21 = 2.0f * (y * z + w * x);
-    float R22 = 1.0f - 2.0f * (x * x + y * y);
+    float r10 = 2.0f * (qx * qy + qw * qz);
+    float r11 = 1.0f - 2.0f * (qx * qx + qz * qz);
+    float r12 = 2.0f * (qy * qz - qw * qx);
 
-    // pitch = asin(R21)
-    float sin_pitch = clampf(R21, -1.0f, 1.0f);
-    outPitch = asinf(sin_pitch);
+    float r20 = 2.0f * (qx * qz - qw * qy);
+    float r21 = 2.0f * (qw * qx + qy * qz);
+    float r22 = 1.0f - 2.0f * (qx * qx + qy * qy);
 
-    const float SINGULAR_EPS = 1.0f - 1e-6f;
-    if (sin_pitch > SINGULAR_EPS) {
-        // +90 deg singularity
-        outPitch = (float)M_PI_2; // +pi/2
-        // we lose one DOF; set yaw from one stable formula, roll = 0 (or some convention)
-        outYaw = atan2f(-R20, R22);
-        outRoll = 0.0f;
-    }
-    else if (sin_pitch < -SINGULAR_EPS) {
-        // -90 deg singularity
-        outPitch = (float)-M_PI_2;
-        outYaw = atan2f(-R20, R22);
-        outRoll = 0.0f;
+    // For Y * X * Z extraction (yaw = Y, pitch = X, roll = Z):
+    // pitch (x) = asin( -r12 )
+    // roll  (z) = atan2( r10, r11 )
+    // yaw   (y) = atan2( r02, r22 )
+    //
+    // handle numerical clamping and gimbal-lock when cos(pitch) ~= 0
+    const float EPS = 1e-6f;
+
+    // clamp input to asin to [-1,1]
+    float sinx = -r12;
+    if (sinx > 1.0f) sinx = 1.0f;
+    if (sinx < -1.0f) sinx = -1.0f;
+
+    float pitch = asinf(sinx);
+    float cosx = cosf(pitch);
+
+    float yaw, roll;
+    if (fabsf(cosx) > EPS) {
+        roll = atan2f(r10, r11);      // Z
+        yaw = atan2f(r02, r22);      // Y
     }
     else {
-        // general case
-        outYaw = atan2f(-R20, R22);
-        outRoll = atan2f(-R01, R11);
+        // Gimbal lock: pitch is +-90 degrees, z and y are coupled.
+        // Choose roll = 0 and compute yaw from remaining terms (one valid choice).
+        roll = 0.0f;
+        yaw = atan2f(-r20, r00);
     }
+
+    outPitch = pitch;
+    outYaw = yaw;
+    outRoll = roll;
 }
 
 inline Vec4 EulerToQuaternion(const Vec3& InEulerAngles)
@@ -275,10 +287,21 @@ inline Vec3 GetPos(const Mat4& InMatrix)
     return { InMatrix.m[3][0], InMatrix.m[3][1], InMatrix.m[3][2] };
 }
 
+inline void DecomposeTransform(const Mat4& InMatrix, Vec3& OutScale, Vec4& OutQuatRot, Vec3& OutTrans)
+{
+    XMVECTOR XMScale, XMRotQuat, XMTrans;
+    XMMatrixDecompose(&XMScale, &XMRotQuat, &XMTrans, XMLoadFloat4x4(&InMatrix));
+
+    XMRotQuat = XMQuaternionNormalize(XMRotQuat);
+
+    XMStoreFloat3(&OutScale, XMScale);
+    XMStoreFloat4(&OutQuatRot, XMRotQuat);
+    XMStoreFloat3(&OutTrans, XMTrans);
+}
+
 inline void DecomposeTransform(const Mat4& InMatrix, Vec3& OutScale, Vec3& OutRot, Vec3& OutTrans)
 {
-    XMVECTOR XMScale, XMRot, XMTrans;
-    XMVECTOR XMRotQuat;
+    XMVECTOR XMScale, XMRotQuat, XMTrans;
     XMMatrixDecompose(&XMScale, &XMRotQuat, &XMTrans, XMLoadFloat4x4(&InMatrix));
 
     XMTrans /= XMScale;
@@ -286,12 +309,8 @@ inline void DecomposeTransform(const Mat4& InMatrix, Vec3& OutScale, Vec3& OutRo
     Vec4 RotQuat = {};
     XMStoreFloat4(&RotQuat, XMRotQuat);
 
-    Vec3 Rot = {};
-    DXQuaternionToEuler(RotQuat, Rot.x, Rot.y, Rot.z);
-    XMRot = XMLoadFloat3(&Rot);
-
     XMStoreFloat3(&OutScale, XMScale);
-    XMStoreFloat3(&OutRot, XMRot);
+    DXQuaternionToEuler(RotQuat, OutRot.x, OutRot.y, OutRot.z);
     XMStoreFloat3(&OutTrans, XMTrans);
 }
 
