@@ -56,10 +56,13 @@ public:
 public:
     void SetAnimPlaying(bool bPlaying) { bAnimPlaying = bPlaying; }
     bool IsAnimPlaying() const { return bAnimPlaying; }
+    bool HasAnim() const { return Animation != nullptr; }
 protected:
     bool bAnimPlaying = false;
     bool bPlayAnimAtBegin = true;
     std::shared_ptr<MAnimation> Animation = nullptr;
+public:
+    bool bBindPose = false;
 
 public:
 	std::shared_ptr<DynamicMesh> GetDynamicMesh();
@@ -74,6 +77,7 @@ public:
         , PROPERTY(bAnimPlaying)
         , PROPERTY(bPlayAnimAtBegin)
         , PROPERTY(Animation)
+        , PROPERTY(bBindPose)
         , PROPERTY_DELEGATE(Mesh, [&](DynamicMeshComponent* InObject) {
             InObject->Reload();
         })

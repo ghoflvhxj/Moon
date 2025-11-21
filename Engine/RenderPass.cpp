@@ -191,7 +191,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
             VS->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
             if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastTo<DynamicMeshComponent>())
             {
-                animated = DynamicMeshComp->IsAnimPlaying() ? TRUE : FALSE;
+                animated = DynamicMeshComp->HasAnim() && DynamicMeshComp->bBindPose == false ? TRUE : FALSE;
                 if (animated)
                 {
                     VS->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
