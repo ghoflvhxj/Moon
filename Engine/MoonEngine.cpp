@@ -303,7 +303,7 @@ void MEngine::RenderWorld(uint32 InIndex)
     const auto& WorldRenderInfo = WorldRenderInfos[InIndex];
     const auto& Window = WorldRenderInfo.DstWindow;
 
-    _GraphicDevice->Begin(Window->GetID(), Window->GetWidth<float>(), Window->GetHeight<float>());
+    _GraphicDevice->Begin(Window->GetID(), Window->GetWidth<uint32>(), Window->GetHeight<uint32>());
     GetRenderStartedDelegate().Broadcast();
 
     getRenderer()->RenderWorld(WorldRenderInfo.SrcWorld);

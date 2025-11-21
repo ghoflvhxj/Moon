@@ -3,6 +3,8 @@
 
 using namespace DirectX;
 
+const FJoint FJoint::Empty = {};
+
 void MAnimation::SetFrameInfo(FbxTime& InStart, FbxTime& InEnd)
 {
     StartFrame = CastValue<uint32>(InStart.GetFrameCount(FbxTime::eFrames24));
@@ -161,18 +163,18 @@ void Mesh::MakeCapsule(FMeshData& OutMeshData, float InHalfHeight, float InRadiu
 
     // 실린더
     Offset = GetSize(OutMeshData.Vertices);
-    for (uint32 i = 1; i <= 4; ++i)
+    for (uint32 i = 1; i <= 16; ++i)
     {
         Vertex NewVertex = {};
-        NewVertex.Pos.x = InRadius * std::sin((2.f * PI / 4.f) * i);
+        NewVertex.Pos.x = InRadius * std::sin((2.f * PI / 16.f) * i);
         NewVertex.Pos.y = InHalfHeight;
-        NewVertex.Pos.z = InRadius * std::cos((2.f * PI / 4.f) * i);
+        NewVertex.Pos.z = InRadius * std::cos((2.f * PI / 16.f) * i);
         OutMeshData.Vertices.push_back(NewVertex);
 
         NewVertex.Pos.y = -InHalfHeight;
         OutMeshData.Vertices.push_back(NewVertex);
     }
-    for (uint32 i = 1; i < 8; i += 2)
+    for (uint32 i = 1; i < 32; i += 2)
     {
         OutMeshData.Indices.push_back(Offset + i);
         OutMeshData.Indices.push_back(Offset + i - 1);

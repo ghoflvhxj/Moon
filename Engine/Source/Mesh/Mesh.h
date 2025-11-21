@@ -105,6 +105,8 @@ struct ENGINE_DLL FJoint
 
     }
 
+    static const FJoint Empty;
+
     // 조인트 이름
     std::string Name;
 

@@ -102,16 +102,16 @@ void MRenderPass::Begin()
 
         D3D11_VIEWPORT Viewport = {};
 		UINT ViewportNum = 0;
-		Viewport.Width = static_cast<float>(Width);
-		Viewport.Height = static_cast<float>(Height);
+		Viewport.Width = static_cast<FLOAT>(Width);
+		Viewport.Height = static_cast<FLOAT>(Height);
 		Viewport.TopLeftX = 0.f;
 		Viewport.TopLeftY = 0.f;
 		Viewport.MinDepth = 0.f;
 		Viewport.MaxDepth = 1.f;
 		g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
 
-        RectWidth = static_cast<float>(Width);
-        RectHeight = static_cast<float>(Height);
+        RectWidth = Width;
+        RectHeight = Height;
 	}
 
     UINT RectNum = 1;

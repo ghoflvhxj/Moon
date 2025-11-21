@@ -47,8 +47,8 @@ protected:
 protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData);
 protected:
-    float RectWidth = 0.f;
-    float RectHeight = 0.f;
+    uint32 RectWidth = 0;
+    uint32 RectHeight = 0;
 
     virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData);
 protected:

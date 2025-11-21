@@ -40,12 +40,12 @@ std::vector<FJoint>& DynamicMesh::GetJoints()
     return Skeleton->GetJoints();
 }
 
-FJoint DynamicMesh::GetJoint(uint32 InIndex)
+const FJoint& DynamicMesh::GetJoint(uint32 InIndex)
 {
     return Skeleton->GetJoint(InIndex);
 }
 
-FJoint DynamicMesh::GetJoint(const std::string& InName)
+const FJoint& DynamicMesh::GetJoint(const std::string& InName)
 {
     return Skeleton->GetJoint(InName);
 }
@@ -105,17 +105,17 @@ std::vector<FJoint>& MSkeleton::GetJoints()
     return Joints;
 }
 
-FJoint MSkeleton::GetJoint(uint32 InIndex)
+const FJoint& MSkeleton::GetJoint(uint32 InIndex)
 {
     if (InIndex != -1 && InIndex < GetSize(Joints))
     {
         return Joints[InIndex];
     }
 
-    return FJoint();
+    return FJoint::Empty;
 }
 
-FJoint MSkeleton::GetJoint(const std::string& InName)
+const FJoint& MSkeleton::GetJoint(const std::string& InName)
 {
     return GetJoint(GetJointIndex(InName));
 }

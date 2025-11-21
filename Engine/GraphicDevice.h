@@ -103,7 +103,7 @@ public:
 	virtual void Release() override;
 
 public:
-    void Begin(int32 InWindowID, float InWidth, float InHeight);
+    void Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight);
     void End();
     bool Refresh();
     void SetToDefault();

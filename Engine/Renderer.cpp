@@ -436,28 +436,6 @@ MScene* MRenderer::GetScene(uint32 InWorldID)
 //
 //    return PrimitiveID;
 //}
-//
-//uint32 MRenderer::DrawCapsule(float InRadius, float InHalfHeight)
-//{
-//	if (CapsuleMeshData.Vertices.empty())
-//	{
-//        Mesh::MakeCapsule(CapsuleMeshData, InHalfHeight, InRadius);
-//	}
-//
-//	uint32 PrimitiveID = MPrimitiveComponent::MakePrimitiveID();
-//	MakeBuffer(PrimitiveID, CapsuleMeshData);
-//
-//    std::vector<FPrimitiveData> NewPrimitiveDatas;
-//    FPrimitiveData NewPrimitivData = {};
-//    NewPrimitivData.MeshData = &CapsuleMeshData;
-//    NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
-//    NewPrimitivData.VertexBuffer = VertexBuffers[PrimitiveID][0];
-//    NewPrimitivData.IndexBuffer = IndexBuffers[PrimitiveID][0];
-//    NewPrimitiveDatas.push_back(NewPrimitivData);
-//    PrimitiveDatas.emplace(PrimitiveID, NewPrimitiveDatas);
-//
-//    return PrimitiveID;
-//}
 
 void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent)
 {

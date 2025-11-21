@@ -163,13 +163,13 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
 
 void MRenderTarget::UpdateResolution(float InWidth, float InHeight)
 {
-    if (RenderTargetInfo.bCube == false)
-    {
-        RenderTargetInfo.Width = InWidth;
-        RenderTargetInfo.Height = InHeight;
+    //if (RenderTargetInfo.bCube == false)
+    //{
+    //    RenderTargetInfo.Width = InWidth;
+    //    RenderTargetInfo.Height = InHeight;
 
-        initializeTexture(RenderTargetInfo);
-    }
+    //    initializeTexture(RenderTargetInfo);
+    //}
 }
 
 DXGI_FORMAT MRenderTarget::GetFormat(const ERenderTargetType InRenderTargetType) const

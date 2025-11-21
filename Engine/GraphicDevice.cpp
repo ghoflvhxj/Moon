@@ -358,7 +358,7 @@ void GraphicDevice::SetToDefault()
     g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
 }
 
-void GraphicDevice::Begin(int32 InWindowID, float InWidth, float InHeight)
+void GraphicDevice::Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight)
 {
     auto& Iter = WindowRenderDatas.find(InWindowID);
     if (Iter == WindowRenderDatas.end())
@@ -390,8 +390,8 @@ void GraphicDevice::Begin(int32 InWindowID, float InWidth, float InHeight)
     SafeRelease(SawpChainBuffers[BufferIndex]);
 
     D3D11_VIEWPORT Viewport = {};
-    Viewport.Width = InWidth;
-    Viewport.Height = InHeight;
+    Viewport.Width = static_cast<FLOAT>(InWidth);
+    Viewport.Height = static_cast<FLOAT>(InHeight);
     Viewport.TopLeftX = 0.f;
     Viewport.TopLeftY = 0.f;
     Viewport.MinDepth = 0.f;

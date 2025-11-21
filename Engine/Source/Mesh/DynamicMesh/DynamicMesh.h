@@ -29,8 +29,8 @@ public:
 public:
     const uint32 GetJointNum() const;
     std::vector<FJoint>& GetJoints();
-    FJoint GetJoint(uint32 InIndex);
-    FJoint GetJoint(const std::string& InName);
+    const FJoint& GetJoint(uint32 InIndex);
+    const FJoint& GetJoint(const std::string& InName);
     int32 GetJointIndex(const std::string& InName);
 
 public:
@@ -76,8 +76,8 @@ public:
 public:
     const uint32 GetJointNum() const;
     std::vector<FJoint>& GetJoints();
-    FJoint GetJoint(uint32 InIndex);
-    FJoint GetJoint(const std::string& InName);
+    const FJoint& GetJoint(uint32 InIndex);
+    const FJoint& GetJoint(const std::string& InName);
 
 public:
     std::vector<FJoint> Joints;
