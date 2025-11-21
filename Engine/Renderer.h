@@ -41,7 +41,7 @@ public:
     MRenderer& operator=(const MRenderer& Rhs) = delete;
 
     /********************************** 
-        Module의 인터페이스 구현
+        Module의 인터페이스
     **********************************/
 public:
     virtual bool Initialize() override;
@@ -66,6 +66,9 @@ protected:
 public:
     void DrawCylinder(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation);
     void DrawSphere(float InRadius, const Vec3& InTranslation, const DirectX::XMVECTORF32& InColor = EngineColors::White);
+    void DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight, const Vec3& InTranslation, const Vec3& InRotation);
+    void DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight, const Vec3& InTranslation, const Vec4& InQuatRotation);
+    void DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec4& InQuatRotation, const Vec3& InScale = VEC3ONE);
     void DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale = VEC3ONE);
     void DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType);
 protected:
@@ -75,6 +78,7 @@ protected:
     FMeshData SphereMesh = {};
     FMeshData CoordinateMesh = {};
     FMeshData CapsuleMeshData = {};
+    std::map<std::tuple<int, int>, FMeshData> CapsuleMeshDatas;
 public:
     uint32 SpherePID = 0;
     uint32 CoordinatePID = 0;
@@ -82,7 +86,6 @@ public:
 public:
     //uint32 DrawVertices(const FMeshData& InMeshData);
     //uint32 DrawLine(const std::vector<Vec3>& InWorldPositions);
-    //void DrawCapsule(float InRadius, float InHalfHeight);
     //uint32 DrawCapsule(float InRadius, float InHalfHeight);
     
 public:
@@ -105,11 +108,6 @@ public:
     // TODO. 인스턴싱 임시 작업으로 제거해야 됨
     std::shared_ptr<MVertexBuffer> InstanceBuffer;
     std::shared_ptr<MVertexBuffer> InstanceBuffer2;
-
-public:
-    // 컴포넌트 없는 PrimitiveData 업데이트
-    //void UpdatePrimitiveTransform(uint32 InPrimitiveID, const Vec3& InTranslation, const Vec4& InRotation, const Vec3& InScale);
-    //void UpdatePrimitiveVertexPos(uint32 InPrimitiveID, const std::vector<Vertex>& InVertices);
 
 public:
     // 현재 그리는 씬에서 PrimitiveData를 얻어옴
@@ -148,18 +146,11 @@ private:
     std::unordered_map<ERenderTarget, std::shared_ptr<StaticMeshComponent>> DebugRenderTargetMehses;
 	bool bDebugRenderTargets = true;
 
-    // Cascade Shadow 구현을 위한 멤버들
-protected:
-    //std::vector<float> CascadeDistances;
-    //std::vector<Vec4> CascadeLightPositions;
-    //std::vector<Mat4> CascadeLightMatrices;
-
 public:
     Mat4 ViewPerspectiveProjMatrix = {};
     Mat4 ViewOrthogonalProjMatrix = {};
 public:
     RENDERER_OPTION(DrawCollision);
-    //bool bDrawCollision = false;
     Vec3 Ambient = VEC3ONE;
 
     REFLECT(

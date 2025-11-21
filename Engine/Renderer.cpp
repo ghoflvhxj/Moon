@@ -52,6 +52,7 @@ using namespace DirectX;
 #define RenderPassPerformanceProfiling 0
 
 constexpr wchar_t* CoordinateKey = TEXT("Coordinate");
+constexpr wchar_t* CapsuleKey = TEXT("Capsule");
 
 enum class EFrustumCascade
 {
@@ -280,7 +281,6 @@ bool MRenderer::Initialize()
 
     Mesh::MakeSphere(SphereMesh, 16);
     SpherePID = MPrimitiveComponent::MakePrimitiveID();
-    //MakeBuffer(SpherePID, SphereMesh);
 
     Mesh::MakeCoordinate(CoordinateMesh);
     CoordinatePID = MPrimitiveComponent::MakePrimitiveID();
@@ -323,14 +323,71 @@ void MRenderer::DrawSphere(float InRadius, const Vec3& InTranslation, const Dire
     SphereRenderDatas.push_back(RenderData);
 }
 
-void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale)
+void MRenderer::DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight, const Vec3& InTranslation, const Vec3& InRotation)
 {
+    DrawCapsule(InWorld, InRadius, InHalfHeight, InTranslation, EulerToQuaternion(InRotation));
+}
+
+void MRenderer::DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight, const Vec3& InTranslation, const Vec4& InQuatRotation)
+{
+    // TODO. 
+    // 캡슐마다 반지름과 높이가 다르니 캡슐 그릴 때 만들어줌
+    // 이 둘을 상수 버퍼로 전달할 수 있도록 개선하고, 이 코드는 제거해야 함.
+    int Radius = static_cast<int>(InRadius * 10000.f);
+    int Height = static_cast<int>(InHalfHeight * 10000.f);
+    auto& TupleKey = std::make_tuple(Radius, Height);
+    std::wstring BufferKey = CapsuleKey + std::to_wstring(Radius) + TEXT("_") + std::to_wstring(Height);
+    if (CapsuleMeshDatas.find(TupleKey) == CapsuleMeshDatas.end())
+    {
+        FMeshData NewCapsuleMeshData = {};
+        Mesh::MakeCapsule(NewCapsuleMeshData, InHalfHeight, InRadius);
+
+        CapsuleMeshDatas[TupleKey] = NewCapsuleMeshData;
+
+        
+        getGraphicDevice()->BuildMeshBuffer(BufferKey, CapsuleMeshDatas[TupleKey], 0);
+    }
+
+    //if (CapsuleMeshData.Vertices.empty())
+    //{
+    //    Mesh::MakeCapsule(CapsuleMeshData, InHalfHeight, InRadius);
+    //    getGraphicDevice()->BuildMeshBuffer(CapsuleKey, CapsuleMeshData, 0);
+    //}
+
+    static std::shared_ptr<MMaterial> Mat = std::make_shared<MMaterial>();
+    Mat->setShader(TEXT("VS_VertexColorOut.cso"), TEXT("PS_Collision.cso"));
+    Mat->setTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    FPrimitiveData NewPrimitiveData = {};
+    NewPrimitiveData.MeshData = &CapsuleMeshDatas[TupleKey];
+    NewPrimitiveData.PrimitiveType = EPrimitiveType::CustomPrimitiveType0;
+    NewPrimitiveData.Material = Mat;
+
+    NewPrimitiveData.Translation = InTranslation;
+    NewPrimitiveData.Rotation = InQuatRotation;
+    NewPrimitiveData.Scale = VEC3ONE;
+
+    FBufferContainer Buffers;
+    getGraphicDevice()->GetBuffers(Buffers, BufferKey);
+    NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
+    NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
+
+    Scenes[InWorld->GetID()]->DrawPrimitive(NewPrimitiveData);
+}
+
+void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec4& InQuatRotation, const Vec3& InScale)
+{
+    static std::shared_ptr<MMaterial> Mat = std::make_shared<MMaterial>();
+    Mat->setShader(TEXT("VS_VertexColorOut.cso"), TEXT("PS_Collision.cso"));
+    Mat->setTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
     FPrimitiveData NewPrimitiveData = {};
     NewPrimitiveData.MeshData = &CoordinateMesh;
     NewPrimitiveData.PrimitiveType = EPrimitiveType::CustomPrimitiveType0;
+    NewPrimitiveData.Material = Mat;
 
     NewPrimitiveData.Translation = InTranslation;
-    NewPrimitiveData.Rotation = EulerToQuaternion(InRotation);
+    NewPrimitiveData.Rotation = InQuatRotation;
     NewPrimitiveData.Scale = InScale;
 
     FBufferContainer Buffers;
@@ -339,13 +396,11 @@ void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
 
     Scenes[InWorld->GetID()]->DrawPrimitive(NewPrimitiveData);
+}
 
-    //FInstancingData InstancingData = {};
-    //InstancingData.Scale = InScale;
-    //InstancingData.Translation = InTranslation;
-    //XMStoreFloat4(&InstancingData.RotationQuat, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InRotation)));
-
-    //Scenes[InWorld->GetID()]->DrawCoordinate(InTranslation, InRotation, InScale);
+void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale)
+{
+    DrawCoordinate(InWorld, InTranslation, EulerToQuaternion(InRotation), InScale);
 }
 
 void MRenderer::DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType)
