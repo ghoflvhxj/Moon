@@ -78,12 +78,8 @@ void DynamicMeshComponent::Update(const Time deltaTime)
                 uint32 Frame = CastValue<uint32>(FloatFrame);
 
                 XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(JointIndex));
-
-                XMMATRIX NonScale = XMMatrixScaling(1.f / 2.54f, 1.f / 2.54f, 1.f / 2.54f);
-                //JointMatrix = XMMatrixMultiply(NonScale, JointMatrix);
-
+                
                 // 다음 프레임과 블렌딩
-                /*
                 if (Frame < Animation->TotalFrame - 1)
                 {
                     float currentFrameFactor = 1.f - (FloatFrame - CastValue<float>(Frame));
@@ -92,12 +88,13 @@ void DynamicMeshComponent::Update(const Time deltaTime)
                     XMMATRIX NextMat = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
                     JointMatrix = (NextMat * nextFrameFactor) + (CurrentMat * currentFrameFactor);
                 }
-                */
+
+                XMMATRIX NonScale = XMMatrixScaling(1.f / 2.54f, 1.f / 2.54f, 1.f / 2.54f);
+                JointMatrix = XMMatrixMultiply(JointMatrix, NonScale);
 
                 // 현재 프레임에서 조인트 행렬들
                 XMMATRIX BindPoseInverseMatrix = XMLoadFloat4x4(&Mesh->GetJoint(JointIndex)._globalBindPoseInverseMatrix);
-                //XMStoreFloat4x4(&JointAnimMatrices[JointIndex], XMMatrixMultiply(BindPoseInverseMatrix, JointMatrix));
-                XMStoreFloat4x4(&JointAnimMatrices[JointIndex], BindPoseInverseMatrix  * JointMatrix * NonScale);
+                XMStoreFloat4x4(&JointAnimMatrices[JointIndex], XMMatrixMultiply(BindPoseInverseMatrix, JointMatrix));
             }
         }
 
@@ -117,17 +114,13 @@ void DynamicMeshComponent::Update(const Time deltaTime)
             FClothUpdateData& ClothUpdateData = ClothUpdateDatas[ClothIndex];
             const FClothData& ClothData = GetDynamicMesh()->GetClothDatas()[ClothUpdateData.ClothDataIndex];
 
-            //static Vec3 JointPos = GetJointPosition(JointName);
-            //ClothObject->SetPos(JointPos);
-
-            //Vec4 Quat = GetJointQuaternion(JointName);
-            //ClothObject->SetRotation(Quat);
-
             // 조인트 위치 변화를 옷에 포스 적용
-            //Vec3 Dir = VEC3ZERO;
-            //XMStoreFloat3(&Dir, XMVector3Normalize(XMLoadFloat3(&ClothUpdateData.PreviousJointPos) - XMLoadFloat3(&JointPos)));
-            //ClothUpdateData.PreviousJointPos = JointPos;
-            //ClothObject->AddForce(Dir);
+            Vec3 JointPos = GetJointPosition(JointName);
+
+            Vec3 Dir = VEC3ZERO;
+            XMStoreFloat3(&Dir, XMVector3Normalize(XMLoadFloat3(&ClothUpdateData.PreviousJointPos) - XMLoadFloat3(&JointPos)));
+            ClothUpdateData.PreviousJointPos = JointPos;
+            ClothObject->AddForce(Dir);
         }
     }
 }
@@ -284,6 +277,10 @@ void DynamicMeshComponent::Clothing2()
 
         GetDynamicMesh()->GetClothDatas() = CothDatas;
 
+        // 임시
+        getGraphicDevice()->BuildMeshPrivateBuffers(GetPrimitiveID(), GetMesh());
+        getRenderer()->Test(GetPrimitiveID(), GetMesh());
+
         g_pPhysics->AddCloth(Data, GetDynamicMesh()->GetClothDatas(), NewClothPhysicsObject);
         ClothPhysicsObjects.push_back(NewClothPhysicsObject);
 
@@ -293,9 +290,9 @@ void DynamicMeshComponent::Clothing2()
     }
 }
 
-Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
+Mat4 DynamicMeshComponent::GetJointMatrix(const std::string& InName)
 {
-    return GetJointPosition(GetDynamicMesh()->GetJointIndex(InName));
+    return GetJointMatrix(Mesh->GetJointIndex(InName));
 }
 
 Mat4 DynamicMeshComponent::GetJointMatrix(uint32 InJointIndex)
@@ -310,16 +307,42 @@ Mat4 DynamicMeshComponent::GetJointMatrix(uint32 InJointIndex)
         uint32 Frame = CastValue<uint32>(FloatFrame);
 
         const FJoint& Joint = GetDynamicMesh()->GetJoint(InJointIndex);
-        XMMATRIX XMNonScale = XMMatrixScalingFromVector(XMLoadFloat3(&VEC3ONE) / XMLoadFloat3(&Joint.Scale));
+        const FJoint& RootJoint = GetDynamicMesh()->GetJoint(0);
 
         XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(InJointIndex));
-        XMMATRIX Matrix = JointMatrix * XMNonScale * WorldMat;
-        Matrix = JointMatrix * WorldMat;
+        XMMATRIX Matrix = JointMatrix * WorldMat;
 
         XMStoreFloat4x4(&OutMat, Matrix);
     }
+    else
+    {
+        const FJoint& Joint = GetDynamicMesh()->GetJoint(InJointIndex);
+        Vec3 Scale = Joint.Scale;
+        Vec3 Rot = Joint.Rotation;
+        Vec3 Trans = Joint.Position;
+
+        Mat4 JointMat = {};
+        TransformMatrix(JointMat, Scale, Rot, Trans);
+
+        XMStoreFloat4x4(&OutMat, XMLoadFloat4x4(&JointMat) * WorldMat);
+    }
 
     return OutMat;
+}
+
+const FJoint& DynamicMeshComponent::GetJoint(const std::string& InName)
+{
+    return GetJoint(Mesh->GetJointIndex(InName));
+}
+
+const FJoint& DynamicMeshComponent::GetJoint(uint32 InJointIndex)
+{
+    if (Mesh)
+    {
+        return Mesh->GetJoint(InJointIndex);
+    }
+
+    return FJoint::Empty;
 }
 
 Vec3 DynamicMeshComponent::GetJointAxis(uint32 InJointIndex, uint32 InAxisIndex)
@@ -338,15 +361,18 @@ Vec3 DynamicMeshComponent::GetJointPosition(uint32 InJointIndex)
         return OutTrans;
     }
 
-    XMVECTOR Trans = XMLoadFloat3(&VEC3ZERO);
+    const FJoint& Joint = GetJoint(InJointIndex);
 
-    XMMATRIX Matrix = XMLoadFloat4x4(&GetJointMatrix(InJointIndex));
-    XMVECTOR Dummy = {};
-    XMMatrixDecompose(&Dummy, &Dummy, &Trans, Matrix);
-
-    XMStoreFloat3(&OutTrans, Trans);
+    XMVECTOR A = XMVector3TransformCoord(XMLoadFloat3(&Joint.Position), XMLoadFloat4x4(&JointAnimMatrices[InJointIndex]));
+    A = XMVector3TransformCoord(A, XMLoadFloat4x4(&getWorldMatrix()));
+    XMStoreFloat3(&OutTrans, A);
 
     return OutTrans;
+}
+
+Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
+{
+    return GetJointPosition(GetDynamicMesh()->GetJointIndex(InName));
 }
 
 Vec3 DynamicMeshComponent::GetRelativeJointPosition(const std::string& InName)
@@ -371,46 +397,19 @@ Vec4 DynamicMeshComponent::GetJointQuaternion(uint32 InJointIndex)
     {
         return OutQuat;
     }
+    
+    const FJoint& Joint = GetJoint(InJointIndex);
 
-    XMVECTOR Quat = {};
-    XMMATRIX WorldMat = XMLoadFloat4x4(&getWorldMatrix());
+    XMVECTOR XMQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&VEC3ZERO));
+    XMQuat = XMQuaternionNormalize(XMQuat);
 
-    if (Animation)
-    {
-        float FloatFrame = AnimTime * 24.f;
-        uint32 Frame = CastValue<uint32>(FloatFrame);
+    XMMATRIX XMQuatMat = XMMatrixRotationQuaternion(XMQuat) * XMLoadFloat4x4(&JointAnimMatrices[InJointIndex]) * XMLoadFloat4x4(&getWorldMatrix());
 
-        const FJoint& Joint = GetDynamicMesh()->GetJoint(InJointIndex);
-        XMMATRIX XMNonScale = XMMatrixScalingFromVector(XMLoadFloat3(&VEC3ONE) / XMLoadFloat3(&Joint.Scale));
+    XMVECTOR Dummy, Target;
+    XMMatrixDecompose(&Dummy, &Target, &Dummy, XMQuatMat);
 
-        XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(InJointIndex));
-        XMMATRIX Matrix = JointMatrix * WorldMat;
-
-        XMVECTOR Dummy = {};
-        XMMatrixDecompose(&Dummy, &Quat, &Dummy, Matrix);
-
-        XMStoreFloat4(&OutQuat, Quat);
-
-        /*
-        XMMATRIX Matrix = XMLoadFloat4x4(&GetJointMatrix(InJointIndex));
-        
-        XMVECTOR Dummy = {};
-        XMMatrixDecompose(&Dummy, &Quat, &Dummy, Matrix);
-
-        XMStoreFloat4(&OutQuat, Quat);
-        */
-    }
-    else
-    {
-        FJoint Joint = GetDynamicMesh()->GetJoint(InJointIndex);
-        XMMATRIX JointMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&Joint.Scale)) * XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Joint.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&Joint.Position));
-        XMMATRIX Matrix = JointMatrix * WorldMat;
-
-        XMVECTOR Dummy = {};
-        XMMatrixDecompose(&Dummy, &Quat, &Dummy, Matrix);
-
-        XMStoreFloat4(&OutQuat, Quat);
-    }
+    Target =XMQuaternionNormalize(Target);
+    XMStoreFloat4(&OutQuat, Target);
 
     return OutQuat;
 }
@@ -491,34 +490,14 @@ void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTim
     }
 }
 
+Mat4 DynamicMeshComponent::GetAnimMatrix(const std::string& InName)
+{
+    return GetAnimMatrix(Mesh->GetJointIndex(InName));
+}
+
 Mat4 DynamicMeshComponent::GetAnimMatrix(uint32 JointIndex)
 {
-    Mat4 OutMatrix = IDENTITYMATRIX;
-
-    MAnimation CurrentAnimClip;
-    if (GetDynamicMesh()->getAnimationClip(AinmClipIndex, CurrentAnimClip))
-    {
-        float RealFrame = AnimTime * 24.f;
-        uint32 Frame = CastValue<uint32>(RealFrame);
-
-        XMMATRIX XMOutMatrix = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
-
-        // 다음 프레임과 블렌딩
-        if (Frame < CurrentAnimClip.TotalFrame - 1)
-        {
-            float currentFrameFactor = 1.f - (RealFrame - CastValue<float>(Frame));
-            float nextFrameFactor = 1.f - currentFrameFactor;
-            XMMATRIX CurrentMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex));
-            XMMATRIX NextMat = XMLoadFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
-            XMOutMatrix = (NextMat * nextFrameFactor) + (CurrentMat * currentFrameFactor);
-        }
-
-        XMStoreFloat4x4(&OutMatrix, XMOutMatrix);
-    }
-
-    return OutMatrix;
-
-    //return JointAnimMatrices[JointIndex];
+    return JointAnimMatrices[JointIndex];
 }
 
 /*

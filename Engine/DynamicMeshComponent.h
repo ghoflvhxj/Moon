@@ -27,7 +27,10 @@ public:
     void Clothing2();
 
 public:
+    Mat4 GetJointMatrix(const std::string& InName);
     Mat4 GetJointMatrix(uint32 InJointIndex);
+    const FJoint& GetJoint(const std::string& InName);
+    const FJoint& GetJoint(uint32 InJointIndex);
     // 조인트의 로컬 축을 반환함
     Vec3 GetJointAxis(uint32 InJointIndex, uint32 InAxisIndex);
     // 조인트의 월드 위치를 반환함
@@ -49,7 +52,8 @@ private:
 
 public:
     Mat4* GetAnimMatrices() { return JointAnimMatrices; }
-    Mat4 GetAnimMatrix(uint32 JointIndex);
+    Mat4 GetAnimMatrix(const std::string& InName);
+    Mat4 GetAnimMatrix(uint32 InJointIndex);
     // 현재 프레임에서 조인트 행렬들
 	Mat4 JointAnimMatrices[200];
 
