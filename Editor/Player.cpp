@@ -27,12 +27,6 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/filereadstream.h"
 
-
-#define UsePointLight 0
-#define UseRandomPointLight 0
-
-#define UseDynamicMesh 1
-
 using namespace DirectX;
 using namespace rapidjson;
 
@@ -47,52 +41,16 @@ using namespace rapidjson;
 //#endif
 
 Player::Player()
-	: MActor()
+	: Super()
 {
-    LoadedStaticMeshComp = std::make_shared<StaticMeshComponent>();
-    LoadedStaticMeshComp->setScale(Vec3(0.01f, 0.01f, 0.01f));
-    AddComponent(TEXT("LoadedStaticMesh"), LoadedStaticMeshComp);
 
-    LoadedDynamicMeshComp = std::make_shared<DynamicMeshComponent>();
-    AddComponent(TEXT("LoadedDynamicMesh"), LoadedDynamicMeshComp);
-
-#if UsePointLight == 1
-    _pLightComponent = std::make_shared<MPointLightComponent>();
-    _pLightComponent->setRange(10.f);
-    _pLightComponent->setTranslation(0.f, 0.f, 0.f);
-    AddComponent(TEXT("PointLight"), _pLightComponent);
-#endif
-
-#if UseDynamicMesh == 1
     CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
     CharacterMeshComponent->SetPhysics(false);
-    CharacterMeshComponent->setTranslation(0.f, 0.f, 5.f);
 
     CharacterMeshComponent->SetMesh(TEXT("2B/2B.json"));
     CharacterMeshComponent->setDrawingBoundingBox(true);
     
-    AddComponent(ROOT_COMPONENT, CharacterMeshComponent);
-#endif
 
-#if UseRandomPointLight == 1
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> colorDis(0, 255);
-    std::uniform_int_distribution<int> transDis(0, 10);
-
-    for (int i = 0; i < 1; ++i)
-    {
-        std::shared_ptr<MPointLightComponent> pLight = std::make_shared<MPointLightComponent>();
-        pLight->setTranslation(Vec3(transDis(gen) / 1.f, 1.f, transDis(gen) / 1.f));
-        pLight->setColor(Vec3(colorDis(gen) / 255.f, colorDis(gen) / 255.f, colorDis(gen) / 255.f));
-        pLight->setRange(10.f);
-        //pLight->setIntensity(3.f);
-        _pLightComponentList.push_back(pLight);
-
-        std::wstring tag = std::wstring(TEXT("PointLightList")) + std::to_wstring(i);
-        AddComponent(tag.c_str(), pLight);
-    }
-#endif
 }
 
 Player::~Player()
@@ -112,46 +70,6 @@ void Player::tick(const Time deltaTime)
 {
     Super::tick(deltaTime);
 
-#if UseDynamicMesh == 1
-	if (InputManager::keyPress(DIK_E))
-	{
-		CharacterMeshComponent->playAnimation(0, deltaTime);
-	}
-#endif
-
-    static float DeltaTime = 0.f;
-    DeltaTime += deltaTime / 2.f;
-
-#if UsePointLight == 1
-    _pLightComponent->setTranslation(std::cosf(0.f) * 5.f, 2.f, std::sinf(0.f) * 5.f);
-#endif
-
-#if UseRandomPointLight == 1
-	if (InputManager::keyPress(DIK_P))
-	{
-		_pLightComponentList[0]->setTranslation(0.1f, 2.f, 4.f);
-	}
-
-
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> moveDis(-10, 10);
-	if (!_pLightComponentList.empty())
-	{
-		for (int i = 0; i < _pLightComponentList.size(); ++i)
-		{
-			Vec3 trans = _pLightComponentList[i]->getTranslation();
-			trans.x += moveDis(gen) * deltaTime;
-			//trans.y += moveDis(gen) * deltaTime;
-			trans.z += moveDis(gen) * deltaTime;
-
-			_pLightComponentList[i]->setTranslation(trans);
-
-            _pLightComponentList[i]->setTranslation(std::cosf(DeltaTime + 2.f) * 5.f, 2.f, std::sinf(DeltaTime + 2.f) * 5.f);
-            _pLightComponentList[0]->setIntensity(6.f + 2.f * sinf(DeltaTime * 2.f));
-		}
-	}
-#endif
 }
 
 void Player::JsonSaveTest(bool bPretty)
@@ -271,7 +189,7 @@ void Player::JsonLoadTest()
     //Deserializer.Deserialize(*LoadedMeshComponent->GetMesh(), Path);
     
     //LoadedMeshComponent->GetMesh()->LoadFromAsset(Path);
-    LoadedStaticMeshComp->SetMesh(Path);
+    //LoadedStaticMeshComp->SetMesh(Path);
 
     std::cout << "Deserialize Finished" << std::endl;
 }
