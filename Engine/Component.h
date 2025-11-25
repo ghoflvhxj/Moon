@@ -5,11 +5,11 @@
 
 class MActor;
 
-class ENGINE_DLL Component abstract : public MObject
+class ENGINE_DLL MComponent abstract : public MObject
 {
 public:
-	explicit Component();
-	virtual ~Component();
+	explicit MComponent();
+	virtual ~MComponent();
 
 public:
     virtual void BeginPlay();
@@ -26,5 +26,5 @@ public:
 private:
 	std::weak_ptr<MActor> _pOwningActor;
 
-    REFLECT(Component);
+    REFLECT(MComponent);
 };

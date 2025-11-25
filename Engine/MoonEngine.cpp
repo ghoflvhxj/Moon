@@ -216,7 +216,7 @@ void SetModule(std::unique_ptr<MModule>&& InModule)
     //g_Module->Initialize();
 }
 
-void RegisterComponent(std::shared_ptr<Component> InComponent)
+void RegisterComponent(std::shared_ptr<MComponent> InComponent)
 {
     if (InComponent == nullptr)
     {

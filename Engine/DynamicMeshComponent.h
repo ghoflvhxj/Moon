@@ -18,7 +18,8 @@ public:
 
 public:
     virtual void SetMesh(const std::wstring& InPath) override;
-    virtual std::shared_ptr<MMesh> GetMesh() override { return Mesh; }
+    virtual std::shared_ptr<MMesh> GetMesh() override;
+    std::shared_ptr<DynamicMesh> GetDynamicMesh();
 protected:
     std::shared_ptr<DynamicMesh> Mesh;
 
@@ -67,12 +68,6 @@ protected:
     std::shared_ptr<MAnimation> Animation = nullptr;
 public:
     bool bBindPose = false;
-
-public:
-	std::shared_ptr<DynamicMesh> GetDynamicMesh();
-
-    std::shared_ptr<MPhysicsObject> Kinematic;
-
 
     REFLECT(
         DynamicMeshComponent

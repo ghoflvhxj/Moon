@@ -1,8 +1,8 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "CameraComponent.h"
 
 CameraComponent::CameraComponent()
-	: SceneComponent()
+	: MSceneComponent()
 {
 }
 

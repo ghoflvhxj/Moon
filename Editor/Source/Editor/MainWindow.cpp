@@ -301,18 +301,15 @@ void MEditorMainWindow::ImGuiRender()
                 }
 
                 // 컴포넌트 속성 편집 기능
-                if (std::shared_ptr<MPrimitiveComponent> HitComponent = ClickedComp->CastTo<MPrimitiveComponent>())
+                const FTypeDesc* Current = ClickedComp->GetTypeDesc();
+                while (Current)
                 {
-                    const FTypeDesc* Current = HitComponent->GetTypeDesc();
-                    while (Current)
+                    if (ImGui::CollapsingHeader(Current->Name.c_str()))
                     {
-                        if (ImGui::CollapsingHeader(Current->Name.c_str()))
-                        {
-                            DispatchStruct(Current, HitComponent.get());
-                        }
-
-                        Current = Current->Parent;
+                        DispatchStruct(Current, ClickedComp.get());
                     }
+
+                    Current = Current->Parent;
                 }
             }
 

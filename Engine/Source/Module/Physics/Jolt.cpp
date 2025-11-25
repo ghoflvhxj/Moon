@@ -699,16 +699,8 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
     mp->SetUpdatePosition(false);
 }
 
-void MJoltPhysics::AddCharacterBody(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData)
+void MJoltPhysics::AddCharacterPhyscics(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData)
 {
-    //RefConst<Shape> shape = MakeCapsule(0.2f, 0.05f).Create().Get();
-    //InBodyCapsuleData.CapsuleData.HalfHeight = 0.2f;
-    //InBodyCapsuleData.CapsuleData.Radius = 0.05f;
-
-    //RefConst<Shape> shape = MakeCapsule(0.5f, 0.1f).Create().Get();
-    //InBodyCapsuleData.CapsuleData.HalfHeight = 0.5f;
-    //InBodyCapsuleData.CapsuleData.Radius = 0.1f;
-
     RefConst<Shape> shape = MakeCapsule(InBodyCapsuleData.GetHalfHeight(), InBodyCapsuleData.GetRadius()).Create().Get();
 
     FBodyConstructData BodyConstructData = {};

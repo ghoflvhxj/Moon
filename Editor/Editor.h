@@ -11,7 +11,7 @@ class Component;
 class MMeshComponent;
 class TerrainComponent;
 class SphereComponent;
-class SceneComponent;
+class MSceneComponent;
 class StaticMeshComponent;
 class MStaticMeshActor;
 
@@ -100,11 +100,11 @@ private:
     Vec3 Prev = {};
 
 public:
-    void SetClickedComp(std::shared_ptr<SceneComponent>& InComp);
-    const std::shared_ptr<SceneComponent> GetClickedComp() const { return ClickedComp.lock(); }
+    void SetClickedComp(std::shared_ptr<MSceneComponent>& InComp);
+    const std::shared_ptr<MSceneComponent> GetClickedComp() const { return ClickedComp.lock(); }
     void OnClickedCompChanged();
 protected:
-    std::weak_ptr<SceneComponent> ClickedComp;
+    std::weak_ptr<MSceneComponent> ClickedComp;
 
 public:
     void OutLine(MActor* InActor, bool bOutLine);

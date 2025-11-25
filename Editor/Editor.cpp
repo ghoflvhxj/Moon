@@ -7,7 +7,7 @@
 #include "Core/ObjectPath.h"
 #include "Core/Asset.h"
 
-#include "Core/Physics/Physics.h" // TODO. Module/Physcis/Physics.h로 변경
+#include "Module/Physics/Physics.h"
 #include "Module/Physics/CharacterPhysics.h"
 
 #include "World.h"
@@ -196,7 +196,7 @@ void MEditor::Update()
                 bControlGizmo = false;
                 if (World->Raycast(Primitives, HitData, (uint8)EPrimitiveType::Mesh))
                 {
-                    std::shared_ptr<SceneComponent> Temp = HitData.HitComponent.lock()->CastTo<SceneComponent>();
+                    std::shared_ptr<MSceneComponent> Temp = HitData.HitComponent.lock()->CastTo<MSceneComponent>();
                     SetClickedComp(Temp);
                 }
             }
@@ -634,9 +634,9 @@ bool MEditor::IsPickable() const
     return ImGui::GetIO().WantCaptureMouse == false && GetMainWorld()->IsMouseInViewport();
 }
 
-void MEditor::SetClickedComp(std::shared_ptr<SceneComponent>& InComp)
+void MEditor::SetClickedComp(std::shared_ptr<MSceneComponent>& InComp)
 {
-    std::shared_ptr<SceneComponent> Old = ClickedComp.lock();
+    std::shared_ptr<MSceneComponent> Old = ClickedComp.lock();
     if (Old != InComp)
     {
         if (Old)

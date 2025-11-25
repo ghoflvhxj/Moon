@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 #ifndef __CAMERA_COMPONENT_H__
 
 #include "SceneComponent.h"
 
-class ENGINE_DLL CameraComponent : public SceneComponent
+class ENGINE_DLL CameraComponent : public MSceneComponent
 {
 public:
 	explicit CameraComponent();

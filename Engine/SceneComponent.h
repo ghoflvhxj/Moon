@@ -2,11 +2,11 @@
 
 #include "Component.h"
 
-class ENGINE_DLL SceneComponent : public Component
+class ENGINE_DLL MSceneComponent : public MComponent
 {
 public:
-	explicit SceneComponent();
-	virtual ~SceneComponent();
+	explicit MSceneComponent();
+	virtual ~MSceneComponent();
 
 public:
 	virtual void Update(const Time deltaTime);
@@ -57,12 +57,12 @@ private:
 	bool bUpdated;
 
 public:
-	void AddChildComponent(std::shared_ptr<SceneComponent> Component);
+	void AddChildComponent(std::shared_ptr<MSceneComponent> Component);
 private:
-	std::vector<std::shared_ptr<SceneComponent>> ChildComponents;
+	std::vector<std::shared_ptr<MSceneComponent>> ChildComponents;
 
     REFLECT(
-        SceneComponent,
+        MSceneComponent,
         PROPERTY(Scale),
         PROPERTY(Rotation),
         PROPERTY(Translation),

@@ -23,7 +23,7 @@
 #include "StaticMeshComponent.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 
-#include "Core/Physics/Physics.h"
+#include "Module/Physics/Physics.h"
 
 // 테스트용
 #include "Core/Serialize/JsonSerializer.h"

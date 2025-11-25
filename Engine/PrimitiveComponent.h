@@ -38,7 +38,7 @@ protected:
     std::vector<std::shared_ptr<FMeshData>> MeshDatas;
 };
 
-class ENGINE_DLL MPrimitiveComponent abstract : public SceneComponent
+class ENGINE_DLL MPrimitiveComponent abstract : public MSceneComponent
 {
 public:
 	enum class ERenderMode

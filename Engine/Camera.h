@@ -2,7 +2,7 @@
 
 #include "Actor.h"
 
-class SceneComponent;
+class MSceneComponent;
 
 class ENGINE_DLL MCamera : public MActor
 {
@@ -73,7 +73,7 @@ private:
     float Far = 1000.f;
 
 private:
-	std::shared_ptr<SceneComponent> _pSceneComponent = nullptr;
+	std::shared_ptr<MSceneComponent> _pSceneComponent = nullptr;
 
     REFLECT(MCamera)
 };

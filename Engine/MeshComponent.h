@@ -3,7 +3,7 @@
 #include "Include.h"
 #include "PrimitiveComponent.h"
 #include "Core/ObjectPath.h"
-#include "Core/Physics/PhysicsEnum.h"
+#include "Module/Physics/PhysicsEnum.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 
 class MPhysicsObject;

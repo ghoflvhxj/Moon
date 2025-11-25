@@ -7,7 +7,7 @@
 #include "Texture.h"
 
 #include "Core/ResourceManager.h"
-#include "Core/Physics/Physics.h"
+#include "Module/Physics/Physics.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 
 #undef min
@@ -109,7 +109,7 @@ const bool StaticMeshComponent::GetBoundingBox(std::shared_ptr<MBoundingBox> &bo
 
 void StaticMeshComponent::setTranslation(const Vec3& translation)
 {
-    SceneComponent::setTranslation(translation);
+    MSceneComponent::setTranslation(translation);
 
     if (PhysicsObject && bPhysicsSimulate == false)
     {
@@ -119,7 +119,7 @@ void StaticMeshComponent::setTranslation(const Vec3& translation)
 
 void StaticMeshComponent::setScale(const Vec3& InScale)
 {
-	SceneComponent::setScale(InScale);
+	MSceneComponent::setScale(InScale);
     
     if (PhysicsObject && bPhysicsSimulate == false)
     {

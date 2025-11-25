@@ -10,7 +10,7 @@
               {
                 "Key": "RootComponent",
                 "Value": {
-                  "SceneComponent": {
+                  "MSceneComponent": {
                     "Scale": [
                       1.0,
                       1.0,
@@ -28,7 +28,7 @@
                     ],
                     "bUpdated": false
                   },
-                  "Component": {},
+                  "MComponent": {},
                   "MObject": {}
                 }
               }
@@ -68,7 +68,7 @@
                     "RenderMode": 0,
                     "bRendering": true
                   },
-                  "SceneComponent": {
+                  "MSceneComponent": {
                     "Scale": [
                       10.0,
                       1.0,
@@ -86,7 +86,7 @@
                     ],
                     "bUpdated": false
                   },
-                  "Component": {},
+                  "MComponent": {},
                   "MObject": {}
                 }
               }
@@ -123,7 +123,7 @@
                     "RenderMode": 0,
                     "bRendering": true
                   },
-                  "SceneComponent": {
+                  "MSceneComponent": {
                     "Scale": [
                       1920.0,
                       1080.0,
@@ -141,7 +141,7 @@
                     ],
                     "bUpdated": false
                   },
-                  "Component": {},
+                  "MComponent": {},
                   "MObject": {}
                 }
               }
@@ -195,7 +195,7 @@
                     "RenderMode": 0,
                     "bRendering": true
                   },
-                  "SceneComponent": {
+                  "MSceneComponent": {
                     "Scale": [
                       0.1,
                       0.1,
@@ -213,7 +213,7 @@
                     ],
                     "bUpdated": false
                   },
-                  "Component": {},
+                  "MComponent": {},
                   "MObject": {}
                 }
               }
@@ -253,7 +253,7 @@
                     "RenderMode": 0,
                     "bRendering": true
                   },
-                  "SceneComponent": {
+                  "MSceneComponent": {
                     "Scale": [
                       0.00498,
                       0.00498,
@@ -271,7 +271,7 @@
                     ],
                     "bUpdated": false
                   },
-                  "Component": {},
+                  "MComponent": {},
                   "MObject": {}
                 }
               }
@@ -310,7 +310,7 @@
                     "RenderMode": 0,
                     "bRendering": true
                   },
-                  "SceneComponent": {
+                  "MSceneComponent": {
                     "Scale": [
                       1920.0,
                       1080.0,
@@ -328,7 +328,7 @@
                     ],
                     "bUpdated": false
                   },
-                  "Component": {},
+                  "MComponent": {},
                   "MObject": {}
                 }
               }

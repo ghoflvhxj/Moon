@@ -78,12 +78,12 @@ void MActor::SetWorldTranslation(const Vec3& InTrans)
     }
 }
 
-std::shared_ptr<SceneComponent>& MActor::getComponent(const wchar_t componentName[])
+std::shared_ptr<MSceneComponent>& MActor::getComponent(const wchar_t componentName[])
 {
 	return _components[componentName];
 }
 
-const bool MActor::AddComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> InComponent)
+const bool MActor::AddComponent(const wchar_t componentName[], std::shared_ptr<MSceneComponent> InComponent)
 {
 	return MapUtility::FindInsert(_components, componentName, InComponent);
 }

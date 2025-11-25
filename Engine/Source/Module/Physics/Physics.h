@@ -14,6 +14,7 @@ class MPhysicsObject;
 class MPrimitiveComponent;
 class MMeshComponent;
 class DynamicMeshComponent;
+class MCollisionComponent;
 
 struct FBodyCapsuleData;
 
@@ -50,9 +51,9 @@ public:
     virtual void AddMeshComponent(std::shared_ptr<MMeshComponent> InMeshComp);
 
 public:
-    // Component를 받도록 변경
     virtual void AddCloth(FBodyConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) {}
-    virtual void AddCharacterBody(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData) {}
+    virtual void AddCharacterPhyscics(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData) {}
+    virtual void AddCharacterCollision(std::shared_ptr<MCollisionComponent> InComp, const FCapsuleData& InCapsuleData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) {}
 
 protected:
     std::vector<std::weak_ptr<MPhysicsObject>> SoftBodies;

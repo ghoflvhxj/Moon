@@ -1,7 +1,7 @@
 ﻿#include "MeshComponent.h"
 
 #include "Renderer.h"
-#include "Core/Physics/Physics.h"
+#include "Module/Physics/Physics.h"
 #include "Core/ResourceManager.h"
 
 void MMeshComponent::SetMaterial(uint32 InIndex, std::shared_ptr<MMaterial> InMaterial)

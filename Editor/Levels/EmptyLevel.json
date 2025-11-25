@@ -10,7 +10,7 @@
                             {
                                 "Key": "RootComponent",
                                 "Value": {
-                                    "SceneComponent": {
+                                    "MSceneComponent": {
                                         "Scale": [
                                             1.0,
                                             1.0,
@@ -28,7 +28,7 @@
                                         ],
                                         "bUpdated": false
                                     },
-                                    "Component": {},
+                                    "MComponent": {},
                                     "MObject": {}
                                 }
                             }

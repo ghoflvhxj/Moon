@@ -6,7 +6,7 @@
 
 #include "Mesh/Mesh.h" // FCapsuleData 참조용
 
-class SceneComponent;
+class MSceneComponent;
 class StaticMeshComponent;
 class MVertexBuffer;
 class MRenderTarget;

@@ -1,14 +1,14 @@
 ﻿#pragma once
 #include "MeshComponent.h"
-#include "Core/Physics/PhysicsEnum.h"
+#include "Module/Physics/PhysicsEnum.h"
 
 class StaticMesh;
 
 class ENGINE_DLL StaticMeshComponent : public MMeshComponent
 {
 public:
-	using SceneComponent::setTranslation;
-	using SceneComponent::setScale;
+	using MSceneComponent::setTranslation;
+	using MSceneComponent::setScale;
 
 public:
 	explicit StaticMeshComponent();

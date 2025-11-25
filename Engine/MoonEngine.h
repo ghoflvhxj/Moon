@@ -154,6 +154,6 @@ std::shared_ptr<T> GetWorld()
     return std::static_pointer_cast<T>(GetMainWorld());
 }
 
-void RegisterComponent(std::shared_ptr<class Component> InComponent);
+void RegisterComponent(std::shared_ptr<class MComponent> InComponent);
 
 

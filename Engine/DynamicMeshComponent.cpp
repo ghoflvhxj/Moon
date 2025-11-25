@@ -4,7 +4,7 @@
 #include "MoonEngine.h"
 #include "Renderer.h"
 
-#include "Core/Physics/Physics.h"
+#include "Module/Physics/Physics.h"
 #include "Module/Physics/CharacterPhysics.h"
 
 #include "Core/ResourceManager.h"
@@ -189,6 +189,16 @@ void DynamicMeshComponent::SetMesh(const std::wstring& InPath)
     OnPrimitiveChangedDelegate.Broadcast(GetShared());
 }
 
+std::shared_ptr<MMesh> DynamicMeshComponent::GetMesh()
+{
+    return Mesh;
+}
+
+std::shared_ptr<DynamicMesh> DynamicMeshComponent::GetDynamicMesh()
+{
+    return Mesh;
+}
+
 void DynamicMeshComponent::Clothing()
 {
     if (g_pPhysics == nullptr)
@@ -205,7 +215,7 @@ void DynamicMeshComponent::Clothing()
         {
             for (FBodyCapsuleData& BodyCapsuleData : DynamicMeshPhysics->GetCapsules())
             {
-                g_pPhysics->AddCharacterBody(GetShared(), BodyCapsuleData);
+                g_pPhysics->AddCharacterPhyscics(GetShared(), BodyCapsuleData);
             }
         }
     }
@@ -469,11 +479,6 @@ uint32 DynamicMeshComponent::GetAnimClipNum()
     }
 
     return 0;
-}
-
-std::shared_ptr<DynamicMesh> DynamicMeshComponent::GetDynamicMesh()
-{
-	return Mesh;
 }
 
 void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTime)

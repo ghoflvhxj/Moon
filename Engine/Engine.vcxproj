@@ -45,6 +45,7 @@
     <ClCompile Include="Source\Module\Physics\CapsuleBody.cpp" />
     <ClCompile Include="Source\Module\Physics\CharacterPhysics.cpp" />
     <ClCompile Include="Source\Module\Physics\Jolt.cpp" />
+    <ClCompile Include="Source\Module\Physics\Physics.cpp" />
     <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass.cpp" />
     <ClCompile Include="World.cpp" />
     <ClCompile Include="MainGameSetting.cpp" />
@@ -65,7 +66,6 @@
     <ClCompile Include="Source\Core\Asset.cpp" />
     <ClCompile Include="Source\Core\FileSystem.cpp" />
     <ClCompile Include="Source\Core\Object.cpp" />
-    <ClCompile Include="Source\Core\Physics\Physics.cpp" />
     <ClCompile Include="Source\Core\Reflection\Reflection.cpp" />
     <ClCompile Include="Source\Core\Reflection\TypeDesc.cpp" />
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
@@ -129,6 +129,8 @@
     <ClInclude Include="Source\Module\Physics\CapsuleBody.h" />
     <ClInclude Include="Source\Module\Physics\CharacterPhysics.h" />
     <ClInclude Include="Source\Module\Physics\Jolt.h" />
+    <ClInclude Include="Source\Module\Physics\Physics.h" />
+    <ClInclude Include="Source\Module\Physics\PhysicsEnum.h" />
     <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass.h" />
     <ClInclude Include="Source\Utility\PerformanceTimer.h" />
     <ClInclude Include="World.h" />
@@ -155,7 +157,6 @@
     <ClInclude Include="Source\Core\Delegate.h" />
     <ClInclude Include="Source\Core\FileSystem.h" />
     <ClInclude Include="Source\Core\Object.h" />
-    <ClInclude Include="Source\Core\Physics\Physics.h" />
     <ClInclude Include="Source\Core\Reflection\Property\ContainerProperty.h" />
     <ClInclude Include="Source\Core\Reflection\Property\FundamentaProperty.h" />
     <ClInclude Include="Source\Core\Reflection\Property\Property.h" />

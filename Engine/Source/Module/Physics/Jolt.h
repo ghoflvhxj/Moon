@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "include.h"
-#include "Core/Physics/Physics.h"
+#include "Physics.h"
 
 #include "Jolt/Jolt.h"
 #include "Jolt/Core/Reference.h"
@@ -101,7 +101,7 @@ public:
     JPH::EMotionType ConvertPhysicsType(EPhysicsType InType);
 public:
     virtual void AddCloth(FBodyConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
-    virtual void AddCharacterBody(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData);
+    virtual void AddCharacterPhyscics(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData) override;
 protected:
     std::vector<std::shared_ptr<class MCapsuleBody>> CapsuleBodies;
 

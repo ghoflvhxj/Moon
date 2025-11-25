@@ -6,7 +6,7 @@
 // 리플렉션 등록에 필요함
 #include "Material.h"
 #include "Mesh/Mesh.h"
-#include "Core/Physics/Physics.h"
+#include "Module/Physics/Physics.h"
 
 class MFBXLoader;
 class MBoundingBox;

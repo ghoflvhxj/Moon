@@ -7,8 +7,8 @@
 // 리플렉션을 위한 include
 #include "SceneComponent.h"
 
-class Component;
-class SceneComponent;
+class MComponent;
+class MSceneComponent;
 class MPrimitiveComponent;
 class MWorld;
 
@@ -39,11 +39,11 @@ public:
     void SetWorldTranslation(const Vec3& InTrans);
 
 public:
-    std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>& GetComponents() { return _components; }
-	std::shared_ptr<SceneComponent>&	getComponent(const wchar_t componentName[]);
-	const bool							AddComponent(const wchar_t componentName[], std::shared_ptr<SceneComponent> InComponent);
+    std::unordered_map<std::wstring, std::shared_ptr<MSceneComponent>>& GetComponents() { return _components; }
+	std::shared_ptr<MSceneComponent>&	getComponent(const wchar_t componentName[]);
+	const bool							AddComponent(const wchar_t componentName[], std::shared_ptr<MSceneComponent> InComponent);
 protected:
-	std::unordered_map<std::wstring, std::shared_ptr<SceneComponent>>	_components;
+	std::unordered_map<std::wstring, std::shared_ptr<MSceneComponent>>	_components;
 
     REFLECT(
         MActor

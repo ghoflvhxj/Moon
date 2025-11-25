@@ -1,26 +1,26 @@
 ﻿#include "Include.h"
 #include "Component.h"
 
-Component::Component()
+MComponent::MComponent()
 {
 }
 
 
-Component::~Component()
+MComponent::~MComponent()
 {
 }
 
-void Component::BeginPlay()
+void MComponent::BeginPlay()
 {
     GetBeganPlay().Broadcast();
 }
 
-void Component::setOwningActor(std::shared_ptr<MActor> &actor)
+void MComponent::setOwningActor(std::shared_ptr<MActor> &actor)
 {
 	_pOwningActor = actor;
 }
 
-std::shared_ptr<MActor> Component::getOwningActor() const
+std::shared_ptr<MActor> MComponent::getOwningActor() const
 {
 	return _pOwningActor.lock();
 }

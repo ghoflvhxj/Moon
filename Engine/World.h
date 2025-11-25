@@ -4,7 +4,7 @@
 #include "Core/Delegate.h"
 #include "Core/Object.h"
 
-#include "Core/Physics/PhysicsEnum.h"
+#include "Module/Physics/PhysicsEnum.h"
 
 // 리플렉션을 위한 include
 #include "Actor.h"
