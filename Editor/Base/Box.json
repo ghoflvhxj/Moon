@@ -1,4 +1,11 @@
 {
+    "StaticMesh": {
+        "Physics": {
+            "MAsset": {
+                "Path": "Base\\Box.physics"
+            }
+        }
+    },
     "MMesh": {
         "MeshDatas": {
             "0": {
@@ -1126,7 +1133,6 @@
         },
         "Materials": {
             "0": {
-                "MMaterial" : {},
                 "MAsset": {
                     "Path": "Base\\DefulatMaterial.json"
                 }
@@ -1135,13 +1141,7 @@
         "UsedMaterialIndices": {
             "0": 0
         },
-        "ClothData": {},
-        "Physics": {
-            "MPhysics" : {},
-            "MAsset": {
-                "Path": "Base\\Box.physics"
-            }
-        }
+        "ClothDatas": {}
     },
     "MAsset": {
         "Path": "Base\\Box.json"
