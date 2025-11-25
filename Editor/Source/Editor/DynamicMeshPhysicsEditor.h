@@ -13,7 +13,10 @@ public:
 
 public:
     virtual void Test() override;
-    virtual void Render() override;
+    virtual void Update() override;
+
+public:
+    virtual void SetAsset(std::shared_ptr<MAsset>& InAsset) override;
 
 public:
     std::shared_ptr<MDynamicMeshPhysics> GetDynamicMeshPhysics() { return std::static_pointer_cast<MDynamicMeshPhysics>(Asset);  }

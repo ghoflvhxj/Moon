@@ -69,8 +69,6 @@ void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
         if (auto DA = CreateActor<MDynamicMeshActor>(W))
         {
             DA->SetDynamicMesh(InAsset->GetAssetPath());
-            DA->SetWorldTranslation({ 0.f, 0.f, 3.f });
-            DA->update(0.f);
             Target = DA;
         }
     }
@@ -80,7 +78,6 @@ void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
         {
             SA->SetStaticMesh(InAsset->GetAssetPath());
             SA->SetWorldTranslation({ 0.f, 0.f, 10.f });
-            SA->update(0.f);
             Target = SA;
         }
     }
@@ -89,7 +86,6 @@ void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
         if (auto SA = CreateActor<MStaticMeshActor>(W))
         {
             SA->SetStaticMesh(TEXT("Base/Sphere.json"));
-            SA->update(0.f);
             SA->GetStaticMeshCompoent()->SetMaterial(0, Asset->CastTo<MMaterial>());
             Target = SA;
         }
@@ -100,6 +96,11 @@ void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
 
 void MAssetEditor::Update()
 {
+    if (Target == nullptr)
+    {
+        return;
+    }
+
     if (W->IsMouseInViewport() && W->IsForegorund())
     {
         if (auto RootComponent = Target->getComponent(ROOT_COMPONENT))
@@ -111,8 +112,6 @@ void MAssetEditor::Update()
                 if (bControl)
                 {
                     Vec3 DeltaMousePos = { CurrentMouesPos.x - PrevMousePos.x, CurrentMouesPos.y - PrevMousePos.y, 0.f };
-                    //XMStoreFloat3(&DeltaMousePos, XMVector3TransformCoord(XMLoadFloat3(&DeltaMousePos), XMLoadFloat4x4(&RotMat)));
-
                     RootComponent->AddRotation({ DeltaMousePos.y / 20.f, DeltaMousePos.x / 20.f, 0.f });
                 }
                 else
@@ -122,11 +121,6 @@ void MAssetEditor::Update()
                 }
 
                 PrevMousePos = CurrentMouesPos;
-
-                //Vec3 Forward = CameraComponent->GetForward();
-                //Vec3 NewPos = {};
-                //XMStoreFloat3(&NewPos, XMLoadFloat3(&Forward) * 2.f);
-                //CameraComponent->setTranslation(NewPos);
             }
             else
             {
@@ -136,7 +130,39 @@ void MAssetEditor::Update()
         }
     }
 
-    //Light->getComponent(ROOT_COMPONENT)->AddRotation({ 0.05f, 0.f, 0.f });
+    if (auto DynamicMeshComp = Target->getComponent(ROOT_COMPONENT)->CastTo<DynamicMeshComponent>())
+    {
+        // 본 축 표시
+        if (SelectedJointIndex != -1)
+        {
+            const Mat4 JointMat = DynamicMeshComp->GetJointMatrix(SelectedJointIndex);
+            Vec3 Trans = {}, Rot = {}, Scale = {};
+            DecomposeTransform(JointMat, Scale, Rot, Trans);
+            getRenderer()->DrawCoordinate(W.get(), Trans, Rot);
+        }
+
+        if (auto Physics = DynamicMeshComp->GetDynamicMesh()->GetPhysics())
+        {
+            if (std::shared_ptr< MDynamicMeshPhysics> DynamicMeshPhysics = Physics->CastTo<MDynamicMeshPhysics>())
+            {
+                for (FBodyCapsuleData& BodyCapsule : DynamicMeshPhysics->GetCapsules())
+                {
+                    const Mat4 JointMat = DynamicMeshComp->GetJointMatrix(BodyCapsule.AttachJointIndex);
+                    Vec3 S, R, T;
+                    DecomposeTransform(JointMat, S, R, T);
+
+                    GetRenderer()->DrawCapsule(W.get(), BodyCapsule.GetRadius(), BodyCapsule.GetHalfHeight(), T, R);
+                }
+            }
+
+        }
+
+    }
+
+    //Vec3 Forward = CameraComponent->GetForward();
+    //Vec3 NewPos = {};
+    //XMStoreFloat3(&NewPos, XMLoadFloat3(&Forward) * 2.f);
+    //CameraComponent->setTranslation(NewPos);
 
     if (bOpen == false)
     {
@@ -274,24 +300,4 @@ void MAssetEditor::HandleSkeleton(MSkeleton* InSkeleton, std::function<void(uint
     };
 
     DrawTree(-1);
-
-    // 본 축 표시
-    if (auto DynamicMeshComp = AssetOwningObject->CastTo<DynamicMeshComponent>())
-    {
-        if (SelectedJointIndex != -1)
-        {
-            const Mat4 Matrix = DynamicMeshComp->GetJointMatrix(SelectedJointIndex);
-            Vec3 Pos = {}, Rot = {}, Scale = {};
-            DecomposeTransform(Matrix, Scale, Rot, Pos);
-            getRenderer()->DrawCoordinate(W.get(), Pos, Rot, {0.3f, 0.3f, 0.3f});
-        }
-    }
-    else if (auto _DynamicMesh = AssetOwningObject->CastTo<DynamicMesh>())
-    {
-        const FJoint& Joint = _DynamicMesh->GetJoint(SelectedJointIndex);
-        //Vec3 Trans = { -Joint.Position.x / Joint.Scale.x, -Joint.Position.y / Joint.Scale.y, -Joint.Position.z / Joint.Scale.z };
-        Vec3 Trans = { -Joint.Position.x / 3.54f, -Joint.Position.y / 3.54f, -Joint.Position.z / 3.54f };
-        Vec3 Rot = ToRadian(Joint.Rotation);
-        getRenderer()->DrawCoordinate(W.get(), Trans, Rot, { 0.3f, 0.3f, 0.3f });
-    }
 }

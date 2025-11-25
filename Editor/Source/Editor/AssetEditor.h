@@ -23,7 +23,7 @@ protected:
     virtual void Test();
 
 public:
-	void SetAsset(std::shared_ptr<MAsset>& InAsset);
+	virtual void SetAsset(std::shared_ptr<MAsset>& InAsset);
 protected:
 	const FTypeDesc* AssetTypeDesc = nullptr;
 	std::shared_ptr<MAsset> Asset = nullptr;

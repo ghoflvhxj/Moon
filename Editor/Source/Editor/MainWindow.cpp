@@ -164,7 +164,7 @@ void MEditorMainWindow::ImGuiRender()
         ImGui::Indent(20);
         if (ImGui::Button("Play"))
         {
-            //World->PlayGame();
+            GetMainWorld()->PlayGame();
         }
         ImGui::Indent(-20);
     }

@@ -3,10 +3,12 @@
 #include "MoonEngine.h"
 #include "GraphicDevice.h"
 #include "Module/Physics/CharacterPhysics.h"
-
 #include "Renderer.h" // TODO Module/Rendering/Renderer.h
 
+#include "Actor.h"
+#include "DynamicMeshComponent.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
+#include "GameFramework/DynamicMeshActor/DynamicMeshActor.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -30,6 +32,8 @@ MDynamicMeshPhysicsEditor::~MDynamicMeshPhysicsEditor()
 
 void MDynamicMeshPhysicsEditor::Test()
 {
+    MAssetEditor::Test();
+
     std::vector<FBodyCapsuleData>& BodyCapsules = GetDynamicMeshPhysics()->GetCapsules();
 
     HandleSkeleton(dynamicMesh->GetSkeleton().get(), [&](uint32 InJointIndex) {
@@ -44,19 +48,33 @@ void MDynamicMeshPhysicsEditor::Test()
     });
 }
 
-void MDynamicMeshPhysicsEditor::Render()
+void MDynamicMeshPhysicsEditor::Update()
 {
-    std::vector<FBodyCapsuleData>& BodyCapsules = GetDynamicMeshPhysics()->GetCapsules();
+    //std::vector<FBodyCapsuleData>& BodyCapsules = GetDynamicMeshPhysics()->GetCapsules();
+    //auto DynamicMeshComp = Target->getComponent(ROOT_COMPONENT)->CastTo<DynamicMeshComponent>();
 
-    for (FBodyCapsuleData& BodyCapsule : BodyCapsules)
+
+    //for (FBodyCapsuleData& BodyCapsule : BodyCapsules)
     {
-        //GetRenderer()->DrawCapsule(BodyCapsule.GetRadius(), BodyCapsule.GetHalfHeight());
+        //const Mat4 JointMat = DynamicMeshComp->GetJointMatrix(BodyCapsule.AttachJointIndex);
+        //Vec3 S, R, T;
+        //DecomposeTransform(JointMat, S, R, T);
+
+        //GetRenderer()->DrawCapsule(W.get(), BodyCapsule.GetRadius(), BodyCapsule.GetHalfHeight(), T, R);
 
         //const FJoint& AttachedJoint = dynamicMesh->GetJoint(BodyCapsule.AttachJointIndex);
-
         //Vec4 Quat = {};
         //XMStoreFloat4(&Quat, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&AttachedJoint.Rotation)));
-
-        //GetRenderer()->UpdatePrimitiveTransform(0, AttachedJoint.Position, Quat, VEC3ONE);
     }
+}
+
+void MDynamicMeshPhysicsEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
+{
+    MAssetEditor::SetAsset(InAsset);
+
+    //if (auto DA = CreateActor<MDynamicMeshActor>(W))
+    //{
+    //    DA->SetDynamicMesh(InAsset->GetAssetPath());
+    //    Target = DA;
+    //}
 }
