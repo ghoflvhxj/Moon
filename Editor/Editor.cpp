@@ -314,6 +314,8 @@ void MEditor::Update()
                 }
             }
 
+            GizmoTargetComp->getOwningActor()->update(0.f);
+
             XMStoreFloat3(&Prev, HitPos);
         }
     }
@@ -880,7 +882,8 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
 
                         // Asset 부분만 불러와 Path를 세팅하도록
                         std::shared_ptr<MAsset> NewAsset = g_ResourceManager->Load(FileName, Prop->TypeDesc);
-                        static_cast<FFundamentalPropertyDesc<MAsset>*>(Prop)->Set(InObject, NewAsset);
+                        void* Temp = &NewAsset;
+                        Prop->SetAsVoid(InObject, Temp);
                     }
                 }
                 ImGui::PopID();

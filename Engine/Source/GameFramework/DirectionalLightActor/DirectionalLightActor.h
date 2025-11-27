@@ -3,6 +3,8 @@
 #include "Include.h"
 #include "Actor.h"
 
+#include "DirectionalLightComponent.h"
+
 class MDirectionalLightComponent;
 class MBillboardComponent;
 
@@ -15,5 +17,8 @@ protected:
     std::shared_ptr<MDirectionalLightComponent> LightComponent = nullptr;
     std::shared_ptr<MBillboardComponent> VisualComponent = nullptr;
 
-    REFLECT(MDirectionalLightActor)
+    REFLECT(
+        MDirectionalLightActor
+        , PROPERTY(LightComponent)
+    )
 };

@@ -9,22 +9,22 @@ FPropertyDesc*을 FFundamentalPropertyDesc*<type> 으로 변환하여 Get, Set �
 #include <iostream>
 #include "Property.h"
 
-template <class T>
-struct FFundamentalPropertyInterface
-{
-public:
-    // 값이면 Property Getter가 레퍼런스 타입을 반환하도록
-    using PropType = std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<T>>;
-    using ElemType = std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, T>;
-public:
+//template <class T>
+//struct FFundamentalPropertyInterface
+//{
+//public:
+//    // 값이면 Property Getter가 레퍼런스 타입을 반환하도록
+//    using PropType = std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<T>>;
+//    using ElemType = std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, T>;
+//public:
+//
+//    // Setter
+//    virtual void Set(void* InObject, const T& InT) = 0;
+//    virtual void Set(void* InObject, std::shared_ptr<ElemType> InT) {}
+//};
 
-    // Setter
-    virtual void Set(void* InObject, const T& InT) = 0;
-    virtual void Set(void* InObject, std::shared_ptr<ElemType> InT) {}
-};
-
 template <class T>
-struct FFundamentalPropertyDesc : public FPropertyDesc, public FFundamentalPropertyInterface<T>
+struct FFundamentalPropertyDesc : public FPropertyDesc//, public FFundamentalPropertyInterface<T>
 {
     // 캐스팅 용 Wrapper
 };
@@ -72,39 +72,6 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
 
         // 델리게이트
         std::function<void(Owner* InObject)> Func;
-
-  //      virtual PropType Get(const void* InObject) override
-  //      {
-  //          if constexpr (std::is_array_v<MemType>)
-  //          {
-  //              return ((Owner*)InObject->*TestMemPtr);
-  //          }
-  //          else if constexpr (is_smart_ptr_v<MemType>)
-  //          {
-  //              return ((Owner*)InObject->*TestMemPtr).get();
-  //          }
-  //          else
-  //          {
-  //              return ((Owner*)InObject->*TestMemPtr);
-  //          }
-  //      }
-
-  //      // 타입이 지정된 Getter
-		//virtual ElemType& Get(const void* InObject, size_t InIndex = 0) override
-		//{
-  //          if constexpr (std::is_array_v<MemType>)
-  //          {
-  //              return ((Owner*)InObject->*TestMemPtr)[InIndex];
-  //          }
-  //          else if constexpr (is_smart_ptr_v<MemType>)
-  //          {
-  //              return *((Owner*)InObject->*TestMemPtr).get();
-  //          }
-  //          else
-  //          {
-  //              return ((Owner*)InObject->*TestMemPtr);
-  //          }
-		//}
 
         // 부모 클래스 주석 참고
         virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
@@ -164,35 +131,6 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
                 delete Ptr;
                 InData = nullptr;
             }
-        }
-
-        virtual void Set(void* InObject, const ImpleType& InT) override
-        {
-            if constexpr (std::is_array_v<MemType>)
-            {
-                // DoNothing
-            }
-            else if constexpr (is_smart_ptr_v<MemType>)
-            {
-                ((Owner*)InObject->*TestMemPtr).reset(InT);
-            }
-            else
-            {
-                ((Owner*)InObject->*TestMemPtr) = InT;
-            }
-
-            if (Func)
-            {
-                Func((Owner*)InObject);
-            }
-        }
-
-        virtual void Set(void* InObject, std::shared_ptr<ElemType> InT) override
-        {
-            if constexpr (is_smart_ptr_v<MemType>)
-            {
-                ((Owner*)InObject->*TestMemPtr) = InT;
-            }
 
             if (Func)
             {
@@ -204,11 +142,11 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
         {
             if constexpr (is_smart_ptr_v<MemType>)
             {
-                ((Owner*)InObject->*TestMemPtr) = std::make_shared<ElemType>();
+                //((Owner*)InObject->*TestMemPtr) = std::make_shared<ElemType>();
             }
             else if constexpr (std::is_pointer_v<MemType>)
             {
-                ((Owner*)InObject->*TestMemPtr) = new MemType;
+                //((Owner*)InObject->*TestMemPtr) = new MemType;
             }
             else
             {
@@ -225,7 +163,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
 	NewDesc->Size = sizeof(Type);
 	NewDesc->Num = std::is_array_v<MemType> ? sizeof(MemType) / sizeof(Type) : 1;
 	NewDesc->Offset = OffsetOf(MemPtr);
-    NewDesc->bSharedValue = is_smart_ptr_v<MemType>;
+    NewDesc->bSharedPtr = is_smart_ptr_v<MemType>;
 
     SetType<ElemType>(NewDesc->Type, NewDesc->TypeDesc);
 

@@ -120,7 +120,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
 
                 Vector[InIndex] = Value;
 
-                if (bSharedValue == false)
+                if (bSharedPtr == false)
                 {
                     delete ValuePtr;
                     InData = nullptr;
@@ -175,7 +175,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
     NewDesc->Size = sizeof(PureType);
     NewDesc->ContainerType = EContainerType::Vector;
     NewDesc->ContainerKeyType = EType::Int;
-    NewDesc->bSharedValue = is_smart_ptr_v<ElemType>;
+    NewDesc->bSharedPtr = is_smart_ptr_v<ElemType>;
 
     SetType<PureType>(NewDesc->Type, NewDesc->TypeDesc);
 

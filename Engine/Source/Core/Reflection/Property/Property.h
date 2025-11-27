@@ -25,16 +25,12 @@ struct FPropertyDesc
 	// 프로퍼티가 vector, map 같은 컨테이너 인지?
     EContainerType ContainerType = EContainerType::None;
 
-	// 프로퍼티가 shared_ptr 저장하는지?
-    bool bSharedValue = false;
+	// 프로퍼티가 shared_ptr 인지?
+    bool bSharedPtr = false;
 
     // 이 프로퍼티의 TypeDesc. 컨테이너인 경우는 요소의 TypeDesc.
 	const FTypeDesc* TypeDesc = nullptr;
 	EType Type = EType::None;
-
-	// 이 프로퍼티가 저장한 항목들의 타입 정보
-	// ex) vector<A*> = { A, B, ... } 같이 다형성으로 인해 항목들이 정보가 다를 수 있음.
-	// std::vector<const FTypeDesc*> ElementsDesc;
 
 public:
     virtual ~FPropertyDesc() = default;

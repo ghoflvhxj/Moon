@@ -116,7 +116,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
                 ElemType* ValuePtr = static_cast<ElemType*>(InData);
                 Value = *ValuePtr;
 
-                if (bSharedValue == false)
+                if (bSharedPtr == false)
                 {
                     delete ValuePtr;
                     InData = nullptr;
@@ -147,7 +147,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
     NewDesc->Name = InName;
     NewDesc->Size = sizeof(PureType);
     NewDesc->ContainerType = EContainerType::Unordered_map;
-    NewDesc->bSharedValue = is_smart_ptr_v<ElemType>;
+    NewDesc->bSharedPtr = is_smart_ptr_v<ElemType>;
 
     SetType<KeyType>(NewDesc->ContainerKeyType, NewDesc->KeyTypeDesc);
     SetType<PureType>(NewDesc->Type, NewDesc->TypeDesc);

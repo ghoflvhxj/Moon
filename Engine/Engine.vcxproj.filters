@@ -514,6 +514,12 @@
     <ClInclude Include="Source\Module\Physics\PhysicsEnum.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Core\Reflection\Property\VectorProperty.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Reflection\Property\MapProperty.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Bone.hlsl" />

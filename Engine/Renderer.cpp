@@ -529,7 +529,7 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
         {
             if (auto& World = Owner->CastTo<MWorld>())
             {
-                Scenes[World->GetID()]->AddPrimitiveComponent(InPrimitiveComponent, Mesh);
+                Scenes[World->GetID()]->AddPrimitiveComponent(InPrimitiveComponent.get(), Mesh);
             }
         }
     }
@@ -1137,7 +1137,7 @@ void MScene::MakeCoordinatePrimitives()
     */
 }
 
-void MScene::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimitiveComponent, std::shared_ptr<MMesh>& InMesh)
+void MScene::AddPrimitiveComponent(MPrimitiveComponent* InPrimitiveComponent, std::shared_ptr<MMesh>& InMesh)
 {
     if (InPrimitiveComponent == nullptr)
     {
@@ -1145,13 +1145,13 @@ void MScene::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent>& InPrimi
     }
 
     uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
-    PrimitiveComponents[PrimitiveID] = InPrimitiveComponent;
+    //PrimitiveComponents[PrimitiveID] = InPrimitiveComponent;
 
     GetPrimitiveDataFromComponent(InPrimitiveComponent, InMesh);
     InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &MScene::UpdatePrimtiveData);
 }
 
-void MScene::GetPrimitiveDataFromComponent(std::shared_ptr<MPrimitiveComponent> InComponent, std::shared_ptr<MMesh>& InMesh)
+void MScene::GetPrimitiveDataFromComponent(MPrimitiveComponent* InComponent, std::shared_ptr<MMesh>& InMesh)
 {
     if (InComponent == nullptr)
     {
@@ -1210,7 +1210,7 @@ void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh)
     }
 }
 
-void MScene::UpdatePrimtiveData(std::shared_ptr<MPrimitiveComponent> InComponent)
+void MScene::UpdatePrimtiveData(MPrimitiveComponent* InComponent)
 {
     auto& Iter = PrimitiveDatas.find(InComponent->GetPrimitiveID());
     if (Iter != PrimitiveDatas.end())

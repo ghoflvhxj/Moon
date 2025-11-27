@@ -142,8 +142,8 @@ void StaticMeshComponent::SetMesh(const std::wstring& InPath)
 
     Materials = Mesh->getMaterials();
 
-    OnMeshChangedDelegate.Broadcast(GetShared());
-    OnPrimitiveChangedDelegate.Broadcast(GetShared());
+    OnMeshChangedDelegate.Broadcast(this);
+    OnPrimitiveChangedDelegate.Broadcast(this);
 }
 
 void StaticMeshComponent::Temp(float y)

@@ -17,7 +17,7 @@ struct FTypeDesc
 {
 	const FTypeDesc* Parent = nullptr;
 	std::string Name;
-	size_t Size;
+	size_t Size = 0;
 
     // 멤버 정의를 담음
 	std::vector<FPropertyDesc*> Properties;

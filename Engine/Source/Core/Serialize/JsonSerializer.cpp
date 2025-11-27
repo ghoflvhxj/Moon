@@ -56,7 +56,7 @@ rapidjson::Value MJsonSerializer::DispatchStruct(const FTypeDesc* InTypeDesc, co
             }
             else
             {
-                OutValue.AddMember(PropNameValue, HandleData(Prop->TypeDesc, Prop->GetAsVoid(InData), Prop->bSharedValue), Allocator);
+                OutValue.AddMember(PropNameValue, HandleData(Prop->TypeDesc, Prop->GetAsVoid(InData), Prop->bSharedPtr), Allocator);
             }
         }
     }
@@ -81,43 +81,9 @@ rapidjson::Value MJsonSerializer::DispatchVector(FVectorPropertyDesc* InContaine
         }
         else
         {
-            OutValue.AddMember(ToJsonValue(std::to_string(i)), HandleData(InContainerPropDesc->TypeDesc, InContainerPropDesc->Get(InData, i), InContainerPropDesc->bSharedValue), Allocator);
+            OutValue.AddMember(ToJsonValue(std::to_string(i)), HandleData(InContainerPropDesc->TypeDesc, InContainerPropDesc->Get(InData, i), InContainerPropDesc->bSharedPtr), Allocator);
         }
     }
-
- //   {
- //       for (size_t i = 0; i < Num; ++i)
- //       {
- //           const void* Data = InContainerPropDesc->Get(InData, i);
- //           rapidjson::Value IndexValue = ToJsonValue(std::to_string(i));
-
- //           if (InContainerPropDesc->IsA<MAsset>())
- //           {
- //               rapidjson::Value AssetValue(kObjectType);
-
- //               std::shared_ptr<MAsset> Asset = *static_cast<const std::shared_ptr<MAsset>*>(Data);
-
- //               AssetValue.AddMember(ToJsonValue(MAsset::GetTypeDescStatic()->Name), DispatchStruct(MAsset::GetTypeDescStatic(), Asset.get()), Allocator);
- //               OutValue.AddMember(IndexValue, AssetValue, Allocator);
- //           }
- //           else if (InContainerPropDesc->IsA<MObject>())
- //           {
- //               if (InContainerPropDesc->bSharedValue)
- //               {
- //                   std::shared_ptr<MObject> Object = *static_cast<const std::shared_ptr<MObject>*>(Data);
- //                   OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Object.get()), Allocator);
- //               }
- //               else
- //               {
- //                   OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Data), Allocator);
- //               }
- //           }
- //           else
- //           {
- //               OutValue.AddMember(IndexValue, DispatchStruct(InContainerPropDesc->TypeDesc, Data), Allocator);
- //           }
- //       }
-	//}
 
 	return OutValue;
 }
@@ -165,7 +131,7 @@ rapidjson::Value MJsonSerializer::DispatchMap(FMapPropertyDesc* InContainerPropD
             if (InContainerPropDesc->IsA<MObject>())
             {
                 const MObject* Object = nullptr;
-                if (InContainerPropDesc->bSharedValue)
+                if (InContainerPropDesc->bSharedPtr)
                 {
                     std::shared_ptr<MObject> Ptr = *static_cast<std::shared_ptr<MObject>*>(ValueData);
                     Object = Ptr.get();

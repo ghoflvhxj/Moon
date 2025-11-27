@@ -50,7 +50,7 @@ void MJsonDeserializer::PatchStruct(const FTypeDesc* InTypeDesc, void* InObject,
             }
             else
             {
-                Data = HandleData(PropValue, Prop->TypeDesc);
+                Data = HandleData(PropValue, Prop->TypeDesc, Prop->bSharedPtr);
             }
             
             if (Data != nullptr)
@@ -88,7 +88,7 @@ void MJsonDeserializer::PatchVector(FVectorPropertyDesc* InContainerPropDesc, ra
         else
         {
             //PatchStruct(InContainerPropDesc->TypeDesc, InContainerPropDesc->GetAsVoid(InObject, ), Value);
-            Data = HandleData(Value, InContainerPropDesc->TypeDesc, InContainerPropDesc->bSharedValue);
+            Data = HandleData(Value, InContainerPropDesc->TypeDesc, InContainerPropDesc->bSharedPtr);
         }
 
         InContainerPropDesc->PushBack(InObject, Data);
@@ -124,7 +124,7 @@ void MJsonDeserializer::PatchMap(FMapPropertyDesc* InContainerPropDesc, rapidjso
         }
         else
         {
-            Value = HandleData(JsonValue, InContainerPropDesc->TypeDesc, InContainerPropDesc->bSharedValue);
+            Value = HandleData(JsonValue, InContainerPropDesc->TypeDesc, InContainerPropDesc->bSharedPtr);
         }
 
         if (Key != nullptr && Value != nullptr)

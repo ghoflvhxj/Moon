@@ -9,7 +9,6 @@ MSceneComponent::MSceneComponent()
 	, Scale{ FLOAT3_ONE }
 	, Rotation{ FLOAT3_ZERO }
 	, Translation{ FLOAT3_ZERO }
-	, RelativeTranslation{ FLOAT3_ZERO }
 	, _worldMatrix(IDENTITYMATRIX)
     , InverseWorldMatrix()
 	, _bUpdateable{ false }
@@ -43,8 +42,14 @@ void MSceneComponent::Update(const Time deltaTime)
 	if (ChildComponents.size() > 0)
 	{
 		XMMATRIX ParentMatrix = XMLoadFloat4x4(&_worldMatrix);
-		for (auto ChildComponent : ChildComponents)
+		for (auto& ChildComponentWeak : ChildComponents)
 		{
+            auto& ChildComponent = ChildComponentWeak.lock();
+            if (ChildComponent == nullptr)
+            {
+                continue;
+            }
+
 			ChildComponent->Update(deltaTime, ParentMatrix);
 		}
 	}
@@ -57,7 +62,7 @@ void MSceneComponent::Update(const Time deltaTime, const XMMATRIX& ParentWorldMa
 	XMVECTOR vectors[(int)ETransform::End] = {
 		XMLoadFloat3(&Scale),
 		XMLoadFloat3(&Rotation),
-		XMLoadFloat3(&RelativeTranslation)
+		XMLoadFloat3(&Translation)
 	};
 
 	XMMATRIX matrices[(int)ETransform::End] = {
@@ -71,8 +76,14 @@ void MSceneComponent::Update(const Time deltaTime, const XMMATRIX& ParentWorldMa
 	if (ChildComponents.size() > 0)
 	{
 		XMMATRIX ParentMatrix = XMLoadFloat4x4(&_worldMatrix);
-		for (auto ChildComponent : ChildComponents)
-		{
+        for (auto& ChildComponentWeak : ChildComponents)
+        {
+            auto& ChildComponent = ChildComponentWeak.lock();
+            if (ChildComponent == nullptr)
+            {
+                continue;
+            }
+
 			ChildComponent->Update(deltaTime, ParentMatrix);
 		}
 	}
@@ -188,5 +199,5 @@ const bool MSceneComponent::isUpdateable() const
 
 void MSceneComponent::AddChildComponent(std::shared_ptr<MSceneComponent> Component)
 {
-	ChildComponents.emplace_back(Component);
+	ChildComponents.push_back(Component);
 }

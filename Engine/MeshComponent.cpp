@@ -8,7 +8,7 @@ void MMeshComponent::SetMaterial(uint32 InIndex, std::shared_ptr<MMaterial> InMa
 {
     Materials[InIndex] = InMaterial;
 
-    GetPrimitiveChangedDelegate().Broadcast(GetShared());
+    GetPrimitiveChangedDelegate().Broadcast(this);
 }
 
 void MMeshComponent::AddForce(const Vec3& InForce)

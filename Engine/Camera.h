@@ -73,7 +73,10 @@ private:
     float Far = 1000.f;
 
 private:
-	std::shared_ptr<MSceneComponent> _pSceneComponent = nullptr;
+	std::shared_ptr<MSceneComponent> SceneComp = nullptr;
 
-    REFLECT(MCamera)
+    REFLECT(
+        MCamera
+        , PROPERTY(SceneComp)
+    )
 };

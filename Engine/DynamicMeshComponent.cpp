@@ -185,8 +185,8 @@ void DynamicMeshComponent::SetMesh(const std::wstring& InPath)
 
     Materials = Mesh->getMaterials();
 
-    OnMeshChangedDelegate.Broadcast(GetShared());
-    OnPrimitiveChangedDelegate.Broadcast(GetShared());
+    OnMeshChangedDelegate.Broadcast(this);
+    OnPrimitiveChangedDelegate.Broadcast(this);
 }
 
 std::shared_ptr<MMesh> DynamicMeshComponent::GetMesh()

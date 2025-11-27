@@ -53,13 +53,13 @@ public:
 public:
     void UpdatePrimitive()
     {
-        GetPrimitiveChangedDelegate().Broadcast(GetShared());
+        GetPrimitiveChangedDelegate().Broadcast(this);
     }
 
 public:
-    FDelegate<void, std::shared_ptr<MPrimitiveComponent>>& GetPrimitiveChangedDelegate() { return OnPrimitiveChangedDelegate; }
+    FDelegate<void, MPrimitiveComponent*>& GetPrimitiveChangedDelegate() { return OnPrimitiveChangedDelegate; }
 protected:
-    FDelegate<void, std::shared_ptr<MPrimitiveComponent>> OnPrimitiveChangedDelegate;
+    FDelegate<void, MPrimitiveComponent*> OnPrimitiveChangedDelegate;
 
 public:
 	const uint32 GetPrimitiveID() const { return PrimitiveID; }

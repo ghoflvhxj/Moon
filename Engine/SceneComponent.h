@@ -36,7 +36,7 @@ public:
 	const Vec3&	getTranslation() const;
 private:
 	Vec3 Translation;
-	Vec3 RelativeTranslation;
+
 public:
 	const Vec3			GetForward() const;
 	const Vec3			getUp() const;
@@ -58,8 +58,9 @@ private:
 
 public:
 	void AddChildComponent(std::shared_ptr<MSceneComponent> Component);
+    const std::vector<std::weak_ptr<MSceneComponent>>& GetChildComponents() const { return ChildComponents; }
 private:
-	std::vector<std::shared_ptr<MSceneComponent>> ChildComponents;
+	std::vector<std::weak_ptr<MSceneComponent>> ChildComponents;
 
     REFLECT(
         MSceneComponent,

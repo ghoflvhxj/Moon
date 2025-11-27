@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Actor.h"
+#include "StaticMeshComponent.h"
 
 class StaticMeshComponent;
 
@@ -20,5 +21,8 @@ protected:
 
     void QuaternionToEuler_XYZ(Vec4 q, float& outPitch, float& outYaw, float& outRoll);
 
-    REFLECT(MStaticMeshActor)
+    REFLECT(
+        MStaticMeshActor
+        , PROPERTY(StaticMeshComp)
+    )
 };

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Actor.h"
+#include "DynamicMeshComponent.h"
 
 class DynamicMeshComponent;
 class DynamicMesh;
@@ -17,5 +18,8 @@ protected:
     std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = nullptr;
 
 public:
-    REFLECT(MDynamicMeshActor)
+    REFLECT(
+        MDynamicMeshActor
+        , PROPERTY(DynamicMeshComp)
+    )
 };

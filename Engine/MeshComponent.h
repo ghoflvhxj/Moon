@@ -30,9 +30,9 @@ public:
 public:
     virtual void SetMesh(const std::wstring& InPath) = 0;
     virtual std::shared_ptr<MMesh> GetMesh() = 0;
-    FDelegate<void, std::shared_ptr<MPrimitiveComponent>>& GetMeshChangedDelegate() { return OnMeshChangedDelegate; }
+    FDelegate<void, MPrimitiveComponent*>& GetMeshChangedDelegate() { return OnMeshChangedDelegate; }
 protected:
-    FDelegate<void, std::shared_ptr<MPrimitiveComponent>> OnMeshChangedDelegate;
+    FDelegate<void, MPrimitiveComponent*> OnMeshChangedDelegate;
 
 public:
     void SetMaterial(uint32 InIndex, std::shared_ptr<MMaterial> InMaterial);

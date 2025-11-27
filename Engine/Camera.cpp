@@ -21,7 +21,7 @@ MCamera::MCamera()
 	, _eProjection{ EProjectionType::Perspective }
 	, _eLookMode{ LookMode::To }
 	, _fov{ g_pSetting->getFov() }
-	, _pSceneComponent{ nullptr }
+	, SceneComp{ nullptr }
 {
 	initialize();
 }
@@ -33,7 +33,7 @@ MCamera::MCamera(const float fov)
 	, _eProjection{ EProjectionType::Perspective }
 	, _eLookMode{ LookMode::To }
 	, _fov{ fov }
-	, _pSceneComponent{ nullptr }
+	, SceneComp{ nullptr }
 {
 	initialize();
 }
@@ -44,15 +44,15 @@ MCamera::~MCamera()
 
 void MCamera::initialize()
 {
-	_pSceneComponent = CreateDefaultSubObject<MSceneComponent>();
-	AddComponent(ROOT_COMPONENT, _pSceneComponent);
-	_pSceneComponent->Update(0.f);
+	SceneComp = CreateDefaultSubObject<MSceneComponent>();
+	AddComponent(ROOT_COMPONENT, SceneComp);
+	SceneComp->Update(0.f);
 }
 
 void MCamera::tick(const Time deltaTime)
 {
 	// 이미 업데이트 된 컴포넌트의 정보가 필요함
-	_pSceneComponent->Update(deltaTime);
+	SceneComp->Update(deltaTime);
 
 	updateViewMatrix();
 	updateProjectionMatrix();
@@ -60,10 +60,10 @@ void MCamera::tick(const Time deltaTime)
 
 void MCamera::updateViewMatrix()
 {
-	Vec3 eye	= _pSceneComponent->getWorldTranslation();
+	Vec3 eye	= SceneComp->getWorldTranslation();
 	Vec3 at		= { 0.f, 0.f, 0.f };
 	Vec3 up		= { 0.f, 1.f, 0.f };
-	Vec3 to		= _pSceneComponent->GetForward();
+	Vec3 to		= SceneComp->GetForward();
 
 	XMMATRIX viewMatrix = XMMatrixIdentity();
 	switch (_eLookMode)
