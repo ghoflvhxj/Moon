@@ -7,7 +7,6 @@
 #include "Material.h"
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
-#include "DynamicMeshComponent.h"
 #include "Texture.h"
 #include "PointLightComponent.h"
 #include "DirectionalLightComponent.h"
@@ -17,6 +16,8 @@
 #include "FBXLoader.h"
 #include "Core/ResourceManager.h"
 #include "imgui.h"
+
+#include "Module/Physics/CapsuleComponent.h"
 
 #include "Core/Serialize/JsonSerializer.h"
 #include "Core/Serialize/JsonDeSerializer.h"
@@ -43,14 +44,15 @@ using namespace rapidjson;
 Player::Player()
 	: Super()
 {
-
     CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
     CharacterMeshComponent->SetPhysics(false);
-
     CharacterMeshComponent->SetMesh(TEXT("2B/2B.json"));
     CharacterMeshComponent->setDrawingBoundingBox(true);
-    
+    AddComponent(TEXT("CharacterMesh"), CharacterMeshComponent);
 
+    CapsuleComponent = std::make_shared<MCapsuleComponent>();
+    CapsuleComponent->AddChildComponent(CharacterMeshComponent);
+    AddComponent(ROOT_COMPONENT, CapsuleComponent);
 }
 
 Player::~Player()
@@ -62,7 +64,7 @@ void Player::BeginPlay()
     Super::BeginPlay();
 
     GetPostLoopDelegate().Add([&]() {
-        getComponent(ROOT_COMPONENT)->CastTo<DynamicMeshComponent>()->Clothing();
+        //CharacterMeshComponent->Clothing();
     });
 }
 
@@ -70,6 +72,25 @@ void Player::tick(const Time deltaTime)
 {
     Super::tick(deltaTime);
 
+    Vec3 Movement = {};
+    if (InputManager::keyPress(DIK_T))
+    {
+        Movement.z += 3.f;
+    }
+    if (InputManager::keyPress(DIK_G))
+    {
+        Movement.z -= 3.f;
+    }
+    if (InputManager::keyPress(DIK_F))
+    {
+        Movement.x -= 3.f;
+    }
+    if (InputManager::keyPress(DIK_H))
+    {
+        Movement.x += 3.f;
+    }
+
+    getComponent(ROOT_COMPONENT)->CastTo<MCapsuleComponent>()->AddMove(Movement);
 }
 
 void Player::JsonSaveTest(bool bPretty)
