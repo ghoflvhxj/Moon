@@ -17,8 +17,11 @@
 #include "Jolt/Physics/SoftBody/SoftBodyMotionProperties.h"
 #include "Jolt/Physics/SoftBody/SoftBodyShape.h"
 #include "Jolt/Physics/Constraints/FixedConstraint.h"
+#include "Jolt/Physics/Character/Character.h"
+#include "Jolt/Physics/Character/CharacterVirtual.h"
 #include "Jolt/ObjectStream/ObjectStreamTextOut.h"
 #include "Jolt/ObjectStream/ObjectStreamTextIn.h"
+
 
 #include "MoonEngine.h"
 #include "World.h"
@@ -33,7 +36,7 @@
 #include "Core/FileSystem.h"
 #include <DirectXMath.h>
 
-
+#include "Module/Physics/CapsuleComponent.h"
 #include "Module/Physics/CapsuleBody.h"
 
 using namespace JPH;
@@ -375,21 +378,24 @@ void MJoltPhysics::StartSimulate()
         ObjectStreamTextIn StreamIn = JPH::ObjectStreamTextIn(ss);
         StreamIn.sReadObject(Path.c_str(), ShapeSetting);
 
-        ::Vec3 CompPos = MeshComp->getWorldTranslation();
-        ::Vec3 CompRot = MeshComp->getRotation();
+        if (ShapeSetting == nullptr)
+        {
+            continue;
+        }
 
         Ref<Shape> NewShape = ShapeSetting->Create().Get();
-        JPH::Vec3 Pos = ToJPHPos(CompPos);
-        JPH::Quat Rot = DXAngleToJPHQuat(CompRot);
+        JPH::Vec3 Pos = ToJPHPos(MeshComp->getWorldTranslation());
+        JPH::Quat Rot = DXAngleToJPHQuat(MeshComp->getRotation());
         EMotionType MotionType = ConvertPhysicsType(MeshComp->GetPhysicsType());
         ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
 
         BodyCreationSettings BodyCreationSetting = BodyCreationSettings(NewShape, Pos, Rot, MotionType, Layer);
+        BodyCreationSetting.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+        BodyCreationSetting.mMassPropertiesOverride.mMass = 1.f;
 
         if (MeshShapeSettings* MeshShapeSetting = DynamicCast<MeshShapeSettings>(ShapeSetting))
         {
-            BodyCreationSetting.mOverrideMassProperties = JPH::EOverrideMassProperties::MassAndInertiaProvided;
-            BodyCreationSetting.mMassPropertiesOverride.mMass = 1.f;
+            int a = 0;
         }
 
         EActivation Activation = EActivation::DontActivate;
@@ -493,7 +499,8 @@ void MJoltPhysics::SaveTest(std::shared_ptr<MMesh> InMesh)
     // 저장 테스트
     std::stringstream ss;
     JPH::ObjectStreamTextOut streamOut = JPH::ObjectStreamTextOut(ss);
-    streamOut.sWriteObject(Path.string().c_str(), JPH::ObjectStream::EStreamType::Text, ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)));
+    streamOut.sWriteObject(Path.string().c_str(), JPH::ObjectStream::EStreamType::Text, MakeMeshShape(InMesh->CastTo<StaticMesh>()));
+    //streamOut.sWriteObject(Path.string().c_str(), JPH::ObjectStream::EStreamType::Text, ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)));
     
     std::shared_ptr<MPhysics> NewPhysics = std::make_shared<MPhysics>();
     NewPhysics->SetAssetPath(Path);
@@ -623,37 +630,35 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
         }
     }
 
-#if SKIN == 1
     // 바인드 포즈 역행렬 ---------------------------------------------------------------------------------------------
     if (std::shared_ptr<DynamicMesh>& _DynamicMesh = InData.Mesh->CastTo<DynamicMesh>())
     {
-        //auto& Joints = _DynamicMesh->GetJoints();
-        //Mat4 MyMat = Joints[_DynamicMesh->GetJointIndex("bone001")]._globalBindPoseInverseMatrix;
+        const FJoint& Joint = _DynamicMesh->GetJoint("bone001");
+        Mat4 MyMat = Joint._globalBindPoseInverseMatrix;
 
-        //XMMATRIX XMMat = XMLoadFloat4x4(&MyMat) * XMMatrixScaling(1.f / 2.54f, 1.f / 2.54f, 1.f / 2.54f);
-        //XMStoreFloat4x4(&MyMat, XMMat);
+        // LH(X+Y+Z+) -> RH(X+Y+Z-)
+        Mat4 Temp = MyMat;
+        float s[4] = { 1.0f, 1.0f, -1.0f, 1.0f };
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                MyMat.m[i][j] = s[i] * Temp.m[i][j] * s[j];
+            }
+        }
 
-        // z축 반전
-        //Mat4 Temp = MyMat;
-        //float s[4] = { 1.0f, 1.0f, -1.0f, 1.0f };
-        //for (int i = 0; i < 4; ++i) {
-        //    for (int j = 0; j < 4; ++j) {
-        //        MyMat.m[i][j] = s[i] * Temp.m[i][j] * s[j];
-        //    }
-        //}
+        // Row Major -> Column Major
+        XMStoreFloat4x4(&MyMat, XMMatrixTranspose(XMLoadFloat4x4(&MyMat)));
 
-        //XMStoreFloat4x4(&MyMat, XMMatrixTranspose(XMLoadFloat4x4(&MyMat)));
+        Mat44 JoltMat = {
+            Vec4Arg{MyMat._11, MyMat._12, MyMat._13, MyMat._14},
+            Vec4Arg{MyMat._21, MyMat._22, MyMat._23, MyMat._24},
+            Vec4Arg{MyMat._31, MyMat._32, MyMat._33, MyMat._34},
+            Vec4Arg{MyMat._41, MyMat._42, MyMat._43, MyMat._44},
+        };
 
-        //Mat44 mat2 = {
-        //    Vec4Arg{MyMat._11, MyMat._12, MyMat._13, MyMat._14},
-        //    Vec4Arg{MyMat._21, MyMat._22, MyMat._23, MyMat._24},
-        //    Vec4Arg{MyMat._31, MyMat._32, MyMat._33, MyMat._34},
-        //    Vec4Arg{MyMat._41, MyMat._42, MyMat._43, MyMat._44},
-        //};
-
-        //NewSharedSettings->mInvBindMatrices.emplace_back(0, mat2);
+        NewSharedSettings->mInvBindMatrices.emplace_back(0, JoltMat);
     }
 
+#if SKIN == 1
     // 스키닝 제약 ---------------------------------------------------------------------------------------------
     uint32 VertexNum = GetSize(NewSharedSettings->mVertices);
     for (uint32 VertexIndex = 0; VertexIndex < VertexNum; ++VertexIndex)
@@ -673,8 +678,8 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
 
     // 바디 생성 ---------------------------------------------------------------------------------------------
     NewSharedSettings->Optimize();
-	JPH::Vec3 Pos = ToJPHPos(InData.Pos);
-	JPH::Quat Rot = DXQuatToJPHQuat(InData.Rot);
+    JPH::Vec3 Pos = JPH::Vec3::sZero();
+    JPH::Quat Rot = JPH::Quat::sIdentity();
 
     SoftBodyCreationSettings ClothCreateSetting(NewSharedSettings, Pos, Rot, Layers::MOVING);
     ClothCreateSetting.mAllowSleeping = false;
@@ -716,6 +721,35 @@ void MJoltPhysics::AddCharacterPhyscics(std::shared_ptr<DynamicMeshComponent> In
     CapsuleBodies.push_back(NewCharacterBody);
 }
 
+void MJoltPhysics::AddCharacterCollision(std::shared_ptr<MCollisionComponent> InComp, const FCapsuleData& InCapsuleData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
+{
+    JPH::Vec3 Pos = ToJPHPos(InComp->getWorldTranslation());
+    JPH::Quat RotQuat = DXAngleToJPHQuat(InComp->getRotation());
+
+    RefConst<Shape> NewCapsuleShape = MakeCapsule(InCapsuleData.HalfHeight, InCapsuleData.Radius).Create().Get();
+
+    //CharacterVirtualSettings NewCharacterVirtualSettings;
+    //NewCharacterVirtualSettings.mShape = NewCapsuleShape;
+    //CharacterVirtual* NewCharacterVirtual = new CharacterVirtual(&NewCharacterVirtualSettings, Pos, RotQuat, physics_system);
+
+    CharacterSettings NewCharacterSettings;
+    NewCharacterSettings.mLayer = Layers::MOVING;
+    NewCharacterSettings.mShape = NewCapsuleShape;
+    NewCharacterSettings.mMaxSlopeAngle = DegreesToRadians(45.0f);
+    NewCharacterSettings.mFriction = 0.5f;
+    NewCharacterSettings.mSupportingVolume = Plane(JPH::Vec3::sAxisY(), -0.3f);
+    //Character* NewCharacter = new Character(&NewCharacterSettings, Pos, RotQuat, 0, physics_system);
+    NewCharacter = new Character(&NewCharacterSettings, Pos, RotQuat, 0, physics_system);
+
+    NewCharacter->AddToPhysicsSystem(EActivation::Activate);
+
+    FBodyConstructData Data = {};
+    std::shared_ptr<MBodyObject> JoltPhysicsObject = std::make_shared<MBodyObject>(Data);
+    JoltPhysicsObject->SetBodyID(NewCharacter->GetBodyID());
+
+    OutPhysicsObject = JoltPhysicsObject;
+}
+
 void MJoltPhysics::CreateBody(RefConst<Shape> InShape, const FBodyConstructData& InData, std::shared_ptr<MBodyObject> InBodyObject)
 {
     if (InBodyObject == nullptr)
@@ -724,9 +758,8 @@ void MJoltPhysics::CreateBody(RefConst<Shape> InShape, const FBodyConstructData&
     }
 
 	BodyInterface& bodyInterface = physics_system->GetBodyInterface();
-
-	JPH::Vec3 Pos = ToJPHPos(InData.Pos);
-    JPH::Quat Rot = DXQuatToJPHQuat(InData.Rot);
+    JPH::Vec3 Pos = JPH::Vec3::sZero();
+    JPH::Quat Rot = JPH::Quat::sIdentity();
 
 	EMotionType MotionType = ConvertPhysicsType(InData.PhysicsType);
 	JPH::ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
@@ -902,7 +935,12 @@ void MJoltPhysics::Update()
                 VertexBuffer->Update(Vertices.data());
             }
         }
-    }   
+    }
+
+    if (NewCharacter)
+    {
+        NewCharacter->PostSimulation(0.05f);
+    }
 }
 
 void MJoltPhysics::Render()
@@ -965,7 +1003,7 @@ void MBodyObject::SetSimulate(bool bEnable)
 
 void MBodyObject::SetMass(float InMass)
 {
-
+    //GetPhysicsSystem()->GetBodyInterface().
 }
 
 void MBodyObject::SetPos(const ::Vec3& InPos)
@@ -1025,31 +1063,12 @@ void MBodyObject::AddForce(const ::Vec3& InForce)
 
 void MBodyObject::SetVelocity(const ::Vec3& InVelocity)
 {
-    JPH::Vec3 JPHVelociy = { InVelocity.x, InVelocity.y, InVelocity.z };
+    JPH::Vec3 JPHVelociy = { InVelocity.x, InVelocity.y, -InVelocity.z };
 
     PrevVeloc = JPHVelociy;
     Body& body = GetBody();
-    if (body.IsSoftBody())
-    {
-        if (body.GetPosition() != JPHVelociy)
-        {
-            // InvMass 0인 점들에 속도를 설정하는 방법 ---------------------------------------------------------------------------------------
-            SoftBodyMotionProperties* motionProperties = static_cast<SoftBodyMotionProperties*>(body.GetMotionProperties());
-            uint32 Num = GetSize(motionProperties->GetVertices());
-            for (uint32 i = 0; i < Num; ++i)
-            {
-                auto& Vtx = motionProperties->GetVertex(i);
-                if (Vtx.mInvMass == 0.f)
-                {
-                    Vtx.mVelocity = JPHVelociy - body.GetPosition();
-                }
-            }
-        }
-    }
-    else
-    {
-        GetPhysicsSystem()->GetBodyInterface().SetLinearVelocity(BodyIDCache, RVec3Arg(InVelocity.x, InVelocity.y, InVelocity.z));
-    }
+
+    GetPhysicsSystem()->GetBodyInterface().SetLinearVelocity(BodyIDCache, JPHVelociy);
 }
 
 void MBodyObject::SetAngularVelocity(const ::Vec3& InVelocity)

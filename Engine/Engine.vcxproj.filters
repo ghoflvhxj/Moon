@@ -232,6 +232,7 @@
     <ClCompile Include="Source\Module\Physics\Jolt.cpp" />
     <ClCompile Include="Source\Module\Physics\CharacterPhysics.cpp" />
     <ClCompile Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.cpp" />
+    <ClCompile Include="Source\Module\Physics\CapsuleComponent.cpp" />
     <ClCompile Include="Source\Module\Physics\Physics.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -506,6 +507,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Physics\CapsuleComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Module\Physics\Physics.h">

@@ -43,6 +43,7 @@
     <ClCompile Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.cpp" />
     <ClCompile Include="Source\Module\Module.cpp" />
     <ClCompile Include="Source\Module\Physics\CapsuleBody.cpp" />
+    <ClCompile Include="Source\Module\Physics\CapsuleComponent.cpp" />
     <ClCompile Include="Source\Module\Physics\CharacterPhysics.cpp" />
     <ClCompile Include="Source\Module\Physics\Jolt.cpp" />
     <ClCompile Include="Source\Module\Physics\Physics.cpp" />
@@ -129,6 +130,7 @@
     <ClInclude Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.h" />
     <ClInclude Include="Source\Module\Module.h" />
     <ClInclude Include="Source\Module\Physics\CapsuleBody.h" />
+    <ClInclude Include="Source\Module\Physics\CapsuleComponent.h" />
     <ClInclude Include="Source\Module\Physics\CharacterPhysics.h" />
     <ClInclude Include="Source\Module\Physics\Jolt.h" />
     <ClInclude Include="Source\Module\Physics\Physics.h" />

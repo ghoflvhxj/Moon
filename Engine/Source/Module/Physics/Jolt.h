@@ -14,6 +14,8 @@
 #include "Jolt/Physics/Collision/Shape/SphereShape.h"
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 
+#include "Jolt/Physics/Character/Character.h"
+
 #include "Mesh/Mesh.h"
 
 class MMeshComponent;
@@ -102,6 +104,8 @@ public:
 public:
     virtual void AddCloth(FBodyConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
     virtual void AddCharacterPhyscics(std::shared_ptr<DynamicMeshComponent> InDynamicMeshComp, FBodyCapsuleData& InBodyCapsuleData) override;
+    virtual void AddCharacterCollision(std::shared_ptr<MCollisionComponent> InComp, const FCapsuleData& InCapsuleData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
+    JPH::Character* NewCharacter = nullptr;
 protected:
     std::vector<std::shared_ptr<class MCapsuleBody>> CapsuleBodies;
 
