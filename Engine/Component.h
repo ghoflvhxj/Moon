@@ -4,6 +4,7 @@
 #include "Core/Delegate.h"
 
 class MActor;
+class MWorld;
 
 class ENGINE_DLL MComponent abstract : public MObject
 {
@@ -26,5 +27,17 @@ public:
 private:
 	std::weak_ptr<MActor> _pOwningActor;
 
-    REFLECT(MComponent);
+public:
+    void SetName(const std::wstring& InName) { Name = InName; }
+    const std::wstring& GetName() const { return Name; }
+protected:
+    std::wstring Name;
+
+public:
+    MWorld* GetWorld();
+
+    REFLECT(
+        MComponent
+        , PROPERTY(Name)
+    );
 };

@@ -10,7 +10,6 @@ public:
 
 public:
 	virtual void Update(const Time deltaTime);
-	virtual void Update(const Time deltaTime, const XMMATRIX& ParentWorldMatrix);
 	virtual void OnUpdated();
 
 public:
@@ -61,6 +60,7 @@ public:
     const std::vector<std::weak_ptr<MSceneComponent>>& GetChildComponents() const { return ChildComponents; }
 private:
 	std::vector<std::weak_ptr<MSceneComponent>> ChildComponents;
+    std::weak_ptr<MSceneComponent> ParentComponent;
 
     REFLECT(
         MSceneComponent,

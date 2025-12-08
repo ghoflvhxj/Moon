@@ -1,5 +1,8 @@
 ﻿#include "Include.h"
 #include "Component.h"
+#include "Actor.h"
+
+#include "World.h"
 
 MComponent::MComponent()
 {
@@ -23,4 +26,15 @@ void MComponent::setOwningActor(std::shared_ptr<MActor> &actor)
 std::shared_ptr<MActor> MComponent::getOwningActor() const
 {
 	return _pOwningActor.lock();
+}
+
+MWorld* MComponent::GetWorld()
+{
+    assert(getOwningActor());
+    if (auto& Owner = getOwningActor()->GetOwner())
+    {
+        return Owner->CastToShared<MWorld>().get();
+    }
+
+    return nullptr;
 }

@@ -23,70 +23,18 @@ MSceneComponent::~MSceneComponent()
 
 void MSceneComponent::Update(const Time deltaTime)
 {
-	XMVECTOR vectors[(int)ETransform::End] = {
-		XMLoadFloat3(&Scale),
-		XMLoadFloat3(&Rotation),
-		XMLoadFloat3(&Translation)
-	};
+    Mat4 ParentWorldMatrix = IDENTITYMATRIX;
+    
+    if (auto& ParentComp = ParentComponent.lock())
+    {
+        ParentComp->Update(deltaTime);
+        ParentWorldMatrix = ParentComp->getWorldMatrix();
+    }
 
-	XMMATRIX matrices[(int)ETransform::End] = {
-		XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]),
-		GetRotationMatrix(),
-		XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation])
-	};
-	
-	//XMMatrixMultiply()
-	XMStoreFloat4x4(&_worldMatrix, matrices[(int)ETransform::Scale] * matrices[(int)ETransform::Rotation] * matrices[(int)ETransform::Translation]);
+    TransformMatrix(_worldMatrix, Scale, Rotation, Translation);
+
+	XMStoreFloat4x4(&_worldMatrix, XMLoadFloat4x4(&_worldMatrix) * XMLoadFloat4x4(&ParentWorldMatrix));
     XMStoreFloat4x4(&InverseWorldMatrix, XMMatrixInverse(nullptr, XMLoadFloat4x4(&_worldMatrix)));
-
-	if (ChildComponents.size() > 0)
-	{
-		XMMATRIX ParentMatrix = XMLoadFloat4x4(&_worldMatrix);
-		for (auto& ChildComponentWeak : ChildComponents)
-		{
-            auto& ChildComponent = ChildComponentWeak.lock();
-            if (ChildComponent == nullptr)
-            {
-                continue;
-            }
-
-			ChildComponent->Update(deltaTime, ParentMatrix);
-		}
-	}
-
-	bUpdated = true;
-}
-
-void MSceneComponent::Update(const Time deltaTime, const XMMATRIX& ParentWorldMatrix)
-{
-	XMVECTOR vectors[(int)ETransform::End] = {
-		XMLoadFloat3(&Scale),
-		XMLoadFloat3(&Rotation),
-		XMLoadFloat3(&Translation)
-	};
-
-	XMMATRIX matrices[(int)ETransform::End] = {
-		XMMatrixScalingFromVector(vectors[(int)ETransform::Scale]),
-		GetRotationMatrix(),
-		XMMatrixTranslationFromVector(vectors[(int)ETransform::Translation])
-	};
-
-	XMStoreFloat4x4(&_worldMatrix, ParentWorldMatrix * matrices[(int)ETransform::Scale] * matrices[(int)ETransform::Rotation] * matrices[(int)ETransform::Translation]);
-
-	if (ChildComponents.size() > 0)
-	{
-		XMMATRIX ParentMatrix = XMLoadFloat4x4(&_worldMatrix);
-        for (auto& ChildComponentWeak : ChildComponents)
-        {
-            auto& ChildComponent = ChildComponentWeak.lock();
-            if (ChildComponent == nullptr)
-            {
-                continue;
-            }
-
-			ChildComponent->Update(deltaTime, ParentMatrix);
-		}
-	}
 
 	bUpdated = true;
 }
@@ -200,4 +148,5 @@ const bool MSceneComponent::isUpdateable() const
 void MSceneComponent::AddChildComponent(std::shared_ptr<MSceneComponent> Component)
 {
 	ChildComponents.push_back(Component);
+    Component->ParentComponent = GetShared();
 }
