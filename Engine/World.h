@@ -49,19 +49,10 @@ public:
 protected:
     uint32 ID = 0;
 
-    // 임시
 public:
-    virtual void OnLoaded() override
-    {
-        LOG(std::wstring(TEXT("World Loaded!!!")));
-
-        for (auto& [Name, Actor] : Actors)
-        {
-            Actor->SetOwner(GetShared());
-            Actor->PostConstruct();
-            Actor->update(0.f);
-        }
-    }
+    virtual void OnLoaded() override;
+    virtual std::shared_ptr<MObject> Duplicate() override;    // Map 복제를 아직 지원안해서 수동으로 작성해줘야 함
+    void DuplicateActors(const std::shared_ptr<MWorld>& InSrcWorld);
 
 public:
 	virtual const bool Initialize();
@@ -74,8 +65,9 @@ public:
 public:
     virtual void PlayGame();
     FDelegate<void>& GetGameStartedDelegate() { return OnGameStartedDelegate; }
+    bool IsHasBegan() const { return bHasBegan; }
 protected:
-    bool HasBegan = false;
+    bool bHasBegan = false;
     FDelegate<void> OnGameStartedDelegate;
 
 public:
@@ -149,9 +141,8 @@ std::shared_ptr<T> CreateActor(std::shared_ptr<MWorld> InWorld)
         return nullptr;
     }
 
-    std::shared_ptr<T> NewActor = std::make_shared<T>();
+    std::shared_ptr<T> NewActor(static_cast<T*>(CreateObject(T::GetTypeDescStatic())));
     NewActor->SetOwner(InWorld);
-    NewActor->PostConstruct();
     InWorld->addActor(NewActor);
 
     return NewActor;
@@ -174,7 +165,7 @@ inline std::shared_ptr<MActor> CreateActor(std::shared_ptr<MWorld> InWorld, cons
         return nullptr;
     }
 
-    std::shared_ptr<MActor> NewActor(static_cast<MActor*>(Create(InTypeDesc)));
+    std::shared_ptr<MActor> NewActor(static_cast<MActor*>(CreateObject(InTypeDesc)));
     NewActor->SetOwner(InWorld);
     NewActor->PostConstruct();
     InWorld->addActor(NewActor);

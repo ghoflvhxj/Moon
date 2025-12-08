@@ -430,6 +430,14 @@ void MRenderer::DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMe
     }
 }
 
+void MRenderer::Test(uint32 InPID, std::shared_ptr<MMesh> InMesh)
+{
+    for (auto& [SceneID, Scene] : Scenes)
+    {
+        Scene->UpdateBuffer(InPID, InMesh);
+    }
+}
+
 MScene* MRenderer::GetCurrentScene()
 {
     return Scenes[CurrentSceneID].get();
@@ -441,6 +449,12 @@ MScene* MRenderer::GetScene(uint32 InWorldID)
     if (Iter != Scenes.end())
     {
         return Iter->second.get();
+    }
+
+    auto& Iter2 = ScenesQueue.find(InWorldID);
+    if (Iter2 != ScenesQueue.end())
+    {
+        return Iter2->second.get();
     }
 
     return nullptr;
@@ -505,11 +519,11 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
     }
 
     std::shared_ptr<MMesh> Mesh = nullptr;
-    if (auto& MeshComp = InPrimitiveComponent->CastTo<MMeshComponent>())
+    if (auto& MeshComp = InPrimitiveComponent->CastToShared<MMeshComponent>())
     {
         Mesh = MeshComp->GetMesh();
     }
-    else if (auto& LightComp = InPrimitiveComponent->CastTo<MLightComponent>())
+    else if (auto& LightComp = InPrimitiveComponent->CastToShared<MLightComponent>())
     {
         Mesh = LightComp->GetMesh();
     }
@@ -527,9 +541,9 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
     {
         if (auto& Owner = Actor->GetOwner())
         {
-            if (auto& World = Owner->CastTo<MWorld>())
+            if (auto& World = Owner->CastToShared<MWorld>())
             {
-                Scenes[World->GetID()]->AddPrimitiveComponent(InPrimitiveComponent.get(), Mesh);
+                GetScene(World->GetID())->AddPrimitiveComponent(InPrimitiveComponent.get(), Mesh);
             }
         }
     }
@@ -777,6 +791,11 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
         return;
     }
 
+    if (InWorld->getMainCamera() == nullptr)
+    {
+        return;
+    }
+
     CurrentSceneID = InWorld->GetID();
     auto& Scene = Scenes[CurrentSceneID];
 
@@ -784,7 +803,7 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
     auto& DirectionalLightComponents = Scene->GetPrimitives(EPrimitiveType::DirectionalLight);
     if (DirectionalLightComponents.empty() == false)
     {
-        const std::shared_ptr<MLightComponent>& LightComponent = DirectionalLightComponents[0].PrimitiveComponent.lock()->CastTo<MLightComponent>();
+        const std::shared_ptr<MLightComponent>& LightComponent = DirectionalLightComponents[0].PrimitiveComponent.lock()->CastToShared<MLightComponent>();
 
         auto& Window = Scene->GetWindow();
         auto& Camera = InWorld->getMainCamera();
@@ -1034,7 +1053,7 @@ void MScene::End()
 
 std::shared_ptr<MWindow> MScene::GetWindow() const
 {
-    return GetEngine()->GetWorldBoundedWindow(GetWorld());
+    return GetEngine()->GetWorldBoundedWindow(GetWorld().get());
 }
 
 std::shared_ptr<MWorld> MScene::GetWorld() const
@@ -1219,11 +1238,11 @@ void MScene::UpdatePrimtiveData(MPrimitiveComponent* InComponent)
     }
 
     std::shared_ptr<MMesh> Mesh = nullptr;
-    if (auto& MeshComp = InComponent->CastTo<MMeshComponent>())
+    if (auto& MeshComp = InComponent->CastToShared<MMeshComponent>())
     {
         Mesh = MeshComp->GetMesh();
     }
-    else if (auto& LightComp = InComponent->CastTo<MLightComponent>())
+    else if (auto& LightComp = InComponent->CastToShared<MLightComponent>())
     {
         Mesh = LightComp->GetMesh();
     }

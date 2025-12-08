@@ -54,7 +54,7 @@ bool MWorld::Update()
         _pMainCamera->update(_deltaTime);
     }
 
-    if (HasBegan)
+    if (bHasBegan)
     {
         for (auto& [Name, Actor] : Actors)
         {
@@ -67,14 +67,14 @@ bool MWorld::Update()
 
 void MWorld::PlayGame()
 {
-    if (HasBegan)
+    if (bHasBegan)
     {
         return;
     }
 
-    if (HasBegan == false)
+    if (bHasBegan == false)
     {
-        HasBegan = true;
+        bHasBegan = true;
 
         for (auto& [Name, Actor] : Actors)
         {
@@ -92,17 +92,21 @@ void MWorld::render()
 {
 }
 
-void MWorld::addActor(std::shared_ptr<MActor> pActor)
+void MWorld::addActor(std::shared_ptr<MActor> InActor)
 {
-    const FTypeDesc* TypeDesc = pActor->GetTypeDesc();
+    const FTypeDesc* TypeDesc = InActor->GetTypeDesc();
     uint32 ActorIndex = Indexer[TypeDesc]++;
 
     std::string Name = TypeDesc->Name + "_" + std::to_string(ActorIndex);
-	Actors.emplace(Name, pActor);
+	Actors.emplace(Name, InActor);
 
-    if (HasBegan)
+    InActor->SetOwner(GetShared());
+    InActor->RegistComponents();
+    InActor->update(0.f);
+
+    if (bHasBegan)
     {
-        pActor->BeginPlay();
+        InActor->BeginPlay();
     }
 }
 
@@ -111,11 +115,61 @@ const Time MWorld::getDeltaTime() const
 	return _deltaTime;
 }
 
+void MWorld::OnLoaded()
+{
+    LOG(std::wstring(TEXT("World Loaded!!!")));
+
+    for (auto& [Name, Actor] : Actors)
+    {
+        Actor->SetOwner(GetShared());
+        Actor->RegistComponents();
+        Actor->PostConstruct();
+        Actor->update(0.f);
+    }
+}
+
+std::shared_ptr<MObject> MWorld::Duplicate()
+{
+    std::shared_ptr<MObject> DuplicatedObject = Super::Duplicate();
+
+    if (DuplicatedObject == nullptr)
+    {
+        return nullptr;
+    }
+
+    std::shared_ptr<MWorld> DuplicatedWorld = DuplicatedObject->CastToShared<MWorld>();
+    if (DuplicatedWorld == nullptr)
+    {
+        assert(false);
+    }
+
+    DuplicatedWorld->Actors.clear();
+
+    return DuplicatedObject;
+}
+
+void MWorld::DuplicateActors(const std::shared_ptr<MWorld>& InSrcWorld)
+{
+    Actors.clear();
+
+    for (auto& [Name, Actor] : InSrcWorld->Actors)
+    {
+        if (std::shared_ptr<MObject> NewObject = DuplicateObject(Actor))
+        {
+            std::shared_ptr<MActor> DuplicatedActor = NewObject->CastToShared<MActor>();
+            addActor(DuplicatedActor);
+        }
+    }
+}
+
 const bool MWorld::Initialize()
 {
-    _pMainCamera = CreateActor<MCamera>(GetShared());
-    _pMainCamera->setFov(g_pSetting->getFov());
-    _pMainCamera->setLookMode(MCamera::LookMode::To);
+    if (_pMainCamera == nullptr)
+    {
+        _pMainCamera = CreateActor<MCamera>(GetShared());
+        _pMainCamera->setFov(g_pSetting->getFov());
+        _pMainCamera->setLookMode(MCamera::LookMode::To);
+    }
 
 	return true;
 }
@@ -290,7 +344,7 @@ bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& 
 
 bool MWorld::IsForegorund() const
 {
-    if (auto& Window = GetEngine()->GetWorldBoundedWindow(GetShared()))
+    if (auto& Window = GetEngine()->GetWorldBoundedWindow(this))
     {
         return Window->IsForegorund();
     }
@@ -300,7 +354,7 @@ bool MWorld::IsForegorund() const
 
 bool MWorld::IsMouseInViewport() const
 {
-    if (auto& Window = GetEngine()->GetWorldBoundedWindow(GetShared()))
+    if (auto& Window = GetEngine()->GetWorldBoundedWindow(this))
     {
         return Window->IsMouseInViewport();
     }

@@ -6,13 +6,26 @@
 #include "TimerManager.h"
 #include "FrameManager.h"
 
+#include "Window.h"
+#include "WindowManager.h"
+#include "World.h"
+
+class MObject;
 class MWindow;
 class MWorld;
 class GraphicDevice;
 class MRenderer;
 class MPhysicsEngine;
-
 class WindowManager;
+
+#undef CreateWindow
+
+ENGINE_DLL std::shared_ptr<WindowManager>& GetWindowManager();
+
+ENGINE_DLL FDelegate<void>& GetPostLoopDelegate();
+ENGINE_DLL FDelegate<void>& GetLevelChangedDelegate();
+ENGINE_DLL FDelegate<void>& GetRenderFinishedDelegate();
+ENGINE_DLL FDelegate<void>& GetRenderStartedDelegate();
 
 struct ENGINE_DLL FWorldRenderInfo
 {
@@ -27,12 +40,29 @@ class ENGINE_DLL MEngine
     std::vector<std::shared_ptr<MModule>> Modules;
 
 public:
+    template <class T>
+    void CreateWindowAndWorld(const std::wstring& InTitle)
+    {
+        std::shared_ptr<MWindow> NewWindow = GetWindowManager()->CreateWindow<T>(InTitle, 300, 300, g_hWnd, TEXT("ShootingGame"));
+        NewWindow->Initialize();
+
+        std::shared_ptr<MWorld> NewWorld = std::make_shared<MWorld>();
+        NewWorld->Initialize();
+
+        GetPostLoopDelegate().Add([this, NewWindow, NewWorld, InTitle]() {
+            AddWorld(NewWorld, NewWindow);
+        });
+    }
+
+public:
     void WorldFunc(uint32 InIndex);
     void AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow);
     FDelegate<void, const FWorldRenderInfo&>& GetOnWorldAddedDelegate() { return OnWorldAdded; }
-    const FWorldRenderInfo& GetWorldInfo(uint32 InIndex) const { return WorldRenderInfos[InIndex]; }
-    std::shared_ptr<MWindow>& GetWorldBoundedWindow(const std::shared_ptr<const MWorld>& InWorld);
+    const FWorldRenderInfo& GetWorldInfo(int32 InIndex);
+    const std::shared_ptr<MWindow>& GetWorldBoundedWindow(const MWorld* InWorld);
     uint32 GetWorldNum() const { return GetSize(WorldRenderInfos); }
+    // 이름 뭐라할지 모루겟음. WorldRenderInfosQueue를 빼와서 WorldRenderInfos에 넣는 작업을 함
+    void UpdateTemp();
 protected:
     // 월드를 업데이트
     void UpdateWorld(uint32 InIndex);
@@ -40,7 +70,8 @@ protected:
     void RenderWorld(uint32 InIndex);
 protected:
     // 월드와 윈도우 창 바인딩 정보를 저장
-    std::vector<FWorldRenderInfo> WorldRenderInfos;
+    std::map<int32, FWorldRenderInfo> WorldRenderInfos;
+    std::map<int32, FWorldRenderInfo> WorldRenderInfosQueue;
     FDelegate<void, const FWorldRenderInfo&> OnWorldAdded;
 
 public:
@@ -137,15 +168,8 @@ ENGINE_DLL std::shared_ptr<MRenderer>& getRenderer();
 ENGINE_DLL std::shared_ptr<MWorld>& GetMainWorld();
 ENGINE_DLL std::shared_ptr<MPhysicsEngine>& GetPhysics();
 
-ENGINE_DLL std::shared_ptr<WindowManager>& GetWindowManager();
-
 ENGINE_DLL std::unique_ptr<MainGameSetting>& getSetting();
 ENGINE_DLL void SetModule(std::unique_ptr<MModule>&& pGame);
-ENGINE_DLL FDelegate<void>& GetPostLoopDelegate();
-ENGINE_DLL FDelegate<void>& GetLevelChangedDelegate();
-ENGINE_DLL FDelegate<void>& GetRenderFinishedDelegate();
-ENGINE_DLL FDelegate<void>& GetRenderStartedDelegate();
-
 
 
 template <class T>
@@ -154,6 +178,9 @@ std::shared_ptr<T> GetWorld()
     return std::static_pointer_cast<T>(GetMainWorld());
 }
 
+ENGINE_DLL std::shared_ptr<MObject> DuplicateObject(std::shared_ptr<MObject> InObject);
 void RegisterComponent(std::shared_ptr<class MComponent> InComponent);
 
 
+ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc);
+ENGINE_DLL void* CreateData(const FTypeDesc* InTypeDesc);

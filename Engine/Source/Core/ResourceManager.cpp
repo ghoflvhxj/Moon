@@ -49,7 +49,7 @@ std::shared_ptr<MAsset> MResourceManager::Load(const std::wstring& InPath, const
         LOG(Msg);
 
         // 피직스 임시
-        std::shared_ptr<MAsset> Asset(static_cast<MAsset*>(Create(InTypeDesc)));
+        std::shared_ptr<MAsset> Asset(static_cast<MAsset*>(CreateObject(InTypeDesc)));
         Asset->LoadFromDisk(Path);
         //Asset->SetAssetPath(Path); 애셋 자체에 이미 Path가 있으니 읽어오게 하면 됨
         TempCache.emplace(Path, Asset);

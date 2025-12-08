@@ -12,14 +12,29 @@ class MSceneComponent;
 class MPrimitiveComponent;
 class MWorld;
 
+struct ENGINE_DLL FAttachData
+{
+    std::wstring ParentName;
+    std::wstring ChildName;
+
+    REFLECT_TOP(
+        FAttachData
+        , PROPERTY(ParentName)
+        , PROPERTY(ChildName)
+    )
+};
+
 class ENGINE_DLL MActor : public MObject
 {
 public:
 	explicit MActor();
 	virtual ~MActor();
 
-    // 생성자 호출 후 처리할 작업
-    void PostConstruct();
+    virtual void PostConstruct() override;
+    virtual void OnLoaded() override; 
+    virtual void OnDuplicated(MObject* SrcObject) override;
+
+    void RegistComponents();
 
 public:
     virtual void BeginPlay();
@@ -28,6 +43,9 @@ public:
 protected:
     FDelegate<void, std::shared_ptr<MActor>> OnBeganPlayDelegate;
     bool bHasBegan = false;
+
+public:
+    MWorld* GetWorld();
 
 public:
 	void update(const Time deltaTime);
@@ -39,14 +57,17 @@ public:
     void SetWorldTranslation(const Vec3& InTrans);
 
 public:
-    std::unordered_map<std::wstring, std::shared_ptr<MSceneComponent>>& GetComponents() { return _components; }
-	std::shared_ptr<MSceneComponent>&	getComponent(const wchar_t componentName[]);
-	const bool							AddComponent(const wchar_t componentName[], std::shared_ptr<MSceneComponent> InComponent);
+    std::unordered_map<std::wstring, std::shared_ptr<MSceneComponent>>& GetComponents() { return SceneComponents; }
+    std::shared_ptr<MSceneComponent>& getComponent(const wchar_t componentName[]);
+    std::shared_ptr<MSceneComponent>& getComponent(const std::wstring& InName);
+    bool AddComponent(const std::wstring& InName, std::shared_ptr<MSceneComponent> InComponent);
+	bool AddComponent(const wchar_t componentName[], std::shared_ptr<MSceneComponent> InComponent);
 protected:
-	std::unordered_map<std::wstring, std::shared_ptr<MSceneComponent>>	_components;
+	std::unordered_map<std::wstring, std::shared_ptr<MSceneComponent>>	SceneComponents;
+    std::vector<FAttachData> AttachDatas;
 
     REFLECT(
         MActor
-        , PROPERTY(_components)
+        //, PROPERTY(AttachDatas)
     );
 };

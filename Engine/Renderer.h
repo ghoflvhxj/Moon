@@ -96,6 +96,7 @@ public:
     MScene* GetScene(uint32 InWorldID);
 protected:
     std::map<uint32, std::unique_ptr<MScene>> Scenes;
+    std::map<uint32, std::unique_ptr<MScene>> ScenesQueue;
 
 	// 렌더할 PrimitiveComponent 추가하는 함수. 렌더 패스에 들어감.
 public:

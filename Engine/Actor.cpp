@@ -7,7 +7,7 @@
 #include "SceneComponent.h"
 
 MActor::MActor()
-	: _components()
+	: SceneComponents()
 {
 }
 
@@ -18,7 +18,135 @@ MActor::~MActor()
 
 void MActor::PostConstruct()
 {
-    for (auto& [Name, Comp] : _components)
+    Super::PostConstruct();
+
+    const FTypeDesc* TypeDesc = GetTypeDesc();
+    while (TypeDesc != nullptr)
+    {
+        for (FPropertyDesc* PropertyDesc : TypeDesc->Properties)
+        {
+            void* Data = PropertyDesc->GetAsVoid(this);
+            assert(Data);
+
+            if (PropertyDesc->IsA<MSceneComponent>()) // 씬 컴포넌트
+            {
+                std::shared_ptr<MSceneComponent> Component = *static_cast<std::shared_ptr<MSceneComponent>*>(Data);
+                assert(Component);
+
+                for (auto WeakChildComp : Component->GetChildComponents())
+                {
+                    std::shared_ptr<MSceneComponent> ChildComp = WeakChildComp.lock();
+                    assert(ChildComp);
+
+                    FAttachData AttachData = {};
+                    AttachData.ParentName = Component->GetName();
+                    AttachData.ChildName = ChildComp->GetName();
+                    AttachDatas.push_back(AttachData);
+                }
+            }
+        }
+
+        TypeDesc = TypeDesc->Parent;
+    }
+}
+
+void MActor::OnLoaded()
+{
+    Super::OnLoaded();
+
+    uint32 NameCounter = 0;
+
+    const FTypeDesc* TypeDesc = GetTypeDesc();
+    while (TypeDesc != nullptr)
+    {
+        for (FPropertyDesc* PropertyDesc : TypeDesc->Properties)
+        {
+            const FTypeDesc* PropTypeDesc = PropertyDesc->TypeDesc;
+            if (PropertyDesc == nullptr)
+            {
+                continue;
+            }
+
+            if (PropTypeDesc->IsA<MComponent>() == false)
+            {
+                continue;
+            }
+
+            void* Data = PropertyDesc->GetAsVoid(this);
+            if (Data == nullptr)
+            {
+                continue;
+            }
+
+            if (PropertyDesc->IsA<MSceneComponent>()) // 씬 컴포넌트
+            {
+                std::shared_ptr<MSceneComponent> Component = *static_cast<std::shared_ptr<MSceneComponent>*>(Data);
+                
+                std::wstring Name = Component->GetName();
+                if (Name.empty())
+                {
+                    Name = TEXT("Componenet") + std::to_wstring(NameCounter++);
+                }
+
+                AddComponent(Name, Component);
+            }
+            else // 일반 컴포넌트
+            {
+
+            }
+        }
+
+        TypeDesc = TypeDesc->Parent;
+    }
+
+    for (auto& AttachData : AttachDatas)
+    {
+        auto& Parent = getComponent(AttachData.ParentName);
+        auto& Child = getComponent(AttachData.ChildName);
+
+        if (Parent && Child)
+        {
+            Parent->AddChildComponent(Child);
+        }
+    }
+}
+
+void MActor::OnDuplicated(MObject* SrcObject)
+{
+    const FTypeDesc* TypeDesc = GetTypeDesc();
+    while (TypeDesc != nullptr)
+    {
+        for (FPropertyDesc* PropertyDesc : TypeDesc->Properties)
+        {
+            void* Data = PropertyDesc->GetAsVoid(this);
+            assert(Data);
+
+            if (PropertyDesc->IsA<MSceneComponent>()) // 씬 컴포넌트
+            {
+                std::shared_ptr<MSceneComponent> SrcComp = *static_cast<std::shared_ptr<MSceneComponent>*>(PropertyDesc->GetAsVoid(SrcObject));
+                std::shared_ptr<MSceneComponent> Component = *static_cast<std::shared_ptr<MSceneComponent>*>(Data);
+                AddComponent(Component->GetName(), Component);
+            }
+        }
+
+        TypeDesc = TypeDesc->Parent;
+    }
+
+    for (auto& AttachData : AttachDatas)
+    {
+        auto& Parent = getComponent(AttachData.ParentName);
+        auto& Child = getComponent(AttachData.ChildName);
+
+        if (Parent && Child)
+        {
+            Parent->AddChildComponent(Child);
+        }
+    }
+}
+
+void MActor::RegistComponents()
+{
+    for (auto& [Name, Comp] : SceneComponents)
     {
         Comp->SetOwner(GetShared());
         Comp->setOwningActor(GetShared());
@@ -30,7 +158,7 @@ void MActor::BeginPlay()
 {
     OnBeganPlayDelegate.Broadcast(GetShared());
 
-    for (auto& [Name, Comp] : _components)
+    for (auto& [Name, Comp] : SceneComponents)
     {
         Comp->BeginPlay();
     }
@@ -38,11 +166,24 @@ void MActor::BeginPlay()
     bHasBegan = true;
 }
 
+MWorld* MActor::GetWorld()
+{
+    if (auto& Owner = GetOwner())
+    {
+        if(MWorld* OwningWorld = Owner->CastTo<MWorld>())
+        {
+            return OwningWorld;
+        }
+    }
+
+    return nullptr;
+}
+
 void MActor::update(const Time deltaTime)
 {
 	tick(deltaTime);
 
-	for (auto iter = _components.begin(); iter != _components.end(); ++iter)
+	for (auto iter = SceneComponents.begin(); iter != SceneComponents.end(); ++iter)
 	{
 		if (false == iter->second->isUpdateable())
 			continue;
@@ -50,7 +191,7 @@ void MActor::update(const Time deltaTime)
 		iter->second->Update(deltaTime);
 	}
 
-	for (auto iter = _components.begin(); iter != _components.end(); ++iter)
+	for (auto iter = SceneComponents.begin(); iter != SceneComponents.end(); ++iter)
 	{
 		iter->second->OnUpdated();
 	}
@@ -80,10 +221,42 @@ void MActor::SetWorldTranslation(const Vec3& InTrans)
 
 std::shared_ptr<MSceneComponent>& MActor::getComponent(const wchar_t componentName[])
 {
-	return _components[componentName];
+	return SceneComponents[componentName];
 }
 
-const bool MActor::AddComponent(const wchar_t componentName[], std::shared_ptr<MSceneComponent> InComponent)
+std::shared_ptr<MSceneComponent>& MActor::getComponent(const std::wstring& InName)
 {
-	return MapUtility::FindInsert(_components, componentName, InComponent);
+    return getComponent(InName.c_str());
+}
+
+bool MActor::AddComponent(const std::wstring& InName, std::shared_ptr<MSceneComponent> InComponent)
+{
+    return AddComponent(InName.c_str(), InComponent);
+}
+
+bool MActor::AddComponent(const wchar_t componentName[], std::shared_ptr<MSceneComponent> InComponent)
+{
+    if (InComponent == nullptr)
+    {
+        return false;
+    }
+
+    InComponent->SetName(componentName);
+
+    for (auto& WeakChildComp : InComponent->GetChildComponents())
+    {
+        auto& ChildComp = WeakChildComp.lock();
+        if (ChildComp == nullptr)
+        {
+            continue;
+        }
+
+        FAttachData NewAttachData = {};
+        NewAttachData.ParentName = InComponent->GetName();
+        NewAttachData.ChildName = ChildComp->GetName();
+        AttachDatas.push_back(NewAttachData);
+    }
+
+
+	return MapUtility::FindInsert(SceneComponents, componentName, InComponent, true);
 }

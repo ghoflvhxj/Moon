@@ -120,6 +120,7 @@ void EngineRender()
     OnRenderFinishedDelegate.Broadcast();
     g_pGraphicDevice->End();
 
+
     // World2 렌더링
     g_pGraphicDevice->Begin(1);
     GetEngine()->RenderModules();
@@ -129,6 +130,8 @@ void EngineRender()
 
 ENGINE_DLL void EnginePostLoop()
 {
+    GetEngine()->UpdateTemp();
+
     PostLoopDeleagate.Broadcast();
     PostLoopDeleagate.Clear();
 }
@@ -210,6 +213,18 @@ void SetModule(std::unique_ptr<MModule>&& InModule)
     //g_Module->Initialize();
 }
 
+std::shared_ptr<MObject> DuplicateObject(std::shared_ptr<MObject> InObject)
+{
+    if (InObject == nullptr)
+    {
+        return nullptr;
+    }
+
+    std::shared_ptr<MObject> NewObject = InObject->Duplicate();
+
+    return NewObject;
+}
+
 void RegisterComponent(std::shared_ptr<MComponent> InComponent)
 {
     if (InComponent == nullptr)
@@ -219,19 +234,44 @@ void RegisterComponent(std::shared_ptr<MComponent> InComponent)
 
     if (getRenderer())
     {
-        if (std::shared_ptr<MPrimitiveComponent>& PrimitiveComp = InComponent->CastTo<MPrimitiveComponent>())
+        if (std::shared_ptr<MPrimitiveComponent>& PrimitiveComp = InComponent->CastToShared<MPrimitiveComponent>())
         {
             getRenderer()->AddPrimitiveComponent(PrimitiveComp);
         }
     }
 
-    if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastTo<MMeshComponent>())
+    if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastToShared<MMeshComponent>())
     {
         std::weak_ptr<MMeshComponent> WeakMeshComp = MeshComp;
         MeshComp->GetBeganPlay().Add([WeakMeshComp]() {
             GetPhysics()->AddMeshComponent(WeakMeshComp.lock());
         });
     }
+
+    //GetPhysics()->AddCharacterBody()
+}
+
+ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc)
+{
+    if (GetFactory().find(InTypeDesc) != GetFactory().end())
+    {
+        MObject* NewObject = static_cast<MObject*>(GetFactory()[InTypeDesc]->Create());
+        NewObject->PostConstruct();
+
+        return NewObject;
+    }
+
+    return nullptr;
+}
+
+ENGINE_DLL void* CreateData(const FTypeDesc* InTypeDesc)
+{
+    if (GetFactory().find(InTypeDesc) != GetFactory().end())
+    {
+        return GetFactory()[InTypeDesc]->Create();
+    }
+
+    return nullptr;
 }
 
 ENGINE_DLL FDelegate<void>& GetPostLoopDelegate()
@@ -309,6 +349,22 @@ void MEngine::RenderWorld(uint32 InIndex)
     _GraphicDevice->End();
 }
 
+void MEngine::UpdateTemp()
+{
+    for (auto& Iter = WorldRenderInfosQueue.begin(); Iter != WorldRenderInfosQueue.end(); )
+    {
+        if (Iter->first == -1)
+        {
+            ++Iter;
+        }
+        else
+        {
+            WorldRenderInfos.insert(*Iter);
+            Iter = WorldRenderInfosQueue.erase(Iter);
+        }
+    }
+}
+
 void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow)
 {
     if (InWorld == nullptr || InWindow == nullptr)
@@ -332,9 +388,26 @@ void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow>
     GetOnWorldAddedDelegate().Broadcast(NewWorldRenderInfo);
 }
 
-std::shared_ptr<MWindow>& MEngine::GetWorldBoundedWindow(const std::shared_ptr<const MWorld>& InWorld)
+const FWorldRenderInfo& MEngine::GetWorldInfo(int32 InIndex)
 {
-    return WorldRenderInfos[InWorld->GetID()].DstWindow;
+    if (WorldRenderInfos.find(InIndex) != WorldRenderInfos.end())
+    {
+        return WorldRenderInfos[InIndex];
+    }
+    else if (WorldRenderInfosQueue.find(InIndex) != WorldRenderInfosQueue.end())
+    {
+        return WorldRenderInfosQueue[InIndex];
+    }
+    else
+    {
+        return WorldRenderInfosQueue[-1];
+    }
+}
+
+const std::shared_ptr<MWindow>& MEngine::GetWorldBoundedWindow(const MWorld* InWorld)
+{
+    uint32 ID = InWorld->GetID();
+    return GetWorldInfo(ID).DstWindow;
 }
 
 void MEngine::InitializeModules()
