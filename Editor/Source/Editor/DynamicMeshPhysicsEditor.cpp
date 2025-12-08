@@ -30,23 +30,23 @@ MDynamicMeshPhysicsEditor::~MDynamicMeshPhysicsEditor()
 {
 }
 
-void MDynamicMeshPhysicsEditor::Test()
-{
-    MAssetEditor::Test();
-
-    std::vector<FBodyCapsuleData>& BodyCapsules = GetDynamicMeshPhysics()->GetCapsules();
-
-    HandleSkeleton(dynamicMesh->GetSkeleton().get(), [&](uint32 InJointIndex) {
-        if (ImGui::BeginPopupContextWindow("Test", ImGuiPopupFlags_MouseButtonRight))
-        {
-            if (ImGui::MenuItem("Add Capsule"))
-            {
-                GetDynamicMeshPhysics()->MakeCapsule(InJointIndex);
-            }
-            ImGui::EndPopup();
-        }
-    });
-}
+//void MDynamicMeshPhysicsEditor::Test()
+//{
+//    MAssetEditor::Test();
+//
+//    std::vector<FBodyCapsuleData>& BodyCapsules = GetDynamicMeshPhysics()->GetCapsules();
+//
+//    HandleSkeleton(dynamicMesh->GetSkeleton().get(), [&](uint32 InJointIndex) {
+//        if (ImGui::BeginPopupContextWindow("Test", ImGuiPopupFlags_MouseButtonRight))
+//        {
+//            if (ImGui::MenuItem("Add Capsule"))
+//            {
+//                GetDynamicMeshPhysics()->MakeCapsule(InJointIndex);
+//            }
+//            ImGui::EndPopup();
+//        }
+//    });
+//}
 
 void MDynamicMeshPhysicsEditor::Update()
 {
@@ -68,13 +68,13 @@ void MDynamicMeshPhysicsEditor::Update()
     }
 }
 
-void MDynamicMeshPhysicsEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
-{
-    MAssetEditor::SetAsset(InAsset);
-
-    //if (auto DA = CreateActor<MDynamicMeshActor>(W))
-    //{
-    //    DA->SetDynamicMesh(InAsset->GetAssetPath());
-    //    Target = DA;
-    //}
-}
+//void MDynamicMeshPhysicsEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
+//{
+//    MAssetEditor::SetAsset(InAsset);
+//
+//    if (auto DA = CreateActor<MDynamicMeshActor>(W))
+//    {
+//        DA->SetDynamicMesh(InAsset->GetAssetPath());
+//        Target = DA;
+//    }
+//}

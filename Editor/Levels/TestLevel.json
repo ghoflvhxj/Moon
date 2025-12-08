@@ -1,290 +1,68 @@
 {
-  "MWorld": {
-    "Actors": [
-      {
-        "Key": "MCamera_0",
-        "Value": {
-          "MCamera": {},
-          "MActor": {
-            "_components": [
-              {
-                "Key": "RootComponent",
+    "MWorld": {
+        "Actors": [
+            {
+                "Key": "MStaticMeshActor_0",
                 "Value": {
-                  "MSceneComponent": {
-                    "Scale": [
-                      1.0,
-                      1.0,
-                      1.0
-                    ],
-                    "Rotation": [
-                      0.24532,
-                      0.61273,
-                      0.0
-                    ],
-                    "Translation": [
-                      -2.3344,
-                      2.33016,
-                      -1.86616
-                    ],
-                    "bUpdated": false
-                  },
-                  "MComponent": {},
-                  "MObject": {}
-                }
-              }
-            ]
-          },
-          "MObject": {}
-        }
-      },
-      {
-        "Key": "MStaticMeshActor_1",
-        "Value": {
-          "MStaticMeshActor": {},
-          "MActor": {
-            "_components": [
-              {
-                "Key": "RootComponent",
-                "Value": {
-                  "StaticMeshComponent": {
-                    "Mesh": {
-                      "MAsset": {
-                        "Path": "Base\\Box.json"
-                      }
-                    }
-                  },
-                  "MMeshComponent": {
-                    "bPhysicsSimulate": false,
-                    "PhysicsType": 0,
-                    "Materials": {
-                      "0": {
-                        "MAsset": {
-                          "Path": "GroundMaterial.json"
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Lantern\\Lantern.json"
+                                    }
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Lantern\\Material #26.json"
+                                        }
+                                    },
+                                    "1": {
+                                        "MAsset": {
+                                            "Path": "Lantern\\Material #25.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bDrawStencil": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Translation": [
+                                    0.0,
+                                    0.0,
+                                    60.24665
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
                         }
-                      }
-                    }
-                  },
-                  "MPrimitiveComponent": {
-                    "RenderMode": 0,
-                    "bRendering": true,
-                    "bDrawStencil": false
-                  },
-                  "MSceneComponent": {
-                    "Scale": [
-                      10.0,
-                      1.0,
-                      10.0
-                    ],
-                    "Rotation": [
-                      0.0,
-                      0.0,
-                      0.0
-                    ],
-                    "Translation": [
-                      0.0,
-                      -1.13619,
-                      2.41314
-                    ],
-                    "bUpdated": false
-                  },
-                  "MComponent": {},
-                  "MObject": {}
+                    },
+                    "MActor": {},
+                    "MObject": {}
                 }
-              }
-            ]
-          },
-          "MObject": {}
-        }
-      },
-      {
-        "Key": "MDirectionalLightActor_0",
-        "Value": {
-          "MDirectionalLightActor": {},
-          "MActor": {
-            "_components": [
-              {
-                "Key": "RootComponent",
-                "Value": {
-                  "MDirectionalLightComponent": {},
-                  "MLightComponent": {
-                    "Color": [
-                      1.0,
-                      1.0,
-                      1.0
-                    ],
-                    "Direction": [
-                      0.0,
-                      0.0,
-                      1.0
-                    ],
-                    "Intensity": 1.0,
-                    "bShow": true
-                  },
-                  "MPrimitiveComponent": {
-                    "RenderMode": 0,
-                    "bRendering": true,
-                    "bDrawStencil": false
-                  },
-                  "MSceneComponent": {
-                    "Scale": [
-                      1920.0,
-                      1080.0,
-                      1.0
-                    ],
-                    "Rotation": [
-                      0.0,
-                      0.0,
-                      0.0
-                    ],
-                    "Translation": [
-                      0.0,
-                      0.0,
-                      1.0
-                    ],
-                    "bUpdated": false
-                  },
-                  "MComponent": {},
-                  "MObject": {}
-                }
-              }
-            ]
-          },
-          "MObject": {}
-        }
-      },
-      {
-        "Key": "MActor_0",
-        "Value": {
-          "MActor": {
-            "_components": []
-          },
-          "MObject": {}
-        }
-      },
-      {
-        "Key": "MStaticMeshActor_0",
-        "Value": {
-          "MStaticMeshActor": {},
-          "MActor": {
-            "_components": [
-              {
-                "Key": "RootComponent",
-                "Value": {
-                  "StaticMeshComponent": {
-                    "Mesh": {
-                      "MAsset": {
-                        "Path": "Lantern\\Lantern.json"
-                      }
-                    }
-                  },
-                  "MMeshComponent": {
-                    "bPhysicsSimulate": false,
-                    "PhysicsType": 0,
-                    "Materials": {
-                      "0": {
-                        "MAsset": {
-                          "Path": "Lantern\\Material #26.json"
-                        }
-                      },
-                      "1": {
-                        "MAsset": {
-                          "Path": "Lantern\\Material #25.json"
-                        }
-                      }
-                    }
-                  },
-                  "MPrimitiveComponent": {
-                    "RenderMode": 0,
-                    "bRendering": true,
-                    "bDrawStencil": false
-                  },
-                  "MSceneComponent": {
-                    "Scale": [
-                      0.1,
-                      0.1,
-                      0.1
-                    ],
-                    "Rotation": [
-                      0.0,
-                      0.0,
-                      0.0
-                    ],
-                    "Translation": [
-                      0.0,
-                      0.0,
-                      3.0
-                    ],
-                    "bUpdated": false
-                  },
-                  "MComponent": {},
-                  "MObject": {}
-                }
-              }
-            ]
-          },
-          "MObject": {}
-        }
-      },
-      {
-        "Key": "MStaticMeshActor_2",
-        "Value": {
-          "MStaticMeshActor": {},
-          "MActor": {
-            "_components": [
-              {
-                "Key": "RootComponent",
-                "Value": {
-                  "StaticMeshComponent": {
-                    "Mesh": {
-                      "MAsset": {
-                        "Path": "Table\\table.json"
-                      }
-                    }
-                  },
-                  "MMeshComponent": {
-                    "bPhysicsSimulate": false,
-                    "PhysicsType": 1,
-                    "Materials": {
-                      "0": {
-                        "MAsset": {
-                          "Path": "Table\\Material #27.json"
-                        }
-                      }
-                    }
-                  },
-                  "MPrimitiveComponent": {
-                    "RenderMode": 0,
-                    "bRendering": true,
-                    "bDrawStencil": true
-                  },
-                  "MSceneComponent": {
-                    "Scale": [
-                      0.00498,
-                      0.00498,
-                      0.00498
-                    ],
-                    "Rotation": [
-                      0.0,
-                      0.0,
-                      0.0
-                    ],
-                    "Translation": [
-                      -0.8694,
-                      0.59895,
-                      0.0
-                    ],
-                    "bUpdated": false
-                  },
-                  "MComponent": {},
-                  "MObject": {}
-                }
-              }
-            ]
-          },
-          "MObject": {}
-        }
-      }
-    ]
-  },
-  "MObject": {}
+            }
+        ]
+    },
+    "MObject": {}
 }

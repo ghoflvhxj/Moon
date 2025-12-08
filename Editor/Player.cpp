@@ -1,23 +1,17 @@
-﻿#include "MoonEngine.h"
+﻿#include "Player.h"
 
+#include "MoonEngine.h"
 #include "DirectInput.h"
 #include "World.h"
 #include "Camera.h"
-#include "Player.h"
 #include "Material.h"
+#include "Texture.h"
 #include "MeshComponent.h"
 #include "StaticMeshComponent.h"
-#include "Texture.h"
-#include "PointLightComponent.h"
-#include "DirectionalLightComponent.h"
-#include "SkyComponent.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 #include "FBXLoader.h"
 #include "Core/ResourceManager.h"
-#include "imgui.h"
-
-#include "Module/Physics/CapsuleComponent.h"
 
 #include "Core/Serialize/JsonSerializer.h"
 #include "Core/Serialize/JsonDeSerializer.h"
@@ -50,8 +44,12 @@ Player::Player()
     CharacterMeshComponent->setDrawingBoundingBox(true);
     AddComponent(TEXT("CharacterMesh"), CharacterMeshComponent);
 
+    CameraComponent = std::make_shared<MCameraComponent>();
+    AddComponent(TEXT("Camera"), CameraComponent);
+
     CapsuleComponent = std::make_shared<MCapsuleComponent>();
     CapsuleComponent->AddChildComponent(CharacterMeshComponent);
+    CapsuleComponent->AddChildComponent(CameraComponent);
     AddComponent(ROOT_COMPONENT, CapsuleComponent);
 }
 
@@ -73,24 +71,28 @@ void Player::tick(const Time deltaTime)
     Super::tick(deltaTime);
 
     Vec3 Movement = {};
-    if (InputManager::keyPress(DIK_T))
-    {
-        Movement.z += 3.f;
-    }
-    if (InputManager::keyPress(DIK_G))
-    {
-        Movement.z -= 3.f;
-    }
-    if (InputManager::keyPress(DIK_F))
-    {
-        Movement.x -= 3.f;
-    }
-    if (InputManager::keyPress(DIK_H))
-    {
-        Movement.x += 3.f;
-    }
 
-    getComponent(ROOT_COMPONENT)->CastTo<MCapsuleComponent>()->AddMove(Movement);
+    if (auto World = GetWorld())
+    {
+        if (InputManager::keyPress(DIK_T, World->GetID()))
+        {
+            Movement.z += 3.f;
+        }
+        if (InputManager::keyPress(DIK_G, World->GetID()))
+        {
+            Movement.z -= 3.f;
+        }
+        if (InputManager::keyPress(DIK_F, World->GetID()))
+        {
+            Movement.x -= 3.f;
+        }
+        if (InputManager::keyPress(DIK_H, World->GetID()))
+        {
+            Movement.x += 3.f;
+        }
+
+        getComponent(ROOT_COMPONENT)->CastTo<MCapsuleComponent>()->AddMove(Movement);
+    }
 }
 
 void Player::JsonSaveTest(bool bPretty)

@@ -40,7 +40,9 @@
 #include "FBXLoader.h"
 
 #include "Editor/AssetEditor.h"
+#include "Editor/ActorEditor.h"
 #include "Editor/DynamicMeshPhysicsEditor.h"
+#include "Editor/MainWindow.h"
 #include "Renderer/EditorPass.h"
 
 using namespace DirectX;
@@ -196,7 +198,7 @@ void MEditor::Update()
                 bControlGizmo = false;
                 if (World->Raycast(Primitives, HitData, (uint8)EPrimitiveType::Mesh))
                 {
-                    std::shared_ptr<MSceneComponent> Temp = HitData.HitComponent.lock()->CastTo<MSceneComponent>();
+                    std::shared_ptr<MSceneComponent> Temp = HitData.HitComponent.lock()->CastToShared<MSceneComponent>();
                     SetClickedComp(Temp);
                 }
             }
@@ -668,7 +670,7 @@ void MEditor::OutLine(MActor* InActor, bool bOutLine)
 
     for (auto& [Name, Comp] : InActor->GetComponents())
     {
-        if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = Comp->CastTo<MPrimitiveComponent>())
+        if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = Comp->CastToShared<MPrimitiveComponent>())
         {
             PrimitiveComp->SetStencil(bOutLine);
         }
@@ -727,7 +729,7 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    OpenAssetEditor(static_cast<MObject*>(InObject), AssetTypeDesc, StringToWString(Path));
+                    OpenEditor(static_cast<MObject*>(InObject), Asset, StringToWString(Path));
                 }
 
                 ImGui::SameLine(350);
@@ -857,7 +859,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
-                    OpenAssetEditor(static_cast<MObject*>(InObject), Prop->TypeDesc, StringToWString(Path));
+                    OpenEditor(static_cast<MObject*>(InObject), Asset, StringToWString(Path));
                 }
 
                 ImGui::SameLine(350);
@@ -954,36 +956,31 @@ void HandleProperty(EType InType, const char* DisplayName, void* InData)
     }
 }
 
-void OpenAssetEditor(MObject* InAssetOwner, const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath)
+void OpenEditor(MObject* InOwner, std::shared_ptr<MObject> InObject, const std::wstring& InPath)
 {
     if (InPath.empty())
     {
         return;
     }
 
-    if (InAssetTypeDesc->IsA<MAsset>() == false)
-    {
-        return;
-    }
-
-    GetPostLoopDelegate().Add([InAssetOwner, InAssetTypeDesc, InPath]() {
-        std::shared_ptr<MAsset> AssetCopy = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(InAssetTypeDesc)));
-        AssetCopy->Load(InPath);
-
-        std::shared_ptr<MAssetEditor> NewAssetEditor = nullptr;
-        // TODO. 하드 코딩을 제거하고 애셋에 맞는 에디터 인스턴스를 생성하도록
-        if (InAssetTypeDesc == MDynamicMeshPhysics::GetTypeDescStatic())
+    // 애셋의 사본을 만들어서 열기
+    GetPostLoopDelegate().Add([InOwner, InObject, InPath]() {
+        std::shared_ptr<MEditorBase> NewEditor = nullptr;
+        if (InObject->IsA<MAsset>())
         {
-            NewAssetEditor = std::make_shared<MDynamicMeshPhysicsEditor>(InAssetOwner);
-        }
-        else
-        {
-            NewAssetEditor = std::make_shared<MAssetEditor>(InAssetOwner);
+            if (InObject->GetTypeDescStatic() == MDynamicMeshPhysics::GetTypeDescStatic())
+            {
+                NewEditor = std::make_shared<MDynamicMeshPhysicsEditor>(InOwner);
+            }
+            else
+            {
+                NewEditor = std::make_shared<MAssetEditor>(InOwner);
+            }
         }
 
-        NewAssetEditor->SetAsset(AssetCopy);
+        NewEditor->SetObject(InObject);
 
-        GetEngine()->GetModule<MEditor>()->Editors[NewAssetEditor->GetTitle()] = NewAssetEditor;
+        GetEngine()->GetModule<MEditor>()->Editors[NewEditor->GetTitle()] = NewEditor;
     });
 
     //std::shared_ptr<MAsset> AssetCopy = std::shared_ptr<MAsset>(static_cast<MAsset*>(Create(InAssetTypeDesc)));
@@ -999,4 +996,45 @@ void OpenAssetEditor(MObject* InAssetOwner, const FTypeDesc* InAssetTypeDesc, co
     //NewAssetEditor->SetAsset(AssetCopy);
 
     //GetEngine()->GetModule<MEditor>()->Editors.emplace(NewAssetEditor->GetTitle(), NewAssetEditor);
+}
+
+void OpenEditor(std::shared_ptr<MObject> InObject)
+{
+    if (InObject == nullptr)
+    {
+        return;
+    }
+
+    GetPostLoopDelegate().Add([InObject]() {
+        std::shared_ptr<MEditorBase> NewEditor = nullptr;
+
+        if (InObject->IsA<MActor>())
+        {
+            NewEditor = std::make_shared<MActorEditor>();
+            NewEditor->SetObject(InObject);
+
+            GetEngine()->GetModule<MEditor>()->Editors[NewEditor->GetTitle()] = NewEditor;
+        }
+    });
+}
+
+MEditorBase::MEditorBase()
+{
+    WeakRenderer = GetEngine()->GetModule<MRenderer>();
+
+    T = GetWindowManager()->CreateWindow<MEditorBaseWindow>(StringToWString(Title), 300, 300, g_hWnd, TEXT("ShootingGame"));
+    T->Initialize();
+    T->GetOnImGuiRenderedDelegate().Add(this, &MEditorBase::RenderUI);
+
+    W = std::make_shared<MWorld>();
+    W->Initialize();
+    W->PlayGame();
+    GetEngine()->AddWorld(W, T);
+
+    Light = CreateActor<MDirectionalLightActor>(W);
+}
+
+void MEditorBase::SetObject(std::shared_ptr<MObject> InObject)
+{
+
 }

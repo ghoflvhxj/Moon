@@ -38,60 +38,59 @@ MAssetEditor::MAssetEditor(MObject* InObject)
     : AssetOwningObject(InObject)
 {
     WeakJolt = GetEngine()->GetModule<MJoltPhysics>();
-    WeakRenderer = GetEngine()->GetModule<MRenderer>();
 }
 
-void MAssetEditor::SetAsset(std::shared_ptr<MAsset>& InAsset)
+void MAssetEditor::SetObject(std::shared_ptr<MObject> InObject)
 {
-    if (InAsset == nullptr)
+    if (InObject == nullptr)
     {
         return;
     }
 
-    Asset = InAsset;
-    AssetTypeDesc = InAsset->GetTypeDesc();
+    if (InObject->IsA<MAsset>() == false)
+    {
+        return;
+    }
 
+    // 원본
+    Asset = InObject->CastToShared<MAsset>();
+    AssetTypeDesc = Asset->GetTypeDesc();
     Title = AssetTypeDesc->Name + " Editor" + "(" + WStringToString(Asset->GetAssetPath()) + ")";
 
-    T = GetWindowManager()->CreateWindow<MEditorBaseWindow>(StringToWString(Title), 300, 300, g_hWnd, TEXT("ShootingGame"));
-    T->Initialize();
-    T->GetOnImGuiRenderedDelegate().Add(this, &MAssetEditor::Test);
+    // 애셋은 하나만 존재하도록 시스템화 되어있으니, 수동으로 복사본을 만들어야 함
+    WorkingAsset = std::shared_ptr<MAsset>(static_cast<MAsset*>(CreateObject(AssetTypeDesc)));
+    WorkingAsset->Load(Asset->GetAssetPath());
 
-    W = std::make_shared<MWorld>();
-    W->Initialize();
-    W->PlayGame();
+
     W->getMainCamera()->SetWorldTranslation({ 0.f, 0.f, -2.f });
     W->getMainCamera()->setLookMode(MCamera::LookMode::At);
-    GetEngine()->AddWorld(W, T);
 
-    if (Asset->IsA<DynamicMesh>())
+    if (WorkingAsset->IsA<DynamicMesh>())
     {
         if (auto DA = CreateActor<MDynamicMeshActor>(W))
         {
-            DA->SetDynamicMesh(InAsset->GetAssetPath());
+            DA->SetDynamicMesh(WorkingAsset->GetAssetPath());
             Target = DA;
         }
     }
-    else if(Asset->IsA<StaticMesh>())
+    else if(WorkingAsset->IsA<StaticMesh>())
     {
         if (auto SA = CreateActor<MStaticMeshActor>(W))
         {
-            SA->SetStaticMesh(InAsset->GetAssetPath());
+            SA->SetStaticMesh(WorkingAsset->GetAssetPath());
             SA->SetWorldTranslation({ 0.f, 0.f, 10.f });
             Target = SA;
         }
     }
-    else if (Asset->IsA<MMaterial>())
+    else if (WorkingAsset->IsA<MMaterial>())
     {
         if (auto SA = CreateActor<MStaticMeshActor>(W))
         {
             SA->SetStaticMesh(TEXT("Base/Sphere.json"));
-            SA->GetStaticMeshCompoent()->SetMaterial(0, Asset->CastTo<MMaterial>());
+            SA->GetStaticMeshCompoent()->SetMaterial(0, WorkingAsset->CastToShared<MMaterial>());
             Target = SA;
         }
     }
-
-    Light = CreateActor<MDirectionalLightActor>(W);
 }
 
 void MAssetEditor::Update()
@@ -143,7 +142,7 @@ void MAssetEditor::Update()
 
         if (auto Physics = DynamicMeshComp->GetDynamicMesh()->GetPhysics())
         {
-            if (std::shared_ptr< MDynamicMeshPhysics> DynamicMeshPhysics = Physics->CastTo<MDynamicMeshPhysics>())
+            if (std::shared_ptr< MDynamicMeshPhysics> DynamicMeshPhysics = Physics->CastToShared<MDynamicMeshPhysics>())
             {
                 for (FBodyCapsuleData& BodyCapsule : DynamicMeshPhysics->GetCapsules())
                 {
@@ -154,9 +153,7 @@ void MAssetEditor::Update()
                     GetRenderer()->DrawCapsule(W.get(), BodyCapsule.GetRadius(), BodyCapsule.GetHalfHeight(), T, R);
                 }
             }
-
         }
-
     }
 
     //Vec3 Forward = CameraComponent->GetForward();
@@ -174,22 +171,20 @@ void MAssetEditor::Update()
     }
 }
 
-void MAssetEditor::Render()
-{
-
-}
-
-void MAssetEditor::Test()
+void MAssetEditor::RenderUI()
 {
     if (ImGui::Begin(Title.c_str(), &bOpen))
     {
         if (ImGui::BeginMenu("File"))
         {
+            bool bResult = false;
             if (ImGui::MenuItem("Save"))
             {
                 MJsonSerializer Serializer;
-                Serializer.Serialize(Asset, Asset->GetAssetPath(), true);
+                Serializer.Serialize(WorkingAsset, Asset->GetAssetPath(), true);
+                bResult = true;
             }
+
             if (ImGui::MenuItem("Save As"))
             {
                 wchar_t FileName[256] = {};
@@ -203,8 +198,14 @@ void MAssetEditor::Test()
                 if (GetSaveFileNameW(&OpenFile))
                 {
                     MJsonSerializer Serializer;
-                    Serializer.Serialize(Asset, FileName, true);
+                    Serializer.Serialize(WorkingAsset, FileName, true);
+                    bResult = true;
                 }
+            }
+
+            if (bResult)
+            {
+                WorkingAsset->Copy(Asset.get());
             }
 
             ImGui::EndMenu();
@@ -215,27 +216,27 @@ void MAssetEditor::Test()
         const FTypeDesc* Current = AssetTypeDesc;
         while (Current)
         {
-            DispatchStruct(Current, Asset.get());
+            DispatchStruct(Current, WorkingAsset.get());
             Current = Current->Parent;
         }
 
         // 애셋 타입에 따라 추가 처리
-        if (std::shared_ptr<DynamicMesh> dynamicMesh = Asset->CastTo<DynamicMesh>())
+        if (std::shared_ptr<DynamicMesh> dynamicMesh = WorkingAsset->CastToShared<DynamicMesh>())
         {
             HandleDynamicMesh(dynamicMesh.get());
             HandleSkeleton(dynamicMesh->GetSkeleton().get(), nullptr);
         }
 
-        else if (Asset->IsA<StaticMesh>())
+        else if (WorkingAsset->IsA<StaticMesh>())
         {
             if (ImGui::Button("Make ConvexHull Collision"))
             {
-                GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(Asset));
+                GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(WorkingAsset));
             }
 
             if (ImGui::Button("Make MeshShape Collision"))
             {
-                GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(Asset));
+                GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(WorkingAsset));
             }
         }
 
@@ -250,7 +251,7 @@ void MAssetEditor::HandleDynamicMesh(DynamicMesh* InDynamicMesh)
         std::wstring Path = InDynamicMesh->GetAssetPath();
         Path += TEXT("Asd");
 
-        OpenAssetEditor(InDynamicMesh, MDynamicMeshPhysics::GetTypeDescStatic(), Path);
+        //OpenEditor(InDynamicMesh, MDynamicMeshPhysics::GetTypeDescStatic(), Path);
     }
 }
 

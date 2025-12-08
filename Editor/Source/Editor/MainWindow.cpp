@@ -4,10 +4,16 @@
 #include "Editor.h"
 #include "Renderer.h"
 
+#include "WindowManager.h"
+
 #include "World.h"
 #include "SceneComponent.h"
 #include "StaticMeshComponent.h"
 #include "DynamicMeshComponent.h"
+#include "Camera.h"
+
+#include "Gameframework/StaticmeshActor/StaticMeshActor.h"
+#include "Core/ResourceManager.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -106,7 +112,7 @@ void MEditorMainWindow::ImGuiRender()
         {
             if (ImGui::Button("Jolt Save") && ClickedComp)
             {
-                if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp->CastTo<MMeshComponent>())
+                if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp->CastToShared<MMeshComponent>())
                 {
                     if (MeshComp->GetMesh())
                     {
@@ -117,7 +123,7 @@ void MEditorMainWindow::ImGuiRender()
 
             if (ImGui::Button("Jolt Load") && ClickedComp)
             {
-                if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp->CastTo<MMeshComponent>())
+                if (std::shared_ptr<MMeshComponent> MeshComp = ClickedComp->CastToShared<MMeshComponent>())
                 {
                     if (MeshComp->GetMesh())
                     {
@@ -128,7 +134,7 @@ void MEditorMainWindow::ImGuiRender()
 
             if (ImGui::Button("Clothing2") && ClickedComp)
             {
-                if (auto DynamicMeshComp = ClickedComp->CastTo<DynamicMeshComponent>())
+                if (auto DynamicMeshComp = ClickedComp->CastToShared<DynamicMeshComponent>())
                 {
                     DynamicMeshComp->Clothing2();
                 }
@@ -164,8 +170,20 @@ void MEditorMainWindow::ImGuiRender()
         ImGui::Indent(20);
         if (ImGui::Button("Play"))
         {
-            GetMainWorld()->PlayGame();
+            std::shared_ptr<MWindow> NewWindow = GetWindowManager()->CreateWindow<MWindow>(TEXT("PIE"), 300, 300, g_hWnd, TEXT("ShootingGame"));
+            NewWindow->Initialize();
+
+            //std::shared_ptr<MWorld> NewWorld = DuplicateObject(GetMainWorld())->CastToShared<MWorld>();
+            std::shared_ptr<MWorld> NewWorld = std::make_shared<MWorld>();
+            NewWorld->Initialize();
+            NewWorld->getMainCamera()->SetWorldTranslation({ 0.f, 0.f, -2.f });
+
+            GetEngine()->AddWorld(NewWorld, NewWindow);
+
+            NewWorld->DuplicateActors(GetMainWorld());
+            NewWorld->PlayGame();
         }
+
         ImGui::Indent(-20);
     }
 
@@ -313,9 +331,28 @@ void MEditorMainWindow::ImGuiRender()
                 }
             }
 
+            if (ImGui::BeginPopupContextVoid("Test", ImGuiPopupFlags_MouseButtonRight))
+            {
+                if (ImGui::MenuItem("Add Capsule"))
+                {
+                    EditorModule->SaveAs<MActor>(*Actor);
+                }
+
+                if (ImGui::MenuItem("Delete"))
+                {
+
+                }
+
+                if (ImGui::MenuItem("Edit"))
+                {
+                    OpenEditor(Actor);
+                }
+
+                ImGui::EndPopup();
+            }
+
             Actor->update(0.f);
         }
-
     }
 
     ImGui::End();

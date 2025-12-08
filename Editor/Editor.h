@@ -7,6 +7,8 @@
 // 파일 다이얼로그
 #include <commdlg.h>
 
+#include "Core/Delegate.h"
+
 class Component;
 class MMeshComponent;
 class TerrainComponent;
@@ -20,6 +22,8 @@ class MActor;
 class Player;
 class MAsset;
 class StaticMesh;
+
+class MEditorBase;
 
 enum class EGizmoMode
 {
@@ -112,7 +116,7 @@ public:
     Vec3 CurrentRot = {};
 
 public:
-    std::unordered_map<std::string, std::shared_ptr<class MAssetEditor>> Editors;
+    std::unordered_map<std::string, std::shared_ptr<MEditorBase>> Editors;
 
     REFLECT(MEditor)
 };
@@ -122,4 +126,40 @@ void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InProperty
 void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject);
 void HandleProperty(EType InType, const char* DisplayName, void* InData);
 
-void OpenAssetEditor(MObject* InObject, const FTypeDesc* InAssetTypeDesc, const std::wstring& InPath);
+void OpenEditor(MObject* InOwner, std::shared_ptr<MObject> InObject, const std::wstring& InPath);
+void OpenEditor(std::shared_ptr<MObject> InObject);
+
+class MEditorBase
+{
+public:
+    MEditorBase();
+    virtual ~MEditorBase() = default;
+
+public:
+    virtual void SetObject(std::shared_ptr<MObject> InObject);
+    virtual void Update() {}
+    virtual void RenderUI() {}
+
+public:
+    std::shared_ptr<MRenderer> GetRenderer() { return WeakRenderer.lock(); }
+protected:
+    std::weak_ptr<MRenderer> WeakRenderer;
+
+public:
+    const std::string& GetTitle() const { return Title; }
+protected:
+    // ImGui 타이틀에 출력될 문자열
+    std::string Title;
+    // ImGui 닫기 버튼 처리를 위한 변수
+    bool bOpen = true;
+
+public:
+    FDelegate<void>& GetClosedDelegate() { return OnClosedDelegate; }
+protected:
+    FDelegate<void> OnClosedDelegate;
+
+protected:
+    std::shared_ptr<class MEditorBaseWindow> T = nullptr;
+    std::shared_ptr<MWorld> W = nullptr;
+    std::shared_ptr<MActor> Light = nullptr;
+};

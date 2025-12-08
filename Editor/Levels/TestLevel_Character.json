@@ -6,7 +6,7 @@
                 "Value": {
                     "MCamera": {},
                     "MActor": {
-                        "_components": [
+                        "SceneComponents": [
                             {
                                 "Key": "RootComponent",
                                 "Value": {
@@ -42,7 +42,7 @@
                 "Value": {
                     "Player": {},
                     "MActor": {
-                        "_components": [
+                        "SceneComponents": [
                             {
                                 "Key": "LoadedStaticMesh",
                                 "Value": {
@@ -219,7 +219,7 @@
                 "Value": {
                     "MDirectionalLightActor": {},
                     "MActor": {
-                        "_components": [
+                        "SceneComponents": [
                             {
                                 "Key": "RootComponent",
                                 "Value": {
@@ -275,7 +275,7 @@
                 "Value": {
                     "MStaticMeshActor": {},
                     "MActor": {
-                        "_components": [
+                        "SceneComponents": [
                             {
                                 "Key": "RootComponent",
                                 "Value": {

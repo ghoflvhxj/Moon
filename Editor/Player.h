@@ -4,16 +4,7 @@
 
 #include "Module/Physics/CapsuleComponent.h"
 #include "DynamicMeshComponent.h"
-
-class MMeshComponent;
-class StaticMeshComponent;
-class DynamicMeshComponent;
-class TerrainComponent;
-class MTexture;
-class MPointLightComponent;
-class MDirectionalLightComponent;
-class SkyComponent;
-class MCapsuleComponent;
+#include "CameraComponent.h"
 
 class Player : public MActor
 {
@@ -34,10 +25,12 @@ public:
 private:
     std::shared_ptr<DynamicMeshComponent> CharacterMeshComponent;
     std::shared_ptr<MCapsuleComponent> CapsuleComponent;
+    std::shared_ptr<MCameraComponent> CameraComponent;
 
     REFLECT(
         Player
         , PROPERTY(CharacterMeshComponent)
         , PROPERTY(CapsuleComponent)
+        , PROPERTY(CameraComponent)
     )
 };

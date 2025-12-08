@@ -1,0 +1,141 @@
+{
+    "Player": {
+        "CharacterMeshComponent": {
+            "DynamicMeshComponent": {
+                "AnimTime": 0.0,
+                "AnimSpeed": 1.0,
+                "bAnimPlaying": false,
+                "bPlayAnimAtBegin": true,
+                "Animation": {
+                    "MAsset": {
+                        "Path": "2B\\Take 001.json"
+                    }
+                },
+                "bBindPose": false,
+                "Mesh": {
+                    "MAsset": {
+                        "Path": "2B\\2B.json"
+                    }
+                }
+            },
+            "MMeshComponent": {
+                "bPhysicsSimulate": false,
+                "PhysicsType": 0,
+                "Materials": {
+                    "0": {
+                        "MAsset": {
+                            "Path": "2B\\Material #52.json"
+                        }
+                    },
+                    "1": {
+                        "MAsset": {
+                            "Path": "2B\\Material #47.json"
+                        }
+                    },
+                    "2": {
+                        "MAsset": {
+                            "Path": "2B\\Material #48.json"
+                        }
+                    },
+                    "3": {
+                        "MAsset": {
+                            "Path": "2B\\Material #51.json"
+                        }
+                    },
+                    "4": {
+                        "MAsset": {
+                            "Path": "2B\\Material #50.json"
+                        }
+                    }
+                }
+            },
+            "MPrimitiveComponent": {
+                "RenderMode": 0,
+                "bRendering": true,
+                "bDrawStencil": true
+            },
+            "MSceneComponent": {
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "bUpdated": false
+            },
+            "MComponent": {
+                "Name": "CharacterMesh"
+            },
+            "MObject": {}
+        },
+        "CapsuleComponent": {
+            "MCapsuleComponent": {
+                "CapsuleData": {
+                    "HalfHeight": 0.5,
+                    "Radius": 0.3
+                }
+            },
+            "MCollisionComponent": {},
+            "MSceneComponent": {
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "bUpdated": false
+            },
+            "MComponent": {
+                "Name": "RootComponent"
+            },
+            "MObject": {}
+        },
+        "CameraComponent": {
+            "MCameraComponent": {
+                "ArmLength": 3.0
+            },
+            "MSceneComponent": {
+                "Scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "Rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "Translation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "bUpdated": false
+            },
+            "MComponent": {
+                "Name": "Camera"
+            },
+            "MObject": {}
+        }
+    },
+    "MActor": {},
+    "MObject": {}
+}
