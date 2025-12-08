@@ -1,8 +1,9 @@
 ﻿#include "Physics.h"
 
-void MPhysicsEngine::StartSimulate()
+void MPhysicsEngine::StartSimulate(MWorld* InWorld)
 {
-    std::cout << "Physics Start Simulate!!!" << std::endl;
+    // InWorld->GetName() + " Start Physics Simulate!!!"
+    //std::cout << "Physics Start Simulate!!!" << std::endl;
     bSimulating = true;
 }
 

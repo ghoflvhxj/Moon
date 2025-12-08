@@ -15,6 +15,7 @@ class MPrimitiveComponent;
 class MMeshComponent;
 class DynamicMeshComponent;
 class MCollisionComponent;
+class MWorld;
 
 struct FBodyCapsuleData;
 
@@ -43,7 +44,7 @@ public:
     virtual void SaveTest(std::shared_ptr<MMesh> Mesh) {}
 
 public:
-    virtual void StartSimulate();
+    virtual void StartSimulate(MWorld* InWorld);
     virtual void Update() {}
     virtual void Release();
 

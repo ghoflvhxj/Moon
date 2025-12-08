@@ -349,13 +349,18 @@ XMVECTOR MakeQuat(FXMMATRIX M)
     return q;
 }
 
-void MJoltPhysics::StartSimulate()
+void MJoltPhysics::StartSimulate(MWorld* InWorld)
 {
-    MPhysicsEngine::StartSimulate();
+    MPhysicsEngine::StartSimulate(InWorld);
 
     for (auto WeakMeshComp : MeshComponents)
     {
         auto MeshComp = WeakMeshComp.lock();
+
+        if (MeshComp->GetWorld() != InWorld)
+        {
+            continue;
+        }
 
         std::shared_ptr<MMesh>& Mesh = MeshComp->GetMesh();
         if (Mesh == nullptr)
@@ -499,7 +504,7 @@ void MJoltPhysics::SaveTest(std::shared_ptr<MMesh> InMesh)
     // 저장 테스트
     std::stringstream ss;
     JPH::ObjectStreamTextOut streamOut = JPH::ObjectStreamTextOut(ss);
-    streamOut.sWriteObject(Path.string().c_str(), JPH::ObjectStream::EStreamType::Text, MakeMeshShape(InMesh->CastTo<StaticMesh>()));
+    streamOut.sWriteObject(Path.string().c_str(), JPH::ObjectStream::EStreamType::Text, MakeMeshShape(InMesh->CastToShared<StaticMesh>()));
     //streamOut.sWriteObject(Path.string().c_str(), JPH::ObjectStream::EStreamType::Text, ConvexHullShapeSettings(JPHVertices.data(), GetSize(JPHVertices)));
     
     std::shared_ptr<MPhysics> NewPhysics = std::make_shared<MPhysics>();
@@ -587,7 +592,7 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
     {
         MeshIndices.push_back(ClothData.MeshIndex);
         const FMeshData& MeshData = InData.Mesh->GetMeshData(ClothData.MeshIndex);
-        const FJoint& Joint = InData.PrimitiveComponent->CastTo<DynamicMeshComponent>()->GetJoint("bone001"); // 임시코드
+        const FJoint& Joint = InData.PrimitiveComponent->CastToShared<DynamicMeshComponent>()->GetJoint("bone001"); // 임시코드
 
         for (uint32 i = 0; i < GetSize(MeshData.Vertices); ++i)
         {
@@ -631,7 +636,7 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
     }
 
     // 바인드 포즈 역행렬 ---------------------------------------------------------------------------------------------
-    if (std::shared_ptr<DynamicMesh>& _DynamicMesh = InData.Mesh->CastTo<DynamicMesh>())
+    if (std::shared_ptr<DynamicMesh>& _DynamicMesh = InData.Mesh->CastToShared<DynamicMesh>())
     {
         const FJoint& Joint = _DynamicMesh->GetJoint("bone001");
         Mat4 MyMat = Joint._globalBindPoseInverseMatrix;
@@ -862,7 +867,7 @@ void MJoltPhysics::Update()
             }
         }
 
-        if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = PhysicObject->GetPrimitiveComponent()->CastTo<DynamicMeshComponent>())
+        if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = PhysicObject->GetPrimitiveComponent()->CastToShared<DynamicMeshComponent>())
         {
             const FJoint Joint = DynamicMeshComp->GetJoint("bone001");
 
@@ -912,7 +917,7 @@ void MJoltPhysics::Update()
 
         getRenderer()->DrawCoordinate(GetMainWorld().get(), DXPos, DxBodyQuat);
         getRenderer()->DrawCapsule(GetMainWorld().get(), 0.02f, 0.02f, DXPos, DxBodyQuat);
-        const FJoint& Joint = PhysicObject->GetPrimitiveComponent()->CastTo<DynamicMeshComponent>()->GetJoint("bone001");
+        const FJoint& Joint = PhysicObject->GetPrimitiveComponent()->CastToShared<DynamicMeshComponent>()->GetJoint("bone001");
 
         for (uint32 MeshIndex : PhysicObject->GetMeshIndices())
         {

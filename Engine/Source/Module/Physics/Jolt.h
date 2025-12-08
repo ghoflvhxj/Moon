@@ -80,7 +80,7 @@ public:
     virtual void Update() override;
     virtual void Render() override;
     virtual void Release() override;
-    virtual void StartSimulate() override;
+    virtual void StartSimulate(MWorld* InWorld) override;
 
 public:
     static JPH::Quat DXQuatToJPHQuat(const ::Vec4& InQuat);

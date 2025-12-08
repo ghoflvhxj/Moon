@@ -60,12 +60,6 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
 
     g_World = std::make_shared<MWorld>();
     g_World->Initialize();
-    g_World->GetGameStartedDelegate().Add([&]() {
-        if (GetPhysics())
-        {
-            GetPhysics()->StartSimulate();
-        }
-    });
 
     // 그냥 파라미터 없이, 함수 내부에서 world와 윈도우를 생성하도록 하는 것은 어떤지?
     GetEngine()->AddWorld(g_World, g_pMainWindow);
@@ -326,7 +320,14 @@ void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow>
     NewWorldRenderInfo.SrcWorld = InWorld;
     NewWorldRenderInfo.DstWindow = InWindow;
 
-    WorldRenderInfos.push_back(NewWorldRenderInfo);
+    WorldRenderInfosQueue[InWorld->GetID()] = NewWorldRenderInfo;
+
+    if (GetPhysics())
+    {
+        InWorld->GetGameStartedDelegate().Add([&]() {
+            GetPhysics()->StartSimulate(InWorld.get());
+        });
+    }
 
     GetOnWorldAddedDelegate().Broadcast(NewWorldRenderInfo);
 }
