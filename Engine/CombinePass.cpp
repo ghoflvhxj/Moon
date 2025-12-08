@@ -116,7 +116,7 @@ bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData)
 
 void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
 {
-	auto& PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock()->CastTo<MDirectionalLightComponent>();
+	auto& PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock()->CastToShared<MDirectionalLightComponent>();
     std::shared_ptr<MShader>& PixelShader = GetPixelShader(PrimitiveData);
 
 	Vec3 trans = PrimitiveComponent->getWorldTranslation();

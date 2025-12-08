@@ -189,7 +189,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 
             VS->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
             VS->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
-            if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastTo<DynamicMeshComponent>())
+            if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastToShared<DynamicMeshComponent>())
             {
                 animated = DynamicMeshComp->HasAnim() && DynamicMeshComp->bBindPose == false ? TRUE : FALSE;
                 if (animated)

@@ -19,12 +19,12 @@ namespace MapUtility
 	}
 
 	template <class Map, class Key, class Value>
-	const bool FindInsert(Map &refMap, Key &refKey, Value &refValue)
+	const bool FindInsert(Map &refMap, Key &refKey, Value &refValue, bool bReplace = false)
 	{
-		if (true == Find(refMap, refKey))
+		if (Find(refMap, refKey) && bReplace == false)
 			return false;
 
-		refMap.emplace(refKey, refValue);
+		refMap[refKey] = refValue;
 		return true;
 	}
 

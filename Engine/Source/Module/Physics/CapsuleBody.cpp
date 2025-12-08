@@ -54,7 +54,7 @@ std::shared_ptr<DynamicMeshComponent> MCapsuleBody::GetDynamicMeshComponent()
 {
     if (std::shared_ptr<MPrimitiveComponent> PrimitiveComp = GetPrimitiveComponent())
     {
-        return PrimitiveComp->CastTo<DynamicMeshComponent>();
+        return PrimitiveComp->CastToShared<DynamicMeshComponent>();
     }
 
     return nullptr;
@@ -64,7 +64,7 @@ std::shared_ptr<DynamicMesh> MCapsuleBody::GetDynamicMesh()
 {
     if (std::shared_ptr<MMesh>& Mesh = MeshCache.lock())
     {
-        return Mesh->CastTo<DynamicMesh>();
+        return Mesh->CastToShared<DynamicMesh>();
     }
 
     return nullptr;

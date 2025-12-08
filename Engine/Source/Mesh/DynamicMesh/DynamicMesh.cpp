@@ -62,7 +62,7 @@ const std::shared_ptr<MSkeleton>& DynamicMesh::GetSkeleton()
 
 void DynamicMesh::SetPhysics(std::shared_ptr<MPhysics> InPhysics)
 {
-    if (auto DynamicMeshPhysics = InPhysics->CastTo<MDynamicMeshPhysics>())
+    if (auto DynamicMeshPhysics = InPhysics->CastToShared<MDynamicMeshPhysics>())
     {
         Physics = DynamicMeshPhysics;
     }

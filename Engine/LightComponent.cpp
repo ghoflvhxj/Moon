@@ -36,7 +36,7 @@ void MLightComponent::Update(const Time deltaTime)
     Super::Update(deltaTime);
     setRenderMode(ERenderMode::Orthogonal);
 
-    if (auto& World = getOwningActor()->GetOwner()->CastTo<MWorld>())
+    if (auto& World = getOwningActor()->GetOwner()->CastToShared<MWorld>())
     {
         auto& WorldInfo = GetEngine()->GetWorldInfo(World->GetID());
         setScale(WorldInfo.DstWindow->GetWidth<float>(), WorldInfo.DstWindow->GetHeight<float>(), 1.f);

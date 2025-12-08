@@ -211,7 +211,7 @@ void DynamicMeshComponent::Clothing()
     // 몸체
     if (std::shared_ptr<MPhysics>& PhyiscsAsset = GetDynamicMesh()->GetPhysics())
     {
-        if (std::shared_ptr< MDynamicMeshPhysics>& DynamicMeshPhysics = PhyiscsAsset->CastTo<MDynamicMeshPhysics>())
+        if (std::shared_ptr< MDynamicMeshPhysics>& DynamicMeshPhysics = PhyiscsAsset->CastToShared<MDynamicMeshPhysics>())
         {
             for (FBodyCapsuleData& BodyCapsuleData : DynamicMeshPhysics->GetCapsules())
             {

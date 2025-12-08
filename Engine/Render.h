@@ -108,7 +108,7 @@ struct FPrimitiveData
     template <class T>
     std::shared_ptr<T> GetPrimitiveComponent() const
     {
-        return PrimitiveComponent.lock()->template CastTo<T>();
+        return PrimitiveComponent.lock()->template CastToShared<T>();
     }
 
 	std::weak_ptr<MPrimitiveComponent> PrimitiveComponent;
