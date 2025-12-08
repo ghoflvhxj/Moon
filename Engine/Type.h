@@ -41,6 +41,7 @@ enum class EType
     Vec2,
     Vec3,
     Vec4,
+    Mat4,
     Enum,
 };
 
