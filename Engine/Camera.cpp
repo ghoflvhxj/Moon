@@ -1,9 +1,9 @@
-﻿#include "Include.h"
-#include "Camera.h"
+﻿#include "Camera.h"
 
 #include "MoonEngine.h"
 #include "World.h"
 #include "Window.h"
+#include "DirectInput.h"
 
 // Utility
 #include "Factory.h"
@@ -56,12 +56,61 @@ void MCamera::tick(const Time deltaTime)
 
 	updateViewMatrix();
 	updateProjectionMatrix();
+
+    Vec3 trans = GetWorldTranslation();
+    Vec3 look = SceneComp->GetForward();
+    Vec3 right = SceneComp->getRight();
+    float speed = 3.f * deltaTime;
+
+    if (InputManager::keyPress(DIK_W, 1))
+    {
+        trans.x += look.x * speed;
+        trans.y += look.y * speed;
+        trans.z += look.z * speed;
+    }
+    else if (InputManager::keyPress(DIK_S, 1))
+    {
+        trans.x -= look.x * speed;
+        trans.y -= look.y * speed;
+        trans.z -= look.z * speed;
+    }
+    else if (InputManager::keyPress(DIK_D, 1))
+    {
+        trans.x += right.x * speed;
+        trans.y += right.y * speed;
+        trans.z += right.z * speed;
+    }
+    else if (InputManager::keyPress(DIK_A, 1))
+    {
+        trans.x -= right.x * speed;
+        trans.y -= right.y * speed;
+        trans.z -= right.z * speed;
+    }
+
+    SetWorldTranslation(trans);
+
+    //if (InputManager::mousePress(MOUSEBUTTON::RB))
+    //{
+    //    Vec3 CameraRot = SceneComp->getRotation();
+    //    Vec3 TargetRot = CameraRot;
+    //    float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X));
+    //    float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y));
+
+    //    TargetRot.x += mouseY * deltaTime * 0.2f;
+    //    TargetRot.y += mouseX * deltaTime * 0.2f;
+
+    //    float t = 0.5f;
+    //    CurrentRot.x = ((1.f - t) * CurrentRot.x) + (t * TargetRot.x);
+    //    CurrentRot.y = ((1.f - t) * CurrentRot.y) + (t * TargetRot.y);
+    //    CurrentRot.z = ((1.f - t) * CurrentRot.z) + (t * TargetRot.z);
+
+    //    SceneComp->setRotation(CurrentRot);
+    //}
 }
 
 void MCamera::updateViewMatrix()
 {
 	Vec3 eye	= SceneComp->getWorldTranslation();
-	Vec3 at		= { 0.f, 0.f, 0.f };
 	Vec3 up		= { 0.f, 1.f, 0.f };
 	Vec3 to		= SceneComp->GetForward();
 
@@ -89,9 +138,14 @@ void MCamera::updateProjectionMatrix()
     float Width = g_pSetting->getResolutionWidth<float>();
     float Height = g_pSetting->getResolutionHeight<float>();
     float AspectRatio = g_pSetting->getAspectRatio();
-    if (auto& World = GetOwner()->CastTo<MWorld>())
+    if (auto& World = GetOwner()->CastToShared<MWorld>())
     {
         auto& WorldInfo = GetEngine()->GetWorldInfo(World->GetID());
+        if (WorldInfo.DstWindow == nullptr || WorldInfo.SrcWorld == nullptr)
+        {
+            return;
+        }
+
         AspectRatio = WorldInfo.DstWindow->GetAspectRatio();
         Width = WorldInfo.DstWindow->GetWidth<float>();
         Height = WorldInfo.DstWindow->GetHeight<float>();
@@ -201,4 +255,9 @@ void MCamera::setFov(const float fov)
 const float MCamera::getFov() const
 {
 	return _fov;
+}
+
+void MCamera::SetTargetWorldPos(const Vec3& InPos)
+{
+    at = InPos;
 }

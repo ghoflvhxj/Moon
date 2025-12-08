@@ -64,7 +64,8 @@ private:
 public:
 	const bool keyDown(unsigned char key);
 	const bool keyUp(unsigned char key);
-	const bool keyPress(unsigned char key);
+    const bool keyPress(unsigned char key);
+    const bool keyPress(unsigned char key, uint32 InIndex);
 
 public:
 	const bool mouseDown(const MOUSEBUTTON eMouseButton);
@@ -92,6 +93,7 @@ public:
 	static const bool keyDown(unsigned char key);
 	static const bool keyUp(unsigned char key);
 	static const bool keyPress(unsigned char key);
+    static const bool keyPress(unsigned char key, uint32 InIndex);
 	static const bool mouseDown(const MOUSEBUTTON button);
 	static const bool mouseUp(const MOUSEBUTTON button);
 	static const bool mousePress(const MOUSEBUTTON button);

@@ -72,6 +72,13 @@ private:
     float Near = 0.1f;
     float Far = 1000.f;
 
+public:
+    void SetTargetWorldPos(const Vec3& InPos);
+protected:
+    Vec3 at = { 0.f, 0.f, 0.f };
+
+    //Vec3 CurrentRot = {};
+
 private:
 	std::shared_ptr<MSceneComponent> SceneComp = nullptr;
 

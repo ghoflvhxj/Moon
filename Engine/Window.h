@@ -55,6 +55,9 @@ protected:
     uint32 Height = 1080;
 
 public:
+    std::tuple<LONG, LONG> GetWindowPos() const;
+
+public:
     float GetAspectRatio() const { return AspectRatio; }
 protected:
     float AspectRatio = 1920.f / 1080.f;
@@ -65,6 +68,8 @@ protected:
     FDelegate<void, uint32, uint32, uint32, uint32, uint32> OnViewportSizeChanged;
 
 public:
+    void SetMousePos(int32 X, int32 Y);
+    void MouseCneter();
     const Vec2 GetMousePos() const
     {
         POINT MousePos;

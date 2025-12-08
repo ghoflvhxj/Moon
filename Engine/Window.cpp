@@ -101,6 +101,36 @@ void MWindow::UpdateSize()
     GetOnViewportSizeChangedDelegate().Broadcast(ID, OldWidth, OldHeight, NewWidth, NewHeight);
 }
 
+std::tuple<LONG, LONG> MWindow::GetWindowPos() const
+{
+    RECT Rect = {};
+    if (GetWindowRect(getHandle(), &Rect) == FALSE)
+    {
+        return { 0, 0 };
+    }
+
+    return { Rect.left, Rect.top };
+}
+
+void MWindow::SetMousePos(int32 X, int32 Y)
+{
+    SetCursorPos(X, Y);
+}
+
+void MWindow::MouseCneter()
+{
+    RECT Rect = {};
+    if (GetClientRect(getHandle(), &Rect) == FALSE)
+    {
+        return;
+    }
+
+    POINT LeftTop = { Rect.left, Rect.top };
+    ClientToScreen(getHandle(), &LeftTop);
+
+    SetMousePos(LeftTop.x + ((Rect.right - Rect.left) / 2), LeftTop.y + ((Rect.bottom - Rect.top) / 2));
+}
+
 bool MWindow::IsMouseInViewport() const
 {
     Vec2 MousePos = GetMousePos();

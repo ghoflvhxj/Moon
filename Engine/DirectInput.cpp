@@ -84,6 +84,16 @@ const bool MDirectInput::keyPress(unsigned char key)
 	return bFocused && (InputDevices[0]._keyboardState[key] & 0x80) && InputDevices[0]._prevKeyboardState[key];
 }
 
+const bool MDirectInput::keyPress(unsigned char key, uint32 InIndex)
+{
+    if (GetSize(InputDevices) <= InIndex)
+    {
+        return false;
+    }
+
+    return bFocused && (InputDevices[InIndex]._keyboardState[key] & 0x80) && InputDevices[InIndex]._prevKeyboardState[key];
+}
+
 const bool MDirectInput::mouseDown(const MOUSEBUTTON eMouseButton)
 {
 	return bFocused &&  (InputDevices[0]._mouseState.rgbButtons[static_cast<int>(eMouseButton)] & 0x80) && !InputDevices[0]._prevMouseState.rgbButtons[static_cast<int>(eMouseButton)];
@@ -136,6 +146,11 @@ const bool InputManager::keyUp(unsigned char key)
 const bool InputManager::keyPress(unsigned char key)
 {
 	return g_pDirectInput->keyPress(key);
+}
+
+const bool InputManager::keyPress(unsigned char key, uint32 InIndex)
+{
+    return g_pDirectInput->keyPress(key, InIndex);
 }
 
 const bool InputManager::mouseDown(const MOUSEBUTTON button)
