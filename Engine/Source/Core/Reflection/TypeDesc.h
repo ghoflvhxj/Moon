@@ -50,7 +50,8 @@ struct FFactorProxy : public FFactoryBase
 {
     virtual void* Create() override
     {
-        return new T();
+        T* NewT = new T();
+        return NewT;
     }
 };
 
@@ -59,7 +60,7 @@ ENGINE_DLL std::map<std::string, const FTypeDesc*>& GetTypeDescs();
 ENGINE_DLL std::map<const FTypeDesc*, FFactoryBase*>& GetFactory();
 
 // 인스턴스 생성
-ENGINE_DLL void* Create(const FTypeDesc* InTypeDesc);
+ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc);
 
 // TypeDesc 컨테이너에 추가
 template <class T>

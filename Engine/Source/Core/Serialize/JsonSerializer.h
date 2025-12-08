@@ -178,14 +178,12 @@ public:
     template <>
     rapidjson::Value SerializeCustomType(const Mat4& InData)
     {
-        rapidjson::Value ArrayValue(rapidjson::kArrayType);
+        //rapidjson::Value ArrayValue(rapidjson::kArrayType);
 
-        ArrayValue.PushBack(ToJsonValue(InData.m[0]), Allocator);
-        ArrayValue.PushBack(ToJsonValue(InData.m[1]), Allocator);
-        ArrayValue.PushBack(ToJsonValue(InData.m[2]), Allocator);
-        ArrayValue.PushBack(ToJsonValue(InData.m[3]), Allocator);
+        //ArrayValue.PushBack(ToJsonValue(InData.m), Allocator);
+        //return ArrayValue;
 
-        return ArrayValue;
+        return ToJsonValue(InData.m);
     }
 
 public:
@@ -258,6 +256,28 @@ public:
             {
                 ArrayValue.PushBack(rapidjson::Value(InValue[i]), Allocator);
             }
+            return ArrayValue;
+        }
+        else
+        {
+            return SerializeCustomType(InValue);
+        }
+    }
+
+    template <class T, size_t N, size_t M>
+    rapidjson::Value ToJsonValue(T(&InValue)[N][M])
+    {
+        if constexpr (std::is_arithmetic_v<T>)
+        {
+            rapidjson::Value ArrayValue(rapidjson::kArrayType);
+            for (size_t i = 0; i < N; ++i)
+            {
+                for (size_t j = 0; j < M; ++j)
+                {
+                    ArrayValue.PushBack(rapidjson::Value(InValue[i][j]), Allocator);
+                }
+            }
+
             return ArrayValue;
         }
         else

@@ -14,5 +14,7 @@ public:
 	virtual void Resize(const void* InObject, const size_t InSize) = 0;
 	virtual size_t GetNum(const void* InObject) const = 0;
     virtual void Clear (const void* InObject) = 0;
+    virtual void* GetKeyInstance() = 0;
+    virtual void* GetValueInstance() = 0;
 };
 

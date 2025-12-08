@@ -1,5 +1,6 @@
 ﻿#include "JsonDeserializer.h"
 
+#include "MoonEngine.h"
 #include "Core/Asset.h"
 #include "Core/ResourceManager.h"
 
@@ -80,10 +81,11 @@ void MJsonDeserializer::PatchVector(FVectorPropertyDesc* InContainerPropDesc, ra
     {
         rapidjson::Value& Value = Iter->value;
 
-        void* Data = nullptr;
+        void* Data = InContainerPropDesc->GetValueInstance();
+
         if (InContainerPropDesc->Type != EType::None)
         {
-            Data = HandleData(InContainerPropDesc->Type, Value);
+            HandleData2(InContainerPropDesc->Type, Value, Data);
         }
         else
         {
@@ -105,31 +107,56 @@ void MJsonDeserializer::PatchMap(FMapPropertyDesc* InContainerPropDesc, rapidjso
         rapidjson::Value& JsonKey = InJsonValue[Index].FindMember("Key")->value;
         rapidjson::Value& JsonValue = InJsonValue[Index].FindMember("Value")->value;
 
-        // 키
-        void* Key = nullptr;
+        //// 키
+        //void* Key = nullptr;
+        //if (InContainerPropDesc->ContainerKeyType != EType::None)
+        //{
+        //    Key = HandleData(InContainerPropDesc->ContainerKeyType, JsonKey);
+        //}
+        //else
+        //{
+        //    Key = HandleData(JsonKey, InContainerPropDesc->KeyTypeDesc);
+        //}
+
+        //// 값
+        //void* Value = nullptr;
+        //if (InContainerPropDesc->Type != EType::None)
+        //{
+        //    Value = HandleData(InContainerPropDesc->Type, JsonValue);
+        //}
+        //else
+        //{
+        //    Value = HandleData(JsonValue, InContainerPropDesc->TypeDesc, InContainerPropDesc->bSharedPtr);
+        //}
+
+        //if (Key != nullptr && Value != nullptr)
+        //{
+        //    InContainerPropDesc->Set(InObject, Key, Value);
+        //}
+
+        void* KeyPtr = InContainerPropDesc->GetKeyInstance();
         if (InContainerPropDesc->ContainerKeyType != EType::None)
         {
-            Key = HandleData(InContainerPropDesc->ContainerKeyType, JsonKey);
+            HandleData2(InContainerPropDesc->ContainerKeyType, JsonKey, KeyPtr);
         }
         else
         {
-            Key = HandleData(JsonKey, InContainerPropDesc->KeyTypeDesc);
+            KeyPtr = HandleData(JsonKey, InContainerPropDesc->KeyTypeDesc);
         }
 
-        // 값
-        void* Value = nullptr;
+        void* ValuePtr = InContainerPropDesc->GetValueInstance();
         if (InContainerPropDesc->Type != EType::None)
         {
-            Value = HandleData(InContainerPropDesc->Type, JsonValue);
+            HandleData2(InContainerPropDesc->Type, JsonValue, ValuePtr);
         }
         else
         {
-            Value = HandleData(JsonValue, InContainerPropDesc->TypeDesc, InContainerPropDesc->bSharedPtr);
+            ValuePtr = HandleData(JsonValue, InContainerPropDesc->TypeDesc, InContainerPropDesc->bSharedPtr);
         }
 
-        if (Key != nullptr && Value != nullptr)
+        if (KeyPtr != nullptr && ValuePtr != nullptr)
         {
-            InContainerPropDesc->Set(InObject, Key, Value);
+            InContainerPropDesc->Set(InObject, KeyPtr, ValuePtr);
         }
     }
 }
@@ -190,6 +217,11 @@ void* MJsonDeserializer::HandleData(EType InType, rapidjson::Value& InValue)
         case EType::Vec4:
         {
             OutData = GetObjectFromJson<Vec4>(InValue);
+        }
+        break;
+        case EType::Mat4:
+        {
+            OutData = GetObjectFromJson<Mat4>(InValue);
         }
         break;
         case EType::String:
@@ -266,7 +298,7 @@ void* MJsonDeserializer::HandleData(rapidjson::Value& InValue, const FTypeDesc* 
                 return nullptr;
             }
 
-			if (MObject* OutData = static_cast<MObject*>(Create(TypeDesc)))
+			if (MObject* OutData = static_cast<MObject*>(CreateObject(TypeDesc)))
 			{
 				while (TypeDesc)
 				{
@@ -281,6 +313,7 @@ void* MJsonDeserializer::HandleData(rapidjson::Value& InValue, const FTypeDesc* 
 				if (bShared)
 				{
 					Test = std::shared_ptr<MObject>(OutData);
+                    Test->OnLoaded();
 					return &Test;
 				}
 				else
@@ -291,11 +324,64 @@ void* MJsonDeserializer::HandleData(rapidjson::Value& InValue, const FTypeDesc* 
         }
     }
 
-    if (void* OutData = Create(InTypeDesc))
+    if (void* OutData = CreateData(InTypeDesc))
     {
         PatchStruct(InTypeDesc, OutData, InValue);
         return OutData;
     }
 
     return nullptr;
+}
+
+void MJsonDeserializer::HandleData2(EType InType, rapidjson::Value& InValue, void* InData)
+{
+    switch (InType)
+    {
+    case EType::Int:
+    case EType::Enum:
+    {
+        GetObjectFromJson<int>(InValue, InData);
+    }
+    break;
+    case EType::Float:
+    {
+        GetObjectFromJson<float>(InValue, InData);
+    }
+    break;
+    case EType::Vec2:
+    {
+        GetObjectFromJson<Vec2>(InValue, InData);
+    }
+    break;
+    case EType::Vec3:
+    {
+        GetObjectFromJson<Vec3>(InValue, InData);
+    }
+    break;
+    case EType::Vec4:
+    {
+        GetObjectFromJson<Vec4>(InValue, InData);
+    }
+    break;
+    case EType::Mat4:
+    {
+        GetObjectFromJson<Mat4>(InValue, InData);
+    }
+    break;
+    case EType::String:
+    {
+        GetObjectFromJson<std::string>(InValue, InData);
+    }
+    break;
+    case EType::WString:
+    {
+        GetObjectFromJson<std::wstring>(InValue, InData);
+    }
+    break;
+    case EType::Bool:
+    {
+        GetObjectFromJson<bool>(InValue, InData);
+    }
+    break;
+    }
 }

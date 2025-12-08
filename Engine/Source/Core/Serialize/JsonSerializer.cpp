@@ -216,6 +216,11 @@ rapidjson::Value MJsonSerializer::HandleData(EType InType, const void* InData)
             OutValue = ToJsonValue(CastData<Vec4>(InData));
         }
         break;
+        case EType::Mat4:
+        {
+            OutValue = ToJsonValue(CastData<Mat4>(InData));
+        }
+        break;
         case EType::String:
         {
             OutValue = ToJsonValue(CastData<std::string>(InData));
@@ -256,7 +261,14 @@ rapidjson::Value MJsonSerializer::HandleData(const FTypeDesc* InTypeDesc, const 
         if (bShared)
         {
             std::shared_ptr<const MObject> SharedObject = *static_cast<const std::shared_ptr<MObject>*>(InData);
-            OutValue = DispatchStruct(InTypeDesc, SharedObject.get());
+            
+            const FTypeDesc* Current = SharedObject->GetTypeDesc();
+            while (Current)
+            {
+                OutValue.AddMember(ToJsonValue(Current->Name), DispatchStruct(Current, SharedObject.get()), Allocator);
+                Current = Current->Parent;
+            }
+            //OutValue = DispatchStruct(InTypeDesc, SharedObject.get());
         }
         else
         {

@@ -1,18 +1,17 @@
 ﻿#pragma once
 
 #include "ContainerProperty.h"
-#include <map>
-#include <unordered_map>
+#include <any>
 
 struct FMapPropertyDesc : public FPropertyDesc, public FContainerPropertyInterface
 {
     virtual void* Get(const void* InObject, const void* InKey) = 0;
-    virtual void Set(const void* InObject, void* &InKey, void* &InData) = 0;
+    virtual void Set(const void* InObject, const void* InKey, const void* InData) = 0;
     virtual std::vector<const void*> GetKeys(const void* InObject) { return std::vector<const void*>(); }
 };
 
-template <class Owner, class KeyType, class ElemType, class F >
-static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<KeyType, ElemType> Owner::* MemPtr, F InFunc)
+template <class OwnerType, class KeyType, class ElemType, class F >
+static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<KeyType, ElemType> OwnerType::* MemPtr, F InFunc)
 {
     // 스마트 포인터면 언랩해서 포인터로, 아니면 그대로
     using NoSmartElemType = std::conditional_t<
@@ -33,23 +32,41 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
 
     struct FContainerDescImple : public FMapPropertyDesc
     {
-        FContainerDescImple(std::unordered_map<KeyType, ElemType> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
+        FContainerDescImple(std::unordered_map<KeyType, ElemType> OwnerType::* MemPtr, std::function<void(OwnerType* InObject)> InFunc)
             : MemPtr(MemPtr), Func(InFunc)
         {
         }
-        std::unordered_map<KeyType, ElemType> Owner::* MemPtr = nullptr;
-        std::function<void(Owner* InObject)> Func;
+        std::unordered_map<KeyType, ElemType> OwnerType::* MemPtr = nullptr;
+        std::function<void(OwnerType* InObject)> Func;
+
+        KeyType KeyInstance;
+        ElemType ValueInstance;
 
         inline std::unordered_map<KeyType, ElemType>& GetMap(const void* InObject) const
         {
-            return (Owner*)InObject->*MemPtr;
+            return (OwnerType*)InObject->*MemPtr;
         }
 
-        // FPropertyDesc Iterface ----------------------------------------------------
+        // FPropertyDesc Interface ----------------------------------------------------
         virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
         {
             // DoNothing
             return nullptr;
+        }
+
+        virtual void Copy(const void* InSrcObject, void* InDstObject, size_t InIndex = 0) override
+        {
+            const auto& SrcMap = GetMap(InSrcObject);
+            auto& DstMap = GetMap(InDstObject);
+
+            DstMap.clear();
+
+            for (auto& [Key, Value] : SrcMap)
+            {
+                const void* SrcKeyPtr = &Key;
+                const void* SrcValuePtr = &Value;
+                Set(InDstObject, SrcKeyPtr, SrcValuePtr);
+            }
         }
 
         // FContainerProperty Interface ----------------------------------------------------
@@ -66,6 +83,16 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
         virtual void Clear(const void* InObject) override
         {
             GetMap(InObject).clear();
+        }
+
+        virtual void* GetKeyInstance()
+        {
+            return &KeyInstance;
+        }
+
+        virtual void* GetValueInstance()
+        {
+            return &ValueInstance;
         }
 
         // FMapProperty Interface ----------------------------------------------------
@@ -91,36 +118,26 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
             }
         }
 
-        virtual void Set(const void* InObject, void*& InKey, void*& InData) override
+        virtual void Set(const void* InObject, const void* InKey, const void* InData) override
         {
             KeyType Key; 
             if constexpr (std::is_pointer_v<KeyType>)
             {
-                KeyType Data = static_cast<KeyType>(InKey);
+                // TODO. 언젠가는 지원해야 함
             }
             else
             {
-                KeyType* KeyPtr = static_cast<KeyType*>(InKey);
-                Key = *KeyPtr;
-                delete KeyPtr;
-                InKey = nullptr;
+                Key = *static_cast<const KeyType*>(InKey);
             }
 
             ElemType Value;
             if constexpr (std::is_pointer_v<ElemType>)
             {
-                Value = static_cast<ElemType>(InData);
+                // TODO. 언젠가는 지원해야 함
             }
             else
             {
-                ElemType* ValuePtr = static_cast<ElemType*>(InData);
-                Value = *ValuePtr;
-
-                if (bSharedPtr == false)
-                {
-                    delete ValuePtr;
-                    InData = nullptr;
-                }
+                Value = *static_cast<const ElemType*>(InData);
             }
             
             GetMap(InObject)[Key] = Value;
@@ -142,7 +159,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
 
     using Type = std::conditional_t<std::is_array_v<ElemType>, std::remove_extent_t<ElemType>, ElemType>;
 
-    std::function<void(Owner* InObject)> Func = InFunc;
+    std::function<void(OwnerType* InObject)> Func = InFunc;
     FMapPropertyDesc* NewDesc = new FContainerDescImple(MemPtr, Func);
     NewDesc->Name = InName;
     NewDesc->Size = sizeof(PureType);

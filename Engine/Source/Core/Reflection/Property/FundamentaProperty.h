@@ -9,34 +9,14 @@ FPropertyDesc*을 FFundamentalPropertyDesc*<type> 으로 변환하여 Get, Set �
 #include <iostream>
 #include "Property.h"
 
-//template <class T>
-//struct FFundamentalPropertyInterface
-//{
-//public:
-//    // 값이면 Property Getter가 레퍼런스 타입을 반환하도록
-//    using PropType = std::conditional_t<std::is_pointer_v<T>, T, std::add_lvalue_reference_t<T>>;
-//    using ElemType = std::conditional_t<std::is_pointer_v<T>, std::remove_pointer_t<T>, T>;
-//public:
-//
-//    // Setter
-//    virtual void Set(void* InObject, const T& InT) = 0;
-//    virtual void Set(void* InObject, std::shared_ptr<ElemType> InT) {}
-//};
-
-template <class T>
-struct FFundamentalPropertyDesc : public FPropertyDesc//, public FFundamentalPropertyInterface<T>
-{
-    // 캐스팅 용 Wrapper
-};
-
-template <class Owner, class MemType, class F>
-static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPtr, F InFunc)
+template <class OwnerType, class MemType, class F>
+static FPropertyDesc* MakeProp(const std::string& InName, MemType OwnerType::* MemPtr, F InFunc)
 {
     // 배열이면 요소 타입의 포인터, 아니면 그대로
     // T[n]         -> T*
     // T*           -> T*
     // T            -> T
-    using _NoArray = std::conditional_t<
+    using NoArray = std::conditional_t<
         std::is_array_v<MemType>,
         std::add_pointer_t<std::remove_all_extents_t<MemType>>,
         MemType
@@ -46,119 +26,100 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType Owner::* MemPt
     // shared<T>    -> T*
     // T*           -> T*
     // T            -> T
-    using _NoSmart = std::conditional_t<
-        is_smart_ptr_v<_NoArray>,
-        std::add_pointer_t<remove_smart_pointer_t<_NoArray>>,
-        _NoArray
+    using NoArrayAndSmart = std::conditional_t<
+        is_smart_ptr_v<NoArray>,
+        std::add_pointer_t<remove_smart_pointer_t<NoArray>>,
+        NoArray
     >;
 
-    // 순수 또는 포인터 타입
-    using ImpleType = _NoSmart;
-
-    // 포인터 -> T*, 일반 -> T&
-    using PropType = std::conditional_t<std::is_pointer_v<ImpleType>, ImpleType, std::add_lvalue_reference_t<ImpleType>>;
-
     // 포인터, 스마트 포인터, 배열 등을 제거한 타입
-    using ElemType = std::conditional_t<std::is_pointer_v<ImpleType>, std::remove_pointer_t<ImpleType>, ImpleType>;
+    using ElemType = std::conditional_t<std::is_pointer_v<NoArrayAndSmart>, std::remove_pointer_t<NoArrayAndSmart>, NoArrayAndSmart>;
 
-	struct FPropertyImple : public FFundamentalPropertyDesc<ImpleType>
+	struct FPropertyDescImple : public FPropertyDesc
 	{
-        FPropertyImple(MemType Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
-            : TestMemPtr(MemPtr), Func(InFunc)
-		{
-		}
+        FPropertyDescImple(MemType OwnerType::* InMemPtr, std::function<void(OwnerType* InObject)> InFunc)
+            : MemPtr(InMemPtr), Func(InFunc)
+		{}
+
         // 멤버 포인터
-        MemType Owner::* TestMemPtr;
+        MemType OwnerType::* MemPtr;
 
         // 델리게이트
-        std::function<void(Owner* InObject)> Func;
+        std::function<void(OwnerType* InObject)> Func;
 
         // 부모 클래스 주석 참고
         virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
         {
-            if constexpr (is_smart_ptr_v<MemType>)
+            if constexpr (std::is_array_v<MemType>)
             {
-                if (InIndex != 0) { MSGBOX(TEXT("배열 멤버가 아님!")); }
-                return &((Owner*)InObject->*TestMemPtr);
-            }
-            else if constexpr (std::is_array_v<MemType>)
-            {
-                if constexpr (std::rank_v<MemType> == 1)
+                if constexpr (std::rank_v<MemType> == 1)        // 배열
                 {
-                    return &((Owner*)InObject->*TestMemPtr)[InIndex];
+                    return &((OwnerType*)InObject->*MemPtr)[InIndex];
                 }
-                else if constexpr (std::rank_v<MemType> == 2)
+                else if constexpr (std::rank_v<MemType> == 2)   // 행렬 임시 지원
                 {
-                    return &((Owner*)InObject->*TestMemPtr)[InIndex/4][InIndex%4];
+                    return &((OwnerType*)InObject->*MemPtr)[InIndex/4][InIndex%4];
                 }
             }
             else
             {
-                if (InIndex != 0) { MSGBOX(TEXT("배열 멤버가 아님!")); }
-                return &((Owner*)InObject->*TestMemPtr);
+                if (InIndex != 0) 
+                { 
+                    LOGTEXT(TEXT("배열 멤버가 아님!")); 
+                    return nullptr;
+                }
+
+                return &((OwnerType*)InObject->*MemPtr);
             }
         }
 
         // 부모 클래스 주석 참고
-        virtual void SetAsVoid(void* InObject, void*& InData, size_t InIndex = 0) override
+        virtual void SetAsVoid(void* InObject, void* InData, size_t InIndex = 0) override
         {
-            if constexpr (is_smart_ptr_v<MemType>)
+            if constexpr (std::is_array_v<MemType>)
             {
-                MemType* Data = static_cast<MemType*>(InData);
-                ((Owner*)InObject->*TestMemPtr) = *Data;
+                if constexpr (std::rank_v<MemType> == 1)        // 배열
+                {
+                    ((OwnerType*)InObject->*MemPtr)[InIndex] = *static_cast<ElemType*>(InData);
+                }
+                else if constexpr (std::rank_v<MemType> == 2)   // 행렬 임시 지원
+                {
+                    ((OwnerType*)InObject->*MemPtr)[InIndex/4][InIndex%4] = *static_cast<ElemType*>(InData);
+                }
             }
             else if constexpr (std::is_pointer_v<MemType>)
             {
                 // 지원 안함
                 InData = nullptr;
             }
-            else if constexpr (std::is_array_v<MemType>)
-            {
-                if constexpr (std::rank_v<MemType> == 1)
-                {
-                    ((Owner*)InObject->*TestMemPtr)[InIndex] = *static_cast<ElemType*>(InData);
-                }
-                else if constexpr (std::rank_v<MemType> == 2)
-                {
-                    ((Owner*)InObject->*TestMemPtr)[InIndex/4][InIndex%4] = *static_cast<ElemType*>(InData);
-                }
-            }
             else
+            {
+                MemType* Data = static_cast<MemType*>(InData);
+                ((OwnerType*)InObject->*MemPtr) = *Data;
+            }
+
+            if constexpr (is_smart_ptr_v<MemType> == false && std::is_array_v<MemType> == false)
             {
                 // 복사 대입
                 MemType* Ptr = static_cast<MemType*>(InData);
-                ((Owner*)InObject->*TestMemPtr) = *Ptr;
-                delete Ptr;
-                InData = nullptr;
             }
 
             if (Func)
             {
-                Func((Owner*)InObject);
+                Func((OwnerType*)InObject);
             }
         }
 
-        virtual void Alloc(void* InObject)
+        virtual void Copy(const void* InSrcObject, void* InDstObject, size_t InIndex = 0) override
         {
-            if constexpr (is_smart_ptr_v<MemType>)
-            {
-                //((Owner*)InObject->*TestMemPtr) = std::make_shared<ElemType>();
-            }
-            else if constexpr (std::is_pointer_v<MemType>)
-            {
-                //((Owner*)InObject->*TestMemPtr) = new MemType;
-            }
-            else
-            {
-                // DoNothing
-            }
+            SetAsVoid(InDstObject, GetAsVoid(InSrcObject, InIndex), InIndex);
         }
 	};
     
     // T[N] -> T
     using Type = std::conditional_t<std::is_array_v<MemType>, std::remove_all_extents_t<MemType>, MemType>;
-    std::function<void(Owner* InObject)> Func = InFunc;
-	FPropertyDesc* NewDesc = new FPropertyImple(MemPtr, Func);
+    std::function<void(OwnerType* InObject)> Func = InFunc;
+	FPropertyDesc* NewDesc = new FPropertyDescImple(MemPtr, Func);
 	NewDesc->Name = InName;
 	NewDesc->Size = sizeof(Type);
 	NewDesc->Num = std::is_array_v<MemType> ? sizeof(MemType) / sizeof(Type) : 1;

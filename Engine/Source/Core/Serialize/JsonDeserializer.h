@@ -96,6 +96,7 @@ public:
 
 public:
     void* HandleData(EType InType, rapidjson::Value& InValue);
+    void HandleData2(EType InType, rapidjson::Value& InValue, void* InData);
     void* HandleData(rapidjson::Value& InValue, const FTypeDesc* InTypeDesc, bool bShared = false);
 
 public:
@@ -103,7 +104,7 @@ public:
     template <class T>
     void DeserializeCustomType(rapidjson::Value& JsonValue, T& OutObject)
     {
-        LOG(TEXT("여기에 들어오면 타입을 지원하지 않는 것!"));
+        LOGTEXT(TEXT("여기에 들어오면 타입을 지원하지 않는 것!"));
     }
 
     // wstring
@@ -148,6 +149,7 @@ public:
         Vector.w = JsonValue.GetArray()[3].GetFloat();
     }
 
+    // Mat4
     template <>
     void DeserializeCustomType(rapidjson::Value& JsonValue, Mat4& Mat)
     {
@@ -174,6 +176,27 @@ public:
         {
             // 구조체, 클래스, 컨테이너
             DeserializeCustomType(InJsonValue, OutObject);
+        }
+    }
+
+    template <class T>
+    void GetObjectFromJson(rapidjson::Value& InJsonValue, void* OutObject)
+    {
+        T* Temp = static_cast<T*>(OutObject);
+
+        if constexpr (std::is_arithmetic_v<T>)
+        {
+            // 일반 자료형
+            *Temp = InJsonValue.Get<T>();
+        }
+        else if constexpr (std::is_enum_v<T>)
+        {
+            *Temp = (T)InJsonValue.GetInt();
+        }
+        else
+        {
+            // 구조체, 클래스, 컨테이너
+            DeserializeCustomType(InJsonValue, *Temp);
         }
     }
 

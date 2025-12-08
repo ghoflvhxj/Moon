@@ -3,12 +3,12 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <map>
+#include <unordered_map>
+
 #include "Type.h"
 #include "Core/Reflection/TypeDesc.h"
 #include "Macro.h"
-
-#include <map>
-#include <unordered_map>
 
 using namespace std;
 
@@ -74,13 +74,12 @@ public:
     }
 
     // 프로퍼티를 void* 를 이용해 설정하는 함수
-    virtual void SetAsVoid(void* InObject, void*& InData, size_t InIndex = 0)
+    virtual void SetAsVoid(void* InObject, void* InData, size_t InIndex = 0)
     {
 
     }
 
-    // 프로퍼티가 포인터이고 할당이 필요할 때 호출
-    virtual void Alloc(void* InObject)
+    virtual void Copy(const void* InSrcObject, void* InDstObject, size_t InIndex = 0)
     {
 
     }
@@ -178,6 +177,10 @@ void SetType(EType& InType, const FTypeDesc* &InTypeDesc)
     else if constexpr (std::is_same_v<std::wstring, T>)
     {
         InType = EType::WString;
+    }
+    else if constexpr (std::is_same_v<::Mat4, T>)
+    {
+        InType = EType::Mat4;
     }
     else if constexpr (std::is_enum_v<T>)
     {

@@ -6,12 +6,12 @@
 struct FVectorPropertyDesc : public FPropertyDesc, public FContainerPropertyInterface
 {
     virtual void* Get(const void* InObject, const size_t InIndex) = 0;
-    virtual void Set(const void* InObject, const size_t InIndex, void*& InData) = 0;
+    virtual void Set(const void* InObject, const size_t InIndex, void* InData) = 0;
     virtual void PushBack(const void* InObject, void*& InData) = 0;
 };
 
-template <class Owner, class ElemType, class F >
-static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> Owner::* MemPtr, F InFunc)
+template <class OwnerType, class ElemType, class F >
+static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> OwnerType::* MemPtr, F InFunc)
 {
     // 스마트 포인터면 언랩해서 포인터로, 아니면 그대로
     using NoSmartElemType = std::conditional_t<
@@ -32,16 +32,17 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
 
     struct FContainerDescImple : public FVectorPropertyDesc
     {
-        FContainerDescImple(std::vector<ElemType> Owner::* MemPtr, std::function<void(Owner* InObject)> InFunc)
+        FContainerDescImple(std::vector<ElemType> OwnerType::* MemPtr, std::function<void(OwnerType* InObject)> InFunc)
             : TestMemPtr(MemPtr), Func(InFunc)
         {
         }
-        std::vector<ElemType> Owner::* TestMemPtr = nullptr;
-        std::function<void(Owner* InObject)> Func;
+        std::vector<ElemType> OwnerType::* TestMemPtr = nullptr;
+        std::function<void(OwnerType* InObject)> Func;
+        ElemType ValueInstance;
 
         std::vector<ElemType>& GetVector(const void* InObject) const
         {
-            return (Owner*)InObject->*TestMemPtr;
+            return (OwnerType*)InObject->*TestMemPtr;
         }
 
         // --------------------------------------------------------------------------------------------
@@ -49,6 +50,14 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
         virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
         {
             return &GetVector(InObject);
+        }
+
+        virtual void Copy(const void* InSrcObject, void* InDstObject, size_t InIndex = 0) override
+        {
+            auto& SrcVector = GetVector(InSrcObject);
+            auto& DstVecotr = GetVector(InDstObject);
+
+            DstVecotr.assign(SrcVector.begin(), SrcVector.end());
         }
 
         // --------------------------------------------------------------------------------------------
@@ -86,6 +95,16 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             return GetVector(InObject).size();
         }
 
+        virtual void* GetKeyInstance()
+        {
+            return nullptr;
+        }
+
+        virtual void* GetValueInstance()
+        {
+            return &ValueInstance;
+        }
+
         // --------------------------------------------------------------------------------------------
         // FVectorProperty
         virtual void* Get(const void* InObject, const size_t InIndex) override
@@ -105,7 +124,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             }
         }
 
-        virtual void Set(const void* InObject, const size_t InIndex, void*& InData) override
+        virtual void Set(const void* InObject, const size_t InIndex, void* InData) override
         {
             auto& Vector = GetVector(InObject);
             if constexpr (is_smart_ptr_v<ElemType>)
@@ -119,17 +138,11 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
                 ElemType Value = *ValuePtr;
 
                 Vector[InIndex] = Value;
-
-                if (bSharedPtr == false)
-                {
-                    delete ValuePtr;
-                    InData = nullptr;
-                }
             }
 
             if (Func)
             {
-                Func((Owner*)InObject);
+                Func((OwnerType*)InObject);
             }
         }
 
@@ -160,16 +173,13 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             {
                 ElemType* Elem = static_cast<ElemType*>(InData);
                 Vector.push_back(*Elem);
-
-                delete Elem;
-                InData = nullptr;
             }
         }
     };
 
     using Type = std::conditional_t<std::is_array_v<ElemType>, std::remove_extent_t<ElemType>, ElemType>;
 
-    std::function<void(Owner* InObject)> Func = InFunc;
+    std::function<void(OwnerType* InObject)> Func = InFunc;
     FVectorPropertyDesc* NewDesc = new FContainerDescImple(MemPtr, Func);
     NewDesc->Name = InName;
     NewDesc->Size = sizeof(PureType);
