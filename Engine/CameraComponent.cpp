@@ -19,7 +19,7 @@ void MCameraComponent::Update(const Time deltaTime)
 
     if (MWorld* World = GetWorld())
     {
-        if (World->IsHasBegan())
+        if (World->IsHasBegan() && World->IsWorldType(EWorldType::Play))
         {
             if (auto& Camera = World->getMainCamera())
             {

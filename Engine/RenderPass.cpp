@@ -88,9 +88,6 @@ void MRenderPass::Begin()
         );
 	}
 
-    //RectWidth = g_pSetting->getResolutionWidth<float>();
-    //RectHeight = g_pSetting->getResolutionHeight<float>();
-
     auto& ViewportSize = getGraphicDevice()->GetViewportSize();
     RectWidth = std::get<0>(ViewportSize);
     RectHeight = std::get<1>(ViewportSize);

@@ -73,6 +73,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         auto& Window = pWindowManager->CreateWindow<MEditorMainWindow>(title, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>(), title);
         EngineInit(hInstance, Window);
 
+        GetMainWorld()->SetWorldType(EWorldType::Editor);
+
         IMGUI_CHECKVERSION();
 
         GetEngine()->GetOnUpdated().Add([]() {

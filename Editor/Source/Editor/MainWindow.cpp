@@ -175,6 +175,7 @@ void MEditorMainWindow::ImGuiRender()
 
             //std::shared_ptr<MWorld> NewWorld = DuplicateObject(GetMainWorld())->CastToShared<MWorld>();
             std::shared_ptr<MWorld> NewWorld = std::make_shared<MWorld>();
+            NewWorld->SetWorldType(EWorldType::PIayInEditor);
             NewWorld->Initialize();
             NewWorld->getMainCamera()->SetWorldTranslation({ 0.f, 0.f, -2.f });
 

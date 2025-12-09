@@ -1027,10 +1027,13 @@ MEditorBase::MEditorBase()
     T->GetOnImGuiRenderedDelegate().Add(this, &MEditorBase::RenderUI);
 
     W = std::make_shared<MWorld>();
+    W->SetWorldType(EWorldType::WorkInEditor);
     W->Initialize();
-    W->PlayGame();
+
     GetEngine()->AddWorld(W, T);
 
+    //W->PlayGame();
+    GetRenderer()->GetScene(W->GetID())->SetDrawCollision(true);
     Light = CreateActor<MDirectionalLightActor>(W);
 }
 

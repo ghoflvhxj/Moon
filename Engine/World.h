@@ -14,7 +14,6 @@ class MTimerManager;
 class MFrameManager;
 
 class MMeshComponent;
-
 class MActor;
 class MCamera;
 
@@ -32,6 +31,15 @@ struct FHitData
     {
         return Distance != FLT_MAX;
     }
+};
+
+enum class EWorldType
+{
+    None,
+    Play,
+    Editor,
+    PIayInEditor,
+    WorkInEditor
 };
 
 class ENGINE_DLL MWorld : public MObject
@@ -75,6 +83,11 @@ public:
 protected:
     FDelegate<void> OnRendered;
 
+public:
+    void SetWorldType(EWorldType InWorldType) { WorldType = InWorldType; }
+    bool IsWorldType(EWorldType InWorldType) const { return WorldType == InWorldType; }
+protected:
+    EWorldType WorldType = EWorldType::None;
 
 	// 업데이트 할 액터들을 관리
 public:
