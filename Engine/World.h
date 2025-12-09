@@ -86,6 +86,7 @@ protected:
 public:
     void SetWorldType(EWorldType InWorldType) { WorldType = InWorldType; }
     bool IsWorldType(EWorldType InWorldType) const { return WorldType == InWorldType; }
+    bool IsPlaying() const { return IsHasBegan() && (IsWorldType(EWorldType::Play) || IsWorldType(EWorldType::PIayInEditor)); }
 protected:
     EWorldType WorldType = EWorldType::None;
 

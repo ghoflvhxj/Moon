@@ -123,7 +123,6 @@ void MActor::OnDuplicated(MObject* SrcObject)
 
             if (PropertyDesc->IsA<MSceneComponent>()) // 씬 컴포넌트
             {
-                std::shared_ptr<MSceneComponent> SrcComp = *static_cast<std::shared_ptr<MSceneComponent>*>(PropertyDesc->GetAsVoid(SrcObject));
                 std::shared_ptr<MSceneComponent> Component = *static_cast<std::shared_ptr<MSceneComponent>*>(Data);
                 AddComponent(Component->GetName(), Component);
             }
