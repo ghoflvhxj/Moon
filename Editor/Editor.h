@@ -136,9 +136,12 @@ public:
     virtual ~MEditorBase() = default;
 
 public:
-    virtual void SetObject(std::shared_ptr<MObject> InObject);
+    virtual const std::wstring& GetPath() const { return TEXT(""); }
     virtual void Update() {}
-    virtual void RenderUI() {}
+    virtual void RenderUI();
+    virtual void HandleObject() {}
+    virtual void OnSaved() {}
+    bool SetObject(std::shared_ptr<MObject> InObject);
 
 public:
     std::shared_ptr<MRenderer> GetRenderer() { return WeakRenderer.lock(); }
@@ -152,6 +155,10 @@ protected:
     std::string Title;
     // ImGui 닫기 버튼 처리를 위한 변수
     bool bOpen = true;
+
+protected:
+    std::shared_ptr<MObject> SourceObject = nullptr;
+    std::shared_ptr<MObject> WorkingObject = nullptr;
 
 public:
     FDelegate<void>& GetClosedDelegate() { return OnClosedDelegate; }

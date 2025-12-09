@@ -8,8 +8,9 @@ public:
     MActorEditor();
 
 public:
-    virtual void SetObject(std::shared_ptr<MObject> InObject) override;
+    virtual void Update() override;
     virtual void RenderUI() override;
-
-    std::shared_ptr<MActor> Actor;
+    virtual void HandleObject() override;
+    virtual void OnSaved() override;
+    std::shared_ptr<MActor> Working;
 };

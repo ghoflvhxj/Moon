@@ -894,7 +894,15 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
             }
             else
             {
-                DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
+                if (Prop->bSharedPtr)
+                {
+                    std::shared_ptr<MObject> TempObject = *static_cast<std::shared_ptr<MObject>*>(Prop->GetAsVoid(InObject));
+                    DispatchStruct(Prop->TypeDesc, TempObject.get());
+                }
+                else
+                {
+                    DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
+                }
             }
         }
     }
@@ -1033,7 +1041,60 @@ MEditorBase::MEditorBase()
     Light = CreateActor<MDirectionalLightActor>(W);
 }
 
-void MEditorBase::SetObject(std::shared_ptr<MObject> InObject)
+bool MEditorBase::SetObject(std::shared_ptr<MObject> InObject)
 {
+    if (InObject == nullptr)
+    {
+        return false;
+    }
 
+    SourceObject = InObject;
+    WorkingObject = DuplicateObject(InObject);
+
+    HandleObject();
+}
+
+void MEditorBase::RenderUI()
+{
+    if (ImGui::Begin(Title.c_str(), &bOpen))
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            bool bResult = false;
+            if (ImGui::MenuItem("Save"))
+            {
+                MJsonSerializer Serializer;
+                Serializer.Serialize(WorkingObject, GetPath(), true);
+                bResult = true;
+            }
+
+            if (ImGui::MenuItem("Save As"))
+            {
+                wchar_t FileName[256] = {};
+                OPENFILENAMEW OpenFile = {};
+                OpenFile.lStructSize = sizeof(OPENFILENAMEW);
+                OpenFile.lpstrFilter = TEXT("json파일\0*.json\0");
+                OpenFile.lpstrFile = FileName;
+                OpenFile.nMaxFile = MAX_PATH;
+                OpenFile.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+                OpenFile.lpstrDefExt = TEXT("json");
+                if (GetSaveFileNameW(&OpenFile))
+                {
+                    MJsonSerializer Serializer;
+                    Serializer.Serialize(WorkingObject, FileName, true);
+                    bResult = true;
+                }
+            }
+
+            if (bResult)
+            {
+                WorkingObject->Copy(SourceObject.get());
+                OnSaved();
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::End();
+    }
 }

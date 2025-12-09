@@ -16,12 +16,12 @@ public:
     MAssetEditor(MObject* InObject);
 	virtual ~MAssetEditor() = default;
 
-protected:
-	virtual void Update() override;
-    virtual void RenderUI() override;
-
 public:
-	virtual void SetObject(std::shared_ptr<MObject> InObject) override;
+    virtual void HandleObject() override;
+    virtual const std::wstring& GetPath() const override;
+    virtual void Update() override;
+    virtual void RenderUI() override;
+   
 protected:
 	const FTypeDesc* AssetTypeDesc = nullptr;
 	std::shared_ptr<MAsset> Asset = nullptr;

@@ -40,27 +40,23 @@ MAssetEditor::MAssetEditor(MObject* InObject)
     WeakJolt = GetEngine()->GetModule<MJoltPhysics>();
 }
 
-void MAssetEditor::SetObject(std::shared_ptr<MObject> InObject)
+void MAssetEditor::HandleObject()
 {
-    if (InObject == nullptr)
-    {
-        return;
-    }
-
-    if (InObject->IsA<MAsset>() == false)
+    if (SourceObject->IsA<MAsset>() == false)
     {
         return;
     }
 
     // 원본
-    Asset = InObject->CastToShared<MAsset>();
-    AssetTypeDesc = Asset->GetTypeDesc();
-    Title = AssetTypeDesc->Name + " Editor" + "(" + WStringToString(Asset->GetAssetPath()) + ")";
+    Asset = SourceObject->CastToShared<MAsset>();
+    assert(Asset);
+
+    Title = Asset->GetTypeDesc()->Name + " Editor" + "(" + WStringToString(Asset->GetAssetPath()) + ")";
 
     // 애셋은 하나만 존재하도록 시스템화 되어있으니, 수동으로 복사본을 만들어야 함
-    WorkingAsset = std::shared_ptr<MAsset>(static_cast<MAsset*>(CreateObject(AssetTypeDesc)));
+    WorkingAsset = WorkingObject->CastToShared<MAsset>();
+    assert(WorkingAsset);
     WorkingAsset->Load(Asset->GetAssetPath());
-
 
     W->getMainCamera()->SetWorldTranslation({ 0.f, 0.f, -2.f });
     W->getMainCamera()->setLookMode(MCamera::LookMode::At);
@@ -91,6 +87,11 @@ void MAssetEditor::SetObject(std::shared_ptr<MObject> InObject)
             Target = SA;
         }
     }
+}
+
+const std::wstring& MAssetEditor::GetPath() const
+{
+    return Asset->GetAssetPath();
 }
 
 void MAssetEditor::Update()
@@ -173,46 +174,10 @@ void MAssetEditor::Update()
 
 void MAssetEditor::RenderUI()
 {
-    if (ImGui::Begin(Title.c_str(), &bOpen))
+    MEditorBase::RenderUI();
+
+    if (ImGui::Begin("t1", &bOpen))
     {
-        if (ImGui::BeginMenu("File"))
-        {
-            bool bResult = false;
-            if (ImGui::MenuItem("Save"))
-            {
-                MJsonSerializer Serializer;
-                Serializer.Serialize(WorkingAsset, Asset->GetAssetPath(), true);
-                bResult = true;
-            }
-
-            if (ImGui::MenuItem("Save As"))
-            {
-                wchar_t FileName[256] = {};
-                OPENFILENAMEW OpenFile = {};
-                OpenFile.lStructSize = sizeof(OPENFILENAMEW);
-                OpenFile.lpstrFilter = TEXT("json파일\0*.json\0");
-                OpenFile.lpstrFile = FileName;
-                OpenFile.nMaxFile = MAX_PATH;
-                OpenFile.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-                OpenFile.lpstrDefExt = TEXT("json");
-                if (GetSaveFileNameW(&OpenFile))
-                {
-                    MJsonSerializer Serializer;
-                    Serializer.Serialize(WorkingAsset, FileName, true);
-                    bResult = true;
-                }
-            }
-
-            if (bResult)
-            {
-                WorkingAsset->Copy(Asset.get());
-            }
-
-            ImGui::EndMenu();
-        }
-
-        ImGui::Button("AssetEidtor Button");
-
         const FTypeDesc* Current = AssetTypeDesc;
         while (Current)
         {
