@@ -1005,17 +1005,13 @@ void OpenEditor(std::shared_ptr<MObject> InObject)
         return;
     }
 
-    GetPostLoopDelegate().Add([InObject]() {
-        std::shared_ptr<MEditorBase> NewEditor = nullptr;
+    if (InObject->IsA<MActor>())
+    {
+        std::shared_ptr<MEditorBase> NewEditor = std::make_shared<MActorEditor>();
+        NewEditor->SetObject(InObject);
 
-        if (InObject->IsA<MActor>())
-        {
-            NewEditor = std::make_shared<MActorEditor>();
-            NewEditor->SetObject(InObject);
-
-            GetEngine()->GetModule<MEditor>()->Editors[NewEditor->GetTitle()] = NewEditor;
-        }
-    });
+        GetEngine()->GetModule<MEditor>()->Editors[NewEditor->GetTitle()] = NewEditor;
+    }
 }
 
 MEditorBase::MEditorBase()

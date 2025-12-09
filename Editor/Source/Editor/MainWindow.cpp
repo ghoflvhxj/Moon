@@ -349,6 +349,7 @@ void MEditorMainWindow::ImGuiRender()
                     OpenEditor(Actor);
                 }
 
+                ImGui::SetCurrentContext(Context);
                 ImGui::EndPopup();
             }
 

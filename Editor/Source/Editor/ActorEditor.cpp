@@ -35,6 +35,4 @@ void MActorEditor::RenderUI()
             Current = Current->Parent;
         }
     }
-
-    //DispatchStruct(Actor->GetTypeDesc(), Actor.get());
 }
