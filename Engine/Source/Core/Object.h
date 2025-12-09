@@ -21,6 +21,7 @@ public:
     virtual void OnLoaded();
 
 public:
+    // 내 데이터를 InObject에 복사함
     virtual void Copy(MObject* InObject) const;
     virtual std::shared_ptr<MObject> Duplicate();
     virtual void OnDuplicated(MObject* SrcObject) {}

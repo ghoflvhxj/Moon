@@ -37,20 +37,32 @@ void MObject::OnLoaded()
 
 void MObject::Copy(MObject* InObject) const
 {
-    if (InObject == nullptr)
-    {
-        return;
-    }
+    assert(InObject);
 
     const FTypeDesc* TypeDesc = GetTypeDesc();
-    if (TypeDesc != InObject->GetTypeDesc())
-    {
-        return;
-    }
+    assert(TypeDesc);
 
-    for (FPropertyDesc* PropDesc : TypeDesc->Properties)
+    while (TypeDesc != nullptr)
     {
-        PropDesc->Copy(this, InObject);
+        for (FPropertyDesc* PropDesc : TypeDesc->Properties)
+        {
+            for (uint32 i = 0; i < PropDesc->Num; ++i)
+            {
+                if (PropDesc->IsA<MObject>())
+                {
+                    std::shared_ptr<MObject> Src = *static_cast<std::shared_ptr<MObject>*>(PropDesc->GetAsVoid(this, i));
+                    std::shared_ptr<MObject> Dst = *static_cast<std::shared_ptr<MObject>*>(PropDesc->GetAsVoid(InObject, i));
+
+                    Src->Copy(Dst.get());
+                }
+                else
+                {
+                    PropDesc->Copy(this, InObject);
+                }
+            }
+        }
+
+        TypeDesc = TypeDesc->Parent;
     }
 }
 
