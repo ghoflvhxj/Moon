@@ -20,13 +20,15 @@ void MCapsuleComponent::Update(const Time deltaTime)
 {
     Super::Update(deltaTime);
 
+    Vec3 Pos = getWorldTranslation();
     if (PhysicsObject)
     {
         setTranslation(PhysicsObject->GetPhysicsPos());
         setRotation(PhysicsObject->GetPhysicsRotation());
-
-        getRenderer()->DrawCapsule(GetWorld(), CapsuleData.Radius, CapsuleData.HalfHeight, PhysicsObject->GetPhysicsPos(), VEC3ZERO);
+        Pos = PhysicsObject->GetPhysicsPos();
     }
+
+    getRenderer()->DrawCapsule(GetWorld(), CapsuleData.Radius, CapsuleData.HalfHeight, Pos, VEC3ZERO);
 }
 
 void MCapsuleComponent::SetRadius(float InRadius)
