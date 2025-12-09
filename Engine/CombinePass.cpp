@@ -67,8 +67,8 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
 {
     Begin();
 
-    auto& PointLightPrimitives = g_pRenderer->GetPrimitives(EPrimitiveType::PointLight);
-    auto& MeshPrimitives = g_pRenderer->GetPrimitives(EPrimitiveType::Mesh);
+    auto& PointLightPrimitives = g_pRenderer->GetPrimitiveComponents(EPrimitiveType::PointLight);
+    auto& MeshPrimitives = g_pRenderer->GetPrimitiveComponents(EPrimitiveType::Mesh);
     uint32 PointLightNum = GetSize(PointLightPrimitives);
 
     for (uint32 PointLightIndex = 0; PointLightIndex < PointLightNum; ++PointLightIndex)
@@ -235,7 +235,7 @@ MLinePass::MLinePass()
 
 bool MLinePass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
-    return g_pRenderer->IsDrawCollision() && PrimitiveData.PrimitiveType == EPrimitiveType::Collision && MRenderPass::IsValidPrimitive(PrimitiveData);
+    return g_pRenderer->GetCurrentScene()->IsDrawCollision() && PrimitiveData.PrimitiveType == EPrimitiveType::Collision && MRenderPass::IsValidPrimitive(PrimitiveData);
 }
 
 MDepthPre::MDepthPre()

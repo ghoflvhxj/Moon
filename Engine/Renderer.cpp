@@ -549,9 +549,9 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
     }
 }
 
-const std::vector<FPrimitiveData>& MRenderer::GetPrimitives(EPrimitiveType InPrimitiveType)
+const std::vector<FPrimitiveData>& MRenderer::GetPrimitiveComponents(EPrimitiveType InPrimitiveType)
 {
-    return Scenes[CurrentSceneID]->GetPrimitives(InPrimitiveType);
+    return Scenes[CurrentSceneID]->GetPrimitiveComponents(InPrimitiveType);
 }
 
 void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
@@ -775,11 +775,28 @@ void MRenderer::Render()
 
 void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
 {
+    assert(InWorldRenderInfo.DstWindow);
+    assert(InWorldRenderInfo.SrcWorld);
+
+    uint32 WorldID = InWorldRenderInfo.SrcWorld->GetID();
+
     std::unique_ptr<MScene> NewScene = std::make_unique<MScene>();
     NewScene->SetWorld(InWorldRenderInfo.SrcWorld);
-    Scenes[InWorldRenderInfo.SrcWorld->GetID()] = std::move(NewScene);
+    Scenes[WorldID] = std::move(NewScene);
 
     auto& Window = InWorldRenderInfo.DstWindow;
+
+    Window->GetOnViewportSizeChangedDelegate().Add([this, WorldID](uint32, uint32, uint32, uint32 NewWidth, uint32 NewHeight) {
+        const Vec3 NewScale = { static_cast<float>(NewWidth), static_cast<float>(NewHeight), 0.f};
+        for (auto& PrimitiveData : GetScene(WorldID)->GetPrimitiveComponents(EPrimitiveType::DirectionalLight))
+        {
+            std::shared_ptr<MLightComponent> LightComp = PrimitiveData.GetPrimitiveComponent<MLightComponent>();
+            assert(LightComp);
+
+            LightComp->Update(0.f);
+        }
+    });
+
     ResizeRenderTargets(Window->GetID(), 0, 0, Window->GetWidth<uint32>(), Window->GetHeight<uint32>());
     Window->GetOnViewportSizeChangedDelegate().Add(this, &MRenderer::ResizeRenderTargets);
 }
@@ -800,7 +817,7 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
     auto& Scene = Scenes[CurrentSceneID];
 
     // Cascade Shadow
-    auto& DirectionalLightComponents = Scene->GetPrimitives(EPrimitiveType::DirectionalLight);
+    auto& DirectionalLightComponents = Scene->GetPrimitiveComponents(EPrimitiveType::DirectionalLight);
     if (DirectionalLightComponents.empty() == false)
     {
         const std::shared_ptr<MLightComponent>& LightComponent = DirectionalLightComponents[0].PrimitiveComponent.lock()->CastToShared<MLightComponent>();
@@ -1054,6 +1071,11 @@ void MScene::End()
 std::shared_ptr<MWindow> MScene::GetWindow() const
 {
     return GetEngine()->GetWorldBoundedWindow(GetWorld().get());
+}
+
+void MScene::SetWorld(std::shared_ptr<MWorld> InWorld)
+{
+    World = InWorld;
 }
 
 std::shared_ptr<MWorld> MScene::GetWorld() const

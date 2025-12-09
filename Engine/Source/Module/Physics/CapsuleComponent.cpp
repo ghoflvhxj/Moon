@@ -25,7 +25,7 @@ void MCapsuleComponent::Update(const Time deltaTime)
         setTranslation(PhysicsObject->GetPhysicsPos());
         setRotation(PhysicsObject->GetPhysicsRotation());
 
-        getRenderer()->DrawCapsule(GetMainWorld().get(), CapsuleData.Radius, CapsuleData.HalfHeight, PhysicsObject->GetPhysicsPos(), VEC3ZERO);
+        getRenderer()->DrawCapsule(GetWorld(), CapsuleData.Radius, CapsuleData.HalfHeight, PhysicsObject->GetPhysicsPos(), VEC3ZERO);
     }
 }
 

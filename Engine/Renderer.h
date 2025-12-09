@@ -115,7 +115,7 @@ public:
 
 public:
     // 현재 그리는 씬에서 PrimitiveData를 얻어옴
-    const std::vector<FPrimitiveData>& GetPrimitives(EPrimitiveType InPrimitiveType);
+    const std::vector<FPrimitiveData>& GetPrimitiveComponents(EPrimitiveType InPrimitiveType);
     // PrimitiveType - PrimitiveData 쌍을 저장함
     std::map<EPrimitiveType, std::vector<FPrimitiveData>> PrimitiveDatasPerType;
 
@@ -154,12 +154,10 @@ public:
     Mat4 ViewPerspectiveProjMatrix = {};
     Mat4 ViewOrthogonalProjMatrix = {};
 public:
-    RENDERER_OPTION(DrawCollision);
     Vec3 Ambient = VEC3ONE;
 
     REFLECT(
         MRenderer
-        , PROPERTY(bDrawCollision)
         , PROPERTY(bDebugRenderTargets)
         , PROPERTY(Ambient)
     )
@@ -167,7 +165,7 @@ public:
 
 // Scene과 World는 한쌍으로 존재함.
 // Scene은 Render모듈에서의 World라고 이해하면 편함
-class ENGINE_DLL MScene
+class ENGINE_DLL MScene : public MObject
 {
 public:
     MScene();
@@ -181,7 +179,7 @@ public:
     std::shared_ptr<MWindow> GetWindow() const;
 
 public:
-    void SetWorld(std::shared_ptr<MWorld> InWorld) { World = InWorld; }
+    void SetWorld(std::shared_ptr<MWorld> InWorld);
     std::shared_ptr<MWorld> GetWorld() const;
 protected:
     std::weak_ptr<MWorld> World;
@@ -223,7 +221,7 @@ protected:
     std::vector<FPrimitiveData> RenderablePrimitiveData;
 
 public:
-    const std::vector<FPrimitiveData>& GetPrimitives(EPrimitiveType InPrimitiveType) { return PrimitiveDatasPerType[InPrimitiveType]; }
+    const std::vector<FPrimitiveData>& GetPrimitiveComponents(EPrimitiveType InPrimitiveType) { return PrimitiveDatasPerType[InPrimitiveType]; }
 protected:
     // 모든 PrimitiveComponent
     //std::map<uint32, std::shared_ptr<MPrimitiveComponent>> PrimitiveComponents;
@@ -256,6 +254,13 @@ protected:
     std::vector<Vec4> CascadeLightPositions;
     std::vector<Mat4> CascadeLightMatrices;
 
+public:
+    RENDERER_OPTION(DrawCollision);
+
+    REFLECT(
+        MScene
+        , PROPERTY(bDrawCollision)
+    )
     /* 카메라 */
 //public:
 //    void Func(); // 카메라의 데이터를 가져옴

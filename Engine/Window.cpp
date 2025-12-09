@@ -31,6 +31,8 @@ MWindow::MWindow()
 
 MWindow::MWindow(const std::wstring &title, const int width, const int height, const std::wstring &className)
 	: m_hWnd{ 0 }
+    , Width(width)
+    , Height(height)
 {
 	RECT rt = { 0, 0, width, height };
 	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
@@ -43,6 +45,9 @@ MWindow::MWindow(const std::wstring &title, const int width, const int height, c
 }
 
 MWindow::MWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
+    : m_hWnd{ 0 }
+    , Width(width)
+    , Height(height)
 {
     RECT rt = { 0, 0, width, height };
     AdjustWindowRect(&rt, WS_OVERLAPPED, false);
@@ -55,7 +60,9 @@ MWindow::MWindow(const std::wstring& title, const int width, const int height, H
 }
 
 MWindow::MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
-	: m_hWnd{ 0 }
+    : m_hWnd{ 0 }
+    , Width(width)
+    , Height(height)
 {
 	RECT rt = { 0, 0, width, height };
 	AdjustWindowRect(&rt, WS_OVERLAPPED, false);
