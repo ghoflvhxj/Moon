@@ -152,6 +152,14 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
         case WM_SIZE:
         {
+            std::cout << "WM_SIZE" << std::endl;
+            if (wParam && SIZE_MAXIMIZED)
+            {
+                if (Window)
+                {
+                    Window->UpdateSize();
+                }
+            }
         }
         break;
         case WM_EXITSIZEMOVE:
@@ -160,6 +168,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 Window->UpdateSize();
             }
+            std::cout << "WM_EXITSIZEMOVE" << std::endl;
         }
         break;
 	}
