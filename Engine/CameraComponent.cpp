@@ -46,7 +46,8 @@ void MCameraComponent::Update(const Time deltaTime)
                 mouseX = ToRadian(mouseX);
                 mouseY = ToRadian(mouseY);
                 TargetRot.x += mouseY;
-                TargetRot.y -= mouseX;
+                TargetRot.y += mouseX;
+                TargetRot.x = clamp(TargetRot.x, ToRadian(-80.f), ToRadian(80.f));
 
                 auto Lerp = [](float Current, float Target, float Speed) {
                     return Current + ((Target - Current) * Speed);
