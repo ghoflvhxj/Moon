@@ -174,6 +174,11 @@ public:
     // 이름 임시
     void Begin();
     void End();
+    void Clear()
+    {
+        PrimitiveDatas.clear();
+        PrimitiveDatasPerType.clear();
+    }
 
 public:
     std::shared_ptr<MWindow> GetWindow() const;

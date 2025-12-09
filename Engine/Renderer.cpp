@@ -70,9 +70,10 @@ MRenderer::MRenderer() noexcept
 
     GetLevelChangedDelegate().Add([&]() {
         PrimitiveDatasPerType.clear();
-
         PrimitiveComponents.clear();
         PrimitiveDatas.clear();
+
+        GetScene(GetMainWorld()->GetID())->Clear();
     });
 }
 
