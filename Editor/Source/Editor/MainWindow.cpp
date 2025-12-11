@@ -225,7 +225,7 @@ void MEditorMainWindow::ImGuiRender()
             const FTypeDesc* Current = getRenderer()->GetTypeDesc();
             while (Current)
             {
-                DispatchStruct(Current, getRenderer().get());
+                DispatchType(Current, getRenderer().get());
                 Current = Current->Parent;
             }
         }
@@ -326,7 +326,7 @@ void MEditorMainWindow::ImGuiRender()
                         ImGui::Indent(20.f);
                         if (ImGui::CollapsingHeader(Current->Name.c_str()))
                         {
-                            DispatchStruct(Current, ClickedComp.get());
+                            DispatchType(Current, ClickedComp.get());
                         }
                         ImGui::Indent(-20.f);
 

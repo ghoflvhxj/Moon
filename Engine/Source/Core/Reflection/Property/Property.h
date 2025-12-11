@@ -87,7 +87,7 @@ public:
     template <class T>
     bool IsA()
     {
-        const FTypeDesc* Target = T::GetTypeDescStatic();
+        const FTypeDesc* Target = GetTypeDesc<T>();
         const FTypeDesc* Current = TypeDesc;
         while (Current)
         {

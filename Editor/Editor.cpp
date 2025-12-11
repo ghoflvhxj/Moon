@@ -768,11 +768,11 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
 
                 if (InElementTypeDesc)
                 {
-                    DispatchStruct(InElementTypeDesc, ContainerElement);
+                    DispatchType(InElementTypeDesc, ContainerElement);
                 }
                 else
                 {
-                    HandleProperty(InContainerDesc->Type, DisplayName, ContainerElement);
+                    PropertyUI(InContainerDesc->Type, DisplayName, ContainerElement);
                 }
             }
         }
@@ -810,25 +810,25 @@ void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InProperty
 
                 if (InElementTypeDesc)
                 {
-                    DispatchStruct(InElementTypeDesc, ArrayElem);
+                    DispatchType(InElementTypeDesc, ArrayElem);
                 }
                 else
                 {
-                    HandleProperty(InPropertyDesc->Type, DisplayName, ArrayElem);
+                    PropertyUI(InPropertyDesc->Type, DisplayName, ArrayElem);
                 }
             }
         }
     }
 }
 
-void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
+void DispatchType(const FTypeDesc* InTypeDesc, void* InObject)
 {
     if (InObject == nullptr)
     {
         return;
     }
 
-    for (FPropertyDesc* Prop : InStructDesc->Properties)
+    for (FPropertyDesc* Prop : InTypeDesc->Properties)
     {
         if (Prop->IsContainer())
         {
@@ -842,7 +842,7 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
         {
             if (Prop->TypeDesc == nullptr)
             {
-                HandleProperty(Prop->Type, Prop->Name.c_str(), Prop->GetAsVoid(InObject));
+                PropertyUI(Prop->Type, Prop->Name.c_str(), Prop->GetAsVoid(InObject));
             }
             else if (Prop->IsA<MAsset>())
             {
@@ -897,18 +897,121 @@ void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject)
                 if (Prop->bSharedPtr)
                 {
                     std::shared_ptr<MObject> TempObject = *static_cast<std::shared_ptr<MObject>*>(Prop->GetAsVoid(InObject));
-                    DispatchStruct(Prop->TypeDesc, TempObject.get());
+                    DispatchType(Prop->TypeDesc, TempObject.get());
                 }
                 else
                 {
-                    DispatchStruct(Prop->TypeDesc, Prop->GetAsVoid(InObject));
+                    DispatchType(Prop->TypeDesc, Prop->GetAsVoid(InObject));
                 }
             }
         }
     }
 }
 
-void HandleProperty(EType InType, const char* DisplayName, void* InData)
+void DispatchType2(const FTypeDesc* InTypeDesc, void* InData)
+{
+    if (InData == nullptr || InTypeDesc == nullptr)
+    {
+        return;
+    }
+
+    while (InTypeDesc != nullptr)
+    {
+        if (ImGui::CollapsingHeader(InTypeDesc->Name.c_str()))
+        {
+            for (FPropertyDesc* Prop : InTypeDesc->Properties)
+            {
+                if (Prop->IsContainer())
+                {
+                    DispatchContainer(Prop->TypeDesc, static_cast<FVectorPropertyDesc*>(Prop), InData);
+                }
+                else if (Prop->IsArray()) // 배열
+                {
+                    DispatchArray(Prop->TypeDesc, Prop, InData);
+                }
+                else
+                {
+                    if (Prop->TypeDesc == nullptr)
+                    {
+                        PropertyUI(Prop->Type, Prop->Name.c_str(), Prop->GetAsVoid(InData));
+                    }
+                    else if (Prop->IsA<MAsset>())
+                    {
+                        ImGui::PushID(Prop);
+
+                        std::shared_ptr<MAsset> Asset = *static_cast<std::shared_ptr<MAsset>*>(Prop->GetAsVoid(InData));
+                        MObject* Object = Asset.get();
+
+                        ImGui::Text(Prop->GetDisplayName().c_str());
+
+                        ImGui::SameLine(100);
+                        std::string Path = Asset == nullptr ? "Empty" : WStringToString(Asset->GetAssetPath());
+                        ImGui::Text(Path.c_str());
+
+                        ImGui::SameLine(300);
+                        if (ImGui::Button("Edit"))
+                        {
+                            OpenEditor(Object, Asset, StringToWString(Path));
+                        }
+
+                        ImGui::SameLine(350);
+
+                        if (ImGui::Button("..."))
+                        {
+                            TCHAR FileName[256] = {};
+
+                            OPENFILENAMEW t = {};
+                            t.lStructSize = sizeof(t);
+                            t.hwndOwner = NULL;
+                            t.hInstance = NULL;
+                            t.lpstrFilter = TEXT("json 파일\0*.json");
+                            t.lpstrFile = FileName;
+                            t.nMaxFile = 256;
+                            t.lpstrInitialDir = TEXT(".");
+                            t.lpstrTitle = TEXT("Load FBX");
+
+                            if (GetOpenFileNameW(&t))
+                            {
+                                wcout << FileName << endl;
+
+                                // Asset 부분만 불러와 Path를 세팅하도록
+                                std::shared_ptr<MAsset> NewAsset = g_ResourceManager->Load(FileName, Prop->TypeDesc);
+                                void* Temp = &NewAsset;
+                                Prop->SetAsVoid(InData, Temp);
+                            }
+                        }
+                        ImGui::PopID();
+
+                        ImGui::NewLine();
+                    }
+                    else
+                    {
+                        if (Prop->bSharedPtr)
+                        {
+                            ImGui::Indent(20.f);
+                            if (ImGui::CollapsingHeader(Prop->Name.c_str()))
+                            {
+                                ImGui::Indent(20.f);
+                                std::shared_ptr<MObject> TempObject = *static_cast<std::shared_ptr<MObject>*>(Prop->GetAsVoid(InData));
+                                DispatchType2(Prop->TypeDesc, TempObject.get());
+                                ImGui::Indent(-20.f);
+                            }
+                            ImGui::Indent(-20.f);
+                        }
+                        else
+                        {
+                            DispatchType2(Prop->TypeDesc, Prop->GetAsVoid(InData));
+                        }
+                    }
+                }
+            }
+        }
+
+        InTypeDesc = InTypeDesc->Parent;
+    }
+}
+
+void PropertyUI(EType InType, const char* DisplayName, void* InData)
 {
     switch (InType)
     {
@@ -1094,6 +1197,8 @@ void MEditorBase::RenderUI()
 
             ImGui::EndMenu();
         }
+
+        DispatchType2(WorkingObject->GetTypeDesc(), WorkingObject.get());
 
         ImGui::End();
     }

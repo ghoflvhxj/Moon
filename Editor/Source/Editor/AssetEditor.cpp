@@ -181,7 +181,7 @@ void MAssetEditor::RenderUI()
         const FTypeDesc* Current = AssetTypeDesc;
         while (Current)
         {
-            DispatchStruct(Current, WorkingAsset.get());
+            DispatchType(Current, WorkingAsset.get());
             Current = Current->Parent;
         }
 

@@ -123,8 +123,9 @@ public:
 
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* InContainerDesc, void* InObject);
 void DispatchArray(const FTypeDesc* InElementTypeDesc, FPropertyDesc* InPropertyDesc, void* InObject);
-void DispatchStruct(const FTypeDesc* InStructDesc, void* InObject);
-void HandleProperty(EType InType, const char* DisplayName, void* InData);
+void DispatchType(const FTypeDesc* InTypeDesc, void* InObject);
+void DispatchType2(const FTypeDesc* InTypeDesc, void* InData);
+void PropertyUI(EType InType, const char* DisplayName, void* InData);
 
 void OpenEditor(MObject* InOwner, std::shared_ptr<MObject> InObject, const std::wstring& InPath);
 void OpenEditor(std::shared_ptr<MObject> InObject);
