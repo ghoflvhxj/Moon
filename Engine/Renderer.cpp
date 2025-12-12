@@ -796,6 +796,13 @@ void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
 
             LightComp->Update(0.f);
         }
+        for (auto& PrimitiveData : GetScene(WorldID)->GetPrimitiveComponents(EPrimitiveType::PointLight))
+        {
+            std::shared_ptr<MLightComponent> LightComp = PrimitiveData.GetPrimitiveComponent<MLightComponent>();
+            assert(LightComp);
+
+            LightComp->Update(0.f);
+        }
     });
 
     ResizeRenderTargets(Window->GetID(), 0, 0, Window->GetWidth<uint32>(), Window->GetHeight<uint32>());

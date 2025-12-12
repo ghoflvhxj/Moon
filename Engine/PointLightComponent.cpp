@@ -21,21 +21,8 @@ MPointLightComponent::~MPointLightComponent()
 void MPointLightComponent::Update(const Time deltaTime)
 {
 	Super::Update(deltaTime);
-
 	Vec3 trans = { 0.f, 0.f, 1.f };
-
-	// 회전을 제거한 월드행렬 만들기
-	XMVECTOR scaleVector = XMLoadFloat3(&getScale());
-	XMVECTOR translationVector = XMLoadFloat3(&trans);
-	XMMATRIX IdentityMatrix = XMLoadFloat4x4(&IDENTITYMATRIX);
-	
-	XMMATRIX matrices[(int)ETransform::End] = {
-		XMMatrixScalingFromVector(scaleVector),
-		IdentityMatrix,
-		XMMatrixTranslationFromVector(translationVector)
-	};
-
-	XMStoreFloat4x4(&LightWorldMatrix, matrices[(int)ETransform::Scale] * matrices[(int)ETransform::Rotation] * matrices[(int)ETransform::Translation]);
+    TransformMatrix(LightWorldMatrix, getScale(), VEC3ZERO, trans);
 }
 
 const bool MPointLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)

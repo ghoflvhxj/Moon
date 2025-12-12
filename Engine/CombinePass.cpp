@@ -198,6 +198,8 @@ void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveD
     color.z = LightComp->getColor().z;
     color.w = LightComp->getIntensity();
 
+    auto& Camera = getRenderer()->GetWorld()->getMainCamera();
+
     if (std::shared_ptr<MShader>& PixelShader = Material->getPixelShader())
     {
         PixelShader->SetValue(TEXT("g_lightPosition"), transAndRange);
@@ -205,11 +207,11 @@ void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveD
 
         PixelShader->SetValue(TEXT("PointLightIndex"), PointLightIndex);
 
-        PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), g_World->getMainCamera()->getInvesrViewMatrix());
-        PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), g_World->getMainCamera()->getInversePerspectiveProjectionMatrix());
+        PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), Camera->getInvesrViewMatrix());
+        PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), Camera->getInversePerspectiveProjectionMatrix());
 
         Mat4 Mat = {};
-        XMMATRIX XMMat = XMLoadFloat4x4(&g_World->getMainCamera()->getInversePerspectiveProjectionMatrix()) * XMLoadFloat4x4(&g_World->getMainCamera()->getInvesrViewMatrix());
+        XMMATRIX XMMat = XMLoadFloat4x4(&Camera->getInversePerspectiveProjectionMatrix()) * XMLoadFloat4x4(&Camera->getInvesrViewMatrix());
         XMStoreFloat4x4(&Mat, XMMat);
         PixelShader->SetValue(TEXT("ScreenToWorldMatrix"), Mat);
     }
