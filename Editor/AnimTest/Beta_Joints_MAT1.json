@@ -1,0 +1,36 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "TexAnimVertexShader.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MAsset": {}
+            },
+            "1": {
+                "MAsset": {}
+            },
+            "2": {
+                "MAsset": {}
+            },
+            "3": {
+                "MAsset": {}
+            },
+            "4": {
+                "MAsset": {}
+            },
+            "5": {
+                "MAsset": {}
+            }
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 2,
+        "bUseAlpha": false,
+        "bAlphaMask": false,
+        "bRimLight": false
+    },
+    "MAsset": {
+        "Path": "AnimTest\\Beta_Joints_MAT1.json"
+    },
+    "MObject": {}
+}

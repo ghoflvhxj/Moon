@@ -5,7 +5,7 @@
         "_textureList": {
             "0": {
                 "MAsset": {
-                    "Path": "2B_Work\\2B_Hair2.png"
+                    "Path": "2B\\2B_Hair2.png"
                 }
             },
             "1": {
@@ -13,7 +13,7 @@
             },
             "2": {
                 "MAsset": {
-                    "Path": "2B_Work\\2B_Hair2_N.png"
+                    "Path": "2B\\2B_Hair2_N.png"
                 }
             },
             "3": {
@@ -34,7 +34,7 @@
         "bRimLight": false
     },
     "MAsset": {
-        "Path": "2B_Work\\Hair.json"
+        "Path": "2B\\Hair.json"
     },
     "MObject": {}
 }

@@ -30,9 +30,7 @@
                             "MObject": {}
                         }
                     },
-                    "MActor": {
-                        "AttachDatas": {}
-                    },
+                    "MActor": {},
                     "MObject": {}
                 }
             },
@@ -61,8 +59,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": false
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -77,7 +74,7 @@
                                 ],
                                 "Translation": [
                                     0.0,
-                                    -1.13619,
+                                    -1.25895,
                                     2.41314
                                 ],
                                 "bUpdated": false
@@ -88,9 +85,7 @@
                             "MObject": {}
                         }
                     },
-                    "MActor": {
-                        "AttachDatas": {}
-                    },
+                    "MActor": {},
                     "MObject": {}
                 }
             },
@@ -116,8 +111,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 1,
-                                "bRendering": true,
-                                "bDrawStencil": false
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -143,9 +137,7 @@
                             "MObject": {}
                         }
                     },
-                    "MActor": {
-                        "AttachDatas": {}
-                    },
+                    "MActor": {},
                     "MObject": {}
                 }
             },
@@ -174,8 +166,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": true
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -201,9 +192,7 @@
                             "MObject": {}
                         }
                     },
-                    "MActor": {
-                        "AttachDatas": {}
-                    },
+                    "MActor": {},
                     "MObject": {}
                 }
             },
@@ -237,8 +226,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": false
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -264,9 +252,7 @@
                             "MObject": {}
                         }
                     },
-                    "MActor": {
-                        "AttachDatas": {}
-                    },
+                    "MActor": {},
                     "MObject": {}
                 }
             },
@@ -295,8 +281,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": false
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -310,7 +295,7 @@
                                     0.0
                                 ],
                                 "Translation": [
-                                    -2.69867,
+                                    -2.69865,
                                     0.72517,
                                     -1.18508
                                 ],
@@ -322,9 +307,7 @@
                             "MObject": {}
                         }
                     },
-                    "MActor": {
-                        "AttachDatas": {}
-                    },
+                    "MActor": {},
                     "MObject": {}
                 }
             },
@@ -352,8 +335,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 1,
-                                "bRendering": true,
-                                "bDrawStencil": true
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -367,7 +349,7 @@
                                     0.0
                                 ],
                                 "Translation": [
-                                    -3.39214,
+                                    -3.39212,
                                     1.22071,
                                     0.43503
                                 ],
@@ -379,9 +361,7 @@
                             "MObject": {}
                         }
                     },
-                    "MActor": {
-                        "AttachDatas": {}
-                    },
+                    "MActor": {},
                     "MObject": {}
                 }
             },
@@ -397,7 +377,7 @@
                                 "bPlayAnimAtBegin": true,
                                 "Animation": {
                                     "MAsset": {
-                                        "Path": "2B\\Take 001.json"
+                                        "Path": "2B\\Anim\\pl0000_b0e0.mot.json"
                                     }
                                 },
                                 "bBindPose": false,
@@ -440,8 +420,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": true
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -456,7 +435,7 @@
                                 ],
                                 "Translation": [
                                     0.0,
-                                    0.0,
+                                    -0.8,
                                     0.0
                                 ],
                                 "bUpdated": false
@@ -496,10 +475,94 @@
                                 "Name": "RootComponent"
                             },
                             "MObject": {}
+                        },
+                        "CameraComponent": {
+                            "MCameraComponent": {
+                                "TargetArmLength": 3.0
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Translation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "Camera"
+                            },
+                            "MObject": {}
+                        },
+                        "HealthPoint": 100.0,
+                        "bTest": false,
+                        "Anims": {}
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_4",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Base\\Box.json"
+                                    }
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "GroundMaterial.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "Translation": [
+                                    0.0,
+                                    0.0,
+                                    1.71547
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
                         }
                     },
-                    "MActor": {
-                    },
+                    "MActor": {},
                     "MObject": {}
                 }
             }
