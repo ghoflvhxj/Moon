@@ -17,6 +17,10 @@ void MCameraComponent::Update(const Time deltaTime)
 {
     Super::Update(deltaTime);
 
+    auto Lerp = [](float Current, float Target, float Speed) {
+        return Current + ((Target - Current) * Speed);
+    };
+
     if (MWorld* World = GetWorld())
     {
         if (World->IsPlaying())
@@ -36,9 +40,20 @@ void MCameraComponent::Update(const Time deltaTime)
                     }
                 }
 
-                Vec3 TargetPos = {};
-                XMStoreFloat3(&TargetPos, XMLoadFloat3(&PivotPos) - XMLoadFloat3(&GetForward()) * ArmLength);
-                Camera->SetWorldTranslation(TargetPos);
+                float mouseZ = static_cast<float>(InputManager::mouseMove(EAxis::Z));
+                mouseZ = std::clamp(mouseZ, -1.f, 1.f) * 0.3f;
+                TargetArmLength -= mouseZ;
+                TargetArmLength = clamp(TargetArmLength, 1.f, 5.f);
+                std::cout << mouseZ << std::endl;
+                if (ArmLength != TargetArmLength)
+                {
+                    float NewArmLength = Lerp(ArmLength, TargetArmLength, deltaTime);
+                    ArmLength = NewArmLength;
+                }
+                Vec3 Pos = {};
+                XMStoreFloat3(&Pos, XMLoadFloat3(&PivotPos) - XMLoadFloat3(&GetForward()) * ArmLength);
+                Camera->SetWorldTranslation(Pos);
+
 
                 Vec3 CurrentRot = getRotation();
                 float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X)) * 0.3f; // 1 = 디그리 3도 -> 라디안
@@ -48,10 +63,6 @@ void MCameraComponent::Update(const Time deltaTime)
                 TargetRot.x += mouseY;
                 TargetRot.y += mouseX;
                 TargetRot.x = clamp(TargetRot.x, ToRadian(-80.f), ToRadian(80.f));
-
-                auto Lerp = [](float Current, float Target, float Speed) {
-                    return Current + ((Target - Current) * Speed);
-                };
 
                 if (XMVector3Equal(XMLoadFloat3(&CurrentRot), XMLoadFloat3(&TargetRot)) == false)
                 {
@@ -68,9 +79,6 @@ void MCameraComponent::Update(const Time deltaTime)
                         Window->MouseCneter();
                     }
                 }
-
-                std::cout << "MouseMove: " << mouseX << ", " << mouseY << std::endl;
-                std::cout << "TargetRot: " << TargetRot << std::endl;
             }
         }
     }

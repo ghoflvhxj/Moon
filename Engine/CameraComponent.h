@@ -14,12 +14,12 @@ public:
 
 protected:
     float ArmLength = 3.f;
-    //Vec3 CurrentRot = {};
+    float TargetArmLength = 3.f;
     Vec3 TargetRot = {};
 
 public:
     REFLECT(
         MCameraComponent
-        , PROPERTY(ArmLength)
+        , PROPERTY(TargetArmLength)
     )
 };
