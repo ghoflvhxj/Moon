@@ -95,9 +95,13 @@ void MWorld::render()
 void MWorld::addActor(std::shared_ptr<MActor> InActor)
 {
     const FTypeDesc* TypeDesc = InActor->GetTypeDesc();
-    uint32 ActorIndex = Indexer[TypeDesc]++;
+    std::string Name = "";
+    while (Actors.find(Name) != Actors.end() || Name.empty())
+    {
+        uint32 ActorIndex = Indexer[TypeDesc]++;
+        Name = TypeDesc->Name + "_" + std::to_string(ActorIndex);
+    }
 
-    std::string Name = TypeDesc->Name + "_" + std::to_string(ActorIndex);
 	Actors.emplace(Name, InActor);
 
     InActor->SetOwner(GetShared());
