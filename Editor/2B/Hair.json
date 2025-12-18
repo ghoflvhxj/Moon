@@ -1,0 +1,40 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "TexAnimVertexShader.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MAsset": {
+                    "Path": "2B_Work\\2B_Hair2.png"
+                }
+            },
+            "1": {
+                "MAsset": {}
+            },
+            "2": {
+                "MAsset": {
+                    "Path": "2B_Work\\2B_Hair2_N.png"
+                }
+            },
+            "3": {
+                "MAsset": {}
+            },
+            "4": {
+                "MAsset": {}
+            },
+            "5": {
+                "MAsset": {}
+            }
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 2,
+        "bUseAlpha": false,
+        "bAlphaMask": true,
+        "bRimLight": false
+    },
+    "MAsset": {
+        "Path": "2B_Work\\Hair.json"
+    },
+    "MObject": {}
+}
