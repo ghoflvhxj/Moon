@@ -699,6 +699,8 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
         // 컨테이너 요소들 표시
         for (uint32 i = 0; i < ElementNum; ++i)
         {
+            ImGui::PushID(i);
+
             if (InContainerDesc->IsA<MAsset>())
             {
                 std::shared_ptr<MAsset>& Asset = *static_cast<std::shared_ptr<MAsset>*>(InContainerDesc->Get(InObject, i));
@@ -775,6 +777,8 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
                     PropertyUI(InContainerDesc->Type, DisplayName, ContainerElement);
                 }
             }
+
+            ImGui::PopID();
         }
     }
 

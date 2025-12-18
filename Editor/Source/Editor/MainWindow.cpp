@@ -71,6 +71,8 @@ void MEditorMainWindow::ImGuiRender()
             // FBX 로드 
             if (ImGui::CollapsingHeader("LoadFBX"))
             {
+                ImGui::PushID("LoadFBX");
+
                 static bool bMesh = false;
                 static bool bMaterial = false;
                 static bool bSkeleton = false;
@@ -106,6 +108,8 @@ void MEditorMainWindow::ImGuiRender()
                         wcout << FileName << endl;
                     }
                 }
+
+                ImGui::PopID();
             }
 
             if (ImGui::CollapsingHeader("Jolt Physics"))
@@ -144,6 +148,8 @@ void MEditorMainWindow::ImGuiRender()
 
         if (ImGui::CollapsingHeader("Level"))
         {
+            ImGui::PushID("Level");
+
             ImGui::Indent(20);
             if (ImGui::Button("Save As"))
             {
@@ -162,6 +168,8 @@ void MEditorMainWindow::ImGuiRender()
                     });
             }
             ImGui::Indent(-20);
+
+            ImGui::PopID();
         }
 
         // 게임
