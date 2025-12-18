@@ -13,6 +13,7 @@
 #include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
 #include "Jolt/Physics/Collision/Shape/SphereShape.h"
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
+#include "Jolt/Physics/Collision/ObjectLayer.h"
 
 #include "Jolt/Physics/Character/Character.h"
 
@@ -115,6 +116,7 @@ public:
 protected:
     // Shape를 이용해 바디를 만드는 함수
     void CreateBody(JPH::RefConst<JPH::Shape> InShape, const FBodyConstructData& InData, std::shared_ptr<class MBodyObject> InBodyObject);
+    void CreateBody(JPH::RefConst<JPH::Shape> InShape, const FBodyConstructData& InData, std::shared_ptr<class MBodyObject> InBodyObject, JPH::ObjectLayer InLayer);
 
 public:
     JPH::TempAllocator* tempAllocator = nullptr;

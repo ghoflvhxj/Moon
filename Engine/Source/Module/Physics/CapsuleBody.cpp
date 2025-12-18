@@ -26,7 +26,7 @@ void MCapsuleBody::Update(float DeltaTime)
 
     GetPhysicsSystem()->GetBodyInterface().MoveKinematic(GetBodyID(), JoltJointPos, JoltJointQuat, DeltaTime);
     
-    std::cout << "bone019 Jolt Pos: " << JoltJointPos.GetX() << ", " << JoltJointPos.GetY() << ", " << JoltJointPos.GetZ() << std::endl;
+    //std::cout << "bone019 Jolt Pos: " << JoltJointPos.GetX() << ", " << JoltJointPos.GetY() << ", " << JoltJointPos.GetZ() << std::endl;
 
     //getRenderer()->DrawCoordinate(GetMainWorld().get(), DynamicMeshComp->GetJointPosition("bone019"), DynamicMeshComp->GetJointQuaternion("bone019"));
     //getRenderer()->DrawCapsule(GetMainWorld().get(), BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight, DynamicMeshComp->GetJointPosition(JointIndex), DynamicMeshComp->GetJointQuaternion(JointIndex));
@@ -45,7 +45,7 @@ void MCapsuleBody::Render()
     if (BodyCapsuleData.AttachJointIndex != -1)
     {
         //Renderer->DrawCoordinate(GetMainWorld().get(), DXBodyPos, DxBodyQuat);
-        Renderer->DrawCapsule(GetMainWorld().get(), BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight, DXBodyPos, DxBodyQuat);
+        Renderer->DrawCapsule(GetDynamicMeshComponent()->GetWorld(), BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight, DXBodyPos, DxBodyQuat);
     }
 
 }

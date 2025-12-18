@@ -51,14 +51,14 @@ constexpr char* BoneName = "bone001";
 #undef max
 
 #ifdef JPH_ENABLE_ASSERTS
-    static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, uint inLine)
-    {
-        // Print to the TTY
-        cout << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr ? inMessage : "") << endl;
+    //static bool AssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, uint inLine)
+    //{
+    //    // Print to the TTY
+    //    cout << inFile << ":" << inLine << ": (" << inExpression << ") " << (inMessage != nullptr ? inMessage : "") << endl;
 
-        // Breakpoint
-        return true;
-    };
+    //    // Breakpoint
+    //    return true;
+    //};
 #endif
 
 static void TraceImpl(const char* inFMT, ...)
@@ -79,21 +79,27 @@ namespace Layers
 {
     static constexpr ObjectLayer NON_MOVING = 0;
     static constexpr ObjectLayer MOVING = 1;
-    static constexpr ObjectLayer NUM_LAYERS = 2;
+    static constexpr ObjectLayer CLOTH = 2;
+    static constexpr ObjectLayer PHYSICS = 3;
+    static constexpr ObjectLayer NUM_LAYERS = 4;
 };
 
 // 레이어간 충돌 여부를 설정
 class ObjectLayerPairFilterImpl : public ObjectLayerPairFilter
 {
 public:
-    virtual bool					ShouldCollide(ObjectLayer inObject1, ObjectLayer inObject2) const override
+    virtual bool ShouldCollide(ObjectLayer inObject1, ObjectLayer inObject2) const override
     {
         switch (inObject1)
         {
         case Layers::NON_MOVING:
             return inObject2 == Layers::NON_MOVING || inObject2 == Layers::MOVING; // Non moving only collides with moving
         case Layers::MOVING:
-            return true; // Moving collides with everything
+            return inObject2 == Layers::NON_MOVING || inObject2 == Layers::MOVING; // Moving collides with everything
+        case Layers::CLOTH:
+            return inObject2 == Layers::PHYSICS;
+        case Layers::PHYSICS:
+            return inObject2 == Layers::CLOTH;
         default:
             JPH_ASSERT(false);
             return false;
@@ -110,7 +116,9 @@ namespace BroadPhaseLayers
 {
     static constexpr BroadPhaseLayer NON_MOVING(0);
     static constexpr BroadPhaseLayer MOVING(1);
-    static constexpr uint NUM_LAYERS(2);
+    static constexpr BroadPhaseLayer CLOTH(2);
+    static constexpr BroadPhaseLayer PHYSICS(3);
+    static constexpr uint NUM_LAYERS(4);
 };
 
 // BroadPhaseLayerInterface implementation
@@ -123,6 +131,8 @@ public:
         // Create a mapping table from object to broad phase layer
         mObjectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
         mObjectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
+        mObjectToBroadPhase[Layers::CLOTH] = BroadPhaseLayers::CLOTH;
+        mObjectToBroadPhase[Layers::PHYSICS] = BroadPhaseLayers::PHYSICS;
     }
 
     virtual uint					GetNumBroadPhaseLayers() const override
@@ -143,6 +153,8 @@ public:
         {
         case (BroadPhaseLayer::Type)BroadPhaseLayers::NON_MOVING:	return "NON_MOVING";
         case (BroadPhaseLayer::Type)BroadPhaseLayers::MOVING:		return "MOVING";
+        case (BroadPhaseLayer::Type)BroadPhaseLayers::CLOTH:	    return "CLOTH";
+        case (BroadPhaseLayer::Type)BroadPhaseLayers::PHYSICS:	    return "PHYSICS";
         default:													JPH_ASSERT(false); return "INVALID";
         }
     }
@@ -156,14 +168,18 @@ private:
 class ObjectVsBroadPhaseLayerFilterImpl : public ObjectVsBroadPhaseLayerFilter
 {
 public:
-    virtual bool				ShouldCollide(ObjectLayer inLayer1, BroadPhaseLayer inLayer2) const override
+    virtual bool ShouldCollide(ObjectLayer inLayer1, BroadPhaseLayer inLayer2) const override
     {
         switch (inLayer1)
         {
         case Layers::NON_MOVING:
             return inLayer2 == BroadPhaseLayers::NON_MOVING || inLayer2 == BroadPhaseLayers::MOVING;
         case Layers::MOVING:
-            return true;
+            return inLayer2 == BroadPhaseLayers::NON_MOVING || inLayer2 == BroadPhaseLayers::MOVING;
+        case Layers::CLOTH:
+            return inLayer2 == BroadPhaseLayers::PHYSICS;
+        case Layers::PHYSICS:
+            return inLayer2 == BroadPhaseLayers::CLOTH;
         default:
             JPH_ASSERT(false);
             return false;
@@ -178,7 +194,7 @@ public:
     // See: ContactListener
     virtual ValidateResult	OnContactValidate(const Body& inBody1, const Body& inBody2, RVec3Arg inBaseOffset, const CollideShapeResult& inCollisionResult) override
     {
-        cout << "Contact validate callback" << endl;
+        //cout << "Contact validate callback" << endl;
 
         // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
         return ValidateResult::AcceptAllContactsForThisBodyPair;
@@ -186,17 +202,17 @@ public:
 
     virtual void			OnContactAdded(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
     {
-        cout << "A contact was added" << endl;
+        //cout << "A contact was added" << endl;
     }
 
     virtual void			OnContactPersisted(const Body& inBody1, const Body& inBody2, const ContactManifold& inManifold, ContactSettings& ioSettings) override
     {
-        cout << "A contact was persisted" << endl;
+        //cout << "A contact was persisted" << endl;
     }
 
     virtual void			OnContactRemoved(const SubShapeIDPair& inSubShapePair) override
     {
-        cout << "A contact was removed" << endl;
+        //cout << "A contact was removed" << endl;
     }
 };
 
@@ -206,148 +222,14 @@ class MyBodyActivationListener : public BodyActivationListener
 public:
     virtual void		OnBodyActivated(const BodyID& inBodyID, uint64 inBodyUserData) override
     {
-        cout << "A body got activated" << endl;
+        //cout << "A body got activated" << endl;
     }
 
     virtual void		OnBodyDeactivated(const BodyID& inBodyID, uint64 inBodyUserData) override
     {
-        cout << "A body went to sleep" << endl;
+        //cout << "A body went to sleep" << endl;
     }
 };
-
-::Vec3 ConvertDirectXToJoltRotation(const ::Vec3& directXRot)
-{
-    XMVECTOR XMQuat = XMQuaternionRotationRollPitchYaw(-directXRot.x, directXRot.y, directXRot.z);
-
-    return {};
-}
-
-// Rotation around X axis (right-handed)
-inline XMMATRIX RH_RotationX(float angleRad)
-{
-    float c = cosf(angleRad);
-    float s = sinf(angleRad);
-
-    // Rx (row-major visual):
-    // [1   0    0   0]
-    // [0   c   -s   0]
-    // [0   s    c   0]
-    // [0   0    0   1]
-
-    XMVECTOR r0 = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-    XMVECTOR r1 = XMVectorSet(0.0f, c, -s, 0.0f);
-    XMVECTOR r2 = XMVectorSet(0.0f, s, c, 0.0f);
-    XMVECTOR r3 = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-    XMMATRIX M;
-    M.r[0] = r0;
-    M.r[1] = r1;
-    M.r[2] = r2;
-    M.r[3] = r3;
-    return M;
-}
-
-// Rotation around Y axis (right-handed)
-inline XMMATRIX RH_RotationY(float angleRad)
-{
-    float c = cosf(angleRad);
-    float s = sinf(angleRad);
-
-    // Ry (row-major):
-    // [ c   0   s  0]
-    // [ 0   1   0  0]
-    // [-s   0   c  0]
-    // [ 0   0   0  1]
-
-    XMVECTOR r0 = XMVectorSet(c, 0.0f, s, 0.0f);
-    XMVECTOR r1 = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-    XMVECTOR r2 = XMVectorSet(-s, 0.0f, c, 0.0f);
-    XMVECTOR r3 = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-    XMMATRIX M;
-    M.r[0] = r0;
-    M.r[1] = r1;
-    M.r[2] = r2;
-    M.r[3] = r3;
-    return M;
-}
-
-// Rotation around Z axis (right-handed)
-inline XMMATRIX RH_RotationZ(float angleRad)
-{
-    float c = cosf(angleRad);
-    float s = sinf(angleRad);
-
-    // Rz (row-major):
-    // [ c  -s  0  0]
-    // [ s   c  0  0]
-    // [ 0   0  1  0]
-    // [ 0   0  0  1]
-
-    XMVECTOR r0 = XMVectorSet(c, -s, 0.0f, 0.0f);
-    XMVECTOR r1 = XMVectorSet(s, c, 0.0f, 0.0f);
-    XMVECTOR r2 = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-    XMVECTOR r3 = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-    XMMATRIX M;
-    M.r[0] = r0;
-    M.r[1] = r1;
-    M.r[2] = r2;
-    M.r[3] = r3;
-    return M;
-}
-
-XMVECTOR MakeQuat(FXMMATRIX M)
-{
-    const float m00 = XMVectorGetX(M.r[0]);
-    const float m01 = XMVectorGetY(M.r[0]);
-    const float m02 = XMVectorGetZ(M.r[0]);
-
-    const float m10 = XMVectorGetX(M.r[1]);
-    const float m11 = XMVectorGetY(M.r[1]);
-    const float m12 = XMVectorGetZ(M.r[1]);
-
-    const float m20 = XMVectorGetX(M.r[2]);
-    const float m21 = XMVectorGetY(M.r[2]);
-    const float m22 = XMVectorGetZ(M.r[2]);
-
-    float trace = m00 + m11 + m22;
-    float qw, qx, qy, qz;
-
-    if (trace > 0.0f) {
-        float S = sqrtf(trace + 1.0f) * 2.0f; // S = 4*qw
-        qw = 0.25f * S;
-        qx = (m21 - m12) / S;
-        qy = (m02 - m20) / S;
-        qz = (m10 - m01) / S;
-    }
-    else {
-        if (m00 > m11 && m00 > m22) {
-            float S = sqrtf(1.0f + m00 - m11 - m22) * 2.0f; // S = 4*qx
-            qw = (m21 - m12) / S;
-            qx = 0.25f * S;
-            qy = (m01 + m10) / S;
-            qz = (m02 + m20) / S;
-        }
-        else if (m11 > m22) {
-            float S = sqrtf(1.0f + m11 - m00 - m22) * 2.0f; // S = 4*qy
-            qw = (m02 - m20) / S;
-            qx = (m01 + m10) / S;
-            qy = 0.25f * S;
-            qz = (m12 + m21) / S;
-        }
-        else {
-            float S = sqrtf(1.0f + m22 - m00 - m11) * 2.0f; // S = 4*qz
-            qw = (m10 - m01) / S;
-            qx = (m02 + m20) / S;
-            qy = (m12 + m21) / S;
-            qz = 0.25f * S;
-        }
-    }
-
-    XMVECTOR q = XMVectorSet(qx, qy, qz, qw);
-    return q;
-}
 
 void MJoltPhysics::StartSimulate(MWorld* InWorld)
 {
@@ -428,7 +310,7 @@ void MJoltPhysics::StartSimulate(MWorld* InWorld)
 
 JPH::Quat MJoltPhysics::DXQuatToJPHQuat(const::Vec4& InQuat)
 {
-    return JPH::Quat(-InQuat.x, -InQuat.y, InQuat.z, InQuat.w).Normalized();
+    return JPH::Quat(-InQuat.x, -InQuat.y, InQuat.z, InQuat.w).Normalized(); // -y, -x, z, w 가 아닌지???
 }
 
 JPH::Quat MJoltPhysics::DXAngleToJPHQuat(const ::Vec3& InRot)
@@ -594,6 +476,9 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
         const FMeshData& MeshData = InData.Mesh->GetMeshData(ClothData.MeshIndex);
         const FJoint& Joint = InData.PrimitiveComponent->CastToShared<DynamicMeshComponent>()->GetJoint("bone001"); // 임시코드
 
+        std::wstring Msg = TEXT("옷감 버텍스 수: ") + std::to_wstring(GetSize(MeshData.Vertices)) + TEXT(", 인덱스 수: ") + std::to_wstring(GetSize(MeshData.Indices));
+        LOG(Msg);
+
         for (uint32 i = 0; i < GetSize(MeshData.Vertices); ++i)
         {
             const ::Vec4& VtxPos = MeshData.Vertices[i].Pos;
@@ -635,6 +520,7 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
         }
     }
 
+#if SKIN == 1
     // 바인드 포즈 역행렬 ---------------------------------------------------------------------------------------------
     if (std::shared_ptr<DynamicMesh>& _DynamicMesh = InData.Mesh->CastToShared<DynamicMesh>())
     {
@@ -663,7 +549,6 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
         NewSharedSettings->mInvBindMatrices.emplace_back(0, JoltMat);
     }
 
-#if SKIN == 1
     // 스키닝 제약 ---------------------------------------------------------------------------------------------
     uint32 VertexNum = GetSize(NewSharedSettings->mVertices);
     for (uint32 VertexIndex = 0; VertexIndex < VertexNum; ++VertexIndex)
@@ -679,6 +564,7 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
     // 일반 제약 ---------------------------------------------------------------------------------------------
     SoftBodySharedSettings::VertexAttributes inVertexAttributes = { 0.f, 0.f, 0.f, SoftBodySharedSettings::ELRAType::GeodesicDistance };
     NewSharedSettings->CreateConstraints(&inVertexAttributes, 1);
+    //NewSharedSettings->mVertexRadius = 0.01f;
 #endif
 
     // 바디 생성 ---------------------------------------------------------------------------------------------
@@ -686,9 +572,9 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
     JPH::Vec3 Pos = JPH::Vec3::sZero();
     JPH::Quat Rot = JPH::Quat::sIdentity();
 
-    SoftBodyCreationSettings ClothCreateSetting(NewSharedSettings, Pos, Rot, Layers::MOVING);
-    ClothCreateSetting.mAllowSleeping = false;
-    ClothCreateSetting.mLinearDamping = 0.f;
+    SoftBodyCreationSettings ClothCreateSetting(NewSharedSettings, Pos, Rot, Layers::CLOTH);
+    //ClothCreateSetting.mAllowSleeping = false;
+    //ClothCreateSetting.mLinearDamping = 0.f;
     BodyID bodyId = bodyInterface.CreateAndAddSoftBody(ClothCreateSetting, EActivation::Activate);
 
     std::shared_ptr<MBodyObject> JoltPhysicsObject = std::make_shared<MBodyObject>(InData);
@@ -721,7 +607,7 @@ void MJoltPhysics::AddCharacterPhyscics(std::shared_ptr<DynamicMeshComponent> In
     BodyConstructData.Rot = InDynamicMeshComp->GetJointQuaternion(InBodyCapsuleData.AttachJointIndex);
 
     std::shared_ptr<MCapsuleBody> NewCharacterBody = std::make_shared<MCapsuleBody>(BodyConstructData, InBodyCapsuleData);
-    CreateBody(shape, BodyConstructData, NewCharacterBody);
+    CreateBody(shape, BodyConstructData, NewCharacterBody, Layers::PHYSICS);
 
     CapsuleBodies.push_back(NewCharacterBody);
 }
@@ -779,6 +665,31 @@ void MJoltPhysics::CreateBody(RefConst<Shape> InShape, const FBodyConstructData&
 	InBodyObject->SetBodyID(NewBodyID);
 }
 
+
+void MJoltPhysics::CreateBody(RefConst<Shape> InShape, const FBodyConstructData& InData, std::shared_ptr<MBodyObject> InBodyObject, JPH::ObjectLayer InLayer)
+{
+    if (InBodyObject == nullptr)
+    {
+        return;
+    }
+
+    BodyInterface& bodyInterface = physics_system->GetBodyInterface();
+    JPH::Vec3 Pos = JPH::Vec3::sZero();
+    JPH::Quat Rot = JPH::Quat::sIdentity();
+
+    EMotionType MotionType = ConvertPhysicsType(InData.PhysicsType);
+    JPH::EActivation Activation = bSimulating ? EActivation::Activate : EActivation::DontActivate;
+
+    BodyCreationSettings bodyCreationSettings(InShape.GetPtr(), Pos, Rot, MotionType, InLayer);
+    bodyCreationSettings.mMassPropertiesOverride.mMass = 0.f;
+    bodyCreationSettings.mGravityFactor = 0.f;
+
+    BodyID NewBodyID = bodyInterface.CreateAndAddBody(bodyCreationSettings, Activation);
+
+    InBodyObject->SetBodyID(NewBodyID);
+}
+
+
 void MJoltPhysics::Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_ptr<MPhysicsObject>& Rhs)
 {
     std::shared_ptr<MBodyObject> lhs = std::static_pointer_cast<MBodyObject>(Lhs);
@@ -795,7 +706,7 @@ bool MJoltPhysics::Initialize()
     RegisterDefaultAllocator();
 
     Trace = TraceImpl;
-    JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
+    //JPH_IF_ENABLE_ASSERTS(AssertFailed = AssertFailedImpl;)
 
     Factory::sInstance = new Factory();
 
@@ -877,8 +788,6 @@ void MJoltPhysics::Update()
             JoltJointPos = ToJPHPos(DXJointPos);
             JoltJointQuat = DXQuatToJPHQuat(DXJointQuat);
 
-            std::cout << "Bone001 Jolt Pos: " << JoltJointPos.GetX() << ", " << JoltJointPos.GetY() << ", " << JoltJointPos.GetZ() << std::endl;
-
             //getRenderer()->DrawCapsule(GetMainWorld().get(), , ::Vec3{ JoltJointPos.GetX(), JoltJointPos.GetY(), -JoltJointPos.GetZ() }, VEC3ZERO);
             //getRenderer()->DrawCoordinate(GetMainWorld().get(), ::Vec3{ JoltJointPos.GetX(), JoltJointPos.GetY(), -JoltJointPos.GetZ() }, VEC3ZERO);
         }
@@ -915,10 +824,10 @@ void MJoltPhysics::Update()
         ::Vec4 DxBodyQuat = JoltQuatToDXQuat(BodyRot);
         ::Vec3 DXPos = { BodyPos.GetX(), BodyPos.GetY(), -BodyPos.GetZ() };
 
-        getRenderer()->DrawCoordinate(GetMainWorld().get(), DXPos, DxBodyQuat);
-        getRenderer()->DrawCapsule(GetMainWorld().get(), 0.02f, 0.02f, DXPos, DxBodyQuat);
-        const FJoint& Joint = PhysicObject->GetPrimitiveComponent()->CastToShared<DynamicMeshComponent>()->GetJoint("bone001");
+        //getRenderer()->DrawCoordinate(GetMainWorld().get(), DXPos, DxBodyQuat);
+        //getRenderer()->DrawCapsule(GetMainWorld().get(), 0.02f, 0.02f, DXPos, DxBodyQuat);
 
+        const FJoint& Joint = PhysicObject->GetPrimitiveComponent()->CastToShared<DynamicMeshComponent>()->GetJoint("bone001");
         for (uint32 MeshIndex : PhysicObject->GetMeshIndices())
         {
             std::vector<::Vertex> Vertices = PhysicObject->GetMesh()->GetMeshData(MeshIndex).Vertices;
@@ -944,7 +853,7 @@ void MJoltPhysics::Update()
 
     if (NewCharacter)
     {
-        NewCharacter->PostSimulation(0.05f);
+        NewCharacter->PostSimulation(DeltaTime);
     }
 }
 
@@ -952,7 +861,7 @@ void MJoltPhysics::Render()
 {
     Super::Render();
 
-    if (getRenderer() && getRenderer()->bDrawCollision)
+    if (getRenderer() /*&& getRenderer()->bDrawCollision*/)
     {
         for (auto& CapsuleBody : CapsuleBodies)
         {
