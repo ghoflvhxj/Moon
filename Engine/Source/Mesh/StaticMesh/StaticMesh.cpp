@@ -28,6 +28,8 @@ void MMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
 
     const std::vector<VertexList>& Vertices = FbxLoader.getVerticesList();
     const std::vector<IndexList>& Indices = FbxLoader.getIndicesList();
+    const std::vector<Mat4>& GlTransforms = FbxLoader.GetMeshInvGlobalTransforms();
+    const std::vector<std::vector<uint32>>& Joints = FbxLoader.GetMeshJointIndices();
 
     uint32 GeometryNum = FbxLoader.GetGeometryNum();
     for (uint32 GeometryIndex = 0; GeometryIndex < GeometryNum; ++GeometryIndex)
@@ -35,6 +37,8 @@ void MMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
         FMeshData NewMeshData;
         NewMeshData.Vertices = Vertices[GeometryIndex];
         NewMeshData.Indices = Indices[GeometryIndex];
+        NewMeshData.GlobalInverseTransform = GlTransforms[GeometryIndex];
+        NewMeshData.JointIndices = Joints[GeometryIndex];
         MeshDatas.push_back(NewMeshData);
     }
 

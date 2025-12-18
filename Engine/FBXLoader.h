@@ -191,12 +191,17 @@ public:
 	std::vector<VertexList>&	getVerticesList();
     // 각 메시의 인덱스 리스트
 	std::vector<IndexList>&		getIndicesList();
+    //
+    std::vector<Mat4>& GetMeshInvGlobalTransforms();
+    std::vector<std::vector<uint32>>& GetMeshJointIndices() { return MeshJointIndices; }
     // 각 메시의 텍스쳐 리스트
 	std::vector<TextureList>&   GetTextures();
 	const std::vector<uint32>&	GetMaterialIndices() const;
 private:
 	std::vector<VertexList>		_verticesList;
 	std::vector<IndexList>		_indicesList;
+    std::vector<Mat4>           MeshInvGlobalTransforms;
+    std::vector<std::vector<uint32>> MeshJointIndices;
     // ControlPoint에 해당하는 정점들의 인덱스를 메시 단위로 저장
 	std::vector<std::map<int, std::vector<int>>> ControlPointToVertexIndices;
 	

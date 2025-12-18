@@ -48,7 +48,7 @@ namespace Graphic
 		Vec3 Normal = { 0.f, 0.f, 0.f };
 		Vec3 Tangent = { 0.f, 0.f, 0.f };
 		Vec3 Binormal = { 0.f, 0.f, 0.f };
-		uint32 BlendIndex[4] = { 0, 0, 0, 0 };
+		int32 BlendIndex[4] = { -1, -1, -1, -1 };
 		float BlendWeight[4] = {0.f, 0.f, 0.f, 0.f};
 
         // 가상함수 등이 추가되면 vtable때문에 사이즈가 달라지므로, 리플렉션에 직접 등록할 수는 없음.
@@ -68,7 +68,7 @@ inline void getDesc(std::vector<D3D11_INPUT_ELEMENT_DESC>& inputDescVector)
         {"NORMAL",          0, DXGI_FORMAT_R32G32B32_FLOAT,     DefaultSlot, 40,    D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL",          1, DXGI_FORMAT_R32G32B32_FLOAT,     DefaultSlot, 52,    D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL",          2, DXGI_FORMAT_R32G32B32_FLOAT,     DefaultSlot, 64,    D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"BLENDINDICES",    0, DXGI_FORMAT_R32G32B32A32_UINT,   DefaultSlot, 76,    D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"BLENDINDICES",    0, DXGI_FORMAT_R32G32B32A32_SINT,   DefaultSlot, 76,    D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"BLENDWEIGHT",     0, DXGI_FORMAT_R32G32B32A32_FLOAT,  DefaultSlot, 92,    D3D11_INPUT_PER_VERTEX_DATA, 0},
 
         // 인스턴스

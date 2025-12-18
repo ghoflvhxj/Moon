@@ -64,162 +64,137 @@ void MFBXLoader::SafeDestroy(fbxsdk::FbxObject*& InObject)
 
 void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
 {
-    // 메시를 그릴거임.
-    // 근데 애니메이션이 적용됬다면, 정점들에 애니메이션 행렬을 곱해야 함.
-    // 점에 영향을 주는 조인트 4개가 있고 인덱스, 수치 값을 찾아서 정점에 저장함.
-
-    // 애니메이션이 있는 메시는 T포즈가 설정되있고, 정점을 불러오면 위치는 T포즈 상태에서의 값임.
-    //
-    // 점 위치를 조인트 기준으로 변환하고 싶다.그래서 '조인트 T포즈 역행렬'을 곱함. (씬->조인트 좌표계 변환)
-    // 이제 메시 공간으로 변환하고 싶다.메시 행렬을 곱함(클러스터 행렬, 조인트->메시 좌표계 변환)
-    //
-    // 이제 조인트가 움직이고 회전하는 것을 적용하고 싶다.그래서 '조인트 행렬'을 곱함(메시->씬 좌표계 변환)
-    // 조인트 행렬 때문에 씬 좌표계로 되버림
-    // 다시 메시 공간으로 변환하고 싶다.메시의 역행렬을 곱함(씬->메시 좌표계로 변환)
-    //
-    // 왜 인지는 모르겠는데, 마지막에 조인트 글로벌 매트릭스를 곱함
-    // 결국 씬에서 조인트
-    // 
-    //---------------------------------------------------------------------------------
-    // 조인트 T포즈 역행렬은 어떻게 구하나 ?
-    // 조인트 T포즈 행렬의 역 * 클러스터의 T포즈 행렬
-
     OutAnimationClips.resize(AnimStackNum);
 
 	PerformanceTimer timer;
+
+	for (uint32 meshIndex = 0; meshIndex < GeometryCount; ++meshIndex)
+	{
+		FbxMesh* pMesh = _meshList[meshIndex];
+		FbxNode* pMeshNode = pMesh->GetNode(0);
+
+		FbxAMatrix MeshGlobalTransform = pMeshNode->EvaluateGlobalTransform();
+		FbxAMatrix geometryTransform = {
+			pMeshNode->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
+			pMeshNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
+			pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot)
+		};
+
+		int deformerCount = pMesh->GetDeformerCount();
+		for (int deformerIndex = 0; deformerIndex < deformerCount; ++deformerIndex)
+		{
+			FbxDeformer* pDeformer = pMesh->GetDeformer(deformerIndex, FbxDeformer::eSkin);
+			if (nullptr == pDeformer)
+			{
+				continue;
+			}
+
+			FbxSkin* pSkin = reinterpret_cast<FbxSkin*>(pDeformer);
+
+			int clusterCount = pSkin->GetClusterCount();
+			for (int clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex)
+			{
+				FbxCluster* pCluster = pSkin->GetCluster(clusterIndex);
+				const char* JointName = pCluster->GetLink()->GetName();
+				int JointIndex = NameToJointIndex[JointName];
+
+				MeshJointIndices[meshIndex].push_back(JointIndex);
+
+				std::wstring str = TEXT("JointName: ") + StringToWString(JointName) + TEXT(", JointIndex: ") + std::to_wstring(JointIndex);
+				LOG(str);
+
+				// 바인드 포즈 역행렬 = 조인트 역행렬 * 클러스터 행렬
+				FbxAMatrix JointTransformMatrix;
+				pCluster->GetTransformLinkMatrix(JointTransformMatrix);
+				FbxAMatrix ClusterTransformMatrix;
+				pCluster->GetTransformMatrix(ClusterTransformMatrix);
+				FbxAMatrix globalBindPoseInverseMatrix;
+				globalBindPoseInverseMatrix = JointTransformMatrix.Inverse() * ClusterTransformMatrix * geometryTransform;
+				//globalBindPoseInverseMatrix = JointTransformMatrix.Inverse() * ClusterTransformMatrix;
+
+				XMStoreFloat4x4(&Joints[JointIndex]._globalBindPoseInverseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
+
+				auto& BindPose = globalBindPoseInverseMatrix.Inverse();
+				auto& Scale = BindPose.GetS();
+				auto& Rot = BindPose.GetR();
+				auto& Trans = BindPose.GetT();
+
+				Joints[JointIndex].Scale = { (float)Scale[0], (float)Scale[1], (float)Scale[2] };
+				Joints[JointIndex].Rotation = { ToRadian((float)Rot[0]), ToRadian((float)Rot[1]), ToRadian((float)Rot[2]) };
+				Joints[JointIndex].Position = { (float)Trans[0], (float)Trans[1], (float)Trans[2] };
+
+				// 조인트가 영향을 주는 정점들을 찾아서, 자신의 정보를 저장시킴
+				double* ControlPointWeights = pCluster->GetControlPointWeights();
+				if (ControlPointWeights != nullptr)
+				{
+					for (int ArrayIndex = 0; ArrayIndex < pCluster->GetControlPointIndicesCount(); ++ArrayIndex)
+					{
+						// Weights와 ControlPoindIndices의 수는 4개로 같음
+						int ControlPointIndex = pCluster->GetControlPointIndices()[ArrayIndex];
+						std::vector<int>& VertexIndices = ControlPointToVertexIndices[meshIndex][ControlPointIndex];
+
+						float Weight = static_cast<float>(ControlPointWeights[ArrayIndex]);
+
+						for (int VertexIndex : VertexIndices)
+						{
+							// 저장할 위치를 찾기 위한 로직
+							for (int BlendCounter = 0; BlendCounter < 4; ++BlendCounter)
+							{
+								if (_verticesList[meshIndex][VertexIndex].BlendIndex[BlendCounter] == -1)
+								{
+									_verticesList[meshIndex][VertexIndex].BlendIndex[BlendCounter] = JointIndex;
+									_verticesList[meshIndex][VertexIndex].BlendWeight[BlendCounter] = Weight;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	for (uint32 AnimStackIndex = 0; AnimStackIndex < AnimStackNum; ++AnimStackIndex)
 	{
 		_pAnimStack = _pScene->GetCurrentAnimationStack();
 		FbxString animStackName = _pAnimStack->GetName();
 		FbxTakeInfo* pTakeInfo = _pScene->GetTakeInfo(animStackName);
 
-        MAnimation& CurrentAnimClip = OutAnimationClips[AnimStackIndex];
+		MAnimation& CurrentAnimClip = OutAnimationClips[AnimStackIndex];
 		CurrentAnimClip.Name = animStackName.Buffer();
-        CurrentAnimClip.SetAssetPath(Directory + StringToWString(CurrentAnimClip.Name) + TEXT(".json"));
-        CurrentAnimClip.SetFrameInfo(pTakeInfo->mLocalTimeSpan.GetStart(), pTakeInfo->mLocalTimeSpan.GetStop());
+		CurrentAnimClip.SetAssetPath(Directory + StringToWString(CurrentAnimClip.Name) + TEXT(".json"));
+		CurrentAnimClip.SetFrameInfo(pTakeInfo->mLocalTimeSpan.GetStart(), pTakeInfo->mLocalTimeSpan.GetStop());
 
-        // 조인트를 얻기 위해 메시->디포머->스킨->클러스터->링크 순으로 파고듬
-        // 클러스터의 링크 = 조인트
-		for (uint32 meshIndex = 0; meshIndex < GeometryCount; ++meshIndex)
+		if (std::shared_ptr<DynamicMesh> DM = g_ResourceManager->FindDynamicMesh(Joints))
 		{
-			FbxMesh* pMesh = _meshList[meshIndex];
-			FbxNode* pMeshNode = pMesh->GetNode(0);
+			auto& MeshDatas = DM->GetMeshDatas();
+            for (uint32 meshIndex = 0; meshIndex < GetSize(MeshDatas); ++meshIndex)
+            {
+                const FMeshData& MeshData = DM->GetMeshData(meshIndex);
 
-			FbxAMatrix geometryTransform = { 
-                pMeshNode->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
-			    pMeshNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
-				pMeshNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot) 
-            };
+                FbxAMatrix MeshGlobalInv;
+                for (uint32 i = 0; i < 16; ++i)
+                {
+                    uint32 Row = i / 4;
+                    uint32 Col = i % 4;
+                    MeshGlobalInv.mData[Row][Col] = MeshData.GlobalInverseTransform.m[Row][Col];
+                }
 
-			int deformerCount = pMesh->GetDeformerCount();
-			for (int deformerIndex = 0; deformerIndex < deformerCount; ++deformerIndex)
-			{
-				FbxDeformer* pDeformer = pMesh->GetDeformer(deformerIndex, FbxDeformer::eSkin);
-				if (nullptr == pDeformer)
-				{
-					continue;
-				}
-
-				FbxSkin* pSkin = reinterpret_cast<FbxSkin*>(pDeformer);
-
-				int clusterCount = pSkin->GetClusterCount();
-				for (int clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex)
-				{
-                    FbxCluster* pCluster = pSkin->GetCluster(clusterIndex);
-                    const char* JointName = pCluster->GetLink()->GetName();
-                    int JointIndex = NameToJointIndex[JointName];
-
-                    std::wstring str = TEXT("JointName: ") + StringToWString(JointName) + TEXT(", JointIndex: ") + std::to_wstring(JointIndex);
-                    LOG(str);
-
-                    // 바인드 포즈 역행렬 = 조인트 역행렬 * 클러스터 행렬
-                    FbxAMatrix JointTransformMatrix;
-					pCluster->GetTransformLinkMatrix(JointTransformMatrix);
-                    FbxAMatrix ClusterTransformMatrix;
-					pCluster->GetTransformMatrix(ClusterTransformMatrix);
-                    FbxAMatrix globalBindPoseInverseMatrix;
-                    globalBindPoseInverseMatrix = JointTransformMatrix.Inverse() * ClusterTransformMatrix * geometryTransform;
-                    XMStoreFloat4x4(&Joints[JointIndex]._globalBindPoseInverseMatrix, ToXMMatrix(globalBindPoseInverseMatrix));
-
-                    auto& BindPose = globalBindPoseInverseMatrix.Inverse();
-                    auto& Scale = BindPose.GetS();
-                    auto& Rot = BindPose.GetR();
-                    auto& Trans = BindPose.GetT();
-
-                    Joints[JointIndex].Scale = { (float)Scale[0], (float)Scale[1], (float)Scale[2] };
-                    Joints[JointIndex].Rotation = { ToRadian((float)Rot[0]), ToRadian((float)Rot[1]), ToRadian((float)Rot[2]) };
-                    Joints[JointIndex].Position = { (float)Trans[0], (float)Trans[1], (float)Trans[2] };
-
-                    // 조인트가 영향을 주는 정점들을 찾아서, 자신의 정보를 저장시킴
-					double* ControlPointWeights = pCluster->GetControlPointWeights();
-					if (ControlPointWeights != nullptr)
-					{
-                        for (int ArrayIndex = 0; ArrayIndex < pCluster->GetControlPointIndicesCount(); ++ArrayIndex)
-                        {
-                            // Weights와 ControlPoindIndices의 수는 4개로 같음
-                            int ControlPointIndex = pCluster->GetControlPointIndices()[ArrayIndex];
-                            std::vector<int>& VertexIndices = ControlPointToVertexIndices[meshIndex][ControlPointIndex];
-
-                            float Weight = static_cast<float>(ControlPointWeights[ArrayIndex]);
-
-                            for (int VertexIndex : VertexIndices)
-                            {
-                                // 저장할 위치를 찾기 위한 로직
-                                for (int BlendCounter = 0; BlendCounter < 4; ++BlendCounter)
-                                {
-                                    if (_verticesList[meshIndex][VertexIndex].BlendIndex[BlendCounter] == 0)
-                                    {
-                                        _verticesList[meshIndex][VertexIndex].BlendIndex[BlendCounter] = JointIndex;
-                                        _verticesList[meshIndex][VertexIndex].BlendWeight[BlendCounter] = Weight;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-					}
-
+                for (uint32 JointIndex = 0; JointIndex < GetSize(Joints); JointIndex++)
+                {
                     for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
                     {
                         FbxTime currentTime;
                         currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
 
-                        // 메시 글로벌 
-                        FbxAMatrix MeshGlobal = pMeshNode->EvaluateGlobalTransform(currentTime) * geometryTransform;
-                        // 조인트 글로벌
-                        FbxAMatrix JointGlobal = pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
-
-                        // 메시의 로컬에서 조인트 글로벌로 변환
-                        FbxAMatrix& Test = MeshGlobal.Inverse() * JointGlobal;
+                        FbxAMatrix JointGlobal = JointNodes[JointIndex]->EvaluateGlobalTransform(currentTime); //pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
+                        FbxAMatrix& Test = MeshGlobalInv * JointGlobal;
                         XMStoreFloat4x4(&CurrentAnimClip.GetKeyFrame(Frame).GetJointMatrix(JointIndex), ToXMMatrix(Test));
                     }
-
-#ifdef _DEBUG
-					std::string log;
-					log += "MeshName: ";
-					log += pMeshNode->GetName();
-					log += ", MeshIndex: ";
-					log += std::to_string(meshIndex);
-					log += ", DeformerCount/Index: ";
-					log += std::to_string(deformerCount);
-					log += "/";
-					log += std::to_string(deformerIndex);
-					log += ", ClusterCount/Index: ";
-					log += std::to_string(clusterCount);
-					log += "/";
-					log += std::to_string(clusterIndex);
-					log += ", jointName/Index: ";
-					log += JointName;
-					log += "/";
-					//log += std::to_string(jointIndex);
-					log += "\r\n";
-					LOG(StringToWString(log));
-#endif
-				}
-			}
+                }
+            }
 		}
 	}
-
-	//_jointList[0]._translation = { 0.f, 0.f, 0.f };
 }
 
 bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
@@ -242,6 +217,8 @@ bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
 	GeometryCount = _pScene->GetGeometryCount();
 	_verticesList.resize(GeometryCount);
 	_indicesList.resize(GeometryCount);
+    MeshInvGlobalTransforms.resize(GeometryCount, ZEROMATRIX);
+    MeshJointIndices.resize(GeometryCount);
 	MaterialIndices.reserve(GeometryCount);
 	ControlPointToVertexIndices.resize(GeometryCount);
 
@@ -260,18 +237,18 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath, bool bMesh /*= true*/
 {
     LoadFBXMesh(InPath);
 
-    bool bDynamic = false;
-    if (AnimStackNum > 0)
-    {
-        for (auto& Mesh : _meshList)
-        {
-            if (Mesh->GetDeformerCount() > 0)
-            {
-                bDynamic = true;
-                break;
-            }
-        }
-    }
+    bool bDynamic = GetSize(Joints) > 0 || AnimStackNum > 0;
+    //if (AnimStackNum > 0)
+    //{
+    //    for (auto& Mesh : _meshList)
+    //    {
+    //        if (Mesh->GetDeformerCount() > 0)
+    //        {
+    //            bDynamic = true;
+    //            break;
+    //        }
+    //    }
+    //}
 
     std::shared_ptr<MMesh> NewMesh = nullptr;
     if (bDynamic)
@@ -318,7 +295,7 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath, bool bMesh /*= true*/
 
         if (bAnim)
         {
-            std::vector<MAnimation> Anims = NewDynamicMesh->GetAnimClips();
+            const std::vector<MAnimation>& Anims = NewDynamicMesh->GetAnimClips();
             for (auto& Anim : Anims)
             {
                 MJsonSerializer Serializer;
@@ -361,7 +338,8 @@ void MFBXLoader::InitializeFbxSdk()
 void MFBXLoader::convertScene()
 {
 	FbxAxisSystem directXAxisSys(FbxAxisSystem::EPreDefinedAxisSystem::eDirectX);
-	directXAxisSys.ConvertScene(_pScene);
+	directXAxisSys.DeepConvertScene(_pScene);
+	//directXAxisSys.ConvertScene(_pScene);
 
 	FbxGeometryConverter geometryConverter(_pFbxManager);
 	geometryConverter.Triangulate(_pScene, true);
@@ -418,6 +396,11 @@ std::vector<IndexList> &MFBXLoader::getIndicesList()
 	return _indicesList;
 }
 
+std::vector<Mat4>& MFBXLoader::GetMeshInvGlobalTransforms()
+{
+    return MeshInvGlobalTransforms;
+}
+
 std::vector<TextureList> &MFBXLoader::GetTextures()
 {
 	return MaterialTextures;
@@ -438,10 +421,13 @@ void MFBXLoader::loadNode()
 	{
 		FbxNode *pNode = nodeList.back();
 		FbxNodeAttribute *pNodeAttribute = pNode->GetNodeAttribute();
-		
+
 		if (nullptr != pNodeAttribute)
 		{
-			switch (pNodeAttribute->GetAttributeType())
+            FbxNodeAttribute::EType AttributeType = pNodeAttribute->GetAttributeType();
+            std::string NodeName = pNode->GetName();
+            std::string TypeName = pNode->GetTypeName();
+			switch (AttributeType)
 			{
 			case FbxNodeAttribute::EType::eMesh:
 				parseMeshNode(pNode, meshCounter++);
@@ -516,6 +502,22 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
             MeshIndices.push_back(Loaded[VertexKey]);
 		}
 	}
+
+    FbxAMatrix MeshGlobalTransform = pNode->EvaluateGlobalTransform();
+
+    FbxAMatrix geometryTransform = {
+        pNode->GetGeometricTranslation(FbxNode::EPivotSet::eSourcePivot),
+        pNode->GetGeometricRotation(FbxNode::EPivotSet::eSourcePivot),
+        pNode->GetGeometricScaling(FbxNode::EPivotSet::eSourcePivot)
+    };
+
+    FbxAMatrix Temp = (MeshGlobalTransform * geometryTransform).Inverse();
+    for (uint32 i = 0; i < 16; ++i)
+    {
+        uint32 Row = i / 4;
+        uint32 Col = i % 4;
+        MeshInvGlobalTransforms[meshIndex].m[Row][Col] = Temp.mData[Row][Col];
+    }
 }
 
 void MFBXLoader::linkMaterial(FbxNode *pNode)
@@ -541,11 +543,11 @@ void MFBXLoader::linkMaterial(FbxNode *pNode)
 		}
 	}
 
-    // 매터리얼이 없으면 기본으로 하나 추가
-    if (MaterialIndices.empty())
-    {
-        MaterialIndices.push_back(0);
-    }
+	// 매터리얼이 없으면 기본 값으로 0을 넣음
+	if (MaterialNum == 0)
+	{
+		MaterialIndices.push_back(0);
+	}
 }
 
 void MFBXLoader::loadPosition(Vertex &vertex, const int controlPointIndex)
@@ -844,7 +846,7 @@ void MFBXLoader::loadSkeletonNode(fbxsdk::FbxNode *pNode, const char* parentName
         NewJoint._parentIndex = NameToJointIndex[parentName];
 	}
 
-    FbxAMatrix& GlobalTransform = pNode->EvaluateGlobalTransform(FBXSDK_TIME_INFINITE, FbxNode::eSourcePivot, true, false);
+    FbxAMatrix& GlobalTransform = pNode->EvaluateGlobalTransform();
     auto& Scale = GlobalTransform.GetS();
     auto& Rot = GlobalTransform.GetR();
     auto& Trans = GlobalTransform.GetT();
@@ -943,12 +945,20 @@ const char* MFBXLoader::GetTexturePropertyString(ETextureType TextureType)
 
 inline DirectX::XMMATRIX ToXMMatrix(const FbxAMatrix& pSrc)
 {
-	return {
-		static_cast<FLOAT>(pSrc[0][0]), static_cast<FLOAT>(pSrc[0][1]), static_cast<FLOAT>(pSrc[0][2]), static_cast<FLOAT>(pSrc[0][3]),
-		static_cast<FLOAT>(pSrc[1][0]), static_cast<FLOAT>(pSrc[1][1]), static_cast<FLOAT>(pSrc[1][2]), static_cast<FLOAT>(pSrc[1][3]),
-		static_cast<FLOAT>(pSrc[2][0]), static_cast<FLOAT>(pSrc[2][1]), static_cast<FLOAT>(pSrc[2][2]), static_cast<FLOAT>(pSrc[2][3]),
-		static_cast<FLOAT>(pSrc[3][0]), static_cast<FLOAT>(pSrc[3][1]), static_cast<FLOAT>(pSrc[3][2]), static_cast<FLOAT>(pSrc[3][3])
-	};
+    FbxVector4 S = pSrc.GetS();
+    FbxQuaternion Q = pSrc.GetQ();
+    FbxVector4 T = pSrc.GetT();
+
+    FbxVector4 R = pSrc.GetR();
+
+    Vec3 Angles = {};
+    DXQuaternionToEuler(Vec4(Q[0], Q[1], Q[2], Q[3]), Angles.x, Angles.y, Angles.z);
+
+    XMMATRIX ScaleMat = XMMatrixScaling(S[0], S[1], S[2]);
+    XMMATRIX RotMat = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Angles));
+    XMMATRIX TransMat = XMMatrixTranslation(T[0], T[1], T[2]);
+
+    return ScaleMat * RotMat * TransMat;
 }
 
 // 조인트 그리기 용

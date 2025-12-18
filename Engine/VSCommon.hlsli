@@ -88,7 +88,10 @@ float4 Temp(VertexIn vIn)
         boneTransform = (matrix) 0;
         for (int i = 0; i < 4; ++i)
         {
-            boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);
+            if (vIn.blendIndex[i] != -1)
+            {
+                boneTransform += mul(keyFrameMatrices[vIn.blendIndex[i]], vIn.blendWeight[i]);
+            }
         }
     }
     

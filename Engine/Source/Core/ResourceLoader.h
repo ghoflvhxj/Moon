@@ -14,6 +14,7 @@ public:
 
 public:
 	std::shared_ptr<MAsset> TryLoad(const std::wstring& FilePath);
+    const std::unordered_map<std::wstring, std::shared_ptr<MAsset>>& GetLoadedResources() const { return LoadedResources; }
 protected:
     // 경로, 리소스 쌍의 맵. 로드된 리로스가 여기에 저장됨
     std::unordered_map<std::wstring, std::shared_ptr<MAsset>> LoadedResources;

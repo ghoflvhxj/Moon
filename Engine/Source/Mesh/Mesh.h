@@ -9,6 +9,9 @@ struct ENGINE_DLL FMeshData
 {
     VertexList		Vertices;
     IndexList 		Indices;
+    Mat4 GlobalInverseTransform;
+    // 이 메시에 영향을 주는 조인트 인덱스
+    std::vector<uint32> JointIndices;
 
     FMeshData& operator+=(const FMeshData& Rhs)
     {
@@ -18,7 +21,13 @@ struct ENGINE_DLL FMeshData
         return *this;
     }
 
-    REFLECT_TOP(FMeshData, PROPERTY(Vertices), PROPERTY(Indices));
+    REFLECT_TOP(
+        FMeshData
+        , PROPERTY(Vertices)
+        , PROPERTY(Indices)
+        , PROPERTY(GlobalInverseTransform)
+        , PROPERTY(JointIndices)
+    );
 };
 
 struct ENGINE_DLL FClothData
@@ -42,7 +51,7 @@ namespace fbxsdk
 struct ENGINE_DLL KeyFrame
 {
     KeyFrame()
-        : Matrices(200, IDENTITYMATRIX)
+        : Matrices(200, ZEROMATRIX)
     {
     }
 public:

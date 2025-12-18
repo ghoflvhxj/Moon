@@ -13,6 +13,8 @@
 #include "Material.h"
 #include "Texture.h"
 
+#undef min
+
 using namespace DirectX;
 const std::string JointName = "bone001";
 
@@ -75,7 +77,7 @@ void DynamicMeshComponent::Update(const Time deltaTime)
             for (int32 JointIndex = 0; JointIndex < CastValue<int32>(JointNum); ++JointIndex)
             {
                 float FloatFrame = AnimTime * 24.f;
-                uint32 Frame = CastValue<uint32>(FloatFrame);
+                uint32 Frame = std::min(CastValue<uint32>(FloatFrame), Animation->EndFrame - 1);
 
                 XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(JointIndex));
                 
@@ -89,18 +91,18 @@ void DynamicMeshComponent::Update(const Time deltaTime)
                     JointMatrix = (NextMat * nextFrameFactor) + (CurrentMat * currentFrameFactor);
                 }
 
-                XMMATRIX NonScale = XMMatrixScaling(1.f / 2.54f, 1.f / 2.54f, 1.f / 2.54f);
-                JointMatrix = XMMatrixMultiply(JointMatrix, NonScale);
-
                 // 현재 프레임에서 조인트 행렬들
                 XMMATRIX BindPoseInverseMatrix = XMLoadFloat4x4(&Mesh->GetJoint(JointIndex)._globalBindPoseInverseMatrix);
                 XMStoreFloat4x4(&JointAnimMatrices[JointIndex], XMMatrixMultiply(BindPoseInverseMatrix, JointMatrix));
+
+                getRenderer()->DrawCoordinate(GetWorld(), GetJointPosition(JointIndex), GetJointQuaternion(JointIndex));
             }
         }
 
         playAnimation(AinmClipIndex, deltaTime);
+        //getRenderer()->DrawCoordinate(GetWorld(), GetJointPosition("bone018"), VEC3ONE);
     }
-    
+
     static float t = 0.f;
     t += deltaTime;
 

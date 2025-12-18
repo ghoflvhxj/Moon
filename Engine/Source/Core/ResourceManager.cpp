@@ -2,6 +2,7 @@
 #include "ResourceLoader.h"
 
 #include "Core/Asset.h"
+#include "Mesh/DynamicMesh/DynamicMesh.h"
 
 MResourceManager::MResourceManager()
 {
@@ -83,4 +84,28 @@ void MResourceManager::Release()
 {
 	ResourceLoaders.clear();
     ResourceLoaders2.clear();
+}
+
+std::shared_ptr<DynamicMesh> MResourceManager::FindDynamicMesh(const std::vector<FJoint> Joints)
+{
+    for (auto& [Path, Resource] : ResourceLoaders2[DynamicMesh::GetTypeDescStatic()]->GetLoadedResources())
+    {
+        auto& DM = Resource->CastToShared<DynamicMesh>();
+        if (auto& SK = DM->GetSkeleton())
+        {
+            if (SK->GetJointNum() != GetSize(Joints))
+            {
+                continue;
+            }
+
+            if (SK->GetJoint(0).Name != Joints[0].Name)
+            {
+                continue;
+            }
+
+            return DM;
+        }
+    }
+
+    return nullptr;
 }

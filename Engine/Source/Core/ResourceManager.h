@@ -4,8 +4,10 @@
 
 #include "FileSystem.h"
 #include "ResourceLoader.h"
+#include "mesh/Mesh.h"
 
 class MAsset;
+class DynamicMesh;
 
 // AssetManager로 변경하기
 class ENGINE_DLL MResourceManager
@@ -98,6 +100,8 @@ public:
 
 	void AddLoader(const std::shared_ptr<MResourceLoader>& ResourceLoader);
 	void Release();
+
+    std::shared_ptr<DynamicMesh> FindDynamicMesh(const std::vector<FJoint> Joints);
 
 protected:
     // 확장자, 리소스 로더 쌍의 맵
