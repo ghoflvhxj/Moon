@@ -45,6 +45,9 @@ protected:
     bool bHasBegan = false;
 
 public:
+    virtual void Destroy();
+
+public:
     MWorld* GetWorld();
 
 public:

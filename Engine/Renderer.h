@@ -101,6 +101,7 @@ protected:
 	// 렌더할 PrimitiveComponent 추가하는 함수. 렌더 패스에 들어감.
 public:
 	void AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent);
+    void RemovePrimitiveComponent(MPrimitiveComponent* InComponent);
 protected:
     std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatas;
 

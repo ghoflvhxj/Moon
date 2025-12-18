@@ -180,7 +180,7 @@ std::shared_ptr<T> GetWorld()
 
 ENGINE_DLL std::shared_ptr<MObject> DuplicateObject(std::shared_ptr<MObject> InObject);
 void RegisterComponent(std::shared_ptr<class MComponent> InComponent);
-
+void UnRegisterComponent(MComponent* InComponent);
 
 ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc);
 ENGINE_DLL void* CreateData(const FTypeDesc* InTypeDesc);

@@ -62,6 +62,41 @@ bool MWorld::Update()
         }
     }
 
+    GetPostLoopDelegate().Add([&]() {
+        for (auto& Iter = DestroyQueue.begin(); Iter != DestroyQueue.end(); ++Iter)
+        {
+            std::string TargetActorName;
+            for (auto [Name, Actor] : Actors)
+            {
+                if (Actor.get() == *Iter)
+                {
+                    TargetActorName = Name;
+                    break;
+                }
+            }
+
+            if (TargetActorName.empty() == false)
+            {
+                Actors.erase(TargetActorName);
+            }
+
+            /*
+            auto& FoundIter = std::find(Actors.begin(), Actors.end(), *Iter);
+            if (FoundIter != Actors.end())
+            {
+                Actors.erase(FoundIter->first);
+                continue;
+            }
+            else
+            {
+                ++Iter;
+            }
+            */
+        }
+
+        DestroyQueue.clear();
+    });
+
 	return true;
 }
 
@@ -164,6 +199,11 @@ void MWorld::DuplicateActors(const std::shared_ptr<MWorld>& InSrcWorld)
             addActor(DuplicatedActor);
         }
     }
+}
+
+void MWorld::RemoveActor(MActor* InActor)
+{
+    DestroyQueue.push_back(InActor);
 }
 
 const bool MWorld::Initialize()

@@ -92,50 +92,6 @@ bool MRenderer::Initialize()
     FVertex_Instance Temp = {};
     InstanceBuffer = std::make_shared<MVertexBuffer>((uint32)sizeof(FVertex_Instance), 1, &Temp);
     InstanceBuffer2 = std::make_shared<MVertexBuffer>((uint32)sizeof(FVertex_Instance), 1, &Temp);
-    
-//	// 렌더 타겟 추가
-//	for (int i = 0; i < CastValue<int>(ERenderTarget::Count); ++i)
-//	{
-//		FRenderTagetInfo RenderTargetInfo;
-//
-//		switch (CastValue<ERenderTarget>(i))
-//		{
-//		case ERenderTarget::DirectionalShadowDepth:
-//		{
-//			RenderTargetInfo.bCube = false;
-//			RenderTargetInfo.Width = 1024 * 2;
-//			RenderTargetInfo.Height = 1024 * 2;
-//            RenderTargetInfo.TextrueNum = CastValue<int>(EFrustumCascade::Count);
-//            RenderTargetInfo.Type = ERenderTargetType::Depth;
-//		}
-//		break;
-//        case ERenderTarget::PointShadowDepth:
-//        {
-//            static constexpr uint32 MaxPointLightNum = 10;
-//            RenderTargetInfo = FRenderTagetInfo::GetCube();
-//            RenderTargetInfo.Width = 1024 * 2;
-//            RenderTargetInfo.Height = 1024 * 2;
-//            RenderTargetInfo.TextrueNum *= MaxPointLightNum;
-//            RenderTargetInfo.Type = ERenderTargetType::Depth;
-//        }
-//		break;
-//        case ERenderTarget::RimLight:
-//        {
-//            RenderTargetInfo = FRenderTagetInfo::GetDefault();
-//            RenderTargetInfo.Type = ERenderTargetType::Bool;
-//        }
-//		default:
-//		{
-//			RenderTargetInfo = FRenderTagetInfo::GetDefault();
-//		}
-//		break;
-//		}
-//
-//        auto& NewRenderTarget = std::make_shared<MRenderTarget>();
-//        NewRenderTarget->initializeTexture(RenderTargetInfo);
-//		_renderTargets.emplace_back(NewRenderTarget);
-//	}
-//
 
     // BindRenderTargets 컴파일 성공용. 제거해야함
     RenderTargets _renderTargets;
@@ -545,6 +501,20 @@ void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPri
             if (auto& World = Owner->CastToShared<MWorld>())
             {
                 GetScene(World->GetID())->AddPrimitiveComponent(InPrimitiveComponent.get(), Mesh);
+            }
+        }
+    }
+}
+
+void MRenderer::RemovePrimitiveComponent(MPrimitiveComponent* InComponent)
+{
+    if (auto& Actor = InComponent->getOwningActor())
+    {
+        if (auto& Owner = Actor->GetOwner())
+        {
+            if (auto& World = Owner->CastToShared<MWorld>())
+            {
+                GetScene(World->GetID())->ClearPrimtiveDatas(InComponent->GetPrimitiveID());
             }
         }
     }

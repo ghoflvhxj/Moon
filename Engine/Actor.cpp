@@ -165,6 +165,19 @@ void MActor::BeginPlay()
     bHasBegan = true;
 }
 
+void MActor::Destroy()
+{
+    for (auto& [Name, Comp] : SceneComponents)
+    {
+        UnRegisterComponent(Comp.get());
+    }
+
+    if (MWorld* World = GetWorld())
+    {
+        World->RemoveActor(this);
+    }
+}
+
 MWorld* MActor::GetWorld()
 {
     if (auto& Owner = GetOwner())

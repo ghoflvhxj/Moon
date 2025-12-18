@@ -61,6 +61,8 @@ public:
     virtual void OnLoaded() override;
     virtual std::shared_ptr<MObject> Duplicate() override;    // Map 복제를 아직 지원안해서 수동으로 작성해줘야 함
     void DuplicateActors(const std::shared_ptr<MWorld>& InSrcWorld);
+    void RemoveActor(MActor* InActor);
+    std::vector<MActor*> DestroyQueue;
 
 public:
 	virtual const bool Initialize();

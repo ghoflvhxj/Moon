@@ -251,6 +251,31 @@ void RegisterComponent(std::shared_ptr<MComponent> InComponent)
     //GetPhysics()->AddCharacterBody()
 }
 
+void UnRegisterComponent(MComponent* InComponent)
+{
+    if (InComponent == nullptr)
+    {
+        return;
+    }
+
+    if (getRenderer())
+    {
+        if (MPrimitiveComponent* PrimitiveComp = InComponent->CastTo<MPrimitiveComponent>())
+        {
+            getRenderer()->RemovePrimitiveComponent(PrimitiveComp);
+        }
+    }
+
+    // 델리게이트가 제거될 테니, 작업은 필요 없음
+    //if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastToShared<MMeshComponent>())
+    //{
+    //    std::weak_ptr<MMeshComponent> WeakMeshComp = MeshComp;
+    //    MeshComp->GetBeganPlay().Add([WeakMeshComp]() {
+    //        GetPhysics()->AddMeshComponent(WeakMeshComp.lock());
+    //    });
+    //}
+}
+
 ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc)
 {
     if (GetFactory().find(InTypeDesc) != GetFactory().end())
