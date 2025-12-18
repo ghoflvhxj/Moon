@@ -35,8 +35,8 @@ public:
     // 조인트의 로컬 축을 반환함
     Vec3 GetJointAxis(uint32 InJointIndex, uint32 InAxisIndex);
     // 조인트의 월드 위치를 반환함
-    Vec3 GetJointPosition(uint32 InJointIndex);
-    Vec3 GetJointPosition(const std::string& InName);
+    Vec3 GetJointPosition(uint32 InJointIndex, const Vec3& InOffset = VEC3ZERO);
+    Vec3 GetJointPosition(const std::string& InName, const Vec3& InOffset = VEC3ZERO);
     // 조인트의 컴포넌트 상대 위치를 반환함
     Vec3 GetRelativeJointPosition(const std::string& InName);
     Vec4 GetJointQuaternion(uint32 InJointIndex);

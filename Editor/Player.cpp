@@ -62,7 +62,7 @@ void Player::BeginPlay()
     Super::BeginPlay();
 
     GetPostLoopDelegate().Add([&]() {
-        //CharacterMeshComponent->Clothing();
+        CharacterMeshComponent->Clothing();
     });
 }
 

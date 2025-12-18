@@ -18,7 +18,7 @@ void MCapsuleBody::Update(float DeltaTime)
     uint32 JointIndex = BodyCapsuleData.AttachJointIndex;
     const FJoint& Joint = DynamicMeshComp->GetJoint(JointIndex);
 
-    const ::Vec3& DXJointPos = DynamicMeshComp->GetJointPosition(JointIndex);
+    const ::Vec3& DXJointPos = DynamicMeshComp->GetJointPosition(JointIndex, BodyCapsuleData.TranslationOffset);
     const JPH::Vec3& JoltJointPos = MJoltPhysics::ToJPHPos(DXJointPos);
 
     const ::Vec4& DXJointQuat = DynamicMeshComp->GetJointQuaternion(JointIndex);

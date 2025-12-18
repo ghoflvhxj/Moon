@@ -747,7 +747,7 @@ void MJoltPhysics::Update()
 	static float TotalTime = 0.f;
 	TotalTime += DeltaTime;
 
-    physics_system->Update(DeltaTime, 1, tempAllocator, jobSystem);
+    physics_system->Update(DeltaTime, 2, tempAllocator, jobSystem);
 
     // 캐릭터 바디 업데이트
     for (auto& CharacterBody : CapsuleBodies)

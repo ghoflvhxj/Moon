@@ -95,7 +95,7 @@ void DynamicMeshComponent::Update(const Time deltaTime)
                 XMMATRIX BindPoseInverseMatrix = XMLoadFloat4x4(&Mesh->GetJoint(JointIndex)._globalBindPoseInverseMatrix);
                 XMStoreFloat4x4(&JointAnimMatrices[JointIndex], XMMatrixMultiply(BindPoseInverseMatrix, JointMatrix));
 
-                getRenderer()->DrawCoordinate(GetWorld(), GetJointPosition(JointIndex), GetJointQuaternion(JointIndex));
+                //getRenderer()->DrawCoordinate(GetWorld(), GetJointPosition(JointIndex), GetJointQuaternion(JointIndex));
             }
         }
 
@@ -147,12 +147,6 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		NewPrimitiveData.MeshData = &dMesh->GetMeshData(geometryIndex);
 		NewPrimitiveData.Material = dMesh->getGeometryLinkMaterialIndex().size() > 0 ? dMesh->getMaterials()[dMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : dMesh->getMaterials()[0];
         NewPrimitiveData.AnimMatrices = JointAnimMatrices;
-
-        if (geometryIndex == 7 || geometryIndex == 8 || geometryIndex == 11 || geometryIndex == 12 || geometryIndex == 13)
-        {
-            //static std::vector<Mat4> Test(200, IDENTITYMATRIX);
-            //NewPrimitiveData.AnimMatrices = Test.data();
-        }
 
         PrimitiveDataList.emplace_back(NewPrimitiveData);
 	}
@@ -253,35 +247,35 @@ void DynamicMeshComponent::Clothing2()
         std::vector<FClothData> CothDatas;
         {
             FClothData a;
-            a.MeshIndex = 7;
+            a.MeshIndex = 8;
             a.InvMass.resize(Mesh->GetMeshData(7).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             CothDatas.push_back(a);
         }
         {
             FClothData a;
-            a.MeshIndex = 8;
+            a.MeshIndex = 9;
             a.InvMass.resize(Mesh->GetMeshData(8).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             CothDatas.push_back(a);
         }
         {
             FClothData a;
-            a.MeshIndex = 11;
+            a.MeshIndex = 12;
             a.InvMass.resize(Mesh->GetMeshData(11).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             CothDatas.push_back(a);
         }
         {
             FClothData a;
-            a.MeshIndex = 12;
+            a.MeshIndex = 13;
             a.InvMass.resize(Mesh->GetMeshData(12).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             CothDatas.push_back(a);
         }
         {
             FClothData a;
-            a.MeshIndex = 13;
+            a.MeshIndex = 14;
             a.InvMass.resize(Mesh->GetMeshData(13).Vertices.size(), 1.f);
             a.JointIndex = JointIndex;
             CothDatas.push_back(a);
@@ -364,7 +358,7 @@ Vec3 DynamicMeshComponent::GetJointAxis(uint32 InJointIndex, uint32 InAxisIndex)
     return { Temp[0], Temp[1], Temp[2] };
 }
 
-Vec3 DynamicMeshComponent::GetJointPosition(uint32 InJointIndex)
+Vec3 DynamicMeshComponent::GetJointPosition(uint32 InJointIndex, const Vec3& InOffset)
 {
     Vec3 OutTrans = VEC3ZERO;
 
@@ -375,16 +369,17 @@ Vec3 DynamicMeshComponent::GetJointPosition(uint32 InJointIndex)
 
     const FJoint& Joint = GetJoint(InJointIndex);
 
-    XMVECTOR A = XMVector3TransformCoord(XMLoadFloat3(&Joint.Position), XMLoadFloat4x4(&JointAnimMatrices[InJointIndex]));
+    XMVECTOR XMPos = XMLoadFloat3(&Joint.Position) + XMLoadFloat3(&InOffset);
+    XMVECTOR A = XMVector3TransformCoord(XMPos, XMLoadFloat4x4(&JointAnimMatrices[InJointIndex]));
     A = XMVector3TransformCoord(A, XMLoadFloat4x4(&getWorldMatrix()));
     XMStoreFloat3(&OutTrans, A);
 
     return OutTrans;
 }
 
-Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName)
+Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName, const Vec3& InOffset)
 {
-    return GetJointPosition(GetDynamicMesh()->GetJointIndex(InName));
+    return GetJointPosition(GetDynamicMesh()->GetJointIndex(InName), InOffset);
 }
 
 Vec3 DynamicMeshComponent::GetRelativeJointPosition(const std::string& InName)
