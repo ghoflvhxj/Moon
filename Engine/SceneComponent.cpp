@@ -28,7 +28,14 @@ void MSceneComponent::Update(const Time deltaTime)
     if (auto& ParentComp = ParentComponent.lock())
     {
         ParentComp->Update(deltaTime);
+
         ParentWorldMatrix = ParentComp->getWorldMatrix();
+        if (bWorldRotation)
+        {
+            Vec3 S, R, T;
+            DecomposeTransform(ParentWorldMatrix, S, R, T);
+            TransformMatrix(ParentWorldMatrix, S, VEC3ZERO, T);
+        }
     }
 
     TransformMatrix(_worldMatrix, Scale, Rotation, Translation);
@@ -69,19 +76,44 @@ XMMATRIX MSceneComponent::GetRotationMatrix()
 	return XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Rotation));
 }
 
-void MSceneComponent::setRotation(const Vec3 &rotation)
+void MSceneComponent::SetRotation(const Vec3& InRotation)
 {
-	Rotation = rotation;
+    Rotation.x = fmod(InRotation.x, PI2);
+    Rotation.y = fmod(InRotation.y, PI2);
+    Rotation.z = fmod(InRotation.z, PI2);
+
+    static auto Lambda = [](float& Value) {
+        if (Value < 0.f)
+        {
+            Value += PI2;
+        }
+    };
+
+    Lambda(Rotation.x);
+    Lambda(Rotation.y);
+    Lambda(Rotation.z);
 }
 
 void MSceneComponent::AddRotation(const Vec3& InAdditiveRot)
 {
-    XMStoreFloat3(&Rotation, XMLoadFloat3(&Rotation) + XMLoadFloat3(&InAdditiveRot));
+    Vec3 NewRot = {};
+    XMStoreFloat3(&NewRot, XMLoadFloat3(&Rotation) + XMLoadFloat3(&InAdditiveRot));
+
+    Self::SetRotation(NewRot);
 }
 
 const Vec3& MSceneComponent::getRotation() const
 {
 	return Rotation;
+}
+
+const Vec3& MSceneComponent::GetWorldRotation() const
+{
+    const Mat4& WorldMat = getWorldMatrix();
+    Vec3 Rot, Dummy;
+    DecomposeTransform(WorldMat, Dummy, Rot, Dummy);
+
+    return Rot;
 }
 
 void MSceneComponent::setTranslation(const Vec3 &translation)

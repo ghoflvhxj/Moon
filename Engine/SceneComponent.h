@@ -22,11 +22,13 @@ private:
 
 public:
 	virtual XMMATRIX GetRotationMatrix();
-	void setRotation(const Vec3 &rotation);
-    void AddRotation(const Vec3& InAdditiveRot);
+	virtual void SetRotation(const Vec3& InRotation);
+    virtual void AddRotation(const Vec3& InAdditiveRot);
 	const Vec3&	getRotation() const;
-private:
+    const Vec3& GetWorldRotation() const;
+protected:
 	Vec3 Rotation;
+    bool bWorldRotation = false;
 
 public:
 	virtual void setTranslation(const Vec3 &translation);
@@ -66,6 +68,7 @@ private:
         MSceneComponent,
         PROPERTY(Scale),
         PROPERTY(Rotation),
+        PROPERTY(bWorldRotation),
         PROPERTY(Translation),
         PROPERTY(bUpdated)
     );

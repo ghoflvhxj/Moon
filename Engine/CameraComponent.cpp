@@ -54,24 +54,6 @@ void MCameraComponent::Update(const Time deltaTime)
                 XMStoreFloat3(&Pos, XMLoadFloat3(&PivotPos) - XMLoadFloat3(&GetForward()) * ArmLength);
                 Camera->SetWorldTranslation(Pos);
 
-
-                Vec3 CurrentRot = getRotation();
-                float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X)) * 0.3f; // 1 = 디그리 3도 -> 라디안
-                float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y)) * 0.3f;
-                mouseX = ToRadian(mouseX);
-                mouseY = ToRadian(mouseY);
-                TargetRot.x += mouseY;
-                TargetRot.y += mouseX;
-                TargetRot.x = clamp(TargetRot.x, ToRadian(-80.f), ToRadian(80.f));
-
-                if (XMVector3Equal(XMLoadFloat3(&CurrentRot), XMLoadFloat3(&TargetRot)) == false)
-                {
-                    float RotX = Lerp(CurrentRot.x, TargetRot.x, std::max(PI, fabs(TargetRot.x - CurrentRot.x)) * deltaTime);
-                    float RotY = Lerp(CurrentRot.y, TargetRot.y, std::max(PI, fabs(TargetRot.y - CurrentRot.y)) * deltaTime);
-                    setRotation({ RotX, RotY, 0.f });
-                    Camera->getComponent(ROOT_COMPONENT)->setRotation({ RotX, RotY, 0.f });
-                }
-
                 if (auto& Window = GetEngine()->GetWorldBoundedWindow(World))
                 {
                     if (Window->IsForegorund())
@@ -79,6 +61,8 @@ void MCameraComponent::Update(const Time deltaTime)
                         Window->MouseCneter();
                     }
                 }
+
+                Camera->getComponent(ROOT_COMPONENT)->SetRotation(GetWorldRotation());
             }
         }
     }

@@ -44,8 +44,7 @@ void StaticMeshComponent::Update(const Time deltaTime)
 	if (PhysicsObject && bPhysicsSimulate)
 	{
 		setTranslation(PhysicsObject->GetPhysicsPos());
-        setRotation(PhysicsObject->GetPhysicsRotation());
-
+        SetRotation(PhysicsObject->GetPhysicsRotation());
 	}
 
 	Super::Update(deltaTime);
