@@ -105,10 +105,18 @@ void MWindow::UpdateSize()
     Height = NewHeight;
     AspectRatio = static_cast<float>(Width) / Height;
 
-    GetOnViewportSizeChangedDelegate().Broadcast(ID, OldWidth, OldHeight, NewWidth, NewHeight);
+    if (NewWidth > 0 && NewHeight > 0)
+    {
+        GetOnViewportSizeChangedDelegate().Broadcast(ID, OldWidth, OldHeight, NewWidth, NewHeight);
+    }
 }
 
-std::tuple<LONG, LONG> MWindow::GetWindowPos() const
+void MWindow::SetWindowPos(const Vec2& InPos)
+{
+    ::SetWindowPos(getHandle(), NULL, static_cast<int>(InPos.x), static_cast<int>(InPos.y), GetWidth<int>(), GetHeight<int>(), SWP_NOZORDER);
+}
+
+Vec2 MWindow::GetWindowPos() const
 {
     RECT Rect = {};
     if (GetWindowRect(getHandle(), &Rect) == FALSE)
@@ -116,7 +124,7 @@ std::tuple<LONG, LONG> MWindow::GetWindowPos() const
         return { 0, 0 };
     }
 
-    return { Rect.left, Rect.top };
+    return { static_cast<float>(Rect.left), static_cast<float>(Rect.top) };
 }
 
 void MWindow::SetMousePos(int32 X, int32 Y)

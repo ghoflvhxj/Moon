@@ -178,7 +178,8 @@ void MEditorMainWindow::ImGuiRender()
             ImGui::Indent(20);
             if (ImGui::Button("Play"))
             {
-                std::shared_ptr<MWindow> NewWindow = GetWindowManager()->CreateWindow<MWindow>(TEXT("PIE"), 300, 300, g_hWnd, TEXT("ShootingGame"));
+                std::shared_ptr<MWindow> NewWindow = GetWindowManager()->CreateWindow<MWindow>(TEXT("PIE"), GetMainWindow()->GetWidth<int>(), GetMainWindow()->GetHeight<int>(), g_hWnd, TEXT("ShootingGame"));
+                NewWindow->SetWindowPos(GetMainWindow()->GetWindowPos());
                 NewWindow->Initialize();
 
                 //std::shared_ptr<MWorld> NewWorld = DuplicateObject(GetMainWorld())->CastToShared<MWorld>();
@@ -303,43 +304,45 @@ void MEditorMainWindow::ImGuiRender()
             {
                 if (ImGui::CollapsingHeader("Actor Edit"))
                 {
-                    for (auto& [Name, Comp] : Actor->GetComponents())
-                    {
-                        char CName[128];
-                        WStringToString(Name, CName, 128);
-                        std::string ClassName = "(" + Comp->GetTypeDesc()->Name + ")";
-                        strcat_s(CName, 128, ClassName.c_str());
+                    DispatchType2(Actor->GetTypeDesc(), Actor.get());
 
-                        bool bHighlight = ClickedComp == Comp;
-                        if (bHighlight)
-                        {
-                            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
-                        }
+                    //for (auto& [Name, Comp] : Actor->GetComponents())
+                    //{
+                    //    char CName[128];
+                    //    WStringToString(Name, CName, 128);
+                    //    std::string ClassName = "(" + Comp->GetTypeDesc()->Name + ")";
+                    //    strcat_s(CName, 128, ClassName.c_str());
 
-                        if (ImGui::Selectable(CName))
-                        {
-                            EditorModule->SetClickedComp(Comp);
-                        }
+                    //    bool bHighlight = ClickedComp == Comp;
+                    //    if (bHighlight)
+                    //    {
+                    //        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 0.f, 1.f));
+                    //    }
 
-                        if (bHighlight)
-                        {
-                            ImGui::PopStyleColor(1);
-                        }
-                    }
+                    //    if (ImGui::Selectable(CName))
+                    //    {
+                    //        EditorModule->SetClickedComp(Comp);
+                    //    }
 
-                    // 컴포넌트 속성 편집 기능
-                    const FTypeDesc* Current = ClickedComp->GetTypeDesc();
-                    while (Current)
-                    {
-                        ImGui::Indent(20.f);
-                        if (ImGui::CollapsingHeader(Current->Name.c_str()))
-                        {
-                            DispatchType(Current, ClickedComp.get());
-                        }
-                        ImGui::Indent(-20.f);
+                    //    if (bHighlight)
+                    //    {
+                    //        ImGui::PopStyleColor(1);
+                    //    }
+                    //}
 
-                        Current = Current->Parent;
-                    }
+                    //// 컴포넌트 속성 편집 기능
+                    //const FTypeDesc* Current = ClickedComp->GetTypeDesc();
+                    //while (Current)
+                    //{
+                    //    ImGui::Indent(20.f);
+                    //    if (ImGui::CollapsingHeader(Current->Name.c_str()))
+                    //    {
+                    //        DispatchType(Current, ClickedComp.get());
+                    //    }
+                    //    ImGui::Indent(-20.f);
+
+                    //    Current = Current->Parent;
+                    //}
                 }
 
                 if (ImGui::BeginPopupContextVoid("Test", ImGuiPopupFlags_MouseButtonRight))
@@ -351,7 +354,7 @@ void MEditorMainWindow::ImGuiRender()
 
                     if (ImGui::MenuItem("Delete"))
                     {
-
+                        Actor->Destroy();
                     }
 
                     if (ImGui::MenuItem("Edit"))

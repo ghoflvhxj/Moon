@@ -55,7 +55,8 @@ protected:
     uint32 Height = 1080;
 
 public:
-    std::tuple<LONG, LONG> GetWindowPos() const;
+    void SetWindowPos(const Vec2& InPos);
+    Vec2 GetWindowPos() const;
 
 public:
     float GetAspectRatio() const { return AspectRatio; }
