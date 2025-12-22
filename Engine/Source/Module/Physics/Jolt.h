@@ -154,7 +154,7 @@ public:
     virtual void SetMass(float InMass) override;
     virtual void SetPos(const ::Vec3& InPos) override;
     virtual void SetRotation(const ::Vec4& InRotation) override;
-    //virtual void SetRotation(const ::Vec3& InRotation) override;
+    virtual void SetRotation(const ::Vec3& InRotation) override;
     virtual void SetScale(const ::Vec3& InScale) override;
     virtual void SetGravity(bool bGravity) override;
     virtual void AddForce(const ::Vec3& InForce) override;

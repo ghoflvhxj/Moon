@@ -936,6 +936,13 @@ void MBodyObject::SetRotation(const ::Vec4& InRotation)
     GetPhysicsSystem()->GetBodyInterface().SetRotation(BodyIDCache, JInQuat, EActivation::Activate);
 }
 
+void MBodyObject::SetRotation(const ::Vec3& InRotation)
+{
+    ::Vec4 RotQuat = {};
+    XMStoreFloat4(&RotQuat, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&InRotation)));
+    SetRotation(RotQuat);
+}
+
 void MBodyObject::SetScale(const ::Vec3& InScale)
 {
     Ref<Shape> scaledShape;
@@ -998,9 +1005,10 @@ void MBodyObject::SetAngularVelocity(const ::Vec3& InVelocity)
 
 ::Vec3 MBodyObject::GetPhysicsRotation()
 {
-    JPH::Vec3 OutRot = GetPhysicsSystem()->GetBodyInterface().GetRotation(BodyIDCache).GetEulerAngles();
-
-    return { OutRot.GetX(), OutRot.GetY(), OutRot.GetZ()};
+    ::Vec4 RotQuat = MJoltPhysics::JoltQuatToDXQuat(GetPhysicsSystem()->GetBodyInterface().GetRotation(BodyIDCache));
+    ::Vec3 Rot = {};
+    DXQuaternionToEuler(RotQuat, Rot.x, Rot.y, Rot.z);
+    return Rot;
 }
 
 JPH::Body& MBodyObject::GetBody()
