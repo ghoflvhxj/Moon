@@ -74,7 +74,7 @@ PixelOut_LightPass main(PixelIn pIn)
     float3 specularFactor = pow(saturate(dot(PixelToCamera, ReflectDirection)), 10.f);
     if (Bright > 0.f)
     {
-        pOut.lightSpecular = float4(specular.xyz * specularFactor * (1.f - ShadowFactor), 1.f);
+        pOut.lightSpecular = float4(specular.g * specularFactor * (1.f - ShadowFactor), 1.f);
     }
     
     //float3 specularFactor = saturate(dot(PixelToCamera, direction));
