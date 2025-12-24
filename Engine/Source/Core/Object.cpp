@@ -52,8 +52,18 @@ void MObject::Copy(MObject* InObject) const
                 {
                     std::shared_ptr<MObject> Src = *static_cast<std::shared_ptr<MObject>*>(PropDesc->GetAsVoid(this, i));
                     std::shared_ptr<MObject> Dst = *static_cast<std::shared_ptr<MObject>*>(PropDesc->GetAsVoid(InObject, i));
-
-                    Src->Copy(Dst.get());
+                    
+                    if (Src)
+                    {
+                        if (Dst == nullptr)
+                        {
+                            PropDesc->SetAsVoid(InObject, &Src, i);
+                        }
+                        else
+                        {
+                            Src->Copy(Dst.get());
+                        }
+                    }
                 }
                 else
                 {
