@@ -17,33 +17,6 @@ public:
 	~MResourceManager() = default;
 
 public:
-    //void Load(MAsset* InAsset)
-    //{
-    //    std::filesystem::path Path(InAsset->GetAssetPath());
-
-    //    if (Path.empty())
-    //    {
-    //        return;
-    //    }
-
-    //    if (Path.is_absolute() == false)
-    //    {
-    //        Path = MFIleSystem::CombinePath(Path);
-    //    }
-
-    //    if (std::filesystem::exists(Path) == false)
-    //    {
-    //        std::wstring Msg = TEXT("파일이 없음: ") + Path.wstring();
-    //        MSGBOX(Msg);
-    //        return;
-    //    }
-
-    //    if (ResourceLoaders2.find(InTypeDesc) != ResourceLoaders2.end())
-    //    {
-    //        return ResourceLoaders2[InTypeDesc]->TryLoad(InPath);
-    //    }
-    //}
-
     std::shared_ptr<MAsset> Load(const std::wstring& InPath, const FTypeDesc* InTypeDesc);
 
 	template <class T>
@@ -101,6 +74,7 @@ public:
 	void AddLoader(const std::shared_ptr<MResourceLoader>& ResourceLoader);
 	void Release();
 
+    std::shared_ptr<MAsset> FindAsset(const std::wstring& InPath);
     std::shared_ptr<DynamicMesh> FindDynamicMesh(const std::vector<FJoint> Joints);
 
 protected:

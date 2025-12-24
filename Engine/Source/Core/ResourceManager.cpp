@@ -46,9 +46,6 @@ std::shared_ptr<MAsset> MResourceManager::Load(const std::wstring& InPath, const
             return ResourceLoaders[FileExtension]->TryLoad(Path);
         }
 
-        std::wstring Msg = TEXT("지원되지 않은 파일 확장자(") + FileExtension + TEXT(")");
-        LOG(Msg);
-
         // 피직스 임시
         std::shared_ptr<MAsset> Asset(static_cast<MAsset*>(CreateObject(InTypeDesc)));
         Asset->LoadFromDisk(Path);
@@ -84,6 +81,52 @@ void MResourceManager::Release()
 {
 	ResourceLoaders.clear();
     ResourceLoaders2.clear();
+}
+
+std::shared_ptr<MAsset> MResourceManager::FindAsset(const std::wstring& InPath)
+{
+    std::filesystem::path Path(InPath);
+    Path = Path.make_preferred();
+
+    if (Path.empty())
+    {
+        return nullptr;
+    }
+
+    if (Path.is_absolute() == false)
+    {
+        Path = MFIleSystem::AbsolutePath(Path);
+    }
+
+    for (auto& [Extension, ResourceLoader]: ResourceLoaders)
+    {
+        for (auto& [AssetPath, Asset] : ResourceLoader->GetLoadedResources())
+        {
+            if (AssetPath == Path)
+            {
+                return Asset;
+            }
+        }
+    }
+
+    for (auto& [TypeDesc, ResourceLoader] : ResourceLoaders2)
+    {
+        for (auto& [AssetPath, Asset] : ResourceLoader->GetLoadedResources())
+        {
+            if (AssetPath == Path)
+            {
+                return Asset;
+            }
+        }
+    }
+
+    auto& Iter = TempCache.find(Path);
+    if (Iter != TempCache.end())
+    {
+        return Iter->second;
+    }
+
+    return nullptr;
 }
 
 std::shared_ptr<DynamicMesh> MResourceManager::FindDynamicMesh(const std::vector<FJoint> Joints)
