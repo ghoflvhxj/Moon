@@ -69,42 +69,72 @@ void DynamicMeshComponent::Update(const Time deltaTime)
 {
     MMeshComponent::Update(deltaTime);
 
-    if (IsAnimPlaying())
+    float AnimBlendTime = 0.f;
+    bool bAnimChage = AnimBlendTime > 0.f;
+
+    if (HasAnim() && IsAnimPlaying())
     {
         uint32 JointNum = Mesh->GetJointNum();
+
+        for (int32 JointIndex = 0; JointIndex < CastValue<int32>(JointNum); ++JointIndex)
+        {
+            XMMATRIX XMJointMatrix = XMLoadFloat4x4(&GetBlendedJointMatrix(BlendData, JointIndex));
+            // 애니메이션이 바뀌었다면, 두 애니메이션을 블렌딩 해줌
+            if (bAnimChage)
+            {
+
+            }
+
+            if (bRootMotion)
+            {
+                XMMATRIX XMRootMat = XMLoadFloat4x4(&GetBlendedJointMatrix(BlendData, 0));
+
+                Mat4 Mat;
+                XMStoreFloat4x4(&Mat, XMRootMat);
+                Vec3 S, R, T;
+                DecomposeTransform(Mat, S, R, T);
+
+                T.x = 0.f;
+                T.y = 0.f;
+                XMRootMat = XMMatrixTranslationFromVector(XMLoadFloat3(&T));
+
+                XMJointMatrix = XMJointMatrix * XMMatrixInverse(nullptr, XMRootMat);
+            }
+
+            // 현재 프레임에서 조인트 행렬들
+            const XMMATRIX& XMInvBindPoseMatrix = XMLoadFloat4x4(&Mesh->GetJoint(JointIndex)._globalBindPoseInverseMatrix);
+            XMStoreFloat4x4(&JointAnimMatrices[JointIndex], XMInvBindPoseMatrix * XMJointMatrix);
+
+            //getRenderer()->DrawCoordinate(GetWorld(), GetJointPosition(JointIndex), GetJointQuaternion(JointIndex));
+        }
+
+        /***********************
+        [0, 10]
+        F: 9.7      F: 9    P: 9    N: 10   PF: 0.3     NF: 0.7
+        F: 10.7     F: 10   P: 10   N: 0    PF: 0.3     NF: 0.7
+        ***********************/
+
+        FloatFrame = clamp(AnimTime * Animation->GetFrameRate(), 0.f, static_cast<float>(Animation->EndFrame));
+        Frame = CastValue<uint32>(FloatFrame);
+        BlendData.PrevFrame = std::min(Frame, Animation->EndFrame);
+        BlendData.NextFrame = Frame < Animation->EndFrame ? Frame + 1 : 0;
+        BlendData.PrevFrameFactor = 1.f - (FloatFrame - CastValue<float>(Frame));
+        BlendData.NextFrameFactor = 1.f - BlendData.PrevFrameFactor;
+
         if (Animation)
         {
-            for (int32 JointIndex = 0; JointIndex < CastValue<int32>(JointNum); ++JointIndex)
+            AnimTime += deltaTime * AnimSpeed;
+            bLooped = false;
+            while (AnimTime > Animation->Duration)
             {
-                float FloatFrame = AnimTime * 24.f;
-                uint32 Frame = std::min(CastValue<uint32>(FloatFrame), Animation->EndFrame - 1);
-
-                XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(JointIndex));
-                
-                // 다음 프레임과 블렌딩
-                if (Frame < Animation->TotalFrame - 1)
-                {
-                    float currentFrameFactor = 1.f - (FloatFrame - CastValue<float>(Frame));
-                    float nextFrameFactor = 1.f - currentFrameFactor;
-                    XMMATRIX CurrentMat = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(JointIndex));
-                    XMMATRIX NextMat = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame + 1).GetJointMatrix(JointIndex));
-                    JointMatrix = (NextMat * nextFrameFactor) + (CurrentMat * currentFrameFactor);
-                }
-
-                // 현재 프레임에서 조인트 행렬들
-                XMMATRIX BindPoseInverseMatrix = XMLoadFloat4x4(&Mesh->GetJoint(JointIndex)._globalBindPoseInverseMatrix);
-                XMStoreFloat4x4(&JointAnimMatrices[JointIndex], XMMatrixMultiply(BindPoseInverseMatrix, JointMatrix));
-
-                //getRenderer()->DrawCoordinate(GetWorld(), GetJointPosition(JointIndex), GetJointQuaternion(JointIndex));
+                AnimTime -= Animation->Duration;
+                bLooped = true;
+                //BlendData.Reset();
             }
         }
 
-        playAnimation(AinmClipIndex, deltaTime);
         //getRenderer()->DrawCoordinate(GetWorld(), GetJointPosition("bone018"), VEC3ONE);
     }
-
-    static float t = 0.f;
-    t += deltaTime;
 
     uint32 ClothPhysicsObjectNum = GetSize(ClothPhysicsObjects);
     uint32 ClothUpdateDataNum = GetSize(ClothUpdateDatas);
@@ -122,7 +152,7 @@ void DynamicMeshComponent::Update(const Time deltaTime)
             Vec3 Dir = VEC3ZERO;
             XMStoreFloat3(&Dir, XMVector3Normalize(XMLoadFloat3(&ClothUpdateData.PreviousJointPos) - XMLoadFloat3(&JointPos)));
             ClothUpdateData.PreviousJointPos = JointPos;
-            ClothObject->AddForce(Dir);
+            //ClothObject->AddForce(Dir);
         }
     }
 }
@@ -146,7 +176,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		NewPrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		NewPrimitiveData.MeshData = &dMesh->GetMeshData(geometryIndex);
 		NewPrimitiveData.Material = dMesh->getGeometryLinkMaterialIndex().size() > 0 ? dMesh->getMaterials()[dMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : dMesh->getMaterials()[0];
-        NewPrimitiveData.AnimMatrices = JointAnimMatrices;
+        NewPrimitiveData.AnimMatrices = GetAnimMatrices();
 
         PrimitiveDataList.emplace_back(NewPrimitiveData);
 	}
@@ -179,7 +209,14 @@ void DynamicMeshComponent::SetMesh(const std::wstring& InPath)
         g_ResourceManager->Load(InPath, Mesh);
     }
 
-    Materials = Mesh->getMaterials();
+    JointAnimMatrices.clear();
+    Materials.clear();
+
+    if (Mesh)
+    {
+        JointAnimMatrices.resize(Mesh->GetJointNum(), IDENTITYMATRIX);
+        Materials = Mesh->getMaterials();
+    }
 
     OnMeshChangedDelegate.Broadcast(this);
     OnPrimitiveChangedDelegate.Broadcast(this);
@@ -217,15 +254,6 @@ void DynamicMeshComponent::Clothing()
     }
 
     Clothing2();
-
-    //// 옷 바디 충돌 테스트
-    //{
-    //    static std::shared_ptr<MPhysicsObject> BodyTestObject = nullptr;
-    //    FBodyConstructData Data;
-    //    Data.PrimitiveComponent = GetShared();
-    //    Data.PhysicsType = EPhysicsType::Kinematic;
-    //    g_pPhysics->AddPhysicsObject(Data, BodyTestObject);
-    //}
 }
 
 void DynamicMeshComponent::Clothing2()
@@ -285,7 +313,7 @@ void DynamicMeshComponent::Clothing2()
 
         // 임시
         getGraphicDevice()->BuildMeshPrivateBuffers(GetPrimitiveID(), GetMesh());
-        getRenderer()->Test(GetPrimitiveID(), GetMesh());
+        getRenderer()->Test(GetWorld()->GetID(), GetPrimitiveID(), GetMesh());
 
         g_pPhysics->AddCloth(Data, GetDynamicMesh()->GetClothDatas(), NewClothPhysicsObject);
         ClothPhysicsObjects.push_back(NewClothPhysicsObject);
@@ -296,29 +324,42 @@ void DynamicMeshComponent::Clothing2()
     }
 }
 
-Mat4 DynamicMeshComponent::GetJointMatrix(const std::string& InName)
+Mat4 DynamicMeshComponent::GetJointMatrix(uint32 InJointIndex, bool bOption)
 {
-    return GetJointMatrix(Mesh->GetJointIndex(InName));
+    Mat4 OutMat = IDENTITYMATRIX;
+    if (Animation)
+    {
+        const XMMATRIX& XMInvBindPoseMatrix = XMLoadFloat4x4(&Mesh->GetJoint(InJointIndex)._globalBindPoseInverseMatrix);
+        XMMATRIX XMJointAnimMat = XMLoadFloat4x4(&JointAnimMatrices[InJointIndex]);                                 // JointAnimMatrix  =   InvBindPoseMatrix * JointMatrix, Update함수에서 계산되었음
+        XMMATRIX XMJointMat = XMMatrixInverse(nullptr, XMInvBindPoseMatrix) * XMJointAnimMat;                       // OutMatrix        =   JointMatrix
+
+        if (bOption)
+        {
+            const Mat4& RootJointMat = GetBlendedJointMatrix(BlendData, 0);
+            XMJointMat = XMJointAnimMat * XMLoadFloat4x4(&RootJointMat);
+        }
+
+        XMStoreFloat4x4(&OutMat, XMJointMat);
+    }
+
+    return OutMat;
 }
 
-Mat4 DynamicMeshComponent::GetJointMatrix(uint32 InJointIndex)
+Mat4 DynamicMeshComponent::GetJointWorldMatrix(const std::string& InName)
+{
+    return GetJointWorldMatrix(Mesh->GetJointIndex(InName));
+}
+
+Mat4 DynamicMeshComponent::GetJointWorldMatrix(uint32 InJointIndex)
 {
     XMVECTOR Trans = XMLoadFloat3(&VEC3ZERO);
-    XMMATRIX WorldMat = XMLoadFloat4x4(&getWorldMatrix());
+    XMMATRIX XMWorldMat = XMLoadFloat4x4(&getWorldMatrix());
 
     Mat4 OutMat = IDENTITYMATRIX;
     if (Animation)
     {
-        float FloatFrame = AnimTime * 24.f;
-        uint32 Frame = CastValue<uint32>(FloatFrame);
-
-        const FJoint& Joint = GetDynamicMesh()->GetJoint(InJointIndex);
-        const FJoint& RootJoint = GetDynamicMesh()->GetJoint(0);
-
-        XMMATRIX JointMatrix = XMLoadFloat4x4(&Animation->GetKeyFrame(Frame).GetJointMatrix(InJointIndex));
-        XMMATRIX Matrix = JointMatrix * WorldMat;
-
-        XMStoreFloat4x4(&OutMat, Matrix);
+        XMMATRIX XMJointWorldMat = XMLoadFloat4x4(&GetJointMatrix(InJointIndex)) * XMWorldMat;
+        XMStoreFloat4x4(&OutMat, XMJointWorldMat);
     }
     else
     {
@@ -330,8 +371,35 @@ Mat4 DynamicMeshComponent::GetJointMatrix(uint32 InJointIndex)
         Mat4 JointMat = {};
         TransformMatrix(JointMat, Scale, Rot, Trans);
 
-        XMStoreFloat4x4(&OutMat, XMLoadFloat4x4(&JointMat) * WorldMat);
+        XMStoreFloat4x4(&OutMat, XMLoadFloat4x4(&JointMat) * XMWorldMat);
     }
+
+    return OutMat;
+}
+
+Mat4 DynamicMeshComponent::GetBlendedJointMatrix(const FBlendData& InBlendData, uint32 InJointIndex)
+{
+    Mat4 CurrentMat = Animation->GetKeyFrame(InBlendData.PrevFrame).GetJointMatrix(InJointIndex);
+    Mat4 NextMat = Animation->GetKeyFrame(InBlendData.NextFrame).GetJointMatrix(InJointIndex);
+    // EndFrame에서 0으로 갈때, 행렬이 매우 다를 수 있음
+    // 0프레임 행렬의 위치를 EndFrame과 같게 한다면?
+    // EndFrame의 행렬을 0프레임과 같게 한다면?
+    if (InBlendData.NextFrame == 0)
+    {
+        //CurrentMat.m[3][0] = NextMat.m[3][0];
+        //CurrentMat.m[3][1] = NextMat.m[3][1];
+        //CurrentMat.m[3][2] = NextMat.m[3][2];
+        //CurrentMat.m[3][3] = NextMat.m[3][3];
+    }
+
+    XMMATRIX XMCurrentMat = XMLoadFloat4x4(&CurrentMat);
+    XMMATRIX XMNextMat = XMLoadFloat4x4(&NextMat);
+
+
+    XMMATRIX XMJointMatrix = (XMNextMat * BlendData.NextFrameFactor) + (XMCurrentMat * BlendData.PrevFrameFactor);
+   
+    Mat4 OutMat = IDENTITYMATRIX;
+    XMStoreFloat4x4(&OutMat, XMJointMatrix);
 
     return OutMat;
 }
@@ -353,7 +421,7 @@ const FJoint& DynamicMeshComponent::GetJoint(uint32 InJointIndex)
 
 Vec3 DynamicMeshComponent::GetJointAxis(uint32 InJointIndex, uint32 InAxisIndex)
 {
-    const Mat4& Matrix = GetJointMatrix(InJointIndex);
+    const Mat4& Matrix = GetJointWorldMatrix(InJointIndex);
     auto Temp = Matrix.m[InJointIndex];
     return { Temp[0], Temp[1], Temp[2] };
 }
@@ -367,14 +435,11 @@ Vec3 DynamicMeshComponent::GetJointPosition(uint32 InJointIndex, const Vec3& InO
         return OutTrans;
     }
 
-    const FJoint& Joint = GetJoint(InJointIndex);
+    const Mat4& JointWorldMat = GetJointWorldMatrix(InJointIndex);
+    Vec3 S, R, T;
+    DecomposeTransform(JointWorldMat, S, R, T);
 
-    XMVECTOR XMPos = XMLoadFloat3(&Joint.Position) + XMLoadFloat3(&InOffset);
-    XMVECTOR A = XMVector3TransformCoord(XMPos, XMLoadFloat4x4(&JointAnimMatrices[InJointIndex]));
-    A = XMVector3TransformCoord(A, XMLoadFloat4x4(&getWorldMatrix()));
-    XMStoreFloat3(&OutTrans, A);
-
-    return OutTrans;
+    return T;
 }
 
 Vec3 DynamicMeshComponent::GetJointPosition(const std::string& InName, const Vec3& InOffset)
@@ -431,65 +496,26 @@ Vec3 DynamicMeshComponent::GetJointScale(uint32 InJointIndex)
     }
 
     XMVECTOR Scale = XMLoadFloat3(&VEC3ZERO);
+    XMVECTOR Dummy = {};
     XMMATRIX WorldMat = XMLoadFloat4x4(&getWorldMatrix());
+    XMMATRIX Matrix = {};
 
     if (Animation)
     {
         XMMATRIX JointMatrix = XMLoadFloat4x4(&JointAnimMatrices[InJointIndex]);
-        XMMATRIX NonScale = XMMatrixScaling(1.f / 2.54f, 1.f / 2.54f, 1.f / 2.54f);
-        XMMATRIX Matrix = JointMatrix * NonScale * WorldMat;
-
-        XMVECTOR Dummy = {};
-        XMMatrixDecompose(&Scale, &Dummy, &Dummy, Matrix);
-
-        XMStoreFloat3(&OutScale, Scale);
+        Matrix = JointMatrix * WorldMat;
     }
     else
     {
         FJoint Joint = GetDynamicMesh()->GetJoint(InJointIndex);
         XMMATRIX JointMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&Joint.Scale)) * XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Joint.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&Joint.Position));
-        XMMATRIX Matrix = JointMatrix * WorldMat;
-
-        XMVECTOR Dummy = {};
-        XMMatrixDecompose(&Scale, &Dummy, &Dummy, Matrix);
-
-        XMStoreFloat3(&OutScale, Scale);
+        Matrix = JointMatrix * WorldMat;
     }
+
+    XMMatrixDecompose(&Scale, &Dummy, &Dummy, Matrix);
+    XMStoreFloat3(&OutScale, Scale);
 
     return OutScale;
-}
-
-void DynamicMeshComponent::SetAnimClip(const uint32 Index)
-{
-    if (AinmClipIndex != Index)
-    {
-        AinmClipIndex = Index;
-        AnimTime = 0.f;
-    }
-}
-
-uint32 DynamicMeshComponent::GetAnimClipNum()
-{
-    if (Mesh)
-    {
-        return GetSize(GetDynamicMesh()->GetAnimClips());
-    }
-
-    return 0;
-}
-
-void DynamicMeshComponent::playAnimation(const uint32 index, const Time deltaTime)
-{
-	AinmClipIndex = index;
-	AnimTime += deltaTime * AnimSpeed;
-
-    if(Animation)
-    {
-        if (AnimTime > static_cast<float>(Animation->Duration))
-        {
-            AnimTime = 0.f;
-        }
-    }
 }
 
 Mat4 DynamicMeshComponent::GetAnimMatrix(const std::string& InName)
@@ -500,6 +526,20 @@ Mat4 DynamicMeshComponent::GetAnimMatrix(const std::string& InName)
 Mat4 DynamicMeshComponent::GetAnimMatrix(uint32 JointIndex)
 {
     return JointAnimMatrices[JointIndex];
+}
+
+bool DynamicMeshComponent::SetAnim(std::shared_ptr<MAnimation> InAnim)
+{
+    if (Animation == InAnim)
+    {
+        return false;
+    }
+    
+    BlendData.Reset();
+    Animation = InAnim;
+    AnimTime = 0.f;
+
+    return true;
 }
 
 /*

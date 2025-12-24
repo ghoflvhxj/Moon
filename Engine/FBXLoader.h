@@ -114,18 +114,17 @@ public:
 	explicit MFBXLoader();
 	explicit MFBXLoader(const wchar_t *filePathName);
 	~MFBXLoader();
-protected:
-    void SafeDestroy(fbxsdk::FbxObject*& InObject);
 
+private:
+    void InitializeFbxSdk();
+    void convertScene();
+    uint32 GetFrameRate(FbxTime::EMode InTimeMode);
 
 public:
 	void LoadFBXAnim(std::vector<MAnimation>& animationClipList);
 	bool LoadFBXMesh(const std::wstring& InPath);
     // FBX파일을 Json으로 만들 때 호출됨
     void SaveJsonAsset(const std::wstring& InPath, bool bMesh = true, bool bMaterial = true, bool bSkeleton = false, bool bAnim = false);
-private:
-	void InitializeFbxSdk();
-	void convertScene();
 
 public:
     const std::wstring& GetDirectory() const { return Directory; }
@@ -135,9 +134,8 @@ private:
 	std::wstring Directory;
     std::wstring Name;
     std::wstring Extension;
+    FbxTime::EMode TimeMode;
 
-private:
-	void initializeSDK();
 public:
 	const uint32 getJointCount() const;
 private:

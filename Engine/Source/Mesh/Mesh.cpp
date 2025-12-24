@@ -5,12 +5,17 @@ using namespace DirectX;
 
 const FJoint FJoint::Empty = {};
 
-void MAnimation::SetFrameInfo(FbxTime& InStart, FbxTime& InEnd)
+void MAnimation::SetFrameInfo(uint32 InFrameRate, float InDuration, uint32 InStart, uint32 InEnd)
 {
-    StartFrame = CastValue<uint32>(InStart.GetFrameCount(FbxTime::eFrames24));
-    EndFrame = CastValue<uint32>(InEnd.GetFrameCount(FbxTime::eFrames24));
-    Duration = (InEnd - InStart).GetSecondDouble();
-    TotalFrame = EndFrame - StartFrame;
+    StartFrame = InStart;
+    EndFrame = InEnd;
+    Duration = InDuration;
+    FrameRate = InFrameRate;
+    /*******************
+    E: 1,   S: 0    ->  F: [0 ~ 1],     T: 2
+    E: 15,  S: 13   ->  F: [13 ~ 15],   T: 3
+    *******************/
+    TotalFrame = EndFrame - StartFrame + 1;
     KeyFrames.resize(TotalFrame);
 }
 

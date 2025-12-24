@@ -53,15 +53,6 @@ MFBXLoader::~MFBXLoader()
 	//_pFbxManager->Destroy();
 }
 
-void MFBXLoader::SafeDestroy(fbxsdk::FbxObject*& InObject)
-{
-    if (InObject)
-    {
-        InObject->Destroy();
-        InObject = nullptr;
-    }
-}
-
 void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
 {
     OutAnimationClips.resize(AnimStackNum);
@@ -163,7 +154,13 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
 		MAnimation& CurrentAnimClip = OutAnimationClips[AnimStackIndex];
 		CurrentAnimClip.Name = animStackName.Buffer();
 		CurrentAnimClip.SetAssetPath(Directory + StringToWString(CurrentAnimClip.Name) + TEXT(".json"));
-		CurrentAnimClip.SetFrameInfo(pTakeInfo->mLocalTimeSpan.GetStart(), pTakeInfo->mLocalTimeSpan.GetStop());
+
+        FbxTime Start = pTakeInfo->mLocalTimeSpan.GetStart();
+        FbxTime End = pTakeInfo->mLocalTimeSpan.GetStop();
+        float Duration = static_cast<float>((End - Start).GetSecondDouble());
+        uint32 StartFrame = CastValue<uint32>(Start.GetFrameCount(TimeMode));
+        uint32 EndFrame = CastValue<uint32>(End.GetFrameCount(TimeMode));
+		CurrentAnimClip.SetFrameInfo(GetFrameRate(TimeMode), Duration, StartFrame, EndFrame);
 
 		if (std::shared_ptr<DynamicMesh> DM = g_ResourceManager->FindDynamicMesh(Joints))
 		{
@@ -185,7 +182,7 @@ void MFBXLoader::LoadFBXAnim(std::vector<MAnimation>& OutAnimationClips)
                     for (uint32 Frame = 0; Frame < CurrentAnimClip.TotalFrame; ++Frame)
                     {
                         FbxTime currentTime;
-                        currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), FbxTime::eFrames24);
+                        currentTime.SetFrame(static_cast<FbxLongLong>(CurrentAnimClip.StartFrame + Frame), TimeMode);
 
                         FbxAMatrix JointGlobal = JointNodes[JointIndex]->EvaluateGlobalTransform(currentTime); //pCluster->GetLink()->EvaluateGlobalTransform(currentTime);
                         FbxAMatrix& Test = MeshGlobalInv * JointGlobal;
@@ -300,6 +297,12 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath, bool bMesh /*= true*/
             {
                 MJsonSerializer Serializer;
                 Serializer.Serialize(Anim, Anim.GetAssetPath(), true);
+
+                // 기존 애셋 갱신
+                if (auto OldAsset = g_ResourceManager->FindAsset(Anim.GetAssetPath()))
+                {
+                    Anim.Copy(OldAsset.get());
+                }
             }
         }
     }
@@ -307,8 +310,13 @@ void MFBXLoader::SaveJsonAsset(const std::wstring& InPath, bool bMesh /*= true*/
 
 void MFBXLoader::InitializeFbxSdk()
 {
-	if (nullptr == _pFbxManager)
-		initializeSDK();
+    if (nullptr == _pFbxManager)
+    {
+        _pFbxManager = FbxManager::Create();
+
+        FbxIOSettings* ios = FbxIOSettings::Create(_pFbxManager, IOSROOT);
+        _pFbxManager->SetIOSettings(ios);
+    }
 
 	_pImporter = FbxImporter::Create(_pFbxManager, "");
 	if (nullptr == _pImporter)
@@ -333,6 +341,8 @@ void MFBXLoader::InitializeFbxSdk()
 	{
 		DEV_ASSERT_MSG("FbxImporter가 FbxScene을 불러오지 못했습니다!");
 	}
+
+    TimeMode = _pScene->GetGlobalSettings().GetTimeMode();
 }
 
 void MFBXLoader::convertScene()
@@ -345,12 +355,17 @@ void MFBXLoader::convertScene()
 	geometryConverter.Triangulate(_pScene, true);
 }
 
-void MFBXLoader::initializeSDK()
+uint32 MFBXLoader::GetFrameRate(FbxTime::EMode InTimeMode)
 {
-	_pFbxManager = FbxManager::Create();
+    switch (InTimeMode)
+    {
+    case FbxTime::eFrames24:
+        return 24;
+    case FbxTime::eFrames30:
+        return 30;
+    }
 
-	FbxIOSettings *ios = FbxIOSettings::Create(_pFbxManager, IOSROOT);
-	_pFbxManager->SetIOSettings(ios);
+    return 24;
 }
 
 const uint32 MFBXLoader::getJointCount() const
@@ -516,8 +531,11 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
     {
         uint32 Row = i / 4;
         uint32 Col = i % 4;
-        MeshInvGlobalTransforms[meshIndex].m[Row][Col] = Temp.mData[Row][Col];
+        MeshInvGlobalTransforms[meshIndex].m[Row][Col] = static_cast<float>(Temp.mData[Row][Col]);
     }
+
+    std::string Msg = std::string(pNode->GetName()) + ", MeshIndex: " + std::to_string(meshIndex);
+    LOG(StringToWString(Msg));
 }
 
 void MFBXLoader::linkMaterial(FbxNode *pNode)
@@ -952,11 +970,11 @@ inline DirectX::XMMATRIX ToXMMatrix(const FbxAMatrix& pSrc)
     FbxVector4 R = pSrc.GetR();
 
     Vec3 Angles = {};
-    DXQuaternionToEuler(Vec4(Q[0], Q[1], Q[2], Q[3]), Angles.x, Angles.y, Angles.z);
+    DXQuaternionToEuler(Vec4(static_cast<float>(Q[0]), static_cast<float>(Q[1]), static_cast<float>(Q[2]), static_cast<float>(Q[3])), Angles.x, Angles.y, Angles.z);
 
-    XMMATRIX ScaleMat = XMMatrixScaling(S[0], S[1], S[2]);
+    XMMATRIX ScaleMat = XMMatrixScaling(static_cast<float>(S[0]), static_cast<float>(S[1]), static_cast<float>(S[2]));
     XMMATRIX RotMat = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&Angles));
-    XMMATRIX TransMat = XMMatrixTranslation(T[0], T[1], T[2]);
+    XMMATRIX TransMat = XMMatrixTranslation(static_cast<float>(T[0]), static_cast<float>(T[1]), static_cast<float>(T[2]));
 
     return ScaleMat * RotMat * TransMat;
 }

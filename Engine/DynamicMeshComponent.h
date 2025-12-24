@@ -4,6 +4,22 @@
 
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 
+struct FBlendData
+{
+    uint32 PrevFrame = 0;
+    uint32 NextFrame = 1;
+    float PrevFrameFactor = 0.f;
+    float NextFrameFactor = 1.f;
+
+    void Reset()
+    {
+        PrevFrame = 0;
+        NextFrame = 1;
+        PrevFrameFactor = 0.f;
+        NextFrameFactor = 1.f;
+    }
+};
+
 class ENGINE_DLL DynamicMeshComponent : public MMeshComponent
 {
 public:
@@ -28,8 +44,17 @@ public:
     void Clothing2();
 
 public:
-    Mat4 GetJointMatrix(const std::string& InName);
-    Mat4 GetJointMatrix(uint32 InJointIndex);
+    bool SetAnim(std::shared_ptr<MAnimation> InAnim);
+    void SetAnimPlaying(bool bPlaying) { bAnimPlaying = bPlaying; }
+    bool IsAnimPlaying() const { return IsAnimPlaying(Animation); }
+    bool IsAnimPlaying(std::shared_ptr<MAnimation> InAnim) const { return Animation == InAnim && bAnimPlaying; }
+    bool HasAnim() const { return Animation != nullptr; }
+    bool IsLooped() const { return bLooped; }
+public:
+    Mat4 GetJointMatrix(uint32 InJointIndex, bool bOption = false);
+    Mat4 GetJointWorldMatrix(const std::string& InName);
+    Mat4 GetJointWorldMatrix(uint32 InJointIndex);
+    Mat4 GetBlendedJointMatrix(const FBlendData& InBlendData, uint32 InJointIndex);
     const FJoint& GetJoint(const std::string& InName);
     const FJoint& GetJoint(uint32 InJointIndex);
     // 조인트의 로컬 축을 반환함
@@ -42,32 +67,34 @@ public:
     Vec4 GetJointQuaternion(uint32 InJointIndex);
     Vec4 GetJointQuaternion(const std::string& InName);
     Vec3 GetJointScale(uint32 InJointIndex);
-public:
-    void SetAnimClip(const uint32 Index);
-    uint32 GetAnimClipNum();
-	void playAnimation(const uint32 index, const Time deltaTime);
 private:
-	uint32 AinmClipIndex = 0;
+    FBlendData BlendData;
+    std::vector<Mat4> PrevAnimMatrices;
+private:
+    float FloatFrame = 0.f;
+    uint32 Frame = 0;
 	float AnimTime = 0.f;
     float AnimSpeed = 1.f;
 
-public:
-    Mat4* GetAnimMatrices() { return JointAnimMatrices; }
-    Mat4 GetAnimMatrix(const std::string& InName);
-    Mat4 GetAnimMatrix(uint32 InJointIndex);
-    // 현재 프레임에서 조인트 행렬들
-	Mat4 JointAnimMatrices[200];
 
 public:
-    void SetAnimPlaying(bool bPlaying) { bAnimPlaying = bPlaying; }
-    bool IsAnimPlaying() const { return bAnimPlaying; }
-    bool HasAnim() const { return Animation != nullptr; }
+    Mat4* GetAnimMatrices() { return JointAnimMatrices.data(); }
+    Mat4 GetAnimMatrix(const std::string& InName);
+    Mat4 GetAnimMatrix(uint32 InJointIndex);
+protected:
+    // 현재 프레임에서 조인트 행렬들
+    std::vector<Mat4> JointAnimMatrices;
+
 protected:
     bool bAnimPlaying = false;
     bool bPlayAnimAtBegin = true;
     std::shared_ptr<MAnimation> Animation = nullptr;
+    bool bLooped = false;
 public:
     bool bBindPose = false;
+
+
+    bool bRootMotion = false;
 
     REFLECT(
         DynamicMeshComponent

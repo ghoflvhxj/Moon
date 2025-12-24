@@ -78,15 +78,17 @@ struct ENGINE_DLL MAnimation : public MAsset
     }
 
     std::string		Name;
-    uint32			StartFrame;
-    uint32			EndFrame;
-    uint32			TotalFrame;
-    float			Duration;
+    uint32			StartFrame = 0;
+    uint32			EndFrame = 0;
+    uint32			TotalFrame = 0;
+    float			Duration = 0.f;
+    uint32          FrameRate = 30;
 
 public:
-    void SetFrameInfo(fbxsdk::FbxTime& InStart, fbxsdk::FbxTime& InEnd);
+    void SetFrameInfo(uint32 InFrameRate, float InDuration, uint32 InStart, uint32 InEnd);
     // 프레임 단위로 KeyFrame을 가져옴
     KeyFrame& GetKeyFrame(int Frame) { return KeyFrames[Frame]; }
+    float GetFrameRate() { return static_cast<float>(FrameRate); }
 protected:
     // 프레임 단위로 조인트들의 행렬을 저장함. 1프레임 200개행렬, 2프레임 200개행렬 이런 구조.
     std::vector<KeyFrame> KeyFrames;
@@ -98,6 +100,7 @@ protected:
         , PROPERTY(TotalFrame)
         , PROPERTY(KeyFrames)
         , PROPERTY(Duration)
+        , PROPERTY(FrameRate)
     );
 };
 
