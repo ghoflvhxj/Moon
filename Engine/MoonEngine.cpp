@@ -378,15 +378,8 @@ void MEngine::UpdateTemp()
 {
     for (auto& Iter = WorldRenderInfosQueue.begin(); Iter != WorldRenderInfosQueue.end(); )
     {
-        if (Iter->first == -1)
-        {
-            ++Iter;
-        }
-        else
-        {
-            WorldRenderInfos.insert(*Iter);
-            Iter = WorldRenderInfosQueue.erase(Iter);
-        }
+        WorldRenderInfos.insert(*Iter);
+        Iter = WorldRenderInfosQueue.erase(Iter);
     }
 }
 
@@ -413,7 +406,7 @@ void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow>
     GetOnWorldAddedDelegate().Broadcast(NewWorldRenderInfo);
 }
 
-const FWorldRenderInfo& MEngine::GetWorldInfo(int32 InIndex)
+FWorldRenderInfo MEngine::GetWorldInfo(int32 InIndex)
 {
     if (WorldRenderInfos.find(InIndex) != WorldRenderInfos.end())
     {
@@ -423,10 +416,8 @@ const FWorldRenderInfo& MEngine::GetWorldInfo(int32 InIndex)
     {
         return WorldRenderInfosQueue[InIndex];
     }
-    else
-    {
-        return WorldRenderInfosQueue[-1];
-    }
+
+    return FWorldRenderInfo();
 }
 
 const std::shared_ptr<MWindow>& MEngine::GetWorldBoundedWindow(const MWorld* InWorld)

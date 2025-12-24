@@ -136,7 +136,6 @@ void MCameraComponent::Update(const Time deltaTime)
                 mouseZ = std::clamp(mouseZ, -1.f, 1.f) * 0.3f;
                 TargetArmLength -= mouseZ;
                 TargetArmLength = clamp(TargetArmLength, 1.f, 5.f);
-                std::cout << mouseZ << std::endl;
                 if (ArmLength != TargetArmLength)
                 {
                     float NewArmLength = Lerp(ArmLength, TargetArmLength, deltaTime);

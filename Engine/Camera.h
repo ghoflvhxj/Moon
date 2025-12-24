@@ -77,7 +77,7 @@ public:
 protected:
     Vec3 at = { 0.f, 0.f, 0.f };
 
-    //Vec3 CurrentRot = {};
+    Vec3 CurrentRot = {};
 
 private:
 	std::shared_ptr<MSceneComponent> SceneComp = nullptr;

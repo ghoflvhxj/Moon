@@ -58,7 +58,7 @@ public:
     void WorldFunc(uint32 InIndex);
     void AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow);
     FDelegate<void, const FWorldRenderInfo&>& GetOnWorldAddedDelegate() { return OnWorldAdded; }
-    const FWorldRenderInfo& GetWorldInfo(int32 InIndex);
+    FWorldRenderInfo GetWorldInfo(int32 InIndex);
     const std::shared_ptr<MWindow>& GetWorldBoundedWindow(const MWorld* InWorld);
     uint32 GetWorldNum() const { return GetSize(WorldRenderInfos); }
     // 이름 뭐라할지 모루겟음. WorldRenderInfosQueue를 빼와서 WorldRenderInfos에 넣는 작업을 함
