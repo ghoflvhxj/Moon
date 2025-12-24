@@ -144,7 +144,7 @@ void MEditor::Update()
                 CurrentRot.y = ((1.f - t) * CurrentRot.y) + (t * TargetRot.y);
                 CurrentRot.z = ((1.f - t) * CurrentRot.z) + (t * TargetRot.z);
 
-                CameraComponent->setRotation(CurrentRot);
+                CameraComponent->SetRotation(CurrentRot);
             }
         }
 

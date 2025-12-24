@@ -33,6 +33,7 @@ std::shared_ptr<MDirectInput> g_pDirectInput		= nullptr;
 std::shared_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
 std::shared_ptr<MRenderer> g_pRenderer				= nullptr;
 std::shared_ptr<MPhysicsEngine> g_pPhysics			= nullptr;
+std::unique_ptr<MFIleSystem> FileSystem = nullptr;
 
 std::shared_ptr<MWorld> g_World	= nullptr;
 
@@ -51,6 +52,8 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
 	g_hWnd = pWindow->getHandle();
 
 	g_pMainWindow = pWindow;
+
+    FileSystem = std::make_unique<MFIleSystem>();
 
     g_pDirectInput = g_Engine->GetModule<MDirectInput>();
     g_pRenderer = g_Engine->GetModule<MRenderer>();

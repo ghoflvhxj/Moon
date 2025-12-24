@@ -89,7 +89,7 @@ public:
     //uint32 DrawCapsule(float InRadius, float InHalfHeight);
 
 public:
-    void Test(uint32 InPID, std::shared_ptr<MMesh> InMesh);
+    void Test(uint32 InWorldID, uint32 InPID, std::shared_ptr<MMesh> InMesh);
     
 public:
     MScene* GetCurrentScene();

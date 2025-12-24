@@ -387,11 +387,14 @@ void MRenderer::DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMe
     }
 }
 
-void MRenderer::Test(uint32 InPID, std::shared_ptr<MMesh> InMesh)
+void MRenderer::Test(uint32 InWorldID, uint32 InPID, std::shared_ptr<MMesh> InMesh)
 {
     for (auto& [SceneID, Scene] : Scenes)
     {
-        Scene->UpdateBuffer(InPID, InMesh);
+        if (SceneID == InWorldID)
+        {
+            Scene->UpdateBuffer(InPID, InMesh);
+        }
     }
 }
 
@@ -801,9 +804,15 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
         const std::shared_ptr<MLightComponent>& LightComponent = DirectionalLightComponents[0].PrimitiveComponent.lock()->CastToShared<MLightComponent>();
 
         auto& Window = Scene->GetWindow();
+        float AspectRatio = Window->GetAspectRatio();
+        if (std::isnan(AspectRatio))
+        {
+            return;
+        }
+
         auto& Camera = InWorld->getMainCamera();
         float tanHalfVertical = tanf(XMConvertToRadians(Camera->getFov() / 2.f));
-        float tanHalfHorizen = tanHalfVertical * Window->GetAspectRatio();
+        float tanHalfHorizen = tanHalfVertical * AspectRatio;
 
         //float tanHalfVertical = tanf(XMConvertToRadians(g_pSetting->getFov() / 2.f));
         //float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();

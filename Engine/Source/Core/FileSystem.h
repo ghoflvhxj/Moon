@@ -5,6 +5,9 @@
 class ENGINE_DLL MFIleSystem
 {
 public:
+    MFIleSystem();
+
+public:
     static std::wstring RootStr;
     static std::filesystem::path RootPath;
 
