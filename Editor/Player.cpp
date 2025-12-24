@@ -12,6 +12,7 @@
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 #include "FBXLoader.h"
 #include "Core/ResourceManager.h"
+#include "Renderer.h"
 
 #include "Core/Serialize/JsonSerializer.h"
 #include "Core/Serialize/JsonDeSerializer.h"
@@ -70,28 +71,150 @@ void Player::tick(const Time deltaTime)
 {
     Super::tick(deltaTime);
 
-    Vec3 Movement = {};
+    Vec3 Input = {};
 
     if (auto World = GetWorld())
     {
         if (InputManager::keyPress(DIK_T, World->GetID()))
         {
-            Movement.z += 3.f;
+            Input.z += 1.f;
         }
         if (InputManager::keyPress(DIK_G, World->GetID()))
         {
-            Movement.z -= 3.f;
+            Input.z -= 1.f;
         }
         if (InputManager::keyPress(DIK_F, World->GetID()))
         {
-            Movement.x -= 3.f;
+            Input.x -= 1.f;
         }
         if (InputManager::keyPress(DIK_H, World->GetID()))
         {
-            Movement.x += 3.f;
+            Input.x += 1.f;
         }
 
-        getComponent(ROOT_COMPONENT)->CastTo<MCapsuleComponent>()->AddMove(Movement);
+        if (CharacterMeshComponent->IsAnimPlaying(WalkAnim) || CharacterMeshComponent->IsAnimPlaying(WalkToIdleAnim))
+        {
+            CharacterMeshComponent->bRootMotion = true;
+
+            const Mat4& JointMat = CharacterMeshComponent->GetJointMatrix(0, true);
+
+            Vec3 Pos, Dummy;
+            DecomposeTransform(JointMat, Dummy, Dummy, Pos);
+
+            if (bResetBonePose)
+            {
+                PrevBonePos = Pos;
+                bResetBonePose = false;
+            }
+
+            XMVECTOR DeltaPos = XMLoadFloat3(&Pos) - XMLoadFloat3(&PrevBonePos);
+
+            Vec3 A;
+            XMStoreFloat3(&A, DeltaPos);
+            A.z /= deltaTime;
+            CapsuleComponent->AddMove(A);
+
+            PrevBonePos = Pos;
+            if (CharacterMeshComponent->IsLooped())
+            {
+                bResetBonePose = true;
+            }
+        }
+        else
+        {
+            bResetBonePose = true;
+            PrevBonePos = VEC3ZERO;
+            CharacterMeshComponent->bRootMotion = false;
+        }
+    }
+
+    // 애님
+    if (XMVector3Equal(XMLoadFloat3(&Input), XMLoadFloat3(&VEC3ZERO)) == false)
+    {
+        if (CharacterMeshComponent->SetAnim(WalkAnim))
+        {
+            PrevBonePos = VEC3ZERO;
+        }
+    }
+    else
+    {
+        if (CharacterMeshComponent->SetAnim(WalkToIdleAnim))
+        {
+            PrevBonePos = VEC3ZERO;
+        }
+    }
+
+    // 카메라
+    if (XMVector3Equal(XMLoadFloat3(&Input), XMLoadFloat3(&VEC3ZERO)) == false)
+    {
+        float BodyRotY = CapsuleComponent->getRotation().y;
+        float CamRotY = CameraComponent->getRotation().y;
+        float TargetRotY = CamRotY;
+        if (Input.z < 0.f)
+        {
+            //cout << "TargetRotY: " << ToDegree(TargetRotY) << ", TargetRotY ADd: " << ToDegree(TargetRotY + ToRadian(180.f)) << endl;
+            TargetRotY += ToRadian(180.f);
+        }
+        if (Input.x > 0.f)
+        {
+            TargetRotY += ToRadian(90.f);
+        }
+        if (Input.x < 0.f)
+        {
+            TargetRotY += ToRadian(-90.f);
+        }
+        TargetRotY = fmod(TargetRotY, ToRadian(360.f));
+
+        XMVECTOR XMForward = XMLoadFloat3(&VEC3FORWARD);
+        Vec3 A = {};
+        Vec3 B = {};
+        XMStoreFloat3(&A, XMVector3Rotate(XMForward, XMQuaternionRotationRollPitchYaw(0.f, BodyRotY, 0.f)));
+        XMStoreFloat3(&B, XMVector3Rotate(XMForward, XMQuaternionRotationRollPitchYaw(0.f, TargetRotY, 0.f)));
+
+        //const Vec3& A = CapsuleComponent->GetForward();
+        //const Vec3& B = CameraComponent->GetForward();
+
+        float CrossY = XMVectorGetY(XMVector3Cross(XMLoadFloat3(&B), XMLoadFloat3(&A)));
+        float TurnDir = CrossY > 0.f ? -1.f : 1.f;
+        float DeltaRot = std::atan2(B.z - A.z, B.x - A.x);
+        if (B.x < A.x)
+        {
+            DeltaRot = std::atan2(A.z - B.z, A.x - B.x);
+        }
+        if (DeltaRot < 0.f)
+        {
+            //DeltaRot += PI2;
+        }
+
+        // 카메라와 캡슐이 방향이 다르면, 캡슐을 회전
+        
+        if (fabs(DeltaRot) > ToRadian(0.1f))
+        {
+            float AddRot = TurnDir * ToRadian(360.f) * deltaTime;
+            float NewBodyRot = BodyRotY + AddRot;
+            CapsuleComponent->AddRotation({ 0.f, AddRot, 0.f });
+
+            //cout << "BodyRot: " << ToDegree(BodyRotY) << ", TargetRot: " << ToDegree(TargetRotY) << ", DeltaRot: " << ToDegree(DeltaRot) << endl;
+
+            if (BodyRotY < TargetRotY)
+            {
+                if (NewBodyRot > TargetRotY)
+                {
+                    CapsuleComponent->SetRotation({ 0.f, TargetRotY, 0.f });
+                }
+            }
+            if (BodyRotY > TargetRotY)
+            {
+                if (NewBodyRot < TargetRotY)
+                {
+                    CapsuleComponent->SetRotation({ 0.f, TargetRotY, 0.f });
+                }
+            }
+        }
+    }
+    else
+    {
+        CharacterMeshComponent->SetAnim(WalkToIdleAnim);
     }
 }
 

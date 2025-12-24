@@ -6,6 +6,8 @@
 #include "DynamicMeshComponent.h"
 #include "CameraComponent.h"
 
+struct MAnimation;
+
 class Player : public MActor
 {
 public:
@@ -27,10 +29,25 @@ private:
     std::shared_ptr<MCapsuleComponent> CapsuleComponent;
     std::shared_ptr<MCameraComponent> CameraComponent;
 
+    float HealthPoint = 100.f;
+    bool bTest = false;
+
+    std::vector<std::shared_ptr<MAnimation>> Anims;
+
+    std::shared_ptr<MAnimation> IdleAnim;
+    std::shared_ptr<MAnimation> WalkAnim;
+    std::shared_ptr<MAnimation> WalkToIdleAnim;
+
+    Vec3 PrevBonePos = VEC3ZERO;
+    bool bResetBonePose = true;
+
     REFLECT(
         Player
         , PROPERTY(CharacterMeshComponent)
         , PROPERTY(CapsuleComponent)
         , PROPERTY(CameraComponent)
+        , PROPERTY(IdleAnim)
+        , PROPERTY(WalkAnim)
+        , PROPERTY(WalkToIdleAnim)
     )
 };
