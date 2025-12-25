@@ -13,8 +13,8 @@ public:
     }
 
 public:
-    void Update(float DeltaTime);
-    void Render();
+    virtual void Update(float DeltaTime) override;
+    virtual void Render() override;
     std::shared_ptr<class DynamicMeshComponent> GetDynamicMeshComponent();
     std::shared_ptr<class DynamicMesh> GetDynamicMesh();
 

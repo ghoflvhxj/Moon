@@ -235,76 +235,78 @@ void MJoltPhysics::StartSimulate(MWorld* InWorld)
 {
     MPhysicsEngine::StartSimulate(InWorld);
 
-    for (auto WeakMeshComp : MeshComponents)
+    for (auto& [Name, Actor] : InWorld->GetActors())
     {
-        auto MeshComp = WeakMeshComp.lock();
-
-        if (MeshComp->GetWorld() != InWorld)
+        for (auto& [Name, Comp] : Actor->GetComponents())
         {
-            continue;
+            std::shared_ptr<MMeshComponent>& MeshComp = Comp->CastToShared<MMeshComponent>();
+            if (MeshComp == nullptr)
+            {
+                continue;
+            }
+
+            if (MeshComp->GetWorld() != InWorld)
+            {
+                continue;
+            }
+
+            std::shared_ptr<MMesh>& Mesh = MeshComp->GetMesh();
+            if (Mesh == nullptr)
+            {
+                continue;
+            }
+
+            std::shared_ptr<MPhysics>& Physics = Mesh->GetPhysics();
+            if (Physics == nullptr)
+            {
+                continue;
+            }
+
+            std::string Path = WStringToString(MFIleSystem::AbsolutePath(Physics->GetAssetPath()));
+
+            BodyInterface& bodyInterface = physics_system->GetBodyInterface();
+
+            ShapeSettings* ShapeSetting = nullptr;
+            std::stringstream ss;
+            ObjectStreamTextIn StreamIn = JPH::ObjectStreamTextIn(ss);
+            StreamIn.sReadObject(Path.c_str(), ShapeSetting);
+
+            if (ShapeSetting == nullptr)
+            {
+                continue;
+            }
+
+            Ref<Shape> NewShape = ShapeSetting->Create().Get();
+            JPH::Vec3 Pos = ToJPHPos(MeshComp->getWorldTranslation());
+            JPH::Quat Rot = DXAngleToJPHQuat(MeshComp->getRotation());
+            EMotionType MotionType = ConvertPhysicsType(MeshComp->GetPhysicsType());
+            ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
+
+            BodyCreationSettings BodyCreationSetting = BodyCreationSettings(NewShape, Pos, Rot, MotionType, Layer);
+            BodyCreationSetting.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+            BodyCreationSetting.mMassPropertiesOverride.mMass = 1.f;
+
+            EActivation Activation = EActivation::DontActivate;
+            if (MeshComp->IsPhysicsEnable() && bSimulating)
+            {
+                Activation = EActivation::Activate;
+            }
+            BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSetting, Activation);
+
+            FBodyConstructData Data;
+            Data.Mesh = Mesh;
+            Data.PrimitiveComponent = MeshComp;
+
+            std::shared_ptr<MBodyObject> NewPhysicsObject = std::make_shared<MBodyObject>(Data);
+            NewPhysicsObject->SetBodyID(NewBodyID);
+            NewPhysicsObject->SetScale(MeshComp->getScale());
+
+            MeshComp->PhysicsObject = NewPhysicsObject;
+            PhysicsObjects[MeshComp->GetPrimitiveID()].push_back(NewPhysicsObject);
+
+            // ReadObject가 new를 이용해 Object를 생성하니, 삭제도 해줘야 함
+            delete ShapeSetting;
         }
-
-        std::shared_ptr<MMesh>& Mesh = MeshComp->GetMesh();
-        if (Mesh == nullptr)
-        {
-            continue;
-        }
-
-        std::shared_ptr<MPhysics>& Physics = Mesh->GetPhysics();
-        if (Physics == nullptr)
-        {
-            continue;
-        }
-
-        std::string Path = WStringToString(MFIleSystem::AbsolutePath(Physics->GetAssetPath()));
-
-        BodyInterface& bodyInterface = physics_system->GetBodyInterface();
-
-        ShapeSettings* ShapeSetting = nullptr;
-        std::stringstream ss;
-        ObjectStreamTextIn StreamIn = JPH::ObjectStreamTextIn(ss);
-        StreamIn.sReadObject(Path.c_str(), ShapeSetting);
-
-        if (ShapeSetting == nullptr)
-        {
-            continue;
-        }
-
-        Ref<Shape> NewShape = ShapeSetting->Create().Get();
-        JPH::Vec3 Pos = ToJPHPos(MeshComp->getWorldTranslation());
-        JPH::Quat Rot = DXAngleToJPHQuat(MeshComp->getRotation());
-        EMotionType MotionType = ConvertPhysicsType(MeshComp->GetPhysicsType());
-        ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
-
-        BodyCreationSettings BodyCreationSetting = BodyCreationSettings(NewShape, Pos, Rot, MotionType, Layer);
-        BodyCreationSetting.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
-        BodyCreationSetting.mMassPropertiesOverride.mMass = 1.f;
-
-        if (MeshShapeSettings* MeshShapeSetting = DynamicCast<MeshShapeSettings>(ShapeSetting))
-        {
-            int a = 0;
-        }
-
-        EActivation Activation = EActivation::DontActivate;
-        if (MeshComp->IsPhysicsEnable() && bSimulating)
-        {
-            Activation = EActivation::Activate;
-        }
-        BodyID NewBodyID = bodyInterface.CreateAndAddBody(BodyCreationSetting, Activation);
-
-        FBodyConstructData Data;
-        Data.Mesh = Mesh;
-        Data.PrimitiveComponent = MeshComp;
-
-        std::shared_ptr<MBodyObject> NewPhysicsObject = std::make_shared<MBodyObject>(Data);
-        NewPhysicsObject->SetBodyID(NewBodyID);
-        ::Vec3 CompScale = MeshComp->getScale();
-        NewPhysicsObject->SetScale(CompScale);
-
-        MeshComp->PhysicsObject = NewPhysicsObject;
-
-        // ReadObject가 new를 이용해 Object를 생성하니, 삭제도 해줘야 함
-        delete ShapeSetting;
     }
 }
 
@@ -564,7 +566,7 @@ void MJoltPhysics::AddCloth(FBodyConstructData& InData, std::vector<FClothData>&
     // 일반 제약 ---------------------------------------------------------------------------------------------
     SoftBodySharedSettings::VertexAttributes inVertexAttributes = { 0.f, 0.f, 0.f, SoftBodySharedSettings::ELRAType::GeodesicDistance };
     NewSharedSettings->CreateConstraints(&inVertexAttributes, 1);
-    //NewSharedSettings->mVertexRadius = 0.01f;
+    NewSharedSettings->mVertexRadius = 0.02f;
 #endif
 
     // 바디 생성 ---------------------------------------------------------------------------------------------
@@ -609,7 +611,7 @@ void MJoltPhysics::AddCharacterPhyscics(std::shared_ptr<DynamicMeshComponent> In
     std::shared_ptr<MCapsuleBody> NewCharacterBody = std::make_shared<MCapsuleBody>(BodyConstructData, InBodyCapsuleData);
     CreateBody(shape, BodyConstructData, NewCharacterBody, Layers::PHYSICS);
 
-    CapsuleBodies.push_back(NewCharacterBody);
+    PhysicsObjects[InDynamicMeshComp->GetPrimitiveID()].push_back(NewCharacterBody);
 }
 
 void MJoltPhysics::AddCharacterCollision(std::shared_ptr<MCollisionComponent> InComp, const FCapsuleData& InCapsuleData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject)
@@ -750,9 +752,12 @@ void MJoltPhysics::Update()
     physics_system->Update(DeltaTime, 2, tempAllocator, jobSystem);
 
     // 캐릭터 바디 업데이트
-    for (auto& CharacterBody : CapsuleBodies)
+    for (auto& [PrimitiveID, ComponentPhyscisObjects] : PhysicsObjects)
     {
-        CharacterBody->Update(DeltaTime);
+        for (auto& PhysicsObject : ComponentPhyscisObjects)
+        {
+            PhysicsObject->Update(DeltaTime);
+        }
     }
 
     // 클로딩
@@ -860,14 +865,6 @@ void MJoltPhysics::Update()
 void MJoltPhysics::Render()
 {
     Super::Render();
-
-    if (getRenderer() /*&& getRenderer()->bDrawCollision*/)
-    {
-        for (auto& CapsuleBody : CapsuleBodies)
-        {
-            CapsuleBody->Render();
-        }
-    }
 }
 
 void MJoltPhysics::Release()
@@ -887,12 +884,7 @@ MBodyObject::MBodyObject(const FBodyConstructData& InData)
 
 }
 
-void MBodyObject::MoveTo(const ::Vec3& TargetPos)
-{
-    //GetPhysicsSystem()->GetBodyInterface().MoveKinematic(BodyIDCache, RVec3Arg(TargetPos.x, TargetPos.y, TargetPos.z), Quat::sIdentity(), g_World->getDeltaTime());
-}
-
-void MBodyObject::Remove()
+MBodyObject::~MBodyObject()
 {
     GetPhysicsSystem()->GetBodyInterface().RemoveBody(BodyIDCache);
 }

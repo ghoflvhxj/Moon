@@ -108,7 +108,7 @@ public:
     virtual void AddCharacterCollision(std::shared_ptr<MCollisionComponent> InComp, const FCapsuleData& InCapsuleData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) override;
     JPH::Character* NewCharacter = nullptr;
 protected:
-    std::vector<std::shared_ptr<class MCapsuleBody>> CapsuleBodies;
+    //std::vector<std::shared_ptr<class MCapsuleBody>> CapsuleBodies;
 
 public:
     virtual void Constraint(std::shared_ptr<MPhysicsObject>& Lhs, std::shared_ptr<MPhysicsObject>& Rhs);
@@ -133,6 +133,7 @@ class ENGINE_DLL MBodyObject : public MPhysicsObject
 {
 public:
     MBodyObject(const FBodyConstructData& InData);
+    virtual ~MBodyObject();
 
 public:
     MJoltPhysics* Get()
@@ -145,10 +146,8 @@ public:
     }
 
 public:
-    virtual void MoveTo(const ::Vec3& TargetPos) override;
-    virtual void Remove() override;
-public:
     virtual bool IsSimulating() override;
+
 public:
     virtual void SetSimulate(bool bEnable) override;
     virtual void SetMass(float InMass) override;

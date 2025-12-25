@@ -46,10 +46,12 @@ public:
 public:
     virtual void StartSimulate(MWorld* InWorld);
     virtual void Update() {}
+    virtual void Render();
     virtual void Release();
 
 public:
     virtual void AddMeshComponent(std::shared_ptr<MMeshComponent> InMeshComp);
+    virtual void RemoveComponent(std::shared_ptr<MMeshComponent> InMeshComp);
 
 public:
     virtual void AddCloth(FBodyConstructData& InData, std::vector<FClothData>& ClothData, std::shared_ptr<MPhysicsObject>& OutPhysicsObject) {}
@@ -60,13 +62,13 @@ protected:
     std::vector<std::weak_ptr<MPhysicsObject>> SoftBodies;
 
     // 프리미티브ID - 피직스 오브젝트 쌍
-    std::map<uint32, std::shared_ptr<MPhysicsObject>> PhysicsObjects;
+    std::map<uint32, std::vector<std::shared_ptr<MPhysicsObject>>> PhysicsObjects;
 
 protected:
     bool bSimulating = false;
 
     // 임시. 시뮬레이션 등록 컴포넌트
-    std::vector<std::weak_ptr<MMeshComponent>> MeshComponents;
+    //std::vector<std::weak_ptr<MMeshComponent>> MeshComponents;
 
     REFLECT(MPhysicsEngine)
 };
@@ -83,7 +85,8 @@ public:
     virtual ~MPhysicsObject() = default;
 
 public:
-    virtual void MoveTo(const ::Vec3& TargetPos) {}
+    virtual void Update(float DeltaTime) {}
+    virtual void Render() {}
     virtual void Remove() {}
 
 public:
