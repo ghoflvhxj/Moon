@@ -107,7 +107,7 @@ protected:
 
 protected:
     // 모든 PrimitiveComponent
-	std::map<uint32, std::shared_ptr<MPrimitiveComponent>> PrimitiveComponents;
+	std::map<uint32, std::weak_ptr<MPrimitiveComponent>> PrimitiveComponents;
 
 public:
     // TODO. 인스턴싱 임시 작업으로 제거해야 됨
