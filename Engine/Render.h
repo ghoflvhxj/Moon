@@ -129,10 +129,6 @@ struct FPrimitiveData
 	std::weak_ptr<MVertexBuffer> VertexBuffer;
 	std::weak_ptr<MIndexBuffer> IndexBuffer;
 
-	// 다이나믹 메쉬용
-	Mat4* AnimMatrices = nullptr;
-	uint32 _jointCount = 0;
-
     // 인스턴싱 용
     std::weak_ptr<MVertexBuffer> InstanceBuffer;
     uint32 InstanceNum = 0;

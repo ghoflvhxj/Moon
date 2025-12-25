@@ -78,7 +78,7 @@ private:
 
 
 public:
-    Mat4* GetAnimMatrices() { return JointAnimMatrices.data(); }
+    const std::vector<Mat4>& GetAnimMatrices() { return JointAnimMatrices; }
     Mat4 GetAnimMatrix(const std::string& InName);
     Mat4 GetAnimMatrix(uint32 InJointIndex);
 protected:

@@ -176,7 +176,6 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 		NewPrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
 		NewPrimitiveData.MeshData = &dMesh->GetMeshData(geometryIndex);
 		NewPrimitiveData.Material = dMesh->getGeometryLinkMaterialIndex().size() > 0 ? dMesh->getMaterials()[dMesh->getGeometryLinkMaterialIndex()[geometryIndex]] : dMesh->getMaterials()[0];
-        NewPrimitiveData.AnimMatrices = GetAnimMatrices();
 
         PrimitiveDataList.emplace_back(NewPrimitiveData);
 	}
