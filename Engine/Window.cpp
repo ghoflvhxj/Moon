@@ -73,6 +73,11 @@ MWindow::MWindow(LPCWSTR title, const int width, const int height, LPCWSTR class
 	ShowWindow(m_hWnd, SW_SHOW);
 }
 
+MWindow::~MWindow()
+{
+    LOGTEXT(TEXT("윈도우 파괴"));
+}
+
 void MWindow::SetTitle(const std::wstring title)
 {
 	SetWindowText(getHandle(), title.c_str());
@@ -81,6 +86,11 @@ void MWindow::SetTitle(const std::wstring title)
 HWND MWindow::getHandle() const
 {
 	return m_hWnd;
+}
+
+void MWindow::Disable()
+{
+    bDisable = true;
 }
 
 void MWindow::UpdateSize()

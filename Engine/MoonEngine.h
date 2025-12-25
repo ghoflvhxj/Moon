@@ -55,6 +55,9 @@ public:
     }
 
 public:
+    void Loop();
+
+public:
     void WorldFunc(uint32 InIndex);
     void AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow);
     FDelegate<void, const FWorldRenderInfo&>& GetOnWorldAddedDelegate() { return OnWorldAdded; }
@@ -63,6 +66,8 @@ public:
     uint32 GetWorldNum() const { return GetSize(WorldRenderInfos); }
     // 이름 뭐라할지 모루겟음. WorldRenderInfosQueue를 빼와서 WorldRenderInfos에 넣는 작업을 함
     void UpdateTemp();
+    void RemoveWindow(uint32 InWindowID);
+
 protected:
     // 월드를 업데이트
     void UpdateWorld(uint32 InIndex);

@@ -13,7 +13,7 @@ MActor::MActor()
 
 MActor::~MActor()
 {
-    // DoNothing
+    LOGTEXT(TEXT("Actor Delete"));
 }
 
 void MActor::PostConstruct()
@@ -167,15 +167,14 @@ void MActor::BeginPlay()
 
 void MActor::Destroy()
 {
+    // 소멸자에서 하지 않는 이유는?
+    // Component 소멸 처리 과정에서 Actor를 참조하는 경우가 있는데, 소멸자에서 호출하면 이 액터는 expired된 상태임.
     for (auto& [Name, Comp] : SceneComponents)
     {
         UnRegisterComponent(Comp.get());
     }
 
-    if (MWorld* World = GetWorld())
-    {
-        World->RemoveActor(this);
-    }
+    LOGTEXT(TEXT("Actor Destroy"));
 }
 
 MWorld* MActor::GetWorld()

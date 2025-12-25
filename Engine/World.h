@@ -74,6 +74,7 @@ public:
 
 public:
     virtual void PlayGame();
+    virtual void FinishGame();
     FDelegate<void>& GetGameStartedDelegate() { return OnGameStartedDelegate; }
     bool IsHasBegan() const { return bHasBegan; }
 protected:

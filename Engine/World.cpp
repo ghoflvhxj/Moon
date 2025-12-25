@@ -42,7 +42,7 @@ MWorld::MWorld()
 
 MWorld::~MWorld()
 {
-    std::wstring Msg = TEXT("World Destroy");
+    std::wstring Msg = TEXT("World Delete");
     LOG(Msg);
 }
 
@@ -77,6 +77,7 @@ bool MWorld::Update()
 
             if (TargetActorName.empty() == false)
             {
+                Actors[TargetActorName]->Destroy();
                 Actors.erase(TargetActorName);
             }
 
@@ -121,6 +122,14 @@ void MWorld::PlayGame()
     LOG(Message);
 
     GetGameStartedDelegate().Broadcast();
+}
+
+void MWorld::FinishGame()
+{
+    for (auto& [Name, Actor] : Actors)
+    {
+        Actor->Destroy();
+    }
 }
 
 void MWorld::render()

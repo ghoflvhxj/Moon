@@ -148,6 +148,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_CLOSE:
         {
             Window->Disable();
+            GetEngine()->RemoveWindow(Window->GetID());
         }
         break;
         case WM_SIZE:

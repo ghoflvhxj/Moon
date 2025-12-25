@@ -73,28 +73,8 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
 }
 
 ENGINE_DLL void EngineLoop()
-{
-    uint32 Num = GetEngine()->GetWorldNum();
-    for (uint32 i = 0; i < Num; ++i)
-    {
-        GetEngine()->WorldFunc(i);
-    }
-
-    //GetEngine()->WorldFunc(0);
-
-    //if (FrameLock())
-    //{
-    //    g_World->Update();
-    //    GetEngine()->UpdateModules();
-
-    //    EngineRender();
-
-    //    float Current = GetEngine()->TimerManager.GetCurrent();
-    //    float ElapsedTimeForUpdate = Current - GetEngine()->PrevProcessTime;
-
-    //    GetEngine()->FrameManager.SetDeltaTime(ElapsedTimeForUpdate);
-    //    GetEngine()->PrevProcessTime = GetEngine()->TimerManager.GetCurrent();
-    //}
+{   
+    GetEngine()->Loop();
 }
 
 bool FrameLock(const std::shared_ptr<MWorld>& InWorld)
@@ -269,14 +249,13 @@ void UnRegisterComponent(MComponent* InComponent)
         }
     }
 
-    // 델리게이트가 제거될 테니, 작업은 필요 없음
-    //if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastToShared<MMeshComponent>())
-    //{
-    //    std::weak_ptr<MMeshComponent> WeakMeshComp = MeshComp;
-    //    MeshComp->GetBeganPlay().Add([WeakMeshComp]() {
-    //        GetPhysics()->AddMeshComponent(WeakMeshComp.lock());
-    //    });
-    //}
+    if (GetPhysics())
+    {
+        if (std::shared_ptr<MMeshComponent> MeshComp = InComponent->CastToShared<MMeshComponent>())
+        {
+            GetPhysics()->RemoveComponent(MeshComp);
+        }
+    }
 }
 
 ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc)
@@ -322,15 +301,23 @@ ENGINE_DLL FDelegate<void>& GetRenderStartedDelegate()
     return OnRenderStartedDelegate;
 }
 
+void MEngine::Loop()
+{
+    for (auto& [WindowID, BindData] : WorldRenderInfos)
+    {
+        WorldFunc(WindowID);
+    }
+}
+
 void MEngine::WorldFunc(uint32 InIndex)
 {
-    std::shared_ptr<MWorld>& World = WorldRenderInfos[InIndex].SrcWorld;
-
-    if (WorldRenderInfos[InIndex].DstWindow->IsDisabled())
+    FWorldRenderInfo& BoundData = WorldRenderInfos[InIndex];
+    if (BoundData.DstWindow->IsDisabled())
     {
         return;
     }
 
+    std::shared_ptr<MWorld>& World = BoundData.SrcWorld;
     if (FrameLock(World))
     {
         float DeltaTime = TimerManager.GetCurrent() - World->getFrameManager()->PrevWorkFinishedTime;
@@ -343,6 +330,9 @@ void MEngine::WorldFunc(uint32 InIndex)
         {
             World->getFrameManager()->PrevWorkFinishedTime = TimerManager.GetCurrent();
         }
+
+        std::wstring Frame = std::to_wstring(World->getFrame());
+        SetWindowText(WorldRenderInfos[InIndex].DstWindow->getHandle(), Frame.c_str());
     }
 }
 
@@ -384,6 +374,33 @@ void MEngine::UpdateTemp()
         WorldRenderInfos.insert(*Iter);
         Iter = WorldRenderInfosQueue.erase(Iter);
     }
+}
+
+void MEngine::RemoveWindow(uint32 InWindowID)
+{
+    // TODO
+    // 월드와 윈도우가 1:1 상황이라면, shared_ptr 레퍼런스 카운트가 감소하여 월드 또한 파괴될 것임
+    // 지금은 1:1 상황밖에 없어서 임시로 처리하지만 개선해야함
+    auto Erase = [](std::map<int32, FWorldRenderInfo>& InMap, uint32 InID) {
+        for (auto& Iter = InMap.begin(); Iter != InMap.end(); )
+        {
+            auto& BoundData = Iter->second;
+            if (BoundData.DstWindow->GetID() == InID)
+            {
+                BoundData.SrcWorld->FinishGame(); // 임시처리
+                Iter = InMap.erase(Iter);
+            }
+            else
+            {
+                ++Iter;
+            }
+        }
+    };
+
+    GetPostLoopDelegate().Add([&, InWindowID]() {
+        Erase(WorldRenderInfos, InWindowID);
+        Erase(WorldRenderInfosQueue, InWindowID);
+    });
 }
 
 void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow)

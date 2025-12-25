@@ -354,7 +354,7 @@ void MEditorMainWindow::ImGuiRender()
 
                     if (ImGui::MenuItem("Delete"))
                     {
-                        Actor->Destroy();
+                        GetMainWorld()->RemoveActor(Actor.get());
                     }
 
                     if (ImGui::MenuItem("Edit"))

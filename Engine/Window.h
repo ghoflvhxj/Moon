@@ -14,7 +14,7 @@ public:
     explicit MWindow(const std::wstring& title, const int width, const int height, const std::wstring& className);
     explicit MWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className);
 	explicit MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className);
-	~MWindow() = default;
+	virtual ~MWindow();
 
 public:
     virtual void Initialize() {}
@@ -38,10 +38,10 @@ protected:
     bool bFullScreen = false;
 
 public:
-    bool IsDisabled() const { return bDisble; }
-    void Disable() { bDisble = true; }
+    bool IsDisabled() const { return bDisable; }
+    void Disable();
 protected:
-    bool bDisble = false;
+    bool bDisable = false;
 
 public:
     void UpdateSize();
