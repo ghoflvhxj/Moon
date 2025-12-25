@@ -83,8 +83,10 @@
 #ifdef DEBUG
 #define LOGTEXT(InText) \
 {\
-    std::wcout << InText << std::endl; \
-    OutputDebugStringW(InText); \
+    std::wstring Temp = InText; \
+    Temp += TEXT("\n"); \
+    std::wcout << Temp << std::endl; \
+    OutputDebugStringW(Temp.c_str()); \
 }
 #else
 #define LOGTEXT(InMessage) \

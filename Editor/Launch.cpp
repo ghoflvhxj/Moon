@@ -77,10 +77,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
         IMGUI_CHECKVERSION();
 
-        GetEngine()->GetOnUpdated().Add([]() {
-            std::wstring Frame = std::to_wstring(GetMainWorld()->getFrame());
-            SetWindowText(g_hWnd, Frame.c_str());
-        });
+        //GetEngine()->GetOnUpdated().Add([]() {
+        //    std::wstring Frame = std::to_wstring(GetMainWorld()->getFrame());
+        //    SetWindowText(g_hWnd, Frame.c_str());
+        //});
     }
 	catch (const EngineException &e)
 	{

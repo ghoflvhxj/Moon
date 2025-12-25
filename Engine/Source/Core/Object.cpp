@@ -46,7 +46,8 @@ void MObject::Copy(MObject* InObject) const
     {
         for (FPropertyDesc* PropDesc : TypeDesc->Properties)
         {
-            for (uint32 i = 0; i < PropDesc->Num; ++i)
+            // TODO. vector 타입인 경우는 Num이 유효하지 않음
+            for (uint32 i = 0; i < PropDesc->Num; ++i)  
             {
                 if (PropDesc->IsA<MObject>())
                 {

@@ -63,6 +63,8 @@ void MConstantBuffer::SetData(const std::wstring& InName, const void* InData)
 
     const FBufferVariableInfo& VariableInfo = Iter->second;
     const FBufferVariable& Variable = Variables[VariableInfo.Index];
+
+    // TODO 벡터가 사이즈가 다르다면 크래시가 발생함. Variable과 Vector중에 사이즈가 작은 것 선택
     SetData(Variable.Offset, InData, Variable.Size);
 }
 

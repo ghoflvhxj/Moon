@@ -373,12 +373,12 @@ void MEditorMainWindow::ImGuiRender()
         ImGui::End();
     }
 
-    if (ImGui::Begin("Browser"))
-    {
+    //if (ImGui::Begin("Browser"))
+    //{
 
 
-        ImGui::End();
-    }
+    //    ImGui::End();
+    //}
 }
 
 MEditorBaseWindow::~MEditorBaseWindow()
