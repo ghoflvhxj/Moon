@@ -39,6 +39,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     -1.2589,
@@ -72,6 +73,7 @@
                                     0.61273,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     -2.33435,
                                     2.33014,
@@ -127,6 +129,7 @@
                                     -0.45083,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     -2.52864,
                                     1.96298,
@@ -197,9 +200,10 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.99615,
-                                    3.56382,
+                                    3.56381,
                                     0.0
                                 ],
                                 "bUpdated": false
@@ -249,6 +253,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     0.0,
@@ -309,8 +314,9 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
-                                    -4.40644,
+                                    -4.40642,
                                     0.0,
                                     3.0
                                 ],
@@ -364,6 +370,7 @@
                                     -2.51413,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     -2.69864,
                                     0.72517,
@@ -418,6 +425,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     -3.39211,
                                     1.22071,
@@ -442,12 +450,12 @@
                         "CharacterMeshComponent": {
                             "DynamicMeshComponent": {
                                 "AnimTime": 0.0,
-                                "AnimSpeed": 0.1,
+                                "AnimSpeed": 1.0,
                                 "bAnimPlaying": false,
                                 "bPlayAnimAtBegin": true,
                                 "Animation": {
                                     "MAsset": {
-                                        "Path": "2B\\Anim\\pl0000_0006.mot.json"
+                                        "Path": "2B\\Anim\\pl0000_0028.mot.json"
                                     }
                                 },
                                 "bBindPose": false,
@@ -498,6 +506,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     -0.8,
@@ -529,6 +538,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     0.0,
@@ -556,6 +566,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": true,
                                 "Translation": [
                                     0.0,
                                     0.0,
@@ -568,9 +579,21 @@
                             },
                             "MObject": {}
                         },
-                        "HealthPoint": 100.0,
-                        "bTest": false,
-                        "Anims": {}
+                        "IdleAnim": {
+                            "MAsset": {
+                                "Path": "2B\\Anim\\pl0000_b0e0.mot.json"
+                            }
+                        },
+                        "WalkAnim": {
+                            "MAsset": {
+                                "Path": "2B\\Anim\\pl0000_0001.mot.json"
+                            }
+                        },
+                        "WalkToIdleAnim": {
+                            "MAsset": {
+                                "Path": "2B\\Anim\\pl0000_0028.mot.json"
+                            }
+                        }
                     },
                     "MActor": {},
                     "MObject": {}
@@ -614,6 +637,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     1.25878,
@@ -669,6 +693,7 @@
                                     -0.16064,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     -8.25195,
                                     2.39842,

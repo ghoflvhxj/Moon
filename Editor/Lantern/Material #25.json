@@ -32,7 +32,8 @@
         "_eFillMode": 1,
         "_eCullMode": 2,
         "bUseAlpha": false,
-        "bAlphaMask": false
+        "bAlphaMask": false,
+        "bRimLight": false
     },
     "MAsset": {
         "Path": "Lantern\\Material #25.json"

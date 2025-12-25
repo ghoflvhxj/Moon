@@ -4,12 +4,12 @@
             "0": {
                 "AttachJointIndex": 104,
                 "CapsuleData": {
-                    "HalfHeight": 0.15,
-                    "Radius": 0.07
+                    "HalfHeight": 0.12,
+                    "Radius": 0.08
                 },
                 "TranslationOffset": [
                     0.0,
-                    -0.15,
+                    -0.2,
                     0.0
                 ],
                 "RotationOffset": [
@@ -21,12 +21,46 @@
             "1": {
                 "AttachJointIndex": 108,
                 "CapsuleData": {
-                    "HalfHeight": 0.15,
-                    "Radius": 0.07
+                    "HalfHeight": 0.12,
+                    "Radius": 0.08
                 },
                 "TranslationOffset": [
                     0.0,
-                    -0.15,
+                    -0.2,
+                    0.0
+                ],
+                "RotationOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "2": {
+                "AttachJointIndex": 102,
+                "CapsuleData": {
+                    "HalfHeight": 0.0,
+                    "Radius": 0.08
+                },
+                "TranslationOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "RotationOffset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "3": {
+                "AttachJointIndex": 103,
+                "CapsuleData": {
+                    "HalfHeight": 0.0,
+                    "Radius": 0.08
+                },
+                "TranslationOffset": [
+                    0.0,
+                    0.0,
                     0.0
                 ],
                 "RotationOffset": [

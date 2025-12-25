@@ -31,7 +31,7 @@
         "_eCullMode": 2,
         "bUseAlpha": false,
         "bAlphaMask": true,
-        "bRimLight": false
+        "bRimLight": true
     },
     "MAsset": {
         "Path": "2B\\Hair2.json"

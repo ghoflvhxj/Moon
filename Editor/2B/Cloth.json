@@ -17,7 +17,9 @@
                 }
             },
             "3": {
-                "MAsset": {}
+                "MAsset": {
+                    "Path": "2B\\BandiView_2B_Clothes_S.png"
+                }
             },
             "4": {
                 "MAsset": {}
@@ -31,7 +33,7 @@
         "_eCullMode": 2,
         "bUseAlpha": false,
         "bAlphaMask": false,
-        "bRimLight": false
+        "bRimLight": true
     },
     "MAsset": {
         "Path": "2B\\Cloth.json"
