@@ -113,7 +113,7 @@ protected:
 public:
     void OutLine(MActor* InActor, bool bOutLine);
     float CameraSpeedScale = 1.f;
-    Vec3 CurrentRot = {};
+    Vec3 AddRot = {};
 
 public:
     std::unordered_map<std::string, std::shared_ptr<MEditorBase>> Editors;

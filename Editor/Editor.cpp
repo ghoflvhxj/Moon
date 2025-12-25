@@ -129,23 +129,57 @@ void MEditor::Update()
 
             CameraComponent->setTranslation(trans);
 
+            Vec3 CameraRot = CameraComponent->GetWorldRotation();
+
+            //if (InputManager::mousePress(MOUSEBUTTON::RB))
+            //{
+            //    float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X)) * 0.3f;
+            //    float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y)) * 0.3f;
+
+            //    TargetRot.x += mouseY;
+            //    TargetRot.y += mouseX;
+            //    TargetRot = Wind(TargetRot);
+            //}
+
+            //cout << CameraRot << endl;
+
+            //Vec3 DeltaRot = {};
+            //XMStoreFloat3(&DeltaRot, (XMLoadFloat3(&TargetRot) - XMLoadFloat3(&CameraRot)) * DeltaTime);
+
+            //CameraComponent->AddRotation(DeltaRot);
+
             if (InputManager::mousePress(MOUSEBUTTON::RB))
             {
-                Vec3 CameraRot = CameraComponent->getRotation();
-                Vec3 TargetRot = CameraRot;
                 float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X));
                 float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y));
 
-                TargetRot.x += mouseY * DeltaTime * 0.2f;
-                TargetRot.y += mouseX * DeltaTime * 0.2f;
-
-                float t = 0.5f;
-                CurrentRot.x = ((1.f - t) * CurrentRot.x) + (t * TargetRot.x);
-                CurrentRot.y = ((1.f - t) * CurrentRot.y) + (t * TargetRot.y);
-                CurrentRot.z = ((1.f - t) * CurrentRot.z) + (t * TargetRot.z);
-
-                CameraComponent->SetRotation(CurrentRot);
+                AddRot.x += ToRadian(mouseY);
+                AddRot.y += ToRadian(mouseX);
             }
+
+            // AddRot이 0이여도 max로인해 PI가 적용된다
+            //Vec3 Add = { AddRot.x * DeltaTime * 10.f, AddRot.y * DeltaTime * 10.f, 0.f };
+            Vec3 Add = { std::clamp(AddRot.x, -PI, PI) * DeltaTime, std::clamp(AddRot.y, -PI, PI) * DeltaTime, 0.f };
+
+            CameraComponent->AddRotation(Add);
+
+            // 누적 회전에서 뺌
+            AddRot.x -= AddRot.x * DeltaTime * 10.f;
+            AddRot.y -= AddRot.y * DeltaTime * 10.f;
+
+            //auto T = [](float& Value, float AddValue) {
+            //    bool OldSign = GetSign(Value);
+            //    Value -= AddValue;
+
+            //    if (OldSign != GetSign(Value))
+            //    {
+            //        Value = 0.f;
+            //    }
+            //};
+
+            //T(AddRot.x, Add.x);
+            //T(AddRot.y, Add.y);
+
         }
 
         if (InputManager::keyDown(DIK_1))

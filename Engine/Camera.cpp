@@ -57,30 +57,31 @@ void MCamera::tick(const Time deltaTime)
 	updateViewMatrix();
 	updateProjectionMatrix();
 
+    /*
     Vec3 trans = GetWorldTranslation();
     Vec3 look = SceneComp->GetForward();
     Vec3 right = SceneComp->getRight();
     float speed = 3.f * deltaTime;
 
-    if (InputManager::keyPress(DIK_W, 1))
+    if (InputManager::keyPress(DIK_W, GetWorld()->GetID()))
     {
         trans.x += look.x * speed;
         trans.y += look.y * speed;
         trans.z += look.z * speed;
     }
-    else if (InputManager::keyPress(DIK_S, 1))
+    else if (InputManager::keyPress(DIK_S, GetWorld()->GetID()))
     {
         trans.x -= look.x * speed;
         trans.y -= look.y * speed;
         trans.z -= look.z * speed;
     }
-    else if (InputManager::keyPress(DIK_D, 1))
+    else if (InputManager::keyPress(DIK_D, GetWorld()->GetID()))
     {
         trans.x += right.x * speed;
         trans.y += right.y * speed;
         trans.z += right.z * speed;
     }
-    else if (InputManager::keyPress(DIK_A, 1))
+    else if (InputManager::keyPress(DIK_A, GetWorld()->GetID()))
     {
         trans.x -= right.x * speed;
         trans.y -= right.y * speed;
@@ -89,23 +90,24 @@ void MCamera::tick(const Time deltaTime)
 
     SetWorldTranslation(trans);
 
-    //if (InputManager::mousePress(MOUSEBUTTON::RB))
-    //{
-    //    Vec3 CameraRot = SceneComp->getRotation();
-    //    Vec3 TargetRot = CameraRot;
-    //    float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X));
-    //    float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y));
+    if (InputManager::mousePress(MOUSEBUTTON::RB))
+    {
+        Vec3 CameraRot = SceneComp->getRotation();
+        Vec3 TargetRot = CameraRot;
+        float mouseX = static_cast<float>(InputManager::mouseMove(EAxis::X));
+        float mouseY = static_cast<float>(InputManager::mouseMove(EAxis::Y));
 
-    //    TargetRot.x += mouseY * deltaTime * 0.2f;
-    //    TargetRot.y += mouseX * deltaTime * 0.2f;
+        TargetRot.x += mouseY * deltaTime * 0.2f;
+        TargetRot.y += mouseX * deltaTime * 0.2f;
 
-    //    float t = 0.5f;
-    //    CurrentRot.x = ((1.f - t) * CurrentRot.x) + (t * TargetRot.x);
-    //    CurrentRot.y = ((1.f - t) * CurrentRot.y) + (t * TargetRot.y);
-    //    CurrentRot.z = ((1.f - t) * CurrentRot.z) + (t * TargetRot.z);
+        float t = 0.5f;
+        CurrentRot.x = ((1.f - t) * CurrentRot.x) + (t * TargetRot.x);
+        CurrentRot.y = ((1.f - t) * CurrentRot.y) + (t * TargetRot.y);
+        CurrentRot.z = ((1.f - t) * CurrentRot.z) + (t * TargetRot.z);
 
-    //    SceneComp->setRotation(CurrentRot);
-    //}
+        SceneComp->SetRotation(CurrentRot);
+    }
+    */
 }
 
 void MCamera::updateViewMatrix()
@@ -149,6 +151,11 @@ void MCamera::updateProjectionMatrix()
         AspectRatio = WorldInfo.DstWindow->GetAspectRatio();
         Width = WorldInfo.DstWindow->GetWidth<float>();
         Height = WorldInfo.DstWindow->GetHeight<float>();
+    }
+
+    if (Width == 0.f || Height == 0.f)
+    {
+        return;
     }
 
 	matrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(getFov()), AspectRatio, Near, Far);
