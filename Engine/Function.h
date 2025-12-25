@@ -200,9 +200,43 @@ inline Vec3 ToDegree(const Vec3& InVector)
     return { ToDegree(InVector.x), ToDegree(InVector.y), ToDegree(InVector.z) };
 }
 
+inline float Wind(float InRot)
+{
+    /*************************
+    N   ->  -360 ~ 360
+    *************************/
+    float Ranged = fmod(InRot, PI2);
+
+    /*************************
+    200     ->  -160
+    -200    ->  160
+    *************************/
+    if (Ranged > PI)
+    {
+        Ranged -= PI2;
+    }
+    if (Ranged < -PI)
+    {
+        Ranged += PI2;
+    }
+
+    return Ranged;
+}
+
+inline Vec3 Wind(const Vec3& InRot)
+{
+    return { Wind(InRot.x), Wind(InRot.y), Wind(InRot.z) };
+}
+
 static inline float clampf(float v, float a, float b) 
 { 
     return (v < a) ? a : ((v > b) ? b : v); 
+}
+
+template <class T>
+inline bool GetSign(T InValue)
+{
+    return InValue >= static_cast<T>(0);
 }
 
 inline static std::ostream& operator<<(std::ostream& InOutStream, const Vec3& InVec)
