@@ -435,8 +435,12 @@ Vec3 DynamicMeshComponent::GetJointPosition(uint32 InJointIndex, const Vec3& InO
     }
 
     const Mat4& JointWorldMat = GetJointWorldMatrix(InJointIndex);
+
+    Mat4 Mat = {};
+    XMStoreFloat4x4(&Mat, XMMatrixTranslationFromVector(XMLoadFloat3(&InOffset)) * XMLoadFloat4x4(&JointWorldMat));
+
     Vec3 S, R, T;
-    DecomposeTransform(JointWorldMat, S, R, T);
+    DecomposeTransform(Mat, S, R, T);
 
     return T;
 }
