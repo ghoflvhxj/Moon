@@ -5,7 +5,7 @@
         "_textureList": {
             "0": {
                 "MAsset": {
-                    "Path": "Resources\\Texture\\stone_01_albedo.jpg"
+                    "Path": "Resources\\Texture\\stone_01_albedo.png"
                 }
             },
             "1": {
@@ -13,7 +13,7 @@
             },
             "2": {
                 "MAsset": {
-                    "Path": "Resources\\Texture\\Stone_01_normal.jpg"
+                    "Path": "Resources\\Texture\\Stone_01_normal.png"
                 }
             },
             "3": {
