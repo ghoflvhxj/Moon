@@ -41,7 +41,7 @@ Player::Player()
 {
     CharacterMeshComponent = std::make_shared<DynamicMeshComponent>();
     CharacterMeshComponent->SetPhysics(false);
-    CharacterMeshComponent->SetMesh(TEXT("2B/2B.json"));
+    //CharacterMeshComponent->SetMesh(TEXT("2B/2B.json"));
     CharacterMeshComponent->setDrawingBoundingBox(true);
     AddComponent(TEXT("CharacterMesh"), CharacterMeshComponent);
 
