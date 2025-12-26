@@ -759,10 +759,10 @@ void GraphicDevice::GetPrivateBuffers(FBufferContainer& OutBuffers, uint32 InPID
     OutBuffers = Iter->second;
 }
 
-void GraphicDevice::BuildMeshBuffer(const std::wstring& InKey, const FMeshData& InMeshData, uint32 InIndex)
+void GraphicDevice::BuildMeshBuffer(const std::wstring& InKey, const FMeshData& InMeshData, uint32 InIndex, bool bInDynamic)
 {
     FBuffers NewSharedBuffers = {};
-    MakeBuffer(NewSharedBuffers, InMeshData);
+    MakeBuffer(NewSharedBuffers, InMeshData, bInDynamic);
     SharedBuffers[InKey].AddBuffers(InIndex, NewSharedBuffers);
 }
 
@@ -834,16 +834,16 @@ void GraphicDevice::BuildMeshPrivateBuffers(int32 InPID, const std::shared_ptr<M
         }
 
         FBuffers NewPrivateBuffers = {};
-        MakeBuffer(NewPrivateBuffers, MeshData);
+        MakeBuffer(NewPrivateBuffers, MeshData, true);
         PrivateBuffers[InPID].AddBuffers(i, NewPrivateBuffers);
     }
 }
 
-void GraphicDevice::MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData)
+void GraphicDevice::MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData, bool bInDynamic)
 {
     uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
     uint32 VertexNum = GetSize(InMeshData.Vertices);
-    OutBuffers.VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, InMeshData.Vertices.data());
+    OutBuffers.VertexBuffer = std::make_shared<MVertexBuffer>(VertexSize, VertexNum, InMeshData.Vertices.data(), bInDynamic);
 
     uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
     uint32 IndexNum = GetSize(InMeshData.Indices);

@@ -13,12 +13,12 @@
 #include "driver_types.h"
 #endif
 
-MVertexBuffer::MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer)
-	: _pBuffer		{ nullptr }
-	, VertexNum	{ vertexCount }
-    , VertexSize     { vertexSize }
+MVertexBuffer::MVertexBuffer(const uint32 vertexSize, const uint32 vertexCount, const void *buffer, bool bInDynamic)
+    : _pBuffer{ nullptr }
+    , VertexNum{ vertexCount }
+    , VertexSize{ vertexSize }
 {
-    CreateBuffer(vertexSize, vertexCount, buffer);
+    CreateBuffer(VertexSize * VertexNum, buffer, bInDynamic);
 }
 
 MVertexBuffer::~MVertexBuffer()
@@ -29,22 +29,22 @@ MVertexBuffer::~MVertexBuffer()
 	SafeRelease(_pBuffer);
 }
 
-void MVertexBuffer::CreateBuffer(const uint32 vertexSize, const uint32 vertexCount, const void* buffer)
+void MVertexBuffer::CreateBuffer(const uint32 InDataSize, const void* InBuffer, bool InDynamic)
 {
     SafeRelease(_pBuffer);
 
     D3D11_BUFFER_DESC bd = {};
-    bd.ByteWidth = static_cast<UINT>(vertexSize * vertexCount);
-    //bd.Usage              = D3D11_USAGE_DEFAULT;
-    bd.Usage = D3D11_USAGE_DYNAMIC;
+    bd.ByteWidth = static_cast<UINT>(InDataSize);
+    bd.Usage = InDynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_IMMUTABLE;
+    //bd.Usage = D3D11_USAGE_DYNAMIC;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    //bd.CPUAccessFlags		= 0u;
-    bd.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
+    bd.CPUAccessFlags = InDynamic ? D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE : 0u;
+    //bd.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
     bd.MiscFlags = 0u;
     bd.StructureByteStride = 0u;
 
     D3D11_SUBRESOURCE_DATA sd = {};
-    sd.pSysMem = buffer;
+    sd.pSysMem = InBuffer;
 
     if (g_pGraphicDevice->getDevice()->CreateBuffer(&bd, &sd, &_pBuffer) == E_FAIL)
     {
@@ -69,7 +69,7 @@ ID3D11Buffer* MVertexBuffer::getBuffer()
 	return _pBuffer;
 }
 
-const uint32 MVertexBuffer::getVertexCount() const
+const uint32 MVertexBuffer::getVertexNum() const
 {
 	return VertexNum;
 }
@@ -84,17 +84,17 @@ void MVertexBuffer::Update(void* InData)
     g_pGraphicDevice->getContext()->Unmap(_pBuffer, 0u);
 }
 
-void MVertexBuffer::Update(void* InData, uint32 InNum)
-{
-    if (VertexNum != InNum)
-    {
-        CreateBuffer(VertexSize, InNum, InData);
-    }
-    else
-    {
-        Update(InData);
-    }
-}
+//void MVertexBuffer::Update(void* InData, uint32 InNum)
+//{
+//    if (VertexNum != InNum)
+//    {
+//        CreateBuffer(VertexSize, InNum, InData);
+//    }
+//    else
+//    {
+//        Update(InData);
+//    }
+//}
 
 #ifdef PHYSX_CUDA
 void MVertexBuffer::UpdateUsingCUDA(PxDeformableSurface* DeformableSurface, uint32 VertexNum)

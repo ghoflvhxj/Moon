@@ -267,7 +267,7 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
         }
         else
         {
-            UINT VertexNum = VertexBuffer->getVertexCount();
+            UINT VertexNum = VertexBuffer->getVertexNum();
             UINT InstanceNum = PrimitiveData.InstanceNum;
             g_pGraphicDevice->getContext()->DrawInstanced(VertexNum, InstanceNum, 0, 0);
         }
@@ -280,7 +280,7 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
         }
         else
         {
-            g_pGraphicDevice->getContext()->Draw(VertexBuffer->getVertexCount(), 0);
+            g_pGraphicDevice->getContext()->Draw(VertexBuffer->getVertexNum(), 0);
         }
     }
 
