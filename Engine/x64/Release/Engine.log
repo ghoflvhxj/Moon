@@ -1,5 +1,0 @@
-﻿D:\Git\Moon\Engine\VSCommon.hlsli(21,25-33): error X4502: invalid vs_2_0 output semantic 'NORMAL0'
-D:\Git\Moon\Engine\VSCommon.hlsli(22,25-33): error X4502: invalid vs_2_0 output semantic 'NORMAL1'
-D:\Git\Moon\Engine\VSCommon.hlsli(23,25-33): error X4502: invalid vs_2_0 output semantic 'NORMAL2'
-  
-  compilation failed; no code produced
