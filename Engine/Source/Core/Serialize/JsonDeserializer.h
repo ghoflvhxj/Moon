@@ -16,6 +16,7 @@ DeserializeCustomType   - 커스텀 타입을 Json으로 부터 읽어오는 함
 #include "Include.h"
 
 #include "Core/FileSystem.h"
+#include "Utility/PerformanceTimer.h"
 
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
@@ -56,17 +57,22 @@ public:
         FILE* fp = nullptr;
         _wfopen_s(&fp, Path.c_str(), TEXT("rb"));
 
-        char readBuffer[2048];
+        char readBuffer[65536];
         rapidjson::FileReadStream frs(fp, readBuffer, sizeof(readBuffer));
         Doc.ParseStream(frs);
 
         fclose(fp);
+        
+        std::wstring Msg = Path.wstring() + TEXT(" 읽기");
+        PerformanceTimer Pt(Msg);
 
         const FTypeDesc* Current = OutObject.GetTypeDesc();
         while (Current)
         {
             if (Doc.HasMember(Current->Name))
             {
+                //std::wstring Msg2 = StringToWString(Current->Name) + TEXT(" 읽기");
+                //PerformanceTimer Pt2(Msg2);
                 PatchStruct(Current, &OutObject, Doc.FindMember(Current->Name)->value);
             }
             

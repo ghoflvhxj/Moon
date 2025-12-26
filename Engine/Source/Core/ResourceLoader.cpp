@@ -18,8 +18,8 @@ std::shared_ptr<MAsset> MResourceLoader::TryLoad(const std::wstring& FilePath)
 		return LoadedResources[FilePath];
 	}
 
-    std::wstring Msg = DisplayName + TEXT(" Asset Loading : ") + FilePath + TEXT("\r\n");
-    LOG(Msg);
+    //std::wstring Msg = DisplayName + TEXT(" Asset Loading : ") + FilePath + TEXT("\r\n");
+    //LOG(Msg);
 
 	if (std::shared_ptr<MAsset> NewResource = LoadAsset(FilePath))
 	{

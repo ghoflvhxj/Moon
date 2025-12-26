@@ -1,7 +1,7 @@
 ﻿#include "Include.h"
 #include "SphereComponent.h"
 
-using namespace physx;
+//using namespace physx;
 
 SphereComponent::SphereComponent()
 	: Radius{ 1.f }

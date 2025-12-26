@@ -67,8 +67,8 @@ void MJsonDeserializer::PatchVector(FVectorPropertyDesc* InContainerPropDesc, ra
     // 벡터는 객체 형태로 저장되있음. 
     // 값        -> "MyVector" : { "0" : 1, ... }
     // 오브젝트  -> "MyVector" : { "0" : {}, ... }
-    std::wstring Str = TEXT("컨테이너 ") + StringToWString(InContainerPropDesc->Name.data()) + TEXT(" 을(를) 읽는 중...\r\n");
-    LOG(Str);
+    //std::wstring Str = TEXT("컨테이너 ") + StringToWString(InContainerPropDesc->Name.data()) + TEXT(" 을(를) 읽는 중...\r\n");
+    //LOG(Str);
 
     uint32 Num = static_cast<uint32>(InJsonValue.MemberCount());
 
