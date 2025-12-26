@@ -8,6 +8,7 @@ struct FVectorPropertyDesc : public FPropertyDesc, public FContainerPropertyInte
     virtual void* Get(const void* InObject, const size_t InIndex) = 0;
     virtual void Set(const void* InObject, const size_t InIndex, void* InData) = 0;
     virtual void PushBack(const void* InObject, void*& InData) = 0;
+    virtual void Reserve(const void* InObject, const size_t InCapacity) = 0;
 };
 
 template <class OwnerType, class ElemType, class F >
@@ -57,6 +58,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             auto& SrcVector = GetVector(InSrcObject);
             auto& DstVecotr = GetVector(InDstObject);
 
+            DstVecotr.clear();
             DstVecotr.assign(SrcVector.begin(), SrcVector.end());
         }
 
@@ -107,6 +109,12 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
 
         // --------------------------------------------------------------------------------------------
         // FVectorProperty
+
+        virtual void Reserve(const void* InObject, size_t InCapacity)
+        {
+            GetVector(InObject).reserve(InCapacity);
+        }
+
         virtual void* Get(const void* InObject, const size_t InIndex) override
         {
             auto& Vector = GetVector(InObject);

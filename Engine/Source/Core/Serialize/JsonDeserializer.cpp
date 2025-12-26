@@ -75,6 +75,7 @@ void MJsonDeserializer::PatchVector(FVectorPropertyDesc* InContainerPropDesc, ra
     if (InContainerPropDesc->GetNum(InObject) > 0)
     {
         InContainerPropDesc->Clear(InObject);
+        InContainerPropDesc->Reserve(InObject, Num);
     }
 
     for (auto Iter = InJsonValue.MemberBegin(); Iter != InJsonValue.MemberEnd(); ++Iter)
