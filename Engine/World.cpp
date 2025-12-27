@@ -295,8 +295,8 @@ bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& 
 
     // 스크린 -> NDC
     // TODO. 뷰포트를 가져와서 크기를 얻어내야 함.
-    UINT Width = g_pSetting->getResolutionWidth<UINT>();
-    UINT Height = g_pSetting->getResolutionHeight<UINT>();
+    UINT Width = GetEngine()->GetWorldBoundedWindow(this)->GetWidth<UINT>();
+    UINT Height = GetEngine()->GetWorldBoundedWindow(this)->GetHeight<UINT>();
     Vec3 NearNdc = {}, FarNdc = {};
     NearNdc.x = FarNdc.x = MousePos.x / (Width / 2.f) - 1.f;
     NearNdc.y = FarNdc.y = MousePos.y / -(Height / 2.f) + 1.f;
