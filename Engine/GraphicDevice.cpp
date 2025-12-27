@@ -777,11 +777,11 @@ void GraphicDevice::BuildMeshBuffers(const std::wstring& InKey, const std::vecto
 
 void GraphicDevice::BuildMeshBuffersFromComponent(int32 InPID, const std::shared_ptr<MMesh>& InMesh)
 {
-    BuildMeshSharedBuffers(InPID, InMesh);
+    BuildMeshSharedBuffers(InMesh);
     BuildMeshPrivateBuffers(InPID, InMesh);
 }
 
-void GraphicDevice::BuildMeshSharedBuffers(int32 InPID, const std::shared_ptr<MMesh>& InMesh)
+void GraphicDevice::BuildMeshSharedBuffers(const std::shared_ptr<MMesh>& InMesh)
 {
     if (InMesh == nullptr)
     {
@@ -848,6 +848,10 @@ void GraphicDevice::MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData
     uint32 IndexSize = CastValue<uint32>(sizeof(uint32));
     uint32 IndexNum = GetSize(InMeshData.Indices);
     OutBuffers.IndexBuffer = IndexNum > 0 ? std::make_shared<MIndexBuffer>(IndexSize, IndexNum, InMeshData.Indices.data()) : nullptr;
+
+    uint32 InstanceSize = static_cast<uint32>(sizeof(FVertex_Instance));
+    FVertex_Instance Temp = {};
+    OutBuffers.InstanceBuffer = std::make_shared<MVertexBuffer>(InstanceSize, 1, &Temp, bInDynamic);
 }
 
 GraphicDevice::Exception::Exception(const int line, const char *file, const HRESULT hr)

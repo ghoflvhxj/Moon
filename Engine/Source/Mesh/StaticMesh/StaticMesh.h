@@ -77,6 +77,12 @@ private:
     std::shared_ptr<MBoundingBox> _pBoundingBox;
 
 public:
+    bool IsInstanceable() const { return bInstanceable; }
+protected:
+    // 인스턴싱 지원 여부. 여러 번 그리지 않고 한번에 그리는 기능
+    bool bInstanceable = false;
+
+public:
     virtual void Test() {}
 
 
@@ -86,6 +92,7 @@ public:
         PROPERTY(Materials),
         PROPERTY(UsedMaterialIndices),
         PROPERTY(ClothDatas),
+        PROPERTY(bInstanceable)
     )
 };
 

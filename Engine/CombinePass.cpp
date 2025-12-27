@@ -67,13 +67,13 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
 {
     Begin();
 
-    auto& PointLightPrimitives = g_pRenderer->GetPrimitiveComponents(EPrimitiveType::PointLight);
-    auto& MeshPrimitives = g_pRenderer->GetPrimitiveComponents(EPrimitiveType::Mesh);
+    auto& PointLightPrimitives = g_pRenderer->GetPrimitiveDatas(EPrimitiveType::PointLight);
+    auto& MeshPrimitives = g_pRenderer->GetPrimitiveDatas(EPrimitiveType::Mesh);
     uint32 PointLightNum = GetSize(PointLightPrimitives);
 
     for (uint32 PointLightIndex = 0; PointLightIndex < PointLightNum; ++PointLightIndex)
     {
-        const FPrimitiveData& PrimitiveData = PointLightPrimitives[PointLightIndex];
+        const FPrimitiveData& PrimitiveData = *PointLightPrimitives[PointLightIndex];
         std::shared_ptr<MLightComponent>& LightComponent = PrimitiveData.GetPrimitiveComponent<MLightComponent>();
 
         // 콘스탄트 버퍼 업데이트
@@ -94,10 +94,10 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
         XMStoreFloat4x4(&PointLightViewProj[5], XMMatrixLookAtLH(LoadedPosition, LoadedPosition + XMVectorSet(0.f, 0.f, -1.f, 0.f), Up) * Proj);
         _geometryShader->SetValue(TEXT("PointLightViewProj"), PointLightViewProj);
 
-        for (const FPrimitiveData& MeshPrimitiveData : MeshPrimitives)
+        for (const FPrimitiveData* MeshPrimitiveData : MeshPrimitives)
         {
-            UpdateObjectConstantBuffer(MeshPrimitiveData);
-            DrawPrimitive(MeshPrimitiveData);
+            UpdateObjectConstantBuffer(*MeshPrimitiveData);
+            DrawPrimitive(*MeshPrimitiveData);
         }
     }
 

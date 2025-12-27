@@ -47,25 +47,31 @@ struct FWindowRenderData
     ComPtr<ID3D11DepthStencilView> DepthStencilView;
 };
 
+/******************************************
+하나의 메시 렌더링에 사용되는 버퍼를 저장함
+******************************************/
 struct FBuffers
 {
     std::shared_ptr<MVertexBuffer> VertexBuffer = nullptr;
     std::shared_ptr<MIndexBuffer> IndexBuffer = nullptr;
+    std::shared_ptr<MVertexBuffer> InstanceBuffer = nullptr;
 };
 
+/******************************************
+메시 렌더링에 사용되는 버퍼를 저장함
+******************************************/
 struct FBufferContainer
 {
     void AddBuffers(uint32 InIndex, const FBuffers& InBuffers)
     {
-        //VertexBuffers.push_back(InBuffers.VertexBuffer);
-        //IndexBuffers.push_back(InBuffers.IndexBuffer);
-
         VertexBuffers[InIndex] = InBuffers.VertexBuffer;
         IndexBuffers[InIndex] = InBuffers.IndexBuffer;
+        InstanceBuffers[InIndex] = InBuffers.InstanceBuffer;
     }
 
     std::map<uint32, std::shared_ptr<MVertexBuffer>> VertexBuffers;
     std::map<uint32, std::shared_ptr<MIndexBuffer>> IndexBuffers;
+    std::map<uint32, std::shared_ptr<MVertexBuffer>> InstanceBuffers;
 };
 
 class ENGINE_DLL GraphicDevice : public MModule
@@ -189,7 +195,8 @@ private:
 	D3D11_VIEWPORT _viewport;
 
 /***************************************** 
-    렌더러 쪽 버퍼관련 기능들 가져오는 중 
+버퍼를 관리하는 기능들
+생성, 삭제(작업해야함), 얻기 기능이 있음
 ******************************************/
 public:
     void GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<MMesh>& InMesh);
@@ -198,7 +205,9 @@ public:
     void BuildMeshBuffer(const std::wstring& InKey, const FMeshData& InMeshData, uint32 InIndex, bool bInDynamic = false);
     void BuildMeshBuffers(const std::wstring& InKey, const std::vector<FMeshData>& InMeshDatas);
     void BuildMeshBuffersFromComponent(int32 InPID, const std::shared_ptr<MMesh>& InMesh);
-    void BuildMeshSharedBuffers(int32 InPID, const std::shared_ptr<MMesh>& InMesh);
+    // 한 메시를 여러번 그릴 때 공유할 버퍼를 만듬
+    void BuildMeshSharedBuffers(const std::shared_ptr<MMesh>& InMesh);
+    // 메시컴포넌트의 전용 버퍼를 만듬 ex). Cloth시뮬
     void BuildMeshPrivateBuffers(int32 InPID, const std::shared_ptr<MMesh>& InMesh);
     void MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData, bool bInDynamic = false);
 protected:

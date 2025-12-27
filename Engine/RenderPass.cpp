@@ -217,6 +217,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
         }
 
         VS->SetValue(TEXT("animated"), animated);
+        VS->SetValue(TEXT("bInstance"), PrimitiveData.InstanceBuffer.expired() == false ? TRUE : FALSE);
     }
 
 	// -------------------------------------------------------------------------------------------------------------------------
@@ -258,17 +259,16 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
 
     if (std::shared_ptr<MVertexBuffer> InstanceBuffer = PrimitiveData.InstanceBuffer.lock())
     {
+        UINT InstanceNum = static_cast<UINT>(InstanceBuffer->getVertexNum());
+
         if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
         {
-            UINT IndexNum = IndexBuffer->getIndexCount();
-            UINT InstanceNum = PrimitiveData.InstanceNum;
+            UINT IndexNum = static_cast<UINT>(IndexBuffer->getIndexCount());
             g_pGraphicDevice->getContext()->DrawIndexedInstanced(IndexNum, InstanceNum, 0, 0, 0);
-            
         }
         else
         {
-            UINT VertexNum = VertexBuffer->getVertexNum();
-            UINT InstanceNum = PrimitiveData.InstanceNum;
+            UINT VertexNum = static_cast<UINT>(VertexBuffer->getVertexNum());
             g_pGraphicDevice->getContext()->DrawInstanced(VertexNum, InstanceNum, 0, 0);
         }
     }

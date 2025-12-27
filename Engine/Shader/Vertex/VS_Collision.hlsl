@@ -9,14 +9,19 @@ VertexOut_Simple main(VertexIn vIn, InstanceIn iIn)
 {
     VertexOut_Simple VertexOut = (VertexOut_Simple)0;
 
-    //matrix worldViewProj = mul(mul(worldMatrix, viewMatrix), projectionMatrix);
-    //VertexOut.pos = mul(float4(vIn.pos.xyz, 1.f), worldViewProj);
-    //VertexOut.color = vIn.color;
-
-    row_major matrix WorldMat = float4x4(iIn.WorldMatrixRow0, iIn.WorldMatrixRow1, iIn.WorldMatrixRow2, iIn.WorldMatrixRow3);
-    matrix worldViewProj = mul(mul(WorldMat, viewMatrix), projectionMatrix);
-    VertexOut.pos = mul(float4(vIn.pos.xyz, 1.f), worldViewProj);
-    VertexOut.color = vIn.color;
+    if (bInstance)
+    {
+        row_major matrix WorldMat = float4x4(iIn.WorldMatrixRow0, iIn.WorldMatrixRow1, iIn.WorldMatrixRow2, iIn.WorldMatrixRow3);
+        matrix worldViewProj = mul(mul(WorldMat, viewMatrix), projectionMatrix);
+        VertexOut.pos = mul(float4(vIn.pos.xyz, 1.f), worldViewProj);
+        VertexOut.color = vIn.color;
+    }
+    else
+    {
+        matrix worldViewProj = mul(mul(worldMatrix, viewMatrix), projectionMatrix);
+        VertexOut.pos = mul(float4(vIn.pos.xyz, 1.f), worldViewProj);
+        VertexOut.color = vIn.color;
+    }
 
     return VertexOut;
 }

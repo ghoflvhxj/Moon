@@ -72,16 +72,9 @@ public:
     void DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale = VEC3ONE);
     void DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType);
 protected:
-    std::shared_ptr<MMaterial> SphereMaterial = nullptr;
-    std::vector<FInstancingData> SphereRenderDatas;
-    std::vector<FInstancingData> CoordinateRenderDatas;
     FMeshData SphereMesh = {};
     FMeshData CoordinateMesh = {};
-    FMeshData CapsuleMeshData = {};
     std::map<std::tuple<int, int>, FMeshData> CapsuleMeshDatas;
-public:
-    uint32 SpherePID = 0;
-    uint32 CoordinatePID = 0;
 
 public:
     //uint32 DrawVertices(const FMeshData& InMeshData);
@@ -102,23 +95,12 @@ protected:
 public:
 	void AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent);
     void RemovePrimitiveComponent(MPrimitiveComponent* InComponent);
-protected:
-    std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatas;
 
-protected:
-    // 모든 PrimitiveComponent
-	std::map<uint32, std::weak_ptr<MPrimitiveComponent>> PrimitiveComponents;
-
-public:
-    // TODO. 인스턴싱 임시 작업으로 제거해야 됨
-    std::shared_ptr<MVertexBuffer> InstanceBuffer;
-    std::shared_ptr<MVertexBuffer> InstanceBuffer2;
+    void UpdatePrimitiveData(MPrimitiveComponent* InComponent);
 
 public:
     // 현재 그리는 씬에서 PrimitiveData를 얻어옴
-    const std::vector<FPrimitiveData>& GetPrimitiveComponents(EPrimitiveType InPrimitiveType);
-    // PrimitiveType - PrimitiveData 쌍을 저장함
-    std::map<EPrimitiveType, std::vector<FPrimitiveData>> PrimitiveDatasPerType;
+    const std::vector<const FPrimitiveData*>& GetPrimitiveDatas(EPrimitiveType InPrimitiveType);
 
 private:
     void FrustumCulling(std::unique_ptr<MScene>& InScene);
@@ -190,34 +172,34 @@ public:
 protected:
     std::weak_ptr<MWorld> World;
 
+/**********************************
+HLSL ConstantBuffer 업데이트
+**********************************/
 public:
     void UpdateGlobalConstantBuffer();
     void UpdateTickConstantBuffer();
 
-    /**********************************
-        HLSL ConstantBuffer 업데이트
-    **********************************/
-public:
-    void MakeSpherePrimitives();
-    void MakeCoordinatePrimitives();
 
     /* 렌더링에 필요한 PrimitiveData를 관리함 */
 public:
     // 렌더할 PrimitiveComponent 추가하는 함수.렌더 패스에 들어감.
     void AddPrimitiveComponent(MPrimitiveComponent* InPrimitiveComponent, std::shared_ptr<MMesh>& InMesh);
-    // PrimitiveData를 Component로부터 추출해 오는 함수. 버텍스 버퍼도 만듬.
-    void GetPrimitiveDataFromComponent(MPrimitiveComponent* InComponent, std::shared_ptr<MMesh>& InMesh);
+    //// PrimitiveData를 Component로부터 추출해 오는 함수. 버텍스 버퍼도 만듬.
+    //void GetPrimitiveDataFromComponent(MPrimitiveComponent* InComponent, std::shared_ptr<MMesh>& InMesh);
     // PrimitveData에 버퍼를 설정하는 함수
     void UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh);
     void UpdatePrimtiveData(MPrimitiveComponent* InComponent);
 public:
-    void AddPrimitiveDatas(uint32 InPID, std::vector<FPrimitiveData> InPrimitiveDatas);
+    uint32 GetPrimitiveDataNum(uint32 InPID) const { return PrimitiveDatas.find(InPID) != PrimitiveDatas.end() ? GetSize(PrimitiveDatas.at(InPID)) : 0; }
+    void AddPrimitiveDatas(uint32 InPID, const std::vector<FPrimitiveData>& InPrimitiveDatas);
     void ClearPrimtiveDatas(uint32 InPID);
-    const std::vector<FPrimitiveData>& GetPrimitiveDatas(uint32 InPrimitiveID);
     const std::map<uint32, std::vector<FPrimitiveData>>& GetPrimitiveDatas() const;
+    const std::vector<FPrimitiveData>& GetPrimitiveDatas(uint32 InPrimitiveID);
+    const std::vector<const FPrimitiveData*>& GetPrimitiveDatas(EPrimitiveType InPrimitiveType) { return PrimitiveDatasPerType[InPrimitiveType]; }
 protected:
     // PrimitiveComponent로 부터 얻어낸 PrimitiveID, PrimitiveData 쌍을 저장함
     std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatas;
+    std::map<EPrimitiveType, std::vector<const FPrimitiveData*>> PrimitiveDatasPerType;
 
 public:
     void AddRenderablePrimitiveDatas(const std::vector<FPrimitiveData>& InPrimitiveDatas);
@@ -227,16 +209,9 @@ protected:
     std::vector<FPrimitiveData> RenderablePrimitiveData;
 
 public:
-    const std::vector<FPrimitiveData>& GetPrimitiveComponents(EPrimitiveType InPrimitiveType) { return PrimitiveDatasPerType[InPrimitiveType]; }
-protected:
-    // 모든 PrimitiveComponent
-    //std::map<uint32, std::shared_ptr<MPrimitiveComponent>> PrimitiveComponents;
-    // PrimitiveType - PrimitiveData 쌍을 저장함
-    std::map<EPrimitiveType, std::vector<FPrimitiveData>> PrimitiveDatasPerType;
+
 
 public:
-    void DrawSphere(float InRadius, const Vec3& InTranslation, const DirectX::XMVECTORF32& InColor = EngineColors::White);
-    void DrawCoordinate(const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale = VEC3ONE);
     void DrawPrimitive(const FPrimitiveData& InPrimitiveData);
 public:
     const std::vector<FPrimitiveData>& GetTemporalPrimitiveDatas() const;
@@ -259,6 +234,10 @@ protected:
     std::vector<float> CascadeDistances;
     std::vector<Vec4> CascadeLightPositions;
     std::vector<Mat4> CascadeLightMatrices;
+
+public:
+    // 인스턴싱 데이터
+    std::map<MVertexBuffer*, std::vector<FVertex_Instance>> InstanceDatas;
 
 public:
     RENDERER_OPTION(DrawCollision);

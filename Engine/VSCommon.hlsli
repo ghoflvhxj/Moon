@@ -54,6 +54,7 @@ cbuffer VS_CBuffer_PerObject : register(b2)
 	row_major matrix keyFrameMatrices[199];
 	bool animated;
     bool bOrtho;
+    bool bInstance;
 };
 
 int getCascadeIndex(float3 pos)

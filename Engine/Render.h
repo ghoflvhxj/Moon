@@ -128,8 +128,5 @@ struct FPrimitiveData
 	// 렌더러가 채워줘야 하는 데이터
 	std::weak_ptr<MVertexBuffer> VertexBuffer;
 	std::weak_ptr<MIndexBuffer> IndexBuffer;
-
-    // 인스턴싱 용
     std::weak_ptr<MVertexBuffer> InstanceBuffer;
-    uint32 InstanceNum = 0;
 };

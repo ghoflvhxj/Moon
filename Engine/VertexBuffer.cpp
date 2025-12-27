@@ -84,17 +84,18 @@ void MVertexBuffer::Update(void* InData)
     g_pGraphicDevice->getContext()->Unmap(_pBuffer, 0u);
 }
 
-//void MVertexBuffer::Update(void* InData, uint32 InNum)
-//{
-//    if (VertexNum != InNum)
-//    {
-//        CreateBuffer(VertexSize, InNum, InData);
-//    }
-//    else
-//    {
-//        Update(InData);
-//    }
-//}
+void MVertexBuffer::Update(void* InData, uint32 InNum)
+{
+    if (VertexNum != InNum)
+    {
+        VertexNum = InNum;
+        CreateBuffer(VertexSize * InNum, InData, true);
+    }
+    else
+    {
+        Update(InData);
+    }
+}
 
 #ifdef PHYSX_CUDA
 void MVertexBuffer::UpdateUsingCUDA(PxDeformableSurface* DeformableSurface, uint32 VertexNum)

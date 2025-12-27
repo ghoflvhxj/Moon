@@ -33,7 +33,7 @@ private:
 
 public:
     void Update(void* InData);
-    //void Update(void* InData, uint32 InNum);
+    void Update(void* InData, uint32 InNum);
 
 #ifdef PHYSX_CUDA
     void UpdateUsingCUDA(physx::PxDeformableSurface* DeformableSurface, uint32 VertexNum);
