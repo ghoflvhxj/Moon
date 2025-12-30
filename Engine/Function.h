@@ -338,8 +338,6 @@ inline void DecomposeTransform(const Mat4& InMatrix, Vec3& OutScale, Vec3& OutRo
     XMVECTOR XMScale, XMRotQuat, XMTrans;
     XMMatrixDecompose(&XMScale, &XMRotQuat, &XMTrans, XMLoadFloat4x4(&InMatrix));
 
-    XMTrans /= XMScale;
-
     Vec4 RotQuat = {};
     XMStoreFloat4(&RotQuat, XMRotQuat);
 

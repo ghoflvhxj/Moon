@@ -18,8 +18,6 @@ class MRenderer;
 class MPhysicsEngine;
 class WindowManager;
 
-#undef CreateWindow
-
 ENGINE_DLL std::shared_ptr<WindowManager>& GetWindowManager();
 
 ENGINE_DLL FDelegate<void>& GetPostLoopDelegate();
@@ -43,7 +41,7 @@ public:
     template <class T>
     void CreateWindowAndWorld(const std::wstring& InTitle)
     {
-        std::shared_ptr<MWindow> NewWindow = GetWindowManager()->CreateWindow<T>(InTitle, 300, 300, g_hWnd, TEXT("ShootingGame"));
+        std::shared_ptr<MWindow> NewWindow = GetWindowManager()->AddWindow<T>(InTitle, 300, 300, g_hWnd, TEXT("ShootingGame"));
         NewWindow->Initialize();
 
         std::shared_ptr<MWorld> NewWorld = std::make_shared<MWorld>();

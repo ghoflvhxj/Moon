@@ -853,12 +853,11 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
 {
     //InScene->Begin();
 
-    //TotalPrimitiveNum = GetSize(PrimitiveComponents);
     FrustumCulling(InScene);
 
     const auto& RenderablePrimitiveDatas = InScene->GetRenderablePrimitiveData();
 
-    uint32 RenderPassNum = EnumToIndex(ERenderPass::End);
+    uint32 RenderPassNum = GetSize(RenderPasses);
     for (uint32 PassIndex = 0; PassIndex < RenderPassNum; ++PassIndex)
     {
         if (std::shared_ptr<MRenderPass>& CurrentRenderPass = RenderPasses[PassIndex])
@@ -944,6 +943,7 @@ void MRenderer::FrustumCulling(std::unique_ptr<MScene>& InScene)
 
     }
 
+    TotalPrimitiveNum = 0;
     for (const auto& [Id, PrimitiveDatas] : InScene->GetPrimitiveDatas())
     {
         if (PrimitiveDatas.empty())
@@ -1019,8 +1019,6 @@ void MScene::Begin()
 void MScene::End()
 {
     CachedTemporalPrimitiveDatas = std::move(TemporalPrimitiveDatas);
-
-    PrimitiveDatasPerType.clear();
     InstanceDatas.clear();
 }
 
@@ -1089,13 +1087,6 @@ void MScene::UpdateTickConstantBuffer()
     g_pGraphicDevice->getContext()->PSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
     g_pGraphicDevice->getContext()->VSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
     g_pGraphicDevice->getContext()->GSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
-}
-
-void MScene::AddPrimitiveComponent(MPrimitiveComponent* InPrimitiveComponent, std::shared_ptr<MMesh>& InMesh)
-{
-    assert(InPrimitiveComponent);
-
-    uint32 PrimitiveID = InPrimitiveComponent->GetPrimitiveID();
 }
 
 void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh)

@@ -137,9 +137,9 @@ void MCamera::updateProjectionMatrix()
 {
 	XMMATRIX matrix = XMMatrixIdentity();
 
-    float Width = g_pSetting->getResolutionWidth<float>();
-    float Height = g_pSetting->getResolutionHeight<float>();
-    float AspectRatio = g_pSetting->getAspectRatio();
+    float Width = 0.f;
+    float Height = 0.f;
+    float AspectRatio = 0.f;
     if (auto& World = GetOwner()->CastToShared<MWorld>())
     {
         auto& WorldInfo = GetEngine()->GetWorldInfo(World->GetID());

@@ -417,9 +417,10 @@ bool MWorld::IsMouseInViewport() const
 
 void MWorld::ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const
 {
+    auto Window = GetEngine()->GetWorldBoundedWindow(this);
     // 스크린 -> NDC
-    UINT Width = g_pSetting->getResolutionWidth<UINT>();
-    UINT Height = g_pSetting->getResolutionHeight<UINT>();
+    float Width = Window->GetWidth<float>();
+    float Height = Window->GetHeight<float>();
     
     Vec3 NDC = {
         InPos.x / (Width / 2.f) - 1.f,
@@ -435,8 +436,10 @@ void MWorld::ScreenToWorld(const Vec2& InPos, float Depth, Vec3& OutPos) const
 
 void MWorld::WorldToScreen(const Vec3& InPos, Vec2& OutPos) const
 {
-    float Width = g_pSetting->getResolutionWidth<float>();
-    float Height = g_pSetting->getResolutionHeight<float>();
+    auto Window = GetEngine()->GetWorldBoundedWindow(this);
+    // 스크린 -> NDC
+    float Width = Window->GetWidth<float>();
+    float Height = Window->GetHeight<float>();
 
     XMVECTOR ViewPos = XMVector3TransformCoord(XMLoadFloat3(&InPos), XMLoadFloat4x4(&getMainCamera()->getViewMatrix()));
     XMVECTOR ProjectPos = XMVector3TransformCoord(ViewPos, XMLoadFloat4x4(&getMainCamera()->getProjectionMatrix()));

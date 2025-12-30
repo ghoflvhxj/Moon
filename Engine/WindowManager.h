@@ -2,7 +2,6 @@
 
 #include "Manager.h"
 
-#undef CreateWindow
 #undef FindWindow
 
 class MWindow;
@@ -21,7 +20,7 @@ public:
 
 public:		
     template <class T>
-    const std::shared_ptr<T> CreateWindow(const std::wstring& InTitle, const int width, const int height, LPCWSTR className = DEFAULT_CLASSNAME)
+    const std::shared_ptr<T> AddWindow(const std::wstring& InTitle, const int width, const int height, LPCWSTR className = DEFAULT_CLASSNAME)
     {
         if (T::GetTypeDescStatic()->IsA<MWindow>() == false)
         {
@@ -34,7 +33,7 @@ public:
     }
 
     template <class T>
-    const std::shared_ptr<T> CreateWindow(const std::wstring& InTitle, const int width, const int height, HWND Parent, LPCWSTR className = DEFAULT_CLASSNAME)
+    const std::shared_ptr<T> AddWindow(const std::wstring& InTitle, const int width, const int height, HWND Parent, LPCWSTR className = DEFAULT_CLASSNAME)
     {
         if (T::GetTypeDescStatic()->IsA<MWindow>() == false)
         {

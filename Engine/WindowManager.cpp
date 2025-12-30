@@ -6,7 +6,6 @@
 #include "MapUtility.h"
 
 #undef FindWindow
-#undef CreateWindow
 
 WindowManager::WindowManager(const HINSTANCE hInstance)
 	: Manager<WindowManager>()

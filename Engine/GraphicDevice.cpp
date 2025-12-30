@@ -339,14 +339,13 @@ void GraphicDevice::SetToDefault()
     // 쉐이더 리소스 뷰 해제
     uint32 ResorceViewNum = D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
     std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
-    g_pGraphicDevice->getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
+    getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
 
     // 렌더 타겟
     uint32 RenderTargetNum = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
     std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(RenderTargetNum, nullptr);
     restoreRenderTargetViewArray[0] = WindowRenderData.RenderTargetViews[BufferIndex].Get();
-    
-    g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), WindowRenderData.DepthStencilView.Get());
+    getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), WindowRenderData.DepthStencilView.Get());
 
     D3D11_VIEWPORT Viewport;
     Viewport.Width = static_cast<FLOAT>(Width);
@@ -355,7 +354,15 @@ void GraphicDevice::SetToDefault()
     Viewport.TopLeftY = 0.f;
     Viewport.MinDepth = 0.f;
     Viewport.MaxDepth = 1.f;
-    g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
+    getContext()->RSSetViewports(1, &Viewport);
+
+    UINT RectNum = 1;
+    D3D11_RECT Rect = {};
+    Rect.left = 0;
+    Rect.top = 0;
+    Rect.right = g_pSetting->getResolutionWidth<LONG>();
+    Rect.bottom = g_pSetting->getResolutionHeight<LONG>();
+    getContext()->RSSetScissorRects(RectNum, &Rect);
 }
 
 void GraphicDevice::Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight)
@@ -396,7 +403,7 @@ void GraphicDevice::Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight)
     Viewport.TopLeftY = 0.f;
     Viewport.MinDepth = 0.f;
     Viewport.MaxDepth = 1.f;
-    g_pGraphicDevice->getContext()->RSSetViewports(1, &Viewport);
+    getContext()->RSSetViewports(1, &Viewport);
 }
 
 void GraphicDevice::End()
@@ -454,14 +461,6 @@ bool GraphicDevice::buildRasterizerState()
             RasterizeStates.push_back(pRasterizerState);
 		}
 	}
-
-    UINT RectNum = 1;
-    D3D11_RECT Rect = {};
-    Rect.left = 0;
-    Rect.top = 0;
-    Rect.right = g_pSetting->getResolutionWidth<LONG>();
-    Rect.bottom = g_pSetting->getResolutionHeight<LONG>();
-    getContext()->RSSetScissorRects(RectNum, &Rect);
 
 	return true;
 }
@@ -631,8 +630,8 @@ bool GraphicDevice::buildSamplerState()
 	SamplerDesc.BorderColor[3] = 1.f;
 	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	SamplerDesc.MaxAnisotropy = 1u;
-	SamplerDesc.MinLOD = -FLT_MAX;
-	SamplerDesc.MaxLOD = FLT_MAX;
+	SamplerDesc.MinLOD = 0.f;
+	SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	SamplerDesc.MipLODBias = 0.f;
 
 	// Point
@@ -640,7 +639,7 @@ bool GraphicDevice::buildSamplerState()
 	CreateSamplerLambda(SamplerDesc);
 
 	// Linear
-	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	CreateSamplerLambda(SamplerDesc);
 
 	// Anisotropic
