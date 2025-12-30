@@ -36,12 +36,6 @@ void MLightComponent::Update(const Time deltaTime)
     Super::Update(deltaTime);
     setRenderMode(ERenderMode::Orthogonal);
 
-    if (auto& World = getOwningActor()->GetOwner()->CastToShared<MWorld>())
-    {
-        auto& WorldInfo = GetEngine()->GetWorldInfo(World->GetID());
-        setScale(WorldInfo.DstWindow->GetWidth<float>(), WorldInfo.DstWindow->GetHeight<float>(), 1.f);
-    }
-
     Direction = GetForward();
 }
 
@@ -55,6 +49,12 @@ const bool MLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primit
 	primitiveDataList.emplace_back(primitiveData);
 
 	return true;
+}
+
+void MLightComponent::UpdateSize(float InWidth, float InHeight)
+{
+    setScale(InWidth, InHeight, 1.f);
+    Update(0.f);
 }
 
 Mat4& MLightComponent::getWorldMatrix()

@@ -728,14 +728,14 @@ void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
             std::shared_ptr<MLightComponent> LightComp = PrimitiveData->GetPrimitiveComponent<MLightComponent>();
             assert(LightComp);
 
-            LightComp->Update(0.f);
+            LightComp->UpdateSize(NewScale.x, NewScale.y);
         }
         for (auto& PrimitiveData : GetScene(WorldID)->GetPrimitiveDatas(EPrimitiveType::PointLight))
         {
             std::shared_ptr<MLightComponent> LightComp = PrimitiveData->GetPrimitiveComponent<MLightComponent>();
             assert(LightComp);
 
-            LightComp->Update(0.f);
+            LightComp->UpdateSize(NewScale.x, NewScale.y);
         }
     });
 
@@ -996,6 +996,7 @@ MScene::MScene()
 void MScene::Begin()
 {
     RenderablePrimitiveData.clear();
+    PrimitiveDatasPerType.clear();
 
     // Draw함수마다 매번 할 필요는 없고, 패스가 시작되기 전에 해주면 될듯
     for (auto& [InstanceBuffer, BufferInstanceDatas] : InstanceDatas)

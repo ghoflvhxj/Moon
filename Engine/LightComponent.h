@@ -16,6 +16,9 @@ public:
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 
 public:
+    void UpdateSize(float InWidth, float InHeight);
+
+public:
     virtual Mat4& getWorldMatrix() override;
 protected:
     Mat4 LightWorldMatrix;
