@@ -529,11 +529,29 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
 
         switch (CastValue<ERenderTarget>(i))
         {
+        case ERenderTarget::Diffuse:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+        }
+        break;
         case ERenderTarget::Depth:
         {
             RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
             RenderTargetInfo.Type = ERenderTargetType::Depth;
         }
+        break;
+        case ERenderTarget::Normal:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+            RenderTargetInfo.Type = ERenderTargetType::Normal;
+        }
+        break;
+        case ERenderTarget::LightDiffuse:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+            RenderTargetInfo.Type = ERenderTargetType::Light;
+        }
+        break;
         case ERenderTarget::DirectionalShadowDepth:
         {
             RenderTargetInfo.bCube = false;
