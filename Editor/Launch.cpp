@@ -70,7 +70,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         GetEngine()->AddModule<MRenderer>();
         GetEngine()->AddModule<MEditor>();
 
-        auto& Window = pWindowManager->CreateWindow<MEditorMainWindow>(title, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>(), title);
+        auto& Window = pWindowManager->AddWindow<MEditorMainWindow>(title, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>(), title);
         EngineInit(hInstance, Window);
 
         GetMainWorld()->SetWorldType(EWorldType::Editor);
@@ -154,7 +154,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_SIZE:
         {
             std::cout << "WM_SIZE" << std::endl;
-            if (wParam && SIZE_MAXIMIZED)
+            if (wParam == SIZE_MAXIMIZED)
             {
                 if (Window)
                 {
