@@ -8,10 +8,10 @@ VertexOut main(VertexIn vIn, InstanceIn iIn)
     vOut.worldPos	= mul(float4(vIn.pos.xyz, 1.f), worldMatrix).xyz;
 	vOut.uv			= vIn.uv;
     vOut.Clip		= vOut.pos.zw;
+    
     vOut.normal = mul(float4(vIn.normal, 0.f), WorldView).xyz;
     vOut.tangent = mul(float4(vIn.tangent, 0.f), WorldView).xyz;
     vOut.binormal = mul(float4(vIn.binormal, 0.f), WorldView).xyz;
-    //vOut.shadowMapIndex = cascadeIndex;
 	
 	return vOut;
 }

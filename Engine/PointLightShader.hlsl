@@ -24,7 +24,7 @@ PixelOut_LightPass main(PixelIn pIn)
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
 
 	//float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
-    float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, ScreenToWorldMatrix).xyz;
+    float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
 
     float3 PointLightPos    = g_lightPosition.xyz;
     float3 deltaPosition    = PointLightPos - pixelWorldPosition.xyz;

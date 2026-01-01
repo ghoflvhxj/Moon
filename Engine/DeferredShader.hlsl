@@ -27,6 +27,11 @@ PixelOut_CombinePass main(PixelIn pIn)
         pOut.color = Outline;
     }
     
-    
+    /******************
+        디버깅 용
+    ******************/
+    //pOut.color = diffuse;
+    //pOut.color = DirectionalLight;
+
 	return pOut;
 }

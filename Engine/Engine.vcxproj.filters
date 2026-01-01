@@ -529,7 +529,6 @@
     <FxCompile Include="Bone.hlsl" />
     <FxCompile Include="Deferred.hlsl" />
     <FxCompile Include="DeferredShader.hlsl" />
-    <FxCompile Include="Light.hlsl" />
     <FxCompile Include="PixelShader.hlsl" />
     <FxCompile Include="PointLightShader.hlsl" />
     <FxCompile Include="ShadowDepth.hlsl" />

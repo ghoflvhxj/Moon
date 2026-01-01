@@ -14,24 +14,26 @@ PixelOut_LightPass main(PixelIn pIn)
 {
 	PixelOut_LightPass pOut = (PixelOut_LightPass)0;
 
-	float4 depth = g_Depth.Sample(g_Sampler, pIn.uv);
+	float depth = g_Depth.Sample(g_Sampler, pIn.uv).r;
 	float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);
     normal.xyz = UnpackNormal(normal.xyz);
 	normal.w = 0.f;
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
 
-    if (all(normal.xyz == float3(0.f, 0.f, 0.f)))
-    {
-        return pOut;
-    }
+    //if (all(normal.xyz == float3(0.f, 0.f, 0.f)))
+    //{
+    //    return pOut;
+    //}
+    
+    float3 PixelPosInCamera = PixelToView(pIn.uv, depth, g_inverseProjectiveMatrix).xyz;
+    float4 PixelPosInWorld = mul(float4(PixelPosInCamera, 1.f), g_inverseCameraViewMatrix);
     
     // 그림자 계산을 위해 CascadeIndex를 구함
     int CascadeIndex = 0;
-    float3 PixelPosInCameraView = PixelToView(pIn.uv, depth, g_inverseProjectiveMatrix).xyz;
     [unroll]
     for (int i = 1; i < 4; ++i)
     {
-        if (PixelPosInCameraView.z < getComp(cascadeDistance, i))
+        if (PixelPosInCamera.z < getComp(cascadeDistance, i))
         {
             CascadeIndex = i - 1;
             break;
@@ -39,11 +41,10 @@ PixelOut_LightPass main(PixelIn pIn)
     }
     
     // 그림자 팩터 얻기
-    float4 PixelPosInWorld = mul(float4(PixelPosInCameraView, 1.f), g_inverseCameraViewMatrix);
     float4 PixelPosInLightViewProj = mul(float4(PixelPosInWorld.xyz, 1.f), lightViewProjMatrix[CascadeIndex]);
     float ShadowFactor = PixelCascadeSahdow(CascadeIndex, PixelPosInLightViewProj);
 
-	float3 LightDirection = normalize(g_lightDirection.xyz);
+	float3 LightDirection = g_lightDirection.xyz;
 	float3 color = g_lightColor.xyz;
 	float intensity = g_lightColor.w;
     
@@ -52,8 +53,8 @@ PixelOut_LightPass main(PixelIn pIn)
     
 	//-------------------------------------------------------------------------------------------------
     // 난반사
-    float3 ambient = float3(0.1f, 0.1f, 0.1f);
-	float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
+    float3 ambient = float3(0.5f, 0.5f, 0.5f);
+	float3 normalInWorld = mul(normal, g_inverseCameraViewMatrix).xyz;
     
     float Dot = dot(normalInWorld, -LightDirection);
     float Bright = saturate(Dot);                       // 0 ~ 1
@@ -65,17 +66,17 @@ PixelOut_LightPass main(PixelIn pIn)
     if(T_RimLight.Sample(g_Sampler, pIn.uv).x > 0.f)
     {
         float Rim = 1.f - saturate(dot(PixelToCamera, normalInWorld));
-        Rim = pow(Rim, 2.f);
+        Rim = pow(Rim, 20.f);
         pOut.lightDiffuse.xyz += Rim;
     }
 
 	//-------------------------------------------------------------------------------------------------
     // 정반사
-    float3 ReflectDirection = normalize(reflect(LightDirection, normalInWorld.xyz));
+    float3 ReflectDirection = reflect(LightDirection, normalInWorld.xyz);
     float3 specularFactor = pow(saturate(dot(PixelToCamera, ReflectDirection)), 10.f);
     if (Bright > 0.f)
     {
-        pOut.lightSpecular = float4(specular.g * specularFactor * (1.f - ShadowFactor), 1.f);
+        pOut.lightSpecular = float4(specular.xyz * specularFactor * (1.f - ShadowFactor), 1.f);
     }
     
     //float3 specularFactor = saturate(dot(PixelToCamera, direction));
@@ -84,14 +85,18 @@ PixelOut_LightPass main(PixelIn pIn)
     /*
         디버깅용 코드
     */
+    //pOut.lightDiffuse.xyz = float3(1.f, 1.f, 1.f);
+    //pOut.lightDiffuse.xyz = normal.xyz;
+    //pOut.lightDiffuse.xyz = float3(depth.x, depth.x, depth.x);
+    //pOut.lightDiffuse.xyz = PixelPosInCamera.xyz;
     //pOut.lightDiffuse.xyz = PixelPosInWorld.xyz;
-    //pOut.lightDiffuse.xyz = PixelPosInCameraView.xyz;
     //pOut.lightDiffuse.xyz = PixelPosInLightViewProj.z;
+    //pOut.lightDiffuse.xyz = normalInWorld;
     //if (CascadeIndex == 0)
     //{
     //    pOut.lightDiffuse.x = 1.f;
     //}
-    //else if(CascadeIndex == 1)
+    //else if (CascadeIndex == 1)
     //{
     //    pOut.lightDiffuse.y = 1.f;
     //}

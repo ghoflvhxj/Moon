@@ -4,7 +4,7 @@ PixelOut_CombinePass main(PixelIn pIn)
 {
     PixelOut_CombinePass pOut = (PixelOut_CombinePass)0;
     
-    float2 Texel = float2(1.f / 1920.f, 1.f / 1080.f);
+    float2 Texel = float2(1.f / resolution.x, 1.f / resolution.y);
 
     float Color = T_Stencil.Sample(g_Sampler, pIn.uv).r;
     float Left = T_Stencil.Sample(g_Sampler, pIn.uv - Texel.x).r;
