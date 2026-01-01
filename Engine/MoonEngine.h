@@ -10,6 +10,8 @@
 #include "WindowManager.h"
 #include "World.h"
 
+#include "Utility/PerformanceTimer.h"
+
 class MObject;
 class MWindow;
 class MWorld;
@@ -154,6 +156,9 @@ public:
     // 의존하는 모듈이 업데이트 된 후에 업데이트 해야함. 마치 톱니바퀴 처럼
     // 생각해보니 초기화도 그럴려나? 그런데 생성 순서를 사용자가 좀 만져주면 되긴 함
 
+public:
+    PerformanceTimer CPUProfiler;
+    std::wstring CPUTime;
 };
 
 ENGINE_DLL const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindow);

@@ -303,6 +303,7 @@ ENGINE_DLL FDelegate<void>& GetRenderStartedDelegate()
 
 void MEngine::Loop()
 {
+    CPUProfiler.Start();
     for (auto& [WindowID, BindData] : WorldRenderInfos)
     {
         WorldFunc(WindowID);
@@ -357,13 +358,15 @@ void MEngine::RenderWorld(uint32 InIndex)
 
     _GraphicDevice->Begin(Window->GetID(), Window->GetWidth<uint32>(), Window->GetHeight<uint32>());
     GetRenderStartedDelegate().Broadcast();
-
     getRenderer()->RenderWorld(WorldRenderInfo.SrcWorld);
+
     RenderModules();
 
     Window->Render();
 
     GetRenderFinishedDelegate().Broadcast();
+
+    CPUTime = CPUProfiler.Record();
     _GraphicDevice->End();
 }
 
