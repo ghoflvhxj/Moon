@@ -61,6 +61,27 @@ void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList
     End();
 }
 
+void MRenderPass::Clear()
+{
+    if (bRenderTarget)
+    {
+        std::vector<ID3D11RenderTargetView*> RawRenderTargets;
+        RawRenderTargets.reserve(RenderTargetViewData.size());
+        for (const FRenderTargetBindData& BindData : RenderTargetViewData)
+        {
+            auto& RenderTarget = getRenderer()->GetRenderTarget(BindData.Index);
+            assert(RenderTarget);
+
+            RawRenderTargets.push_back(RenderTarget->AsRenderTargetView());
+
+            if (true == bClearTargets)
+            {
+                g_pGraphicDevice->ClearRenderTarget(RenderTarget, Color);
+            }
+        }
+    }
+}
+
 void MRenderPass::Begin()
 {
 	if (bRenderTarget)
@@ -71,6 +92,7 @@ void MRenderPass::Begin()
 		for (const FRenderTargetBindData& BindData : RenderTargetViewData)
 		{
             auto& RenderTarget = getRenderer()->GetRenderTarget(BindData.Index);
+            assert(RenderTarget);
 
 			RawRenderTargets.push_back(RenderTarget->AsRenderTargetView());
 

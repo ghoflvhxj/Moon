@@ -894,14 +894,24 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
     uint32 RenderPassNum = GetSize(RenderPasses);
     for (uint32 PassIndex = 0; PassIndex < RenderPassNum; ++PassIndex)
     {
-        if (std::shared_ptr<MRenderPass>& CurrentRenderPass = RenderPasses[PassIndex])
+        if (RenderPasses[PassIndex] == nullptr)
         {
+            continue;
+        }
+
+        if (bDrawShadow)
+        {
+            if (PassIndex == EnumToIndex(ERenderPass::PointShadowDepth) || PassIndex == EnumToIndex(ERenderPass::ShadowDepth))
+            {
+                RenderPasses[PassIndex]->Clear();
+                continue;
+            }
+        }
 #if RenderPassPerformanceProfiling == 1
             std::wstring Name = TEXT("Pass") + std::to_wstring(PassIndex) + TEXT(" :");
             PerformanceTimer Temp(Name);
+        RenderPasses[PassIndex]->RenderPass(RenderablePrimitiveDatas);
 #endif
-            CurrentRenderPass->RenderPass(RenderablePrimitiveDatas);
-        }
     }
 
     InScene->End();

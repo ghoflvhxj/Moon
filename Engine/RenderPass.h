@@ -28,6 +28,8 @@ public:
 public:
     virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList);
 
+    void Clear();
+
 protected:
     // 매 프레임마다 렌더 패스가 시작될 때 한번 호출됨. 한번만 설정해야 된다면 여기서 작업하는 것이 좋음.
 	virtual void Begin();

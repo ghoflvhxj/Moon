@@ -140,10 +140,13 @@ public:
 public:
     Vec3 Ambient = VEC3ONE;
 
+    RENDERER_OPTION(DrawShadow);
+
     REFLECT(
         MRenderer
         , PROPERTY(bDebugRenderTargets)
         , PROPERTY(Ambient)
+        , PROPERTY(bDrawShadow)
     )
 };
 
