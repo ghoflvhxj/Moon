@@ -1,0 +1,1 @@
+MakeSpriteFont.exe "나눔스퀘어라운드 Regular" MyFont.spritefont /FontSize:16 /CharacterRegion:0x20-0x7F /CharacterRegion:0xAC00-0xD7A3 /FastPack
