@@ -225,22 +225,34 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     }
     SafeReleaseArray(SawpChainBuffers);
 
-    // 깊이 스텐실 뷰 생성
-    D3D11_TEXTURE2D_DESC depthStencilDesc = { };
-    depthStencilDesc.Width = Window->GetWidth<UINT>();
-    depthStencilDesc.Height = Window->GetHeight<UINT>();
-    depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    depthStencilDesc.SampleDesc.Count = 1;
-    depthStencilDesc.SampleDesc.Quality = 0;
-    depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthStencilDesc.ArraySize = 1;
-    depthStencilDesc.MipLevels = 1;
-    depthStencilDesc.CPUAccessFlags = 0;
-    depthStencilDesc.MiscFlags = 0;
+    // 텍스쳐 생성
+    D3D11_TEXTURE2D_DESC TexureDesc = { };
+    TexureDesc.Width = Window->GetWidth<UINT>();
+    TexureDesc.Height = Window->GetHeight<UINT>();
+    TexureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    TexureDesc.SampleDesc.Count = 1;
+    TexureDesc.SampleDesc.Quality = 0;
+    TexureDesc.Usage = D3D11_USAGE_DEFAULT;
+    TexureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+    TexureDesc.ArraySize = 1;
+    TexureDesc.MipLevels = 1;
+    TexureDesc.CPUAccessFlags = 0;
+    TexureDesc.MiscFlags = 0;
+    m_pDevice->CreateTexture2D(&TexureDesc, nullptr, NewWindowRenderData.DepthStencilTexture.GetAddressOf());
 
-    m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, NewWindowRenderData.DepthStencilBuffer.GetAddressOf());
-    FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(NewWindowRenderData.DepthStencilBuffer.Get(), nullptr, NewWindowRenderData.DepthStencilView.GetAddressOf()));
+    // 깊이 스텐실 뷰 생성
+    D3D11_DEPTH_STENCIL_VIEW_DESC ViewDesc = {};
+    ViewDesc.ViewDimension = D3D11_DSV_DIMENSION::D3D11_DSV_DIMENSION_TEXTURE2D;
+    ViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    ViewDesc.Texture2D.MipSlice = 0;
+    FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(NewWindowRenderData.DepthStencilTexture.Get(), &ViewDesc, NewWindowRenderData.DepthStencilView.GetAddressOf()));
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC ResourceViewDesc = { };
+    ResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
+    ResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    ResourceViewDesc.Texture2D.MipLevels = -1;
+    ResourceViewDesc.Texture2D.MostDetailedMip = 0;
+    FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(NewWindowRenderData.DepthStencilTexture.Get(), &ResourceViewDesc, NewWindowRenderData.DepthStencilSRV.GetAddressOf()));
 
     WindowRenderDatas[InWorldRenderInfo.DstWindow->GetID()] = NewWindowRenderData;
 }
@@ -257,7 +269,7 @@ void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint3
 
         auto& WindowRenderData = WindowRenderDatas[InWindowID];
 
-        WindowRenderData.DepthStencilBuffer.Reset();
+        WindowRenderData.DepthStencilTexture.Reset();
         WindowRenderData.DepthStencilView.Reset();
         WindowRenderData.RenderTargetViews[0].Reset();
         WindowRenderData.RenderTargetViews[1].Reset();
@@ -277,25 +289,34 @@ void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint3
             }
             SafeReleaseArray(SawpChainBuffers);
 
-            D3D11_RENDER_TARGET_VIEW_DESC Desc = {};
-            WindowRenderData.RenderTargetViews[0]->GetDesc(&Desc);
+            // 텍스쳐 생성
+            D3D11_TEXTURE2D_DESC TexureDesc = { };
+            TexureDesc.Width = Width;
+            TexureDesc.Height = Height;
+            TexureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+            TexureDesc.SampleDesc.Count = 1;
+            TexureDesc.SampleDesc.Quality = 0;
+            TexureDesc.Usage = D3D11_USAGE_DEFAULT;
+            TexureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+            TexureDesc.ArraySize = 1;
+            TexureDesc.MipLevels = 1;
+            TexureDesc.CPUAccessFlags = 0;
+            TexureDesc.MiscFlags = 0;
+            m_pDevice->CreateTexture2D(&TexureDesc, nullptr, WindowRenderData.DepthStencilTexture.GetAddressOf());
 
-            // 깊이 스텐실 버퍼, 뷰 생성
-            D3D11_TEXTURE2D_DESC depthStencilDesc = { };
-            depthStencilDesc.Width = Width;
-            depthStencilDesc.Height = Height;
-            depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-            depthStencilDesc.SampleDesc.Count = 1;
-            depthStencilDesc.SampleDesc.Quality = 0;
-            depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-            depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-            depthStencilDesc.ArraySize = 1;
-            depthStencilDesc.MipLevels = 1;
-            depthStencilDesc.CPUAccessFlags = 0;
-            depthStencilDesc.MiscFlags = 0;
+            // 깊이 스텐실 뷰 생성
+            D3D11_DEPTH_STENCIL_VIEW_DESC ViewDesc = {};
+            ViewDesc.ViewDimension = D3D11_DSV_DIMENSION::D3D11_DSV_DIMENSION_TEXTURE2D;
+            ViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+            ViewDesc.Texture2D.MipSlice = 0;
+            FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(WindowRenderData.DepthStencilTexture.Get(), &ViewDesc, WindowRenderData.DepthStencilView.GetAddressOf()));
 
-            m_pDevice->CreateTexture2D(&depthStencilDesc, nullptr, WindowRenderData.DepthStencilBuffer.GetAddressOf());
-            FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(WindowRenderData.DepthStencilBuffer.Get(), nullptr, WindowRenderData.DepthStencilView.GetAddressOf()));
+            D3D11_SHADER_RESOURCE_VIEW_DESC ResourceViewDesc = { };
+            ResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
+            ResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+            ResourceViewDesc.Texture2D.MipLevels = -1;
+            ResourceViewDesc.Texture2D.MostDetailedMip = 0;
+            FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(WindowRenderData.DepthStencilTexture.Get(), &ResourceViewDesc, WindowRenderData.DepthStencilSRV.GetAddressOf()));
         }
     });
 }

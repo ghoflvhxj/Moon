@@ -43,8 +43,9 @@ struct FWindowRenderData
     ComPtr<IDXGISwapChain3> SwapChain3;
     std::array<ComPtr<ID3D11RenderTargetView>, 2> RenderTargetViews = {};
 
-    ComPtr<ID3D11Texture2D> DepthStencilBuffer;
+    ComPtr<ID3D11Texture2D> DepthStencilTexture;
     ComPtr<ID3D11DepthStencilView> DepthStencilView;
+    ComPtr<ID3D11ShaderResourceView> DepthStencilSRV;
 };
 
 /******************************************
