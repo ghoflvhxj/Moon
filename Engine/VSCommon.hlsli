@@ -9,7 +9,7 @@ struct VertexIn
 	float3 normal			: NORMAL0;
 	float3 tangent			: NORMAL1;
 	float3 binormal			: NORMAL2;
-	uint4 blendIndex		: BLENDINDICES0;
+	int4 blendIndex		    : BLENDINDICES0;
 	float4 blendWeight		: BLENDWEIGHT0;
 };
 
