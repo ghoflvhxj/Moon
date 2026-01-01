@@ -17,7 +17,7 @@ PixelOut_LightPass main(PixelIn pIn)
 {
 	PixelOut_LightPass pOut = (PixelOut_LightPass)0;
 
-	float4 depth	= g_Depth.Sample(g_Sampler, pIn.uv);
+	float depth	= g_Depth.Sample(g_Sampler, pIn.uv).r;
     float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);
     normal.w = 0.f;
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);

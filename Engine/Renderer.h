@@ -114,6 +114,7 @@ public:
 	void DebugRenderTarget(ERenderTarget InRenderTarget);
 public:
     std::shared_ptr<MRenderTarget> GetRenderTarget(ERenderTarget InRenderTarget);
+    ID3D11ShaderResourceView* GetResourceView(ERenderTarget InRenderTarget);
 private:
 	//RenderTargets _renderTargets;
     std::map<std::tuple<uint32, uint32>, RenderTargets> RenderTargetss;

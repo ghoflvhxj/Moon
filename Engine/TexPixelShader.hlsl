@@ -12,10 +12,7 @@ PixelOut_GeometryPass main(PixelIn pIn)
 {
     PixelOut_GeometryPass pOut = (PixelOut_GeometryPass)0;
     
-    float NDCDepth = pIn.Clip.x / pIn.Clip.y;
-    
 	pOut.color		= g_Diffuse.Sample(g_Sampler, pIn.uv);
-    pOut.depth      = float4(NDCDepth, NDCDepth, NDCDepth, pIn.Clip.y);
 	pOut.normal		= float4(pIn.normal, 1.f);  
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
 

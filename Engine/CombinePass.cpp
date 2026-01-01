@@ -28,6 +28,12 @@
 
 using namespace DirectX;
 
+GeometryPass::GeometryPass()
+    : MRenderPass()
+{
+    UseCommonDepthStencil();
+}
+
 bool GeometryPass::IsValidPrimitive(const FPrimitiveData &PrimitiveData) const
 {
 	return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && MRenderPass::IsValidPrimitive(PrimitiveData);

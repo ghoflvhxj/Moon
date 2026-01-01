@@ -35,7 +35,7 @@ MRenderPass::MRenderPass()
 	, _geometryShader{ nullptr }
 	, _bShaderSet{ false }
 	, bClearTargets{ true }
-	, UsedDepthStencilBuffer{ ERenderTarget::Count }
+	, UseOwningDepthStencilBuffer{ ERenderTarget::Count }
 {
 }
 
@@ -83,8 +83,8 @@ void MRenderPass::Begin()
         g_pGraphicDevice->getContext()->OMSetRenderTargets(
             static_cast<UINT>(RawRenderTargets.size()),
             RawRenderTargets.data(),
-            //UsedDepthStencilBuffer != ERenderTarget::Count ? CachedRenderTargets[EnumToIndex(UsedDepthStencilBuffer)]->getDepthStencilView() : g_pGraphicDevice->GetDepthStencilView()
-            UsedDepthStencilBuffer != ERenderTarget::Count ? getRenderer()->GetRenderTarget(UsedDepthStencilBuffer)->getDepthStencilView() : g_pGraphicDevice->GetDepthStencilView()
+            //UseOwningDepthStencilBuffer != ERenderTarget::Count ? getRenderer()->GetRenderTarget(UseOwningDepthStencilBuffer)->getDepthStencilView() : g_pGraphicDevice->GetDepthStencilView()
+            UseOwningDepthStencilBuffer != ERenderTarget::Count ? getRenderer()->GetRenderTarget(UseOwningDepthStencilBuffer)->getDepthStencilView() : (bUseCommonDepthStencil ? g_pGraphicDevice->GetDepthStencilView() : nullptr)
         );
 	}
 
@@ -370,7 +370,9 @@ void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
 
     for (const FRenderTargetBindData& Data : ResourceViewData)
     {
-        g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(Data.Index), 1, &getRenderer()->GetRenderTarget(Data.Index)->AsTexture()->getRawResourceViewPointer());
+        //g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(Data.Index), 1, &getRenderer()->GetRenderTarget(Data.Index)->AsTexture()->getRawResourceViewPointer());
+        ID3D11ShaderResourceView* SRV = getRenderer()->GetResourceView(Data.Index);
+        g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(Data.Index), 1, &SRV);
     }
 }
 
@@ -509,6 +511,6 @@ void MRenderPass::SetClearTargets(const bool bClear)
 
 void MRenderPass::SetUseOwningDepthStencilBuffer(const ERenderTarget bUse)
 {
-	UsedDepthStencilBuffer = bUse;
+	UseOwningDepthStencilBuffer = bUse;
 }
 

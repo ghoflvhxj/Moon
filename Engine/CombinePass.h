@@ -5,7 +5,7 @@
 class GeometryPass : public MRenderPass
 {
 public:
-	explicit GeometryPass() = default;
+    explicit GeometryPass();
 	virtual ~GeometryPass() = default;
 
 protected:

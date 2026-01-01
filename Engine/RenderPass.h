@@ -129,7 +129,10 @@ protected:
 public:
 	void SetUseOwningDepthStencilBuffer(const ERenderTarget bUse);
 private:
-	ERenderTarget UsedDepthStencilBuffer;
+	ERenderTarget UseOwningDepthStencilBuffer;
+public:
+    void UseCommonDepthStencil() { bUseCommonDepthStencil = true; }
+    bool bUseCommonDepthStencil = false;
 
 protected:
     D3D_PRIMITIVE_TOPOLOGY DefaultTopology = D3D_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST;

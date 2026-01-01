@@ -122,7 +122,6 @@ bool MRenderer::Initialize()
     {
         RenderPasses[EnumToIndex(ERenderPass::Geometry)]->BindRenderTargets(_renderTargets,
             ERenderTarget::Diffuse,
-            ERenderTarget::Depth,
             ERenderTarget::Normal,
             ERenderTarget::Specular,
             ERenderTarget::RimLight
@@ -530,6 +529,11 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
 
         switch (CastValue<ERenderTarget>(i))
         {
+        case ERenderTarget::Depth:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+            RenderTargetInfo.Type = ERenderTargetType::Depth;
+        }
         case ERenderTarget::DirectionalShadowDepth:
         {
             RenderTargetInfo.bCube = false;
@@ -633,6 +637,18 @@ std::shared_ptr<MRenderTarget> MRenderer::GetRenderTarget(ERenderTarget InRender
     return nullptr;
 
     //return _renderTargets[static_cast<int32>(RenderTarget)];
+}
+
+ID3D11ShaderResourceView* MRenderer::GetResourceView(ERenderTarget InRenderTarget)
+{
+    if (InRenderTarget == ERenderTarget::Depth)
+    {
+        return getGraphicDevice()->GetDepthStencilResourceView();
+    }
+    else
+    {
+        return GetRenderTarget(InRenderTarget)->AsTexture()->getRawResourceViewPointer();
+    }
 }
 
 void MRenderer::AddRenderPass(ERenderPass InRenderPassIndex, const std::shared_ptr<MRenderPass>& InRenderPass)
