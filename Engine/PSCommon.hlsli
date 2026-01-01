@@ -31,11 +31,16 @@ struct PixelOut_Simple
 
 struct PixelOut_GeometryPass
 {
-	float4 color	: SV_TARGET0;
-	float4 depth	: SV_TARGET1;
-	float4 normal	: SV_TARGET2;
-	float4 specular : SV_TARGET3;
-    float4 RimLight : SV_TARGET4;
+	//float4 color	: SV_TARGET0;
+	//float4 depth	: SV_TARGET1;
+	//float4 normal	: SV_TARGET2;
+	//float4 specular : SV_TARGET3;
+    //float4 RimLight : SV_TARGET4;
+    
+    float4 color : SV_TARGET0;
+    float4 normal : SV_TARGET1;
+    float4 specular : SV_TARGET2;
+    float4 RimLight : SV_TARGET3;
 };
 
 struct PixelOut_CombinePass
@@ -52,6 +57,14 @@ struct PixelOut_LightPass
 {
 	float4 lightDiffuse		: SV_TARGET0;
 	float4 lightSpecular	: SV_TARGET1;
+};
+
+cbuffer PS_CBuffer_PerObject : register(b2)
+{
+    bool bUseNormalTexture;
+    bool bUseSpecularTexture;
+    bool bAlphaMask;
+    bool bRimLight;
 };
 
 // 셰이더에서 사용하는 텍스쳐. 렌더 타겟인 경우는 인덱스가 ERenderTarget과 일치해야 함
@@ -93,35 +106,39 @@ float4 PixelToWorld(float2 uv, float4 depth, matrix inverseProjectiveMatrix, mat
 	return pixelWorldPosition;
 }
 
-float4 PixelToWorld(float2 uv, float4 depth, matrix ScreenToWorldMatrix)
+float4 PixelToView(float2 uv, float depth, matrix inverseProjectiveMatrix)
 {
-	// 역투영, uv좌표를 (0 <= x, y <= 1) 투영좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 1이다)
-    float4 pixelProjectionPosition = float4(0.f, 0.f, 0.f, 0.f);
-    pixelProjectionPosition.x = (uv.x * 2.f - 1.f) * depth.w;
-    pixelProjectionPosition.y = (uv.y * -2.f + 1.f) * depth.w;
-    pixelProjectionPosition.z = depth.x * depth.w;
-    pixelProjectionPosition.w = depth.w;
+	// UV좌표를 (0 <= x, y <= 1) NDC좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 0이다)
+    float4 NDCPos = float4(0.f, 0.f, 0.f, 0.f);
+    NDCPos.x = uv.x * 2.f - 1.f;
+    NDCPos.y = uv.y * -2.f + 1.f;
+    NDCPos.z = depth;
+    NDCPos.w = 1.f;
 
-	// 투영좌표에 역투영&뷰 행렬을 곱해 월드 좌표를 얻음
-    float4 pixelWorldPosition = mul(pixelProjectionPosition, ScreenToWorldMatrix);
-    
-    return pixelWorldPosition;
+    float4 viewPos = mul(NDCPos, inverseProjectiveMatrix);
+    return viewPos / viewPos.w;
 }
 
-float4 PixelToView(float2 uv, float4 depth, matrix inverseProjectiveMatrix)
+float4 PixelToWorld(float2 uv, float depth, matrix InvProjMat, matrix ScreenToWorldMatrix)
 {
-    // 역투영, uv좌표를 (0 <= x, y <= 1) 투영좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 1이다)
-    float4 pixelProjectionPosition = float4(0.f, 0.f, 0.f, 0.f);
-    pixelProjectionPosition.x = (uv.x * 2.f - 1.f) * depth.w;
-    pixelProjectionPosition.y = (uv.y * -2.f + 1.f) * depth.w;
-    pixelProjectionPosition.z = depth.x * depth.w;
-    pixelProjectionPosition.w = depth.w;
+    float3 ViewPos = PixelToView(uv, depth, InvProjMat).xyz;
+    
+	// NDC좌표에 역투영,뷰 행렬을 곱해 뷰 좌표를 얻음
+    return mul(float4(ViewPos, 1.f), ScreenToWorldMatrix);
+}
 
-	float4 pixelWorldPosition = mul(pixelProjectionPosition, inverseProjectiveMatrix);
-    return pixelWorldPosition;
+float3 PackNormal(float3 InNormal)
+{
+    return InNormal * 0.5 + 0.5f;
+}
+
+float3 UnpackNormal(float3 InPackedNormal)
+{
+    return normalize(InPackedNormal * 2.f - 1.f);
 }
 
 // 그림자가 없으면 1, 있으면 1보다 작을거임
+#define SHADOW_PCF_SAMPLES 0
 float PixelCascadeSahdow(int cascadeIndex, float4 PixelPosInLightViewProj)
 {
     // 픽셀의 투영 좌표계 위치를 NDC(-1~1, -1~1)로 만들고(직교투영은 생략), UV(0~1, 0~1)로 변환. 
@@ -135,6 +152,9 @@ float PixelCascadeSahdow(int cascadeIndex, float4 PixelPosInLightViewProj)
 
     if (Depth < 1.f)
     {
+#if SHADOW_PCF_SAMPLES == 1
+        shadow = 1.f - g_ShadowDepth.SampleCmpLevelZero(g_SamplerLess, ShadowDepthUV, Depth, int2(0, 0)).x;
+#else
         int sampleCount = 3;
         int temp = sampleCount / 2;
         int Counter = 0;
@@ -153,6 +173,7 @@ float PixelCascadeSahdow(int cascadeIndex, float4 PixelPosInLightViewProj)
         }
         
         shadow /= sampleCount * sampleCount;
+#endif
     }
     
     return shadow;

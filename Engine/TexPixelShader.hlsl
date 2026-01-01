@@ -1,13 +1,5 @@
 #include "PSCommon.hlsli"
 
-cbuffer PS_CBuffer_Texture : register(b2)
-{
-	bool bUseNormalTexture;
-	bool bUseSpecularTexture;
-    bool bAlphaMask;
-    bool bRimLight;
-};
-
 PixelOut_GeometryPass main(PixelIn pIn)
 {
     PixelOut_GeometryPass pOut = (PixelOut_GeometryPass)0;
@@ -25,18 +17,18 @@ PixelOut_GeometryPass main(PixelIn pIn)
     if (true == bUseNormalTexture)
     {
         float3 normal = g_Normal.Sample(g_Sampler, pIn.uv).xyz;
-        normal = normalize(normal * 2.f - 1.f);
+        normal = UnpackNormal(normal);
         
         float3x3 TBN = float3x3(pIn.tangent, pIn.binormal, pIn.normal);
         normal = normalize(mul(normal, TBN));
         
-        pOut.normal = float4(normal, 1.f);
+        pOut.normal = float4(PackNormal(normal.xyz), 0.f);
     }
     
     if (true == bUseSpecularTexture)
     {
         float3 specular = g_Specular.Sample(g_Sampler, pIn.uv).xyz;
-        pOut.specular = float4(specular, 1.f);
+        pOut.specular = float4(float3(specular.g, specular.g, specular.g), 1.f);
     }
     
     if (bRimLight)

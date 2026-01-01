@@ -177,6 +177,10 @@ DXGI_FORMAT MRenderTarget::GetFormat(const ERenderTargetType InRenderTargetType)
     switch (InRenderTargetType)
     {
     case ERenderTargetType::Default:
+        return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case ERenderTargetType::Normal:
+        return DXGI_FORMAT_R10G10B10A2_UNORM;
+    case ERenderTargetType::Light:
         return DXGI_FORMAT_R32G32B32A32_FLOAT;
     case ERenderTargetType::Depth:
         return DXGI_FORMAT_R32_FLOAT;

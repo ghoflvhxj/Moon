@@ -10,6 +10,8 @@ enum class ERenderTargetType
     None,
     Default,
     Depth,
+    Normal,
+    Light,
     Bool
 };
 
