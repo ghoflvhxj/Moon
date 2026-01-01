@@ -4,6 +4,7 @@
 #include "GraphicDevice.h"
 #include "Core/ResourceLoader.h"
 #include "Core/ResourceManager.h"
+#include "Utility/PerformanceTimer.h"
 
 using namespace DirectX;
 
@@ -76,6 +77,11 @@ const bool MTexture::loadTextureFile(const wchar_t *fileName)
 		SafeRelease(_pResourceView);
 	if (nullptr != _rawTexture)
 		SafeRelease(_rawTexture);
+
+#ifdef _DEBUG
+    std::wstring Msg = GetAssetPath() + TEXT("텍스쳐 로딩 시간: ");
+    PerformanceTimer Pt(Msg);
+#endif
 
 	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource **)&_rawTexture, &_pResourceView));
 	
