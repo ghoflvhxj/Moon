@@ -178,7 +178,7 @@ void MEditorMainWindow::ImGuiRender()
             ImGui::Indent(20);
             if (ImGui::Button("Play"))
             {
-                std::shared_ptr<MWindow> NewWindow = GetWindowManager()->CreateWindow<MWindow>(TEXT("PIE"), GetMainWindow()->GetWidth<int>(), GetMainWindow()->GetHeight<int>(), g_hWnd, TEXT("ShootingGame"));
+                std::shared_ptr<MWindow> NewWindow = GetWindowManager()->AddWindow<MWindow>(TEXT("PIE"), GetMainWindow()->GetWidth<int>(), GetMainWindow()->GetHeight<int>(), g_hWnd, TEXT("ShootingGame"));
                 NewWindow->SetWindowPos(GetMainWindow()->GetWindowPos());
                 NewWindow->Initialize();
 
@@ -226,16 +226,21 @@ void MEditorMainWindow::ImGuiRender()
         // 렌더러
         if (ImGui::CollapsingHeader("Render"))
         {
-            ImGui::Text("Toatal primitive:%d", getRenderer()->TotalPrimitiveNum);
-            ImGui::Text("show primitive:%d", getRenderer()->ShownPrimitiveNum);
-            ImGui::Text("culled primitive:%d", getRenderer()->CulledPrimitiveNum);
+            auto Renderer = getRenderer();
+            ImGui::Text("Toatal primitive:%d", Renderer->TotalPrimitiveNum);
+            ImGui::Text("show primitive:%d", Renderer->ShownPrimitiveNum);
+            ImGui::Text("culled primitive:%d", Renderer->CulledPrimitiveNum);
             ImGui::Text("Frame: %d", GetMainWorld()->getFrame());
 
-            const FTypeDesc* Current = getRenderer()->GetTypeDesc();
-            while (Current)
+            DispatchType2(Renderer->GetTypeDesc(), Renderer.get());
+        }
+
+        if (ImGui::CollapsingHeader("Performance"))
+        {
+            ImGui::Text(WStringToString(GetEngine()->CPUTime).c_str());
+            for (auto PassTime : getGraphicDevice()->RenderPassTimes)
             {
-                DispatchType(Current, getRenderer().get());
-                Current = Current->Parent;
+                ImGui::Text(WStringToString(PassTime).c_str());
             }
         }
 
