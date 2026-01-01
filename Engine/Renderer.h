@@ -140,6 +140,11 @@ public:
 public:
     Vec3 Ambient = VEC3ONE;
 
+public:
+    std::vector<std::wstring> Times;
+    std::wstring SceneRenderTime;
+    std::wstring RenderPassTime;
+
     RENDERER_OPTION(DrawShadow);
 
     REFLECT(

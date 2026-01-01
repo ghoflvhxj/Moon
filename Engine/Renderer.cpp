@@ -874,7 +874,9 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
         }
     }
 
+    PerformanceTimer p(TEXT("SceneRenderTime: "));
     RenderScene(Scene);
+    SceneRenderTime = p.Record();
 
     InWorld->GetOnRederedDelegate().Broadcast();
 }
@@ -892,6 +894,9 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
 
     const auto& RenderablePrimitiveDatas = InScene->GetRenderablePrimitiveData();
 
+    Times.clear();
+
+    PerformanceTimer t(TEXT("RenderPassTime: "));
     uint32 RenderPassNum = GetSize(RenderPasses);
     for (uint32 PassIndex = 0; PassIndex < RenderPassNum; ++PassIndex)
     {
@@ -908,12 +913,21 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
                 continue;
             }
         }
+
 #if RenderPassPerformanceProfiling == 1
-            std::wstring Name = TEXT("Pass") + std::to_wstring(PassIndex) + TEXT(" :");
-            PerformanceTimer Temp(Name);
+        std::wstring Name = TEXT("Pass") + std::to_wstring(PassIndex) + TEXT(" :");
+        PerformanceTimer Temp(Name);
+        g_pGraphicDevice->QueryStart(PassIndex);
+#endif
+
         RenderPasses[PassIndex]->RenderPass(RenderablePrimitiveDatas);
+
+#if RenderPassPerformanceProfiling == 1
+        Times.push_back(Temp.Record());
+        g_pGraphicDevice->QueryFinish(PassIndex);
 #endif
     }
+    RenderPassTime = t.Record();
 
     InScene->End();
 }

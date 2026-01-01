@@ -116,19 +116,18 @@ public:
     void SetToDefault();
 public:
     int32 GetCurrentWindowIndex() const { return WindowID; }
-    bool IsResized() const { return bResized; }
     std::tuple<uint32, uint32> GetViewportSize() const { return { Width, Height }; }
 protected:
     int32 WindowID = 0;
     uint32 Width = 0;
     uint32 Height = 0;
-    bool bResized = false;
 
 public:
     void ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRenderTarget, DirectX::XMVECTORF32 InColor);
 
 public:
     ID3D11DepthStencilView* GetDepthStencilView();
+    ID3D11ShaderResourceView* GetDepthStencilResourceView();
 
 public:
     // 엔진에 윈도우가 추가되면 호출됨. 스왑체인 등을 생성해 WindowRenderData에 저장함
@@ -177,6 +176,15 @@ public:
 	ID3D11Device *getDevice();
 private:
 	ID3D11Device *m_pDevice;
+
+public:
+    void QueryStart(uint32 InIndex);
+    void QueryFinish(uint32 InIndex);
+    std::array<ComPtr<ID3D11Query>, 3> Query;
+    std::array<std::array<ComPtr<ID3D11Query>, 12>, 3> Start;
+    std::array<std::array<ComPtr<ID3D11Query>, 12>, 3> Finish;
+    int Counter = 0;
+    std::vector<std::wstring> RenderPassTimes;
 
 public:
 	ID3D11DeviceContext *getContext();

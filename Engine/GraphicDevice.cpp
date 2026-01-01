@@ -71,6 +71,20 @@ bool GraphicDevice::Initialize()
 
 	m_pImmediateContext->RSSetViewports(1, &_viewport);
 
+    for (int i = 0; i < 3; ++i)
+    {
+        D3D11_QUERY_DESC QueryDesc = {};
+        QueryDesc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
+        QueryDesc.MiscFlags = 0;
+        m_pDevice->CreateQuery(&QueryDesc, Query[i].GetAddressOf());
+
+        for (int j = 0; j < 12; ++j)
+        {
+            QueryDesc.Query = D3D11_QUERY_TIMESTAMP;
+            m_pDevice->CreateQuery(&QueryDesc, Start[i][j].GetAddressOf());
+            m_pDevice->CreateQuery(&QueryDesc, Finish[i][j].GetAddressOf());
+        }
+    }
     initializeDirectXTK();
 
     buildSamplerState();
@@ -179,6 +193,12 @@ ID3D11DepthStencilView* GraphicDevice::GetDepthStencilView()
 {
     const FWindowRenderData& Test = WindowRenderDatas[WindowID];
     return Test.DepthStencilView.Get();
+}
+
+ID3D11ShaderResourceView* GraphicDevice::GetDepthStencilResourceView()
+{
+    const FWindowRenderData& Test = WindowRenderDatas[WindowID];
+    return Test.DepthStencilSRV.Get();
 }
 
 void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
@@ -400,7 +420,6 @@ void GraphicDevice::Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight)
 
     if (Width != InWidth || Height != InHeight)
     {
-        bResized = true;
         Width = InWidth;
         Height = InHeight;
     }
@@ -425,6 +444,8 @@ void GraphicDevice::Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight)
     Viewport.MinDepth = 0.f;
     Viewport.MaxDepth = 1.f;
     getContext()->RSSetViewports(1, &Viewport);
+
+    getContext()->Begin(Query[Counter].Get());
 }
 
 void GraphicDevice::End()
@@ -434,7 +455,6 @@ void GraphicDevice::End()
         return;
     }
 
-    bResized = false;
 
     const FWindowRenderData& Test = WindowRenderDatas[WindowID];
     Test.SwapChain3->Present(0u, 0u);
@@ -442,6 +462,30 @@ void GraphicDevice::End()
     UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();
     getContext()->ClearRenderTargetView(Test.RenderTargetViews[BufferIndex].Get(), reinterpret_cast<const float*>(&EngineColors::Blue));
     getContext()->ClearDepthStencilView(Test.DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+
+    getContext()->End(Query[Counter].Get());
+
+    int readIndex = (Counter + 1) % 3;
+
+    D3D11_QUERY_DATA_TIMESTAMP_DISJOINT DisjointData = {};
+    if (getContext()->GetData(Query[readIndex].Get(), &DisjointData, sizeof(D3D11_QUERY_DATA_TIMESTAMP_DISJOINT), 0) == S_OK)
+    {
+        RenderPassTimes.clear();
+        for (int RenderPassIndex = 0; RenderPassIndex < 12; RenderPassIndex++)
+        {
+            UINT64 StartTime = 0, FinishTime = 0;
+            getContext()->GetData(Start[readIndex][RenderPassIndex].Get(), &StartTime, sizeof(UINT64), 0);
+            getContext()->GetData(Finish[readIndex][RenderPassIndex].Get(), &FinishTime, sizeof(UINT64), 0);
+
+            std::wostringstream sout;
+            sout << "RenderPass" << RenderPassIndex << " Time: " << (FinishTime - StartTime) / (float)DisjointData.Frequency * 1000.f << endl;
+
+            RenderPassTimes.push_back(sout.str());
+        }
+    }
+
+    ++Counter;
+    Counter %= 3;
 }
 
 bool GraphicDevice::buildRasterizerState()
@@ -728,6 +772,16 @@ void GraphicDevice::SetPixelShader(std::shared_ptr<PixelShader> &pixelShader)
 ID3D11Device *GraphicDevice::getDevice()
 {
 	return m_pDevice;
+}
+
+void GraphicDevice::QueryStart(uint32 InIndex)
+{
+    getContext()->End(Start[Counter][InIndex].Get());
+}
+
+void GraphicDevice::QueryFinish(uint32 InIndex)
+{
+    getContext()->End(Finish[Counter][InIndex].Get());
 }
 
 ID3D11DeviceContext *GraphicDevice::getContext()
