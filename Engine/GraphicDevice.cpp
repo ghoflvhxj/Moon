@@ -32,6 +32,11 @@ GraphicDevice::GraphicDevice()
     bManualReleaseRequired = true;
 }
 
+GraphicDevice::~GraphicDevice()
+{
+
+}
+
 bool GraphicDevice::Initialize()
 {
     Super::Initialize();
@@ -51,11 +56,16 @@ bool GraphicDevice::Initialize()
     }
 
 	// 장치
+    uint32 Flags =0;
+#ifdef _DEBUG
+    Flags |= (uint32)D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
     FAILED_CHECK_THROW(D3D11CreateDevice(
         nullptr,
         D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE,
         nullptr,
-        D3D11_CREATE_DEVICE_DEBUG,
+        (D3D11_CREATE_DEVICE_FLAG)Flags,
         nullptr, 0,
         D3D11_SDK_VERSION,
         &m_pDevice, nullptr, &m_pImmediateContext
@@ -119,7 +129,9 @@ void GraphicDevice::Release()
 
     SafeRelease(DepthBiasRS);
 
-    SafeRelease(m_pInputLayout);
+    SafeRelease(m_pInputLayout); 
+
+    SharedBuffers.clear();
 
     WindowRenderDatas.clear();
 
@@ -371,8 +383,7 @@ bool GraphicDevice::Refresh()
 
 void GraphicDevice::SetToDefault()
 {
-    // 인풋 레이아웃은 수정할 일이 없긴 함
-    // g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->GetInputLayout());
+     g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->GetInputLayout());
 
     const FWindowRenderData& WindowRenderData = WindowRenderDatas[WindowID];
     UINT BufferIndex = WindowRenderData.SwapChain3->GetCurrentBackBufferIndex();
@@ -416,6 +427,8 @@ void GraphicDevice::Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight)
         return;
     }
 
+    SetToDefault();
+
     WindowID = InWindowID;
 
     if (Width != InWidth || Height != InHeight)
@@ -455,6 +468,7 @@ void GraphicDevice::End()
         return;
     }
 
+    Test();
 
     const FWindowRenderData& Test = WindowRenderDatas[WindowID];
     Test.SwapChain3->Present(0u, 0u);
@@ -753,8 +767,8 @@ ID3D11SamplerState* GraphicDevice::getSamplerState(ESamplerFilter SamplerFilter)
 
 const bool GraphicDevice::initializeDirectXTK()
 {
-	//_spriteBatch = std::make_unique<SpriteBatch>(m_pImmediateContext);
-	//_spriteFont = std::make_unique<SpriteFont>(m_pDevice, TEXT("TestFont.spritefont"));
+	_spriteFont = std::make_unique<SpriteFont>(m_pDevice, TEXT("MyFont.spritefont"));
+	_spriteBatch = std::make_unique<SpriteBatch>(m_pImmediateContext);
 
 	return true;
 }

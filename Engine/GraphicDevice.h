@@ -99,7 +99,7 @@ public:
 
 public:
 	explicit GraphicDevice();
-	virtual ~GraphicDevice() = default;
+	virtual ~GraphicDevice();
 
 	GraphicDevice(const GraphicDevice &ref) = delete;
 	GraphicDevice(GraphicDevice &&rRef) = delete;
@@ -108,6 +108,16 @@ public:
 public:
 	virtual bool Initialize() override;
 	virtual void Release() override;
+
+    void Test()
+    {
+        _spriteBatch->Begin();
+
+        XMVECTOR Pos = XMVectorSet(100.f, 100.f, 0.f, 0.f);
+        _spriteFont->DrawString(_spriteBatch.get(), TEXT("Hello World, 안녕하세요"), Pos);
+
+        _spriteBatch->End();
+    }
 
 public:
     void Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight);
@@ -169,8 +179,8 @@ private:
 private:
 	const bool initializeDirectXTK();
 public:
-	std::unique_ptr<DirectX::SpriteBatch> _spriteBatch;
-	std::unique_ptr<DirectX::SpriteFont> _spriteFont;
+	std::unique_ptr<SpriteBatch> _spriteBatch;
+	std::unique_ptr<SpriteFont> _spriteFont;
 
 public:
 	ID3D11Device *getDevice();
