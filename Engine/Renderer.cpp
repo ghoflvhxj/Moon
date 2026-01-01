@@ -481,6 +481,19 @@ void MRenderer::RemovePrimitiveComponent(MPrimitiveComponent* InComponent)
 
 void MRenderer::UpdatePrimitiveData(MPrimitiveComponent* InComponent)
 {
+    uint32 PrimitiveID = InComponent->GetPrimitiveID();
+    auto Scene = GetScene(InComponent->GetWorld()->GetID());
+    Scene->ClearPrimtiveDatas(PrimitiveID);
+
+    // Component로부터 PrimitiveData 생성
+    std::vector<FPrimitiveData> NewPrimitiveDatas;
+    if (InComponent->GetPrimitiveData(NewPrimitiveDatas) == false)
+    {
+        return;
+    }
+
+    Scene->AddPrimitiveDatas(PrimitiveID, NewPrimitiveDatas);
+
     std::shared_ptr<MMesh> Mesh = nullptr;
     if (auto& MeshComp = InComponent->CastToShared<MMeshComponent>())
     {
@@ -491,26 +504,14 @@ void MRenderer::UpdatePrimitiveData(MPrimitiveComponent* InComponent)
         Mesh = LightComp->GetMesh();
     }
 
-    if (Mesh == nullptr)
+    if (Mesh != nullptr)
     {
-        return;
+        getGraphicDevice()->BuildMeshBuffersFromComponent(PrimitiveID, Mesh);
+        Scene->UpdateBuffer(PrimitiveID, Mesh);
     }
 
-    uint32 PrimitiveID = InComponent->GetPrimitiveID();
-    auto Scene = GetScene(InComponent->GetWorld()->GetID());
-    Scene->ClearPrimtiveDatas(PrimitiveID);
-
-    // Component로부터 PrimitiveData 생성
-    std::vector<FPrimitiveData> NewPrimitiveDatas;
-    if (InComponent->GetPrimitiveData(NewPrimitiveDatas))
-    {
-        Scene->AddPrimitiveDatas(PrimitiveID, NewPrimitiveDatas);
-    }
-
-    getGraphicDevice()->BuildMeshBuffersFromComponent(PrimitiveID, Mesh);
-    Scene->UpdateBuffer(PrimitiveID, Mesh);
-
-    Scene->AddPrimitiveComponent(InComponent, Mesh);
+    //auto Scene = GetScene(InComponent->GetWorld()->GetID());
+    //Scene->UpdatePrimitiveData(InComponent);
 }
 
 const std::vector<const FPrimitiveData*>& MRenderer::GetPrimitiveDatas(EPrimitiveType InPrimitiveType)
@@ -643,7 +644,7 @@ void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
 
 std::shared_ptr<MRenderTarget> MRenderer::GetRenderTarget(ERenderTarget InRenderTarget)
 {
-    if (std::shared_ptr<MWindow>& Window = GetScene(CurrentSceneID)->GetWindow())
+    if (std::shared_ptr<MWindow>& Window = GetCurrentScene()->GetWindow())
     {
         auto& Iter = RenderTargetss.find(std::make_tuple(Window->GetWidth<uint32>(), Window->GetHeight<uint32>()));
         if (Iter != RenderTargetss.end())
@@ -1164,13 +1165,10 @@ void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh)
     }
 }
 
-void MScene::UpdatePrimtiveData(MPrimitiveComponent* InComponent)
+void MScene::UpdatePrimitiveData(MPrimitiveComponent* InComponent)
 {
-    auto& Iter = PrimitiveDatas.find(InComponent->GetPrimitiveID());
-    if (Iter != PrimitiveDatas.end())
-    {
-        PrimitiveDatas.erase(InComponent->GetPrimitiveID());
-    }
+    uint32 PrimitiveID = InComponent->GetPrimitiveID();
+    ClearPrimtiveDatas(PrimitiveID);
 
     std::shared_ptr<MMesh> Mesh = nullptr;
     if (auto& MeshComp = InComponent->CastToShared<MMeshComponent>())
@@ -1187,20 +1185,17 @@ void MScene::UpdatePrimtiveData(MPrimitiveComponent* InComponent)
         return;
     }
 
-    getGraphicDevice()->BuildMeshSharedBuffers(Mesh);
-    UpdateBuffer(InComponent->GetPrimitiveID(), Mesh);
-
-    //GetPrimitiveDataFromComponent(InComponent, Mesh);
+    // Component로부터 PrimitiveData 생성
+    std::vector<FPrimitiveData> NewPrimitiveDatas;
+    if (InComponent->GetPrimitiveData(NewPrimitiveDatas))
+    {
+        AddPrimitiveDatas(PrimitiveID, NewPrimitiveDatas);
+    }
 }
 
 void MScene::AddPrimitiveDatas(uint32 InPID, const std::vector<FPrimitiveData>& InPrimitiveDatas)
 {
     PrimitiveDatas[InPID].insert(PrimitiveDatas[InPID].end(), InPrimitiveDatas.begin(), InPrimitiveDatas.end());
-
-    //for (const FPrimitiveData& PrimitiveData : InPrimitiveDatas)
-    //{
-    //    PrimitiveDatasPerType[PrimitiveData.PrimitiveType].push_back(PrimitiveData);
-    //}
 }
 
 void MScene::ClearPrimtiveDatas(uint32 InPID)

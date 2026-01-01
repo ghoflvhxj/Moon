@@ -186,13 +186,9 @@ public:
 
     /* 렌더링에 필요한 PrimitiveData를 관리함 */
 public:
-    // 렌더할 PrimitiveComponent 추가하는 함수.렌더 패스에 들어감.
-    void AddPrimitiveComponent(MPrimitiveComponent* InPrimitiveComponent, std::shared_ptr<MMesh>& InMesh);
-    //// PrimitiveData를 Component로부터 추출해 오는 함수. 버텍스 버퍼도 만듬.
-    //void GetPrimitiveDataFromComponent(MPrimitiveComponent* InComponent, std::shared_ptr<MMesh>& InMesh);
     // PrimitveData에 버퍼를 설정하는 함수
     void UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh);
-    void UpdatePrimtiveData(MPrimitiveComponent* InComponent);
+    void UpdatePrimitiveData(MPrimitiveComponent* InComponent);
 public:
     uint32 GetPrimitiveDataNum(uint32 InPID) const { return PrimitiveDatas.find(InPID) != PrimitiveDatas.end() ? GetSize(PrimitiveDatas.at(InPID)) : 0; }
     void AddPrimitiveDatas(uint32 InPID, const std::vector<FPrimitiveData>& InPrimitiveDatas);
