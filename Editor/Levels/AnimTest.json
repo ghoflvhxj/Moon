@@ -2,6 +2,40 @@
     "MWorld": {
         "Actors": [
             {
+                "Key": "MCamera_0",
+                "Value": {
+                    "MCamera": {
+                        "SceneComp": {
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.24532,
+                                    0.61273,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -2.33435,
+                                    2.33014,
+                                    -1.86616
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
                 "Key": "MStaticMeshActor_1",
                 "Value": {
                     "MStaticMeshActor": {
@@ -58,26 +92,116 @@
                 }
             },
             {
-                "Key": "MCamera_0",
+                "Key": "MDynamicMeshActor_0",
                 "Value": {
-                    "MCamera": {
-                        "SceneComp": {
+                    "MDynamicMeshActor": {
+                        "DynamicMeshComp": {
+                            "DynamicMeshComponent": {
+                                "AnimTime": 0.0,
+                                "AnimSpeed": 1.0,
+                                "bAnimPlaying": false,
+                                "bPlayAnimAtBegin": true,
+                                "Animation": {
+                                    "MAsset": {
+                                        "Path": "AnimTest\\mixamo.com.json"
+                                    }
+                                },
+                                "bBindPose": false,
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "AnimTest\\Hip Hop Dancing.json"
+                                    }
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "AnimTest\\Beta_HighLimbsGeoSG3.json"
+                                        }
+                                    },
+                                    "1": {
+                                        "MAsset": {
+                                            "Path": "AnimTest\\Beta_Joints_MAT1.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true
+                            },
                             "MSceneComponent": {
                                 "Scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
+                                    0.00999,
+                                    0.00999,
+                                    0.00999
                                 ],
                                 "Rotation": [
-                                    0.24532,
-                                    0.61273,
+                                    0.0,
+                                    0.0,
                                     0.0
                                 ],
                                 "bWorldRotation": false,
                                 "Translation": [
-                                    -2.33435,
-                                    2.33014,
-                                    -1.86616
+                                    0.99615,
+                                    -0.79596,
+                                    3.12159
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MDirectionalLightActor_0",
+                "Value": {
+                    "MDirectionalLightActor": {
+                        "LightComponent": {
+                            "MDirectionalLightComponent": {},
+                            "MLightComponent": {
+                                "Color": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Direction": [
+                                    0.0,
+                                    -0.2685,
+                                    -0.96327
+                                ],
+                                "Intensity": 1.0,
+                                "bShow": true
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 1,
+                                "bRendering": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1920.0,
+                                    1080.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    2.86975,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    0.0,
+                                    0.0,
+                                    1.0
                                 ],
                                 "bUpdated": false
                             },
@@ -134,130 +258,6 @@
                                     -2.52864,
                                     1.96298,
                                     0.64503
-                                ],
-                                "bUpdated": false
-                            },
-                            "MComponent": {
-                                "Name": "RootComponent"
-                            },
-                            "MObject": {}
-                        }
-                    },
-                    "MActor": {},
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MDynamicMeshActor_0",
-                "Value": {
-                    "MDynamicMeshActor": {
-                        "DynamicMeshComp": {
-                            "DynamicMeshComponent": {
-                                "AnimTime": 0.0,
-                                "AnimSpeed": 1.0,
-                                "bAnimPlaying": false,
-                                "bPlayAnimAtBegin": true,
-                                "Animation": {
-                                    "MAsset": {
-                                        "Path": "AnimTest\\mixamo.com.json"
-                                    }
-                                },
-                                "bBindPose": false,
-                                "Mesh": {
-                                    "MAsset": {
-                                        "Path": "AnimTest\\Female Walk.json"
-                                    }
-                                }
-                            },
-                            "MMeshComponent": {
-                                "bPhysicsSimulate": false,
-                                "PhysicsType": 0,
-                                "Materials": {
-                                    "0": {
-                                        "MAsset": {
-                                            "Path": "AnimTest\\Beta_HighLimbsGeoSG3.json"
-                                        }
-                                    },
-                                    "1": {
-                                        "MAsset": {
-                                            "Path": "AnimTest\\Beta_Joints_MAT1.json"
-                                        }
-                                    }
-                                }
-                            },
-                            "MPrimitiveComponent": {
-                                "RenderMode": 0,
-                                "bRendering": true
-                            },
-                            "MSceneComponent": {
-                                "Scale": [
-                                    0.00999,
-                                    0.00999,
-                                    0.00999
-                                ],
-                                "Rotation": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "bWorldRotation": false,
-                                "Translation": [
-                                    0.99615,
-                                    3.56381,
-                                    0.0
-                                ],
-                                "bUpdated": false
-                            },
-                            "MComponent": {
-                                "Name": "RootComponent"
-                            },
-                            "MObject": {}
-                        }
-                    },
-                    "MActor": {},
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MDirectionalLightActor_0",
-                "Value": {
-                    "MDirectionalLightActor": {
-                        "LightComponent": {
-                            "MDirectionalLightComponent": {},
-                            "MLightComponent": {
-                                "Color": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "Direction": [
-                                    0.0,
-                                    -0.2685,
-                                    -0.96327
-                                ],
-                                "Intensity": 1.0,
-                                "bShow": true
-                            },
-                            "MPrimitiveComponent": {
-                                "RenderMode": 1,
-                                "bRendering": true
-                            },
-                            "MSceneComponent": {
-                                "Scale": [
-                                    1920.0,
-                                    1080.0,
-                                    1.0
-                                ],
-                                "Rotation": [
-                                    2.86975,
-                                    0.0,
-                                    0.0
-                                ],
-                                "bWorldRotation": false,
-                                "Translation": [
-                                    0.0,
-                                    0.0,
-                                    1.0
                                 ],
                                 "bUpdated": false
                             },
