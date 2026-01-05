@@ -62,6 +62,12 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             DstVecotr.assign(SrcVector.begin(), SrcVector.end());
         }
 
+        virtual void Delete(void* InData)
+        {
+            ElemType* Data = static_cast<ElemType*>(InData);
+            delete Data;
+        }
+
         // --------------------------------------------------------------------------------------------
         // FContainerProperty
         virtual void Resize(const void* InObject, const size_t InSize) override
@@ -102,7 +108,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             return nullptr;
         }
 
-        virtual void* GetValueInstance()
+        virtual void* GetInstance()
         {
             return &ValueInstance;
         }
@@ -175,7 +181,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::vector<ElemType> 
             {
                 // 포인터 이동
                 Vector.push_back(static_cast<PureType*>(InData));
-                InData = nullptr;
+                //InData = nullptr;
             }
             else
             {

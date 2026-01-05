@@ -73,7 +73,7 @@ public:
             {
                 //std::wstring Msg2 = StringToWString(Current->Name) + TEXT(" 읽기");
                 //PerformanceTimer Pt2(Msg2);
-                PatchStruct(Current, &OutObject, Doc.FindMember(Current->Name)->value);
+                PatchTypeDesc(Current, &OutObject, Doc.FindMember(Current->Name)->value);
             }
             
             Current = Current->Parent;
@@ -95,15 +95,19 @@ public:
     }
 
 public:
-    void PatchStruct(const FTypeDesc* InTypeDesc, void* InObject, rapidjson::Value& InValue);
+    void PatchTypeDesc(const FTypeDesc* InTypeDesc, void* InObject, rapidjson::Value& InValue);
     void PatchVector(FVectorPropertyDesc* InContainerPropDesc, rapidjson::Value& InJsonValue, void* InObject);
     void PatchMap(FMapPropertyDesc* InContainerPropDesc, rapidjson::Value& InJsonValue, void* InObject);
     void PatchArray(FPropertyDesc* InArrayDesc, rapidjson::Value& InJsonValue, void* InObject);
 
 public:
-    void* HandleData(EType InType, rapidjson::Value& InValue);
-    void HandleData2(EType InType, rapidjson::Value& InValue, void* InData);
-    void* HandleData(rapidjson::Value& InValue, const FTypeDesc* InTypeDesc, bool bShared = false);
+    //void* HandleData(EType InType, rapidjson::Value& InValue);
+    void* ReadData(FPropertyDesc* Prop, rapidjson::Value& PropValue);
+    void ReadFundamentalData(EType InType, rapidjson::Value& InValue, void* InData);
+    void* ReadCustomData(rapidjson::Value& InValue, const FTypeDesc* InTypeDesc, bool bShared = false);
+
+private:
+    void DeleteData(FPropertyDesc* InProp, void* InData);
 
 public:
     // 일반 타입 DeserializeCustomType. 실제로는 호출되지 않지만, 다른 특수화된 템플릿을 생성하기 위해 존재.

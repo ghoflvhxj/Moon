@@ -90,7 +90,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, std::unordered_map<Key
             return &KeyInstance;
         }
 
-        virtual void* GetValueInstance()
+        virtual void* GetInstance()
         {
             return &ValueInstance;
         }

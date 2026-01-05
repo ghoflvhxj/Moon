@@ -55,13 +55,33 @@ public:
     {
         return ContainerType != EContainerType::None;
     }
+    
+    bool IsContainer(EContainerType InContainerType) const
+    {
+        return IsContainer() && ContainerType == InContainerType;
+    }
 
     bool IsArray() const
     {
         return Num > 1;
     }
 
+    bool IsCustomType() const
+    {
+        return Type == EType::None;
+    }
+
+    bool IsFundamentalType() const
+    {
+        return !IsCustomType();
+    }
+
 public:
+    virtual bool IsPointer() const
+    {
+        return false;
+    }
+
 	virtual size_t GetSize() 
     { 
         return Size; 
@@ -83,6 +103,11 @@ public:
     {
 
     }
+
+    virtual void Delete(void* InData) {}
+
+    // 동적할당을 피하기 위한 인스턴스를 반환하는 함수. 컨테이너면 값의 인스턴스를 반환함
+    virtual void* GetInstance() { return nullptr; }
 
     template <class T>
     bool IsA()

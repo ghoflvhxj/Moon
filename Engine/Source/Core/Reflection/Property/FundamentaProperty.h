@@ -33,7 +33,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType OwnerType::* M
     >;
 
     // 포인터, 스마트 포인터, 배열 등을 제거한 타입
-    using ElemType = std::conditional_t<std::is_pointer_v<NoArrayAndSmart>, std::remove_pointer_t<NoArrayAndSmart>, NoArrayAndSmart>;
+    using PureType = std::conditional_t<std::is_pointer_v<NoArrayAndSmart>, std::remove_pointer_t<NoArrayAndSmart>, NoArrayAndSmart>;
 
 	struct FPropertyDescImple : public FPropertyDesc
 	{
@@ -46,6 +46,11 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType OwnerType::* M
 
         // 델리게이트
         std::function<void(OwnerType* InObject)> Func;
+
+        virtual bool IsPointer() const
+        {
+            return std::is_pointer_v<MemType>;
+        }
 
         // 부모 클래스 주석 참고
         virtual void* GetAsVoid(const void* InObject, size_t InIndex = 0) override
@@ -80,28 +85,32 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType OwnerType::* M
             {
                 if constexpr (std::rank_v<MemType> == 1)        // 배열
                 {
-                    ((OwnerType*)InObject->*MemPtr)[InIndex] = *static_cast<ElemType*>(InData);
+                    ((OwnerType*)InObject->*MemPtr)[InIndex] = *static_cast<PureType*>(InData);
                 }
                 else if constexpr (std::rank_v<MemType> == 2)   // 행렬 임시 지원
                 {
-                    ((OwnerType*)InObject->*MemPtr)[InIndex/4][InIndex%4] = *static_cast<ElemType*>(InData);
+                    ((OwnerType*)InObject->*MemPtr)[InIndex/4][InIndex%4] = *static_cast<PureType*>(InData);
                 }
             }
             else if constexpr (std::is_pointer_v<MemType>)
             {
                 // 지원 안함
-                InData = nullptr;
+                ((OwnerType*)InObject->*MemPtr) = static_cast<PureType*>(InData);
             }
             else
             {
                 MemType* Data = static_cast<MemType*>(InData);
-                ((OwnerType*)InObject->*MemPtr) = *Data;
-            }
-
-            if constexpr (is_smart_ptr_v<MemType> == false && std::is_array_v<MemType> == false)
-            {
-                // 복사 대입
-                MemType* Ptr = static_cast<MemType*>(InData);
+                if constexpr (is_smart_ptr_v<MemType>)
+                {
+                    if (InData != nullptr)
+                    {
+                        ((OwnerType*)InObject->*MemPtr) = *Data;
+                    }
+                }
+                else
+                {
+                    ((OwnerType*)InObject->*MemPtr) = *Data;
+                }
             }
 
             if (Func)
@@ -114,6 +123,26 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType OwnerType::* M
         {
             SetAsVoid(InDstObject, GetAsVoid(InSrcObject, InIndex), InIndex);
         }
+
+        virtual void Delete(void* InData) override
+        {
+            MemType* Data = static_cast<MemType*>(InData);
+            if constexpr (std::is_array_v<MemType>)
+            {
+                int b = 0;
+            }
+            else
+            {
+                delete Data;
+            }
+        }
+
+        virtual void* GetInstance() override
+        {
+            return &Instance;
+        }
+
+        PureType Instance;
 	};
     
     // T[N] -> T
@@ -126,7 +155,7 @@ static FPropertyDesc* MakeProp(const std::string& InName, MemType OwnerType::* M
 	NewDesc->Offset = OffsetOf(MemPtr);
     NewDesc->bSharedPtr = is_smart_ptr_v<MemType>;
 
-    SetType<ElemType>(NewDesc->Type, NewDesc->TypeDesc);
+    SetType<PureType>(NewDesc->Type, NewDesc->TypeDesc);
 
     std::wstring Msg = TEXT("Make Prop ") + StringToWString(InName);
     LOG(Msg);

@@ -15,6 +15,5 @@ public:
 	virtual size_t GetNum(const void* InObject) const = 0;
     virtual void Clear (const void* InObject) = 0;
     virtual void* GetKeyInstance() = 0;
-    virtual void* GetValueInstance() = 0;
 };
 
