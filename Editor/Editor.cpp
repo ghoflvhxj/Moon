@@ -374,13 +374,19 @@ void MEditor::Render()
 {
 }
 
-void MEditor::Open(std::function<void(const TCHAR* InFileName)> InFunction, std::shared_ptr<MWindow> InOwner)
+void MEditor::Open(std::function<void(const TCHAR* InFileName)> InFunction, const wchar_t* InFormat, std::shared_ptr<MWindow> InOwner)
 {
+    const wchar_t* Format = InFormat;
+    if (Format == nullptr)
+    {
+        Format = TEXT("json 파일\0*.json");
+    }
+
     TCHAR FileName[256] = {};
     OPENFILENAMEW OpenFileDesc = {};
     OpenFileDesc.hwndOwner = InOwner == nullptr ? GetMainWindow()->getHandle() : InOwner->getHandle();
     OpenFileDesc.lStructSize = sizeof(OpenFileDesc);
-    OpenFileDesc.lpstrFilter = TEXT("json 파일\0*.json");
+    OpenFileDesc.lpstrFilter = Format;
     OpenFileDesc.lpstrFile = FileName;
     OpenFileDesc.nMaxFile = MAX_PATH;
     OpenFileDesc.lpstrInitialDir = TEXT(".");

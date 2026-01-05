@@ -62,6 +62,9 @@ public:
     bool bRenderable = false;
 
 public:
+    void OpenLevel(const std::wstring& InPath);
+
+public:
     void WorldFunc(uint32 InIndex);
     void AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow);
     FDelegate<void, const FWorldRenderInfo&>& GetOnWorldAddedDelegate() { return OnWorldAdded; }

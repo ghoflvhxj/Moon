@@ -64,12 +64,11 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
     GetEngine()->Init();
 
     g_World = std::make_shared<MWorld>();
-    g_World->Initialize();
-
     // 그냥 파라미터 없이, 함수 내부에서 world와 윈도우를 생성하도록 하는 것은 어떤지?
-    GetEngine()->AddWorld(g_World, g_pMainWindow);
-
-    g_pMainWindow->Initialize();
+    if (g_World != nullptr && g_pMainWindow != nullptr)
+    {
+        GetEngine()->AddWorld(g_World, g_pMainWindow);
+    }
 
 	return true;
 }
@@ -329,6 +328,18 @@ void MEngine::Loop()
     }
 }
 
+void MEngine::OpenLevel(const std::wstring& InPath)
+{
+    assert(!InPath.empty());
+    assert(MFileSystem::IsExist(InPath));
+
+    GetLevelChangedDelegate().Broadcast();
+    GetPostLoopDelegate().Add([InPath]() {
+        GetMainWorld()->GetActors().clear();
+        GetMainWorld()->Load(InPath);
+    });
+}
+
 void MEngine::WorldFunc(uint32 InIndex)
 {
     FWorldRenderInfo& BoundData = WorldRenderInfos[InIndex];
@@ -354,9 +365,6 @@ void MEngine::WorldFunc(uint32 InIndex)
         {
             World->getFrameManager()->PrevWorkFinishedTime = TimerManager.GetCurrent();
         }
-
-        std::wstring Frame = std::to_wstring(World->getFrame());
-        SetWindowText(WorldRenderInfos[InIndex].DstWindow->getHandle(), Frame.c_str());
     }
 }
 
@@ -428,10 +436,8 @@ void MEngine::RemoveWindow(uint32 InWindowID)
 
 void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow> InWindow)
 {
-    if (InWorld == nullptr || InWindow == nullptr)
-    {
-        return;
-    }
+    assert(InWorld);
+    assert(InWindow);
 
     FWorldRenderInfo NewWorldRenderInfo = {};
     NewWorldRenderInfo.SrcWorld = InWorld;
@@ -447,6 +453,9 @@ void MEngine::AddWorld(std::shared_ptr<MWorld> InWorld, std::shared_ptr<MWindow>
     }
 
     GetOnWorldAddedDelegate().Broadcast(NewWorldRenderInfo);
+
+    InWindow->Initialize();
+    InWorld->Initialize();
 }
 
 FWorldRenderInfo MEngine::GetWorldInfo(int32 InIndex)

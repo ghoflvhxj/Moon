@@ -14,6 +14,7 @@
 
 #include "Gameframework/StaticmeshActor/StaticMeshActor.h"
 #include "Core/ResourceManager.h"
+#include "Core/FileSystem.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -180,23 +181,14 @@ void MEditorMainWindow::ImGuiRender()
             }
             if (ImGui::Button("Load"))
             {
-                EditorModule->Open([&](const TCHAR* InFileName) {
-                    std::wstring FileName = InFileName;
-
-                    if (FileName.empty())
+                EditorModule->Open([&](const TCHAR* InPathStr) {
+                    std::wstring Path = InPathStr;
+                    if (MFileSystem::IsExist(InPathStr))
                     {
-                        return;
+                        GetEngine()->OpenLevel(Path);
+                        SetTitle(Path);
                     }
-
-                    GetLevelChangedDelegate().Broadcast();
-                    GetPostLoopDelegate().Add([FileName]() {
-                        GetMainWorld()->GetActors().clear();
-                        GetMainWorld()->Load(FileName);
-                        });
-                    });
-
-                SetFocus(getHandle());
-                ShowWindow(getHandle(), SW_SHOW | SW_RESTORE);
+                }, TEXT("Level File(*.level)\0*.level\0Json File(*json)\0*.json\0\0"));
             }
             ImGui::Indent(-20);
 
@@ -211,13 +203,10 @@ void MEditorMainWindow::ImGuiRender()
             {
                 std::shared_ptr<MWindow> NewWindow = GetWindowManager()->AddWindow<MWindow>(TEXT("PIE"), GetMainWindow()->GetWidth<int>(), GetMainWindow()->GetHeight<int>(), g_hWnd, TEXT("ShootingGame"));
                 NewWindow->SetWindowPos(GetMainWindow()->GetWindowPos());
-                NewWindow->Initialize();
 
                 //std::shared_ptr<MWorld> NewWorld = DuplicateObject(GetMainWorld())->CastToShared<MWorld>();
                 std::shared_ptr<MWorld> NewWorld = std::make_shared<MWorld>();
                 NewWorld->SetWorldType(EWorldType::PIayInEditor);
-                NewWorld->Initialize();
-                NewWorld->getMainCamera()->SetWorldTranslation({ 0.f, 0.f, -2.f });
 
                 GetEngine()->AddWorld(NewWorld, NewWindow);
 

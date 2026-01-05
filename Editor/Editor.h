@@ -46,7 +46,7 @@ public:
 	virtual void Render() override;
 
 public:
-    void Open(std::function<void(const TCHAR* InFileName)> InFunction, std::shared_ptr<MWindow> InOwner = nullptr);
+    void Open(std::function<void(const TCHAR* InFileName)> InFunction, const wchar_t* InFormat = nullptr, std::shared_ptr<MWindow> InOwner = nullptr);
 
     template <class T>
     void Save(T& InObject)
