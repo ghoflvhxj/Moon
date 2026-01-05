@@ -68,6 +68,29 @@ void MEditorMainWindow::ImGuiRender()
                 }
             }
 
+            if (ImGui::Button("BlendIndex"))
+            {
+                std::map<std::tuple<int, int, int, int>, int> IndexTest;
+                if (auto MeshComp = ClickedComp->CastTo<MMeshComponent>())
+                {
+                    if (MeshComp->GetMesh())
+                    {
+                        for (const auto& MeshData : MeshComp->GetMesh()->GetMeshDatas())
+                        {
+                            for (const auto& Vertex : MeshData.Vertices)
+                            {
+                                IndexTest[std::make_tuple(Vertex.BlendIndex[0], Vertex.BlendIndex[1], Vertex.BlendIndex[2], Vertex.BlendIndex[3])]++;
+                            }
+                        }
+                    }
+                }
+
+                for (const auto& [Indices, Count] : IndexTest)
+                {
+                    cout << "[" << std::get<0>(Indices) << ", " << std::get<1>(Indices) << ", " << std::get<2>(Indices) << ", " << std::get<3>(Indices) << "]: " << Count << endl;
+                }
+            }
+
             // FBX 로드 
             if (ImGui::CollapsingHeader("LoadFBX"))
             {
@@ -157,15 +180,23 @@ void MEditorMainWindow::ImGuiRender()
             }
             if (ImGui::Button("Load"))
             {
-                GetLevelChangedDelegate().Broadcast();
-
                 EditorModule->Open([&](const TCHAR* InFileName) {
                     std::wstring FileName = InFileName;
+
+                    if (FileName.empty())
+                    {
+                        return;
+                    }
+
+                    GetLevelChangedDelegate().Broadcast();
                     GetPostLoopDelegate().Add([FileName]() {
                         GetMainWorld()->GetActors().clear();
                         GetMainWorld()->Load(FileName);
                         });
                     });
+
+                SetFocus(getHandle());
+                ShowWindow(getHandle(), SW_SHOW | SW_RESTORE);
             }
             ImGui::Indent(-20);
 
@@ -388,16 +419,7 @@ void MEditorMainWindow::ImGuiRender()
 
 MEditorBaseWindow::~MEditorBaseWindow()
 {
-    if (Context != nullptr)
-    {
-        ImGui::SetCurrentContext(Context);
 
-        ImGui_ImplDX11_Shutdown();
-        ImGui_ImplWin32_Shutdown();
-        ImGui::DestroyContext(Context);
-
-        Context = nullptr;
-    }
 }
 
 MEditorBaseWindow::MEditorBaseWindow(const std::wstring& title, const int width, const int height, const std::wstring& className)
@@ -434,6 +456,20 @@ void MEditorBaseWindow::Render()
     ImGui::Render();
     ImGui::EndFrame();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void MEditorBaseWindow::Release()
+{
+    if (Context != nullptr)
+    {
+        ImGui::SetCurrentContext(Context);
+
+        ImGui_ImplDX11_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext(Context);
+
+        Context = nullptr;
+    }
 }
 
 void MEditorBaseWindow::ImGuiRender()

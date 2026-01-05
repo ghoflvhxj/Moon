@@ -61,10 +61,13 @@ bool MEditor::Initialize()
 {
     Super::Initialize();
 
-    g_ResourceManager->Load<StaticMesh>(TEXT("Base/Gizmo.json"), GizmoMesh);
+    GizmoMesh = g_ResourceManager->Load(TEXT("Base/Gizmo.json"), StaticMesh::GetTypeDescStatic())->CastToShared<StaticMesh>();
 
-    getRenderer()->AddRenderPass(ERenderPass::CustomPass0, MRenderer::CreateRenderPass<MEditorPass>());
-    GetMainWindow()->GetOnViewportSizeChangedDelegate().Add(this, [&](uint32 a, uint32 b, uint32 c, uint32 d, uint32 e){
+    if (getRenderer())
+    {
+        getRenderer()->AddRenderPass(ERenderPass::CustomPass0, MRenderer::CreateRenderPass<MEditorPass>());
+    }
+    GetMainWindow()->GetOnViewportSizeChangedDelegate().Add(this, [&](uint32 a, uint32 b, uint32 c, uint32 d, uint32 e, bool){
         for (auto& [Name, Actor] : GetMainWorld()->GetActors())
         {
             Actor->update(0.f);
@@ -77,6 +80,7 @@ void MEditor::Release()
 {
     Super::Release();
 
+    GizmoMesh.reset();
     Editors.clear();
 }
 
@@ -254,7 +258,11 @@ void MEditor::Update()
         Scale.x *= DistToScale;
         Scale.y *= DistToScale;
         Scale.z *= DistToScale;
-        getRenderer()->DrawPrimitive(GetMainWorld().get(), GizmoMesh, GizmoTargetComp->getTranslation(), VEC3ZERO, Scale, EPrimitiveType::CustomPrimitiveType0);
+
+        if (GizmoMesh.expired() == false)
+        {
+            getRenderer()->DrawPrimitive(GetMainWorld().get(), GizmoMesh.lock(), GizmoTargetComp->getTranslation(), VEC3ZERO, Scale, EPrimitiveType::CustomPrimitiveType0);
+        }
 
         if (bControlGizmo)
         {
@@ -366,6 +374,25 @@ void MEditor::Render()
 {
 }
 
+void MEditor::Open(std::function<void(const TCHAR* InFileName)> InFunction, std::shared_ptr<MWindow> InOwner)
+{
+    TCHAR FileName[256] = {};
+    OPENFILENAMEW OpenFileDesc = {};
+    OpenFileDesc.hwndOwner = InOwner == nullptr ? GetMainWindow()->getHandle() : InOwner->getHandle();
+    OpenFileDesc.lStructSize = sizeof(OpenFileDesc);
+    OpenFileDesc.lpstrFilter = TEXT("json 파일\0*.json");
+    OpenFileDesc.lpstrFile = FileName;
+    OpenFileDesc.nMaxFile = MAX_PATH;
+    OpenFileDesc.lpstrInitialDir = TEXT(".");
+    OpenFileDesc.lpstrTitle = TEXT("파일 열기");
+    OpenFileDesc.Flags = OFN_EXPLORER;
+
+    if (GetOpenFileNameW(&OpenFileDesc))
+    {
+        InFunction(FileName);
+    }
+}
+
 bool MEditor::IsPickable() const
 {
     return ImGui::GetIO().WantCaptureMouse == false && GetMainWorld()->IsMouseInViewport();
@@ -460,7 +487,7 @@ void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* 
                     Filter = TEXT("애셋\0*.json\0");
                 }
 
-                ImGui::PushID(reinterpret_cast<int>(InObject) + i);
+                ImGui::PushID(InObject);
                 ImGui::SameLine(300);
                 if (ImGui::Button("Edit"))
                 {
@@ -892,6 +919,8 @@ bool MEditorBase::SetObject(std::shared_ptr<MObject> InObject)
     WorkingObject = DuplicateObject(InObject);
 
     HandleObject();
+
+    return true;
 }
 
 void MEditorBase::RenderUI()

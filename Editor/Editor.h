@@ -46,22 +46,8 @@ public:
 	virtual void Render() override;
 
 public:
-    void Open(std::function<void(const TCHAR* InFileName)> InFunction)
-    {
-        TCHAR FileName[256] = {};
-        OPENFILENAMEW OpenFileDesc = {};
-        OpenFileDesc.lStructSize = sizeof(OpenFileDesc);
-        OpenFileDesc.lpstrFilter = TEXT("json 파일\0*.json");
-        OpenFileDesc.lpstrFile = FileName;
-        OpenFileDesc.nMaxFile = MAX_PATH;
-        OpenFileDesc.lpstrInitialDir = TEXT(".");
-        OpenFileDesc.lpstrTitle = TEXT("파일 열기");
+    void Open(std::function<void(const TCHAR* InFileName)> InFunction, std::shared_ptr<MWindow> InOwner = nullptr);
 
-        if (GetOpenFileNameW(&OpenFileDesc))
-        {
-            InFunction(FileName);
-        }
-    }
     template <class T>
     void Save(T& InObject)
     {
@@ -95,7 +81,7 @@ public:
     void SetGizmoMode(EGizmoMode InGizmoMode) { GizmoMode = InGizmoMode; }
     EGizmoMode GetGizmoMode() const { return GizmoMode; }
 private:
-    std::shared_ptr<StaticMesh> GizmoMesh = nullptr;
+    std::weak_ptr<StaticMesh> GizmoMesh;
     Vec3 GizmoOffset = VEC3ZERO;
     EAxis GizmoAxis;
     bool bSetGizmoOffset = false;
@@ -137,7 +123,7 @@ public:
     virtual ~MEditorBase() = default;
 
 public:
-    virtual const std::wstring& GetPath() const { return TEXT(""); }
+    virtual const std::wstring& GetPath() const { static std::wstring Empty; return Empty; }
     virtual void Update() {}
     virtual void RenderUI();
     virtual void HandleObject() {}
