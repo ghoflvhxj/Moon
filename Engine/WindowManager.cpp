@@ -31,6 +31,14 @@ WindowManager::WindowManager(const HINSTANCE hInstance)
 	}
 }
 
+void WindowManager::Release()
+{
+    for (auto& [Hnd, Window] : m_windowMap)
+    {
+        Window->Release();
+    }
+}
+
 const bool WindowManager::AddWindowClass(const WNDCLASS &wndClass)
 {
 	// RegisterClass는 실패시 0을 반환함

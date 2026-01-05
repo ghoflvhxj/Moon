@@ -16,6 +16,9 @@ public:
 	virtual ~WindowManager() = default;
 
 public:
+    void Release();
+
+public:
 	const bool AddWindowClass(const WNDCLASS &wndClass);
 
 public:		
