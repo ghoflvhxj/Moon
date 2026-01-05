@@ -2,10 +2,10 @@
 
 #include "Include.h"
 
-class ENGINE_DLL MFIleSystem
+class ENGINE_DLL MFileSystem
 {
 public:
-    MFIleSystem();
+    MFileSystem();
 
 public:
     static std::wstring RootStr;
@@ -20,4 +20,6 @@ public:
     // 상대 경로로 변경
     static std::wstring RelativePath(const std::wstring& InPath);
     static std::wstring RelativePath(const std::filesystem::path& InPath);
+
+    static bool IsExist(const std::wstring& InPath);
 };

@@ -10,6 +10,7 @@
 #include "Module/Physics/Jolt.h"
 #include "Core/ResourceManager.h"
 #include "Core/ResourceLoader.h"
+#include "Core/FileSystem.h"
 
 #include "ShaderManager.h"
 #include "ShaderLoader.h"
@@ -33,7 +34,7 @@ std::shared_ptr<MDirectInput> g_pDirectInput		= nullptr;
 std::shared_ptr<GraphicDevice> g_pGraphicDevice		= nullptr;
 std::shared_ptr<MRenderer> g_pRenderer				= nullptr;
 std::shared_ptr<MPhysicsEngine> g_pPhysics			= nullptr;
-std::unique_ptr<MFIleSystem> FileSystem = nullptr;
+std::unique_ptr<MFileSystem> FileSystem = nullptr;
 
 std::shared_ptr<MWorld> g_World	= nullptr;
 
@@ -53,7 +54,7 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
 
 	g_pMainWindow = pWindow;
 
-    FileSystem = std::make_unique<MFIleSystem>();
+    FileSystem = std::make_unique<MFileSystem>();
 
     g_pDirectInput = g_Engine->GetModule<MDirectInput>();
     g_pRenderer = g_Engine->GetModule<MRenderer>();

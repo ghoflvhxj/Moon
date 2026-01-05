@@ -489,7 +489,7 @@ void MEditorBaseWindow::InitImGui()
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    std::wstring WFontPath = MFIleSystem::AbsolutePath("Resources/Fonts/NanumSquareRoundR.ttf");
+    std::wstring WFontPath = MFileSystem::AbsolutePath("Resources/Fonts/NanumSquareRoundR.ttf");
     std::string FontPath = WStringToString(WFontPath);
     io.Fonts->AddFontFromFileTTF(FontPath.c_str(), 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
 

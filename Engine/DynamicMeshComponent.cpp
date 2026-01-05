@@ -197,7 +197,7 @@ const bool DynamicMeshComponent::GetPrimitiveData(std::vector<FPrimitiveData> & 
 
 void DynamicMeshComponent::SetMesh(const std::wstring& InPath)
 {
-    std::filesystem::path Path = MFIleSystem::AbsolutePath(InPath);
+    std::filesystem::path Path = MFileSystem::AbsolutePath(InPath);
 
     if (Path.extension() == TEXT(".fbx"))
     {

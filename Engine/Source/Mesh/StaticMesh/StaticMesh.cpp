@@ -48,7 +48,7 @@ void MMesh::LoadFromFBX(const std::wstring& Path, MFBXLoader& FbxLoader)
 void MMesh::LoadFromFBX(const std::wstring& FilePath)
 {
     MFBXLoader FbxLoader;
-    LoadFromFBX(MFIleSystem::AbsolutePath(FilePath), FbxLoader);
+    LoadFromFBX(MFileSystem::AbsolutePath(FilePath), FbxLoader);
 }
 
 bool MMesh::Load(const std::wstring& InPath)

@@ -24,7 +24,7 @@ std::shared_ptr<MAsset> MResourceManager::Load(const std::wstring& InPath, const
 
     if (Path.is_absolute() == false)
     {
-        Path = MFIleSystem::AbsolutePath(Path);
+        Path = MFileSystem::AbsolutePath(Path);
     }
 
     if (std::filesystem::exists(Path) == false)
@@ -95,7 +95,7 @@ std::shared_ptr<MAsset> MResourceManager::FindAsset(const std::wstring& InPath)
 
     if (Path.is_absolute() == false)
     {
-        Path = MFIleSystem::AbsolutePath(Path);
+        Path = MFileSystem::AbsolutePath(Path);
     }
 
     for (auto& [Extension, ResourceLoader]: ResourceLoaders)

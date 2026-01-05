@@ -27,5 +27,5 @@ void MAsset::OnLoaded()
 void MAsset::SetAssetPath(const std::wstring& InPath)
 {
     std::filesystem::path FileSystemPath(InPath);
-    Path = FileSystemPath.is_absolute() ? MFIleSystem::RelativePath(FileSystemPath) : InPath;
+    Path = FileSystemPath.is_absolute() ? MFileSystem::RelativePath(FileSystemPath) : InPath;
 }

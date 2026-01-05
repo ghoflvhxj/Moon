@@ -202,7 +202,7 @@ bool MFBXLoader::LoadFBXMesh(const wstring& InPath)
     }
 
 	Path = InPath;
-    Directory = MFIleSystem::GetDirectory(InPath);
+    Directory = MFileSystem::GetDirectory(InPath);
     std::filesystem::path PathObject(Path);
     Name = PathObject.filename().wstring();
     Name = Name.substr(0, Name.find_last_of('.'));

@@ -44,7 +44,7 @@ public:
         std::filesystem::path Path(InPath);
         if (Path.is_absolute() == false)
         {
-            Path = MFIleSystem::AbsolutePath(Path);
+            Path = MFileSystem::AbsolutePath(Path);
         }
 
         if (PathFileExists(Path.c_str()) == false)

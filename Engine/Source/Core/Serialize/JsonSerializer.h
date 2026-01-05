@@ -73,7 +73,7 @@ public:
             Current = Current->Parent;
         }
 
-        std::wstring Path = MFIleSystem::AbsolutePath(InPath);
+        std::wstring Path = MFileSystem::AbsolutePath(InPath);
 
         FILE* fp = nullptr;
         _wfopen_s(&fp, Path.c_str(), TEXT("wb"));

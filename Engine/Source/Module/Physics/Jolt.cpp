@@ -262,7 +262,7 @@ void MJoltPhysics::StartSimulate(MWorld* InWorld)
                 continue;
             }
 
-            std::string Path = WStringToString(MFIleSystem::AbsolutePath(Physics->GetAssetPath()));
+            std::string Path = WStringToString(MFileSystem::AbsolutePath(Physics->GetAssetPath()));
 
             BodyInterface& bodyInterface = physics_system->GetBodyInterface();
 
@@ -382,7 +382,7 @@ void MJoltPhysics::SaveTest(std::shared_ptr<MMesh> InMesh)
         JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
     }
 
-    std::filesystem::path Path = MFIleSystem::AbsolutePath(InMesh->GetAssetPath());
+    std::filesystem::path Path = MFileSystem::AbsolutePath(InMesh->GetAssetPath());
     Path.replace_extension("physics");
 
     // 저장 테스트

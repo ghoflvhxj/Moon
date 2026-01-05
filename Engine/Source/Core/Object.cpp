@@ -1,9 +1,9 @@
 ﻿#include "Object.h"
 #include "Asset.h"
 #include "Core/Reflection/TypeDesc.h"
-
 #include "Core/Serialize/JsonDeserializer.h"
 #include "Core/ResourceManager.h"
+#include "Core/FileSystem.h"
 
 void MObject::LoadFromDisk(const std::wstring& InPath)
 {
@@ -15,17 +15,11 @@ void MObject::LoadFromDisk(const std::wstring& InPath)
 
 bool MObject::Load(const std::wstring& InPath)
 {
-    if (InPath.empty())
-    {
-        return false;
-    }
+    assert(!InPath.empty());
+    assert(MFileSystem::IsExist(InPath));
 
-    std::filesystem::path FileSystemPath(InPath);
-    if (FileSystemPath.extension() == TEXT(".json"))
-    {
-        MJsonDeserializer Deserializer;
-        Deserializer.Deserialize(shared_from_this(), InPath);
-    }
+    MJsonDeserializer Deserializer;
+    Deserializer.Deserialize(shared_from_this(), InPath);
 
     return true;
 }

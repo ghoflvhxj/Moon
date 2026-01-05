@@ -2,9 +2,9 @@
 
 namespace fs = std::filesystem;
 
-fs::path MFIleSystem::RootPath = fs::current_path();
+fs::path MFileSystem::RootPath = fs::current_path();
 
-MFIleSystem::MFIleSystem()
+MFileSystem::MFileSystem()
 {
     fs::recursive_directory_iterator Iter(RootPath);
     while (Iter != fs::end(Iter))
@@ -15,9 +15,9 @@ MFIleSystem::MFIleSystem()
     }
 }
 
-std::wstring MFIleSystem::RootStr = MFIleSystem::RootPath.wstring();
+std::wstring MFileSystem::RootStr = MFileSystem::RootPath.wstring();
 
-std::wstring MFIleSystem::AbsolutePath(const std::wstring& InRelativePath)
+std::wstring MFileSystem::AbsolutePath(const std::wstring& InRelativePath)
 {
     fs::path Path(InRelativePath);
     Path = Path.make_preferred();
@@ -25,7 +25,7 @@ std::wstring MFIleSystem::AbsolutePath(const std::wstring& InRelativePath)
     return AbsolutePath(Path);
 }
 
-fs::path MFIleSystem::AbsolutePath(const fs::path InRelativePath)
+fs::path MFileSystem::AbsolutePath(const fs::path InRelativePath)
 {
     if (InRelativePath.is_absolute() == false)
     {
@@ -37,19 +37,24 @@ fs::path MFIleSystem::AbsolutePath(const fs::path InRelativePath)
     }
 }
 
-std::wstring MFIleSystem::GetDirectory(const std::wstring& InPath)
+std::wstring MFileSystem::GetDirectory(const std::wstring& InPath)
 {
     fs::path Path(InPath);
     return Path.remove_filename().wstring();
 }
 
-std::wstring MFIleSystem::RelativePath(const std::wstring& InPath)
+std::wstring MFileSystem::RelativePath(const std::wstring& InPath)
 {
     fs::path Path(InPath);
     return RelativePath(Path);
 }
 
-std::wstring MFIleSystem::RelativePath(const fs::path& InPath)
+std::wstring MFileSystem::RelativePath(const fs::path& InPath)
 {
-    return std::move(fs::relative(InPath, MFIleSystem::RootPath).wstring());
+    return std::move(fs::relative(InPath, MFileSystem::RootPath).wstring());
+}
+
+bool MFileSystem::IsExist(const std::wstring& InPath)
+{
+    return fs::exists(AbsolutePath(InPath));
 }

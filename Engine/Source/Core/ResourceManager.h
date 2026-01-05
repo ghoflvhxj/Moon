@@ -32,7 +32,7 @@ public:
 
         if (Path.is_absolute() == false)
         {
-            Path = MFIleSystem::AbsolutePath(Path);
+            Path = MFileSystem::AbsolutePath(Path);
         }
 
         if (std::filesystem::exists(Path) == false)
