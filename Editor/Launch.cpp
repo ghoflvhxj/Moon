@@ -25,7 +25,7 @@
 #include "ImGui/backends/imgui_impl_win32.h"
 #include "ImGui/backends/imgui_impl_dx11.h"
 
-LPCWSTR title = TEXT("ShootingGame");
+LPCWSTR WindowClassName = TEXT("ShootingGame");
 bool bImGuiInitialized = false;
 
 
@@ -53,7 +53,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 		auto pWindowManager = GetWindowManager();
 		WNDCLASS wndClass = { 0, };
 		wndClass.lpfnWndProc = WndProc;
-		wndClass.lpszClassName = title;
+		wndClass.lpszClassName = WindowClassName;
 		wndClass.hInstance = hInstance;
 		wndClass.cbClsExtra = 0;
 		wndClass.cbWndExtra = 0;
@@ -70,7 +70,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         GetEngine()->AddModule<MRenderer>();
         GetEngine()->AddModule<MEditor>();
 
-        auto& Window = pWindowManager->AddWindow<MEditorMainWindow>(title, getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>(), title);
+        auto& Window = pWindowManager->AddWindow<MEditorMainWindow>(TEXT("Untitled"), getSetting()->getResolutionWidth<int>(), getSetting()->getResolutionHeight<int>(), WindowClassName);
         EngineInit(hInstance, Window);
 
         GetMainWorld()->SetWorldType(EWorldType::Editor);
@@ -133,6 +133,14 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 return 0;
         }
 	    break;
+        case WM_SYSKEYDOWN:
+        {
+            if (wParam & VK_RETURN)
+            {
+                Window->ToggleFullScreen();
+            }
+        }
+        break;
         case WM_DESTROY:
         {
             if (hWnd == g_hWnd)

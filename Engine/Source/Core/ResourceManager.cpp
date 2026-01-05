@@ -81,6 +81,7 @@ void MResourceManager::Release()
 {
 	ResourceLoaders.clear();
     ResourceLoaders2.clear();
+    TempCache.clear();
 }
 
 std::shared_ptr<MAsset> MResourceManager::FindAsset(const std::wstring& InPath)

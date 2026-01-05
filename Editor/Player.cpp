@@ -75,19 +75,19 @@ void Player::tick(const Time deltaTime)
 
     if (auto World = GetWorld())
     {
-        if (InputManager::keyPress(DIK_T, World->GetID()))
+        if (InputManager::keyPress(DIK_W, World->GetID()))
         {
             Input.z += 1.f;
         }
-        if (InputManager::keyPress(DIK_G, World->GetID()))
+        if (InputManager::keyPress(DIK_S, World->GetID()))
         {
             Input.z -= 1.f;
         }
-        if (InputManager::keyPress(DIK_F, World->GetID()))
+        if (InputManager::keyPress(DIK_A, World->GetID()))
         {
             Input.x -= 1.f;
         }
-        if (InputManager::keyPress(DIK_H, World->GetID()))
+        if (InputManager::keyPress(DIK_D, World->GetID()))
         {
             Input.x += 1.f;
         }

@@ -62,6 +62,11 @@ public:
         Doc.ParseStream(frs);
 
         fclose(fp);
+
+        if (Doc.HasParseError())
+        {
+            return;
+        }
         
         std::wstring Msg = Path.wstring() + TEXT(" 읽기");
         PerformanceTimer Pt(Msg);
