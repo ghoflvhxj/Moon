@@ -139,6 +139,7 @@ void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &Prim
 	PixelShader->SetValue(TEXT("g_lightColor"), color);
 	PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), getRenderer()->GetWorld()->getMainCamera()->getInvesrViewMatrix());
 	PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), getRenderer()->GetWorld()->getMainCamera()->getInversePerspectiveProjectionMatrix());
+    PixelShader->SetValue(TEXT("Ambient"), getRenderer()->Ambient);
 
 	MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
 }

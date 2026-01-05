@@ -5,7 +5,8 @@ cbuffer CBuffer : register(b2)
 	float4 g_lightPosition;		// w = Range
 	float4 g_lightDirection;
 	float4 g_lightColor;		// w = Power
-	
+    float4 Ambient;
+    
     row_major matrix g_inverseCameraViewMatrix;
     row_major matrix g_inverseProjectiveMatrix;
 };
@@ -20,10 +21,10 @@ PixelOut_LightPass main(PixelIn pIn)
 	normal.w = 0.f;
 	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
 
-    //if (all(normal.xyz == float3(0.f, 0.f, 0.f)))
-    //{
-    //    return pOut;
-    //}
+    if (all(normal.xyz == float3(0.f, 0.f, 0.f)))
+    {
+        return pOut;
+    }
     
     float3 PixelPosInCamera = PixelToView(pIn.uv, depth, g_inverseProjectiveMatrix).xyz;
     float4 PixelPosInWorld = mul(float4(PixelPosInCamera, 1.f), g_inverseCameraViewMatrix);
@@ -53,14 +54,13 @@ PixelOut_LightPass main(PixelIn pIn)
     
 	//-------------------------------------------------------------------------------------------------
     // 난반사
-    float3 ambient = float3(0.5f, 0.5f, 0.5f);
 	float3 normalInWorld = mul(normal, g_inverseCameraViewMatrix).xyz;
     
     float Dot = dot(normalInWorld, -LightDirection);
     float Bright = saturate(Dot);                       // 0 ~ 1
     
     float3 Direct = Bright * intensity * (1.f - ShadowFactor);
-    float3 InDirect = ambient * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
+    float3 InDirect = Ambient * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
     pOut.lightDiffuse.xyz = color * (Direct + InDirect);
     
     if(T_RimLight.Sample(g_Sampler, pIn.uv).x > 0.f)
