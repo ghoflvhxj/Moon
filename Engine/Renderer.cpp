@@ -584,7 +584,7 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
     RenderTargetss[std::make_tuple(InWidth, InHeight)] = std::move(NewRenderTargets);
 }
 
-void MRenderer::ResizeRenderTargets(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight)
+void MRenderer::ResizeRenderTargets(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight, bool InFullScreen)
 {
     std::vector<std::shared_ptr<MWindow>> Windows;
     GetWindowManager()->FilterWindow([InOldWidth, InOldHeight](std::shared_ptr<MWindow> Window) {
@@ -645,8 +645,6 @@ std::shared_ptr<MRenderTarget> MRenderer::GetRenderTarget(ERenderTarget InRender
     }
 
     return nullptr;
-
-    //return _renderTargets[static_cast<int32>(RenderTarget)];
 }
 
 ID3D11ShaderResourceView* MRenderer::GetResourceView(ERenderTarget InRenderTarget)
@@ -748,7 +746,7 @@ void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
 
     auto& Window = InWorldRenderInfo.DstWindow;
 
-    Window->GetOnViewportSizeChangedDelegate().Add([this, WorldID](uint32, uint32, uint32, uint32 NewWidth, uint32 NewHeight) {
+    Window->GetOnViewportSizeChangedDelegate().Add([this, WorldID](uint32, uint32, uint32, uint32 NewWidth, uint32 NewHeight, bool) {
         const Vec3 NewScale = { static_cast<float>(NewWidth), static_cast<float>(NewHeight), 0.f};
         for (auto& PrimitiveData : GetScene(WorldID)->GetPrimitiveDatas(EPrimitiveType::DirectionalLight))
         {
@@ -766,7 +764,7 @@ void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
         }
     });
 
-    ResizeRenderTargets(Window->GetID(), 0, 0, Window->GetWidth<uint32>(), Window->GetHeight<uint32>());
+    ResizeRenderTargets(Window->GetID(), 0, 0, Window->GetWidth<uint32>(), Window->GetHeight<uint32>(), Window->IsFullScreen());
     Window->GetOnViewportSizeChangedDelegate().Add(this, &MRenderer::ResizeRenderTargets);
 }
 

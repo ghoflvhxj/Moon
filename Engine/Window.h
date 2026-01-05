@@ -19,6 +19,7 @@ public:
 public:
     virtual void Initialize() {}
     virtual void Render() {}
+    virtual void Release() {}
 
 public:
 	void SetTitle(const std::wstring title);
@@ -34,6 +35,9 @@ public:
 private:
 	HWND m_hWnd = NULL;
     
+public:
+    bool IsFullScreen() const { return bFullScreen; }
+    void ToggleFullScreen();
 protected:
     bool bFullScreen = false;
 
@@ -64,9 +68,9 @@ protected:
     float AspectRatio = 1920.f / 1080.f;
 
 public:
-    FDelegate<void, uint32, uint32, uint32, uint32, uint32>& GetOnViewportSizeChangedDelegate() { return OnViewportSizeChanged; }
+    FDelegate<void, uint32, uint32, uint32, uint32, uint32, bool>& GetOnViewportSizeChangedDelegate() { return OnViewportSizeChanged; }
 protected:
-    FDelegate<void, uint32, uint32, uint32, uint32, uint32> OnViewportSizeChanged;
+    FDelegate<void, uint32, uint32, uint32, uint32, uint32, bool> OnViewportSizeChanged;
 
 public:
     void SetMousePos(int32 X, int32 Y);

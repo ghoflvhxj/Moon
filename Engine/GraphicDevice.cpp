@@ -148,6 +148,10 @@ void GraphicDevice::Release()
     SafeRelease(m_pImmediateContext);
 #endif
 
+    Query = {};
+    Start = {};
+    Finish = {};
+
     SafeRelease(m_pDevice);
 
     IDXGIDebug1* debug = nullptr;
@@ -249,9 +253,23 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     swapDesc.Scaling = DXGI_SCALING_NONE;
     swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     swapDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-    swapDesc.Flags = 0;
+    swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, InWorldRenderInfo.DstWindow->getHandle(), &swapDesc, nullptr, nullptr, NewWindowRenderData.SwapChain.GetAddressOf()));
+    //DXGI_SWAP_CHAIN_FULLSCREEN_DESC* FullScreenDescPtr = nullptr;
+    DXGI_SWAP_CHAIN_FULLSCREEN_DESC FullscreenDesc = {};
+    FullscreenDesc.RefreshRate.Numerator = 0;
+    FullscreenDesc.RefreshRate.Denominator = 0;
+    FullscreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    //FullscreenDesc.Windowed = Window->IsFullScreen() ? TRUE : FALSE;
+    FullscreenDesc.Windowed = TRUE;
+    FullscreenDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+
+    //if (Window->IsFullScreen())
+    //{
+    //    FullScreenDescPtr = &FullscreenDesc;
+    //}
+
+    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, InWorldRenderInfo.DstWindow->getHandle(), &swapDesc, &FullscreenDesc, nullptr, NewWindowRenderData.SwapChain.GetAddressOf()));
     NewWindowRenderData.SwapChain->QueryInterface(IID_PPV_ARGS(NewWindowRenderData.SwapChain3.GetAddressOf()));
 
     // 렌더 타겟 뷰 생성
@@ -304,11 +322,11 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     WindowRenderDatas[InWorldRenderInfo.DstWindow->GetID()] = NewWindowRenderData;
 }
 
-void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight)
+void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight, bool InFullScreen)
 {
     std::cout << "Update Window Size" << std::endl;
 
-    GetPostLoopDelegate().Add([&, InWindowID, InNewWidth, InNewHeight]() {
+    GetPostLoopDelegate().Add([&, InWindowID, InNewWidth, InNewHeight, InFullScreen]() {
         //getContext()->ClearState();
 
         UINT Width = static_cast<UINT>(InNewWidth);
@@ -321,7 +339,14 @@ void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint3
         WindowRenderData.RenderTargetViews[0].Reset();
         WindowRenderData.RenderTargetViews[1].Reset();
 
-        HRESULT HR = WindowRenderData.SwapChain->ResizeBuffers(0, InNewWidth, InNewHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+        if (WindowRenderData.SwapChain->SetFullscreenState(InFullScreen ? TRUE : FALSE, NULL) != S_OK)
+        {
+            std::cout << "SetFullscreenState Failed" << std::endl;
+        }
+
+        //WindowRenderData.SwapChain->ResizeTarget()
+
+        HRESULT HR = WindowRenderData.SwapChain->ResizeBuffers(0, InNewWidth, InNewHeight, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
         if (HR == S_OK)
         {
             // 렌더 타겟 뷰 생성

@@ -110,7 +110,7 @@ private:
     **********************************/
 public:
     void AddRenderTargets(uint32 InWidth, uint32 InHeight);
-    void ResizeRenderTargets(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight);
+    void ResizeRenderTargets(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight, bool InFullScreen);
 	void DebugRenderTarget(ERenderTarget InRenderTarget);
 public:
     std::shared_ptr<MRenderTarget> GetRenderTarget(ERenderTarget InRenderTarget);

@@ -88,6 +88,19 @@ HWND MWindow::getHandle() const
 	return m_hWnd;
 }
 
+void MWindow::ToggleFullScreen()
+{
+    bFullScreen = !bFullScreen;
+    //UpdateSize();
+
+    GetOnViewportSizeChangedDelegate().Broadcast(ID, Width, Height, Width, Height, bFullScreen);
+
+    if (bFullScreen == false)
+    {
+        SetWindowLong(getHandle(), GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+    }
+}
+
 void MWindow::Disable()
 {
     bDisable = true;
@@ -117,7 +130,7 @@ void MWindow::UpdateSize()
 
     if (NewWidth > 0 && NewHeight > 0)
     {
-        GetOnViewportSizeChangedDelegate().Broadcast(ID, OldWidth, OldHeight, NewWidth, NewHeight);
+        GetOnViewportSizeChangedDelegate().Broadcast(ID, OldWidth, OldHeight, NewWidth, NewHeight, bFullScreen);
     }
 }
 

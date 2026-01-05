@@ -115,7 +115,7 @@ public:
         _spriteBatch->Begin();
 
         XMVECTOR Pos = XMVectorSet(100.f, 100.f, 0.f, 0.f);
-        _spriteFont->DrawString(_spriteBatch.get(), TEXT("Hello World, 안녕하세요"), Pos);
+        _spriteFont->DrawString(_spriteBatch.get(), TEXT("Hello World, 안녕하세요"), Pos, Colors::White, 0.f, g_XMZero);
 
         _spriteBatch->End();
     }
@@ -143,7 +143,7 @@ public:
 public:
     // 엔진에 윈도우가 추가되면 호출됨. 스왑체인 등을 생성해 WindowRenderData에 저장함
     void AddWindow(const FWorldRenderInfo& InWorldRenderInfo);
-    void UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight);
+    void UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight, bool InFullScreen);
 
 public:
     void SetVertexShader(std::shared_ptr<VertexShader>& vertexShader);
