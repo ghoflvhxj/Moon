@@ -228,6 +228,20 @@ inline Vec3 Wind(const Vec3& InRot)
     return { Wind(InRot.x), Wind(InRot.y), Wind(InRot.z) };
 }
 
+inline float UnWind(float InRot)
+{
+    /*********************
+     100    ->  100
+     -10    ->  350
+    *********************/
+    return InRot < 0.f ? InRot + PI2 : InRot;
+}
+
+inline Vec3 UnWind(const Vec3& InRot)
+{
+    return { UnWind(InRot.x), UnWind(InRot.y), UnWind(InRot.z) };
+}
+
 static inline float clampf(float v, float a, float b) 
 { 
     return (v < a) ? a : ((v > b) ? b : v); 
