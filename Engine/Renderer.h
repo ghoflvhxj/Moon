@@ -70,7 +70,7 @@ public:
     void DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight, const Vec3& InTranslation, const Vec4& InQuatRotation);
     void DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec4& InQuatRotation, const Vec3& InScale = VEC3ONE);
     void DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale = VEC3ONE);
-    void DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType);
+    void DrawPrimitive(MWorld* InWorld, const std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType);
 protected:
     FMeshData SphereMesh = {};
     FMeshData CoordinateMesh = {};

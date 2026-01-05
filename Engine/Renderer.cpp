@@ -334,7 +334,7 @@ void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const
     DrawCoordinate(InWorld, InTranslation, EulerToQuaternion(InRotation), InScale);
 }
 
-void MRenderer::DrawPrimitive(MWorld* InWorld, std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType)
+void MRenderer::DrawPrimitive(MWorld* InWorld, const std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType)
 {
     uint32 WorldID = InWorld->GetID();
     getGraphicDevice()->BuildMeshSharedBuffers(InMesh);
