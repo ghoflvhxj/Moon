@@ -26,8 +26,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": false
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -40,6 +39,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     -1.13619,
@@ -73,6 +73,7 @@
                                     0.61273,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     -2.33435,
                                     2.33014,
@@ -115,8 +116,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": true
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -129,6 +129,7 @@
                                     -0.45083,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     -2.52864,
                                     1.96298,
@@ -168,8 +169,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 1,
-                                "bRendering": true,
-                                "bDrawStencil": false
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -182,6 +182,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     0.0,
@@ -229,8 +230,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": false
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -243,6 +243,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     0.0,
@@ -285,8 +286,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": false
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -299,8 +299,9 @@
                                     -2.51413,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
-                                    -2.69866,
+                                    -2.69865,
                                     0.72517,
                                     -1.18508
                                 ],
@@ -340,8 +341,7 @@
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 1,
-                                "bRendering": true,
-                                "bDrawStencil": true
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -354,8 +354,9 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
-                                    -3.39213,
+                                    -3.39212,
                                     1.22071,
                                     0.43503
                                 ],
@@ -382,9 +383,7 @@
                                 "bAnimPlaying": false,
                                 "bPlayAnimAtBegin": true,
                                 "Animation": {
-                                    "MAsset": {
-                                        "Path": "2B\\Take 001.json"
-                                    }
+                                    "MAsset": {}
                                 },
                                 "bBindPose": false,
                                 "Mesh": {
@@ -398,36 +397,25 @@
                                 "PhysicsType": 0,
                                 "Materials": {
                                     "0": {
-                                        "MAsset": {
-                                            "Path": "2B\\Material #52.json"
-                                        }
+                                        "MAsset": {}
                                     },
                                     "1": {
-                                        "MAsset": {
-                                            "Path": "2B\\Material #47.json"
-                                        }
+                                        "MAsset": {}
                                     },
                                     "2": {
-                                        "MAsset": {
-                                            "Path": "2B\\Material #48.json"
-                                        }
+                                        "MAsset": {}
                                     },
                                     "3": {
-                                        "MAsset": {
-                                            "Path": "2B\\Material #51.json"
-                                        }
+                                        "MAsset": {}
                                     },
                                     "4": {
-                                        "MAsset": {
-                                            "Path": "2B\\Material #50.json"
-                                        }
+                                        "MAsset": {}
                                     }
                                 }
                             },
                             "MPrimitiveComponent": {
                                 "RenderMode": 0,
-                                "bRendering": true,
-                                "bDrawStencil": true
+                                "bRendering": true
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -440,6 +428,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     -0.8,
@@ -471,6 +460,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     0.0,
@@ -485,7 +475,7 @@
                         },
                         "CameraComponent": {
                             "MCameraComponent": {
-                                "ArmLength": 3.0
+                                "TargetArmLength": 3.0
                             },
                             "MSceneComponent": {
                                 "Scale": [
@@ -498,6 +488,7 @@
                                     0.0,
                                     0.0
                                 ],
+                                "bWorldRotation": false,
                                 "Translation": [
                                     0.0,
                                     0.0,
@@ -509,6 +500,15 @@
                                 "Name": "Camera"
                             },
                             "MObject": {}
+                        },
+                        "IdleAnim": {
+                            "MAsset": {}
+                        },
+                        "WalkAnim": {
+                            "MAsset": {}
+                        },
+                        "WalkToIdleAnim": {
+                            "MAsset": {}
                         }
                     },
                     "MActor": {},
