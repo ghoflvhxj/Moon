@@ -55,7 +55,11 @@ public:
     }
 
 public:
+    void Init();
+    void Release();
     void Loop();
+
+    bool bRenderable = false;
 
 public:
     void WorldFunc(uint32 InIndex);

@@ -59,7 +59,8 @@ const bool EngineInit(const HINSTANCE hInstance, std::shared_ptr<MWindow> pWindo
     g_pRenderer = g_Engine->GetModule<MRenderer>();
     g_pPhysics = g_Engine->GetModule<MPhysicsEngine>();
     g_pGraphicDevice = g_Engine->GetModule<GraphicDevice>();
-    g_Engine->InitializeModules();
+
+    GetEngine()->Init();
 
     g_World = std::make_shared<MWorld>();
     g_World->Initialize();
@@ -121,20 +122,22 @@ ENGINE_DLL void EnginePostLoop()
 
 const bool EngineRelease()
 {
+    assert(GetEngine());
+
     OnRenderFinishedDelegate.Clear();
     OnRenderStartedDelegate.Clear();
 
 	g_World.reset();
 
+    GetWindowManager()->Release();
+
     if (g_ResourceManager)
     {
 	    g_ResourceManager->Release();
+        g_ResourceManager.reset();
     }
 
-    if (GetEngine())
-    {
-        GetEngine()->ReleaseModules();
-    }
+    GetEngine()->Release();
 
     // 수동 릴리즈
     if (getGraphicDevice())
@@ -301,6 +304,21 @@ ENGINE_DLL FDelegate<void>& GetRenderStartedDelegate()
     return OnRenderStartedDelegate;
 }
 
+void MEngine::Init()
+{
+    InitializeModules();
+
+    bRenderable = getRenderer() && getGraphicDevice();
+}
+
+void MEngine::Release()
+{
+    WorldRenderInfos.clear();
+    WorldRenderInfosQueue.clear();
+
+    ReleaseModules();
+}
+
 void MEngine::Loop()
 {
     CPUProfiler.Start();
@@ -325,7 +343,11 @@ void MEngine::WorldFunc(uint32 InIndex)
         World->getFrameManager()->SetDeltaTime(DeltaTime);
 
         UpdateWorld(InIndex);
-        RenderWorld(InIndex);
+
+        if (bRenderable)
+        {
+            RenderWorld(InIndex);
+        }
 
         if (auto& Fm = World->getFrameManager())
         {
@@ -347,16 +369,13 @@ void MEngine::UpdateWorld(uint32 InIndex)
 
 void MEngine::RenderWorld(uint32 InIndex)
 {
-    auto& _GraphicDevice = getGraphicDevice();
-    if (_GraphicDevice == nullptr)
-    {
-        return;
-    }
+    assert(getGraphicDevice());
+    assert(getRenderer());
 
     const auto& WorldRenderInfo = WorldRenderInfos[InIndex];
     const auto& Window = WorldRenderInfo.DstWindow;
 
-    _GraphicDevice->Begin(Window->GetID(), Window->GetWidth<uint32>(), Window->GetHeight<uint32>());
+    getGraphicDevice()->Begin(Window->GetID(), Window->GetWidth<uint32>(), Window->GetHeight<uint32>());
     GetRenderStartedDelegate().Broadcast();
     getRenderer()->RenderWorld(WorldRenderInfo.SrcWorld);
 
@@ -367,7 +386,7 @@ void MEngine::RenderWorld(uint32 InIndex)
     GetRenderFinishedDelegate().Broadcast();
 
     CPUTime = CPUProfiler.Record();
-    _GraphicDevice->End();
+    getGraphicDevice()->End();
 }
 
 void MEngine::UpdateTemp()
