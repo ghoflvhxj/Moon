@@ -207,10 +207,16 @@ ID3D11DepthStencilView* GraphicDevice::GetDepthStencilView()
     return Test.DepthStencilView.Get();
 }
 
-ID3D11ShaderResourceView* GraphicDevice::GetDepthStencilResourceView()
+ID3D11ShaderResourceView* GraphicDevice::GetDepthResourceView()
 {
     const FWindowRenderData& Test = WindowRenderDatas[WindowID];
-    return Test.DepthStencilSRV.Get();
+    return Test.DepthSRV.Get();
+}
+
+ID3D11ShaderResourceView* GraphicDevice::GetStencilResourceView()
+{
+    const FWindowRenderData& Test = WindowRenderDatas[WindowID];
+    return Test.StencilSRV.Get();
 }
 
 void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
@@ -279,12 +285,21 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     ViewDesc.Texture2D.MipSlice = 0;
     FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(NewWindowRenderData.DepthStencilTexture.Get(), &ViewDesc, NewWindowRenderData.DepthStencilView.GetAddressOf()));
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC ResourceViewDesc = { };
-    ResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
-    ResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-    ResourceViewDesc.Texture2D.MipLevels = -1;
-    ResourceViewDesc.Texture2D.MostDetailedMip = 0;
-    FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(NewWindowRenderData.DepthStencilTexture.Get(), &ResourceViewDesc, NewWindowRenderData.DepthStencilSRV.GetAddressOf()));
+    // 깊이 쉐이더 리소스 뷰
+    D3D11_SHADER_RESOURCE_VIEW_DESC DepthResourceViewDesc = { };
+    DepthResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
+    DepthResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    DepthResourceViewDesc.Texture2D.MipLevels = -1;
+    DepthResourceViewDesc.Texture2D.MostDetailedMip = 0;
+    FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(NewWindowRenderData.DepthStencilTexture.Get(), &DepthResourceViewDesc, NewWindowRenderData.DepthSRV.GetAddressOf()));
+
+    // 스텐실 쉐이더 리소스 뷰
+    D3D11_SHADER_RESOURCE_VIEW_DESC StencilResourceViewDesc = { };
+    StencilResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
+    StencilResourceViewDesc.Format = DXGI_FORMAT_X24_TYPELESS_G8_UINT;
+    StencilResourceViewDesc.Texture2D.MipLevels = -1;
+    StencilResourceViewDesc.Texture2D.MostDetailedMip = 0;
+    FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(NewWindowRenderData.DepthStencilTexture.Get(), &StencilResourceViewDesc, NewWindowRenderData.StencilSRV.GetAddressOf()));
 
     WindowRenderDatas[InWorldRenderInfo.DstWindow->GetID()] = NewWindowRenderData;
 }
@@ -343,12 +358,20 @@ void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint3
             ViewDesc.Texture2D.MipSlice = 0;
             FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilView(WindowRenderData.DepthStencilTexture.Get(), &ViewDesc, WindowRenderData.DepthStencilView.GetAddressOf()));
 
-            D3D11_SHADER_RESOURCE_VIEW_DESC ResourceViewDesc = { };
-            ResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
-            ResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-            ResourceViewDesc.Texture2D.MipLevels = -1;
-            ResourceViewDesc.Texture2D.MostDetailedMip = 0;
-            FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(WindowRenderData.DepthStencilTexture.Get(), &ResourceViewDesc, WindowRenderData.DepthStencilSRV.GetAddressOf()));
+            D3D11_SHADER_RESOURCE_VIEW_DESC DepthResourceViewDesc = { };
+            DepthResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
+            DepthResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+            DepthResourceViewDesc.Texture2D.MipLevels = -1;
+            DepthResourceViewDesc.Texture2D.MostDetailedMip = 0;
+            FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(WindowRenderData.DepthStencilTexture.Get(), &DepthResourceViewDesc, WindowRenderData.DepthSRV.GetAddressOf()));
+
+            // 스텐실 쉐이더 리소스 뷰
+            D3D11_SHADER_RESOURCE_VIEW_DESC StencilResourceViewDesc = { };
+            StencilResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION::D3D11_SRV_DIMENSION_TEXTURE2D;
+            StencilResourceViewDesc.Format = DXGI_FORMAT_X24_TYPELESS_G8_UINT;
+            StencilResourceViewDesc.Texture2D.MipLevels = -1;
+            StencilResourceViewDesc.Texture2D.MostDetailedMip = 0;
+            FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(WindowRenderData.DepthStencilTexture.Get(), &StencilResourceViewDesc, WindowRenderData.StencilSRV.GetAddressOf()));
         }
     });
 }

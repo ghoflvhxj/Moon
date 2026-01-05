@@ -45,7 +45,8 @@ struct FWindowRenderData
 
     ComPtr<ID3D11Texture2D> DepthStencilTexture;
     ComPtr<ID3D11DepthStencilView> DepthStencilView;
-    ComPtr<ID3D11ShaderResourceView> DepthStencilSRV;
+    ComPtr<ID3D11ShaderResourceView> DepthSRV;
+    ComPtr<ID3D11ShaderResourceView> StencilSRV;
 };
 
 /******************************************
@@ -137,8 +138,8 @@ public:
 
 public:
     ID3D11DepthStencilView* GetDepthStencilView();
-    ID3D11ShaderResourceView* GetDepthStencilResourceView();
-
+    ID3D11ShaderResourceView* GetDepthResourceView();
+    ID3D11ShaderResourceView* GetStencilResourceView();
 public:
     // 엔진에 윈도우가 추가되면 호출됨. 스왑체인 등을 생성해 WindowRenderData에 저장함
     void AddWindow(const FWorldRenderInfo& InWorldRenderInfo);

@@ -129,16 +129,6 @@ bool MRenderer::Initialize()
     }
 
 #if MinimalRendering == 0
-    RenderPasses[EnumToIndex(ERenderPass::Stencil)] = CreateRenderPass<MStencilPass>();
-    {
-        RenderPasses[EnumToIndex(ERenderPass::Stencil)]->BindRenderTargets(_renderTargets,
-            ERenderTarget::Stencil
-        );
-
-        RenderPasses[EnumToIndex(ERenderPass::Stencil)]->SetDefaultShader(TEXT("VS_Stencil.cso"), TEXT("PS_Stencil.cso"));
-        RenderPasses[EnumToIndex(ERenderPass::Stencil)]->SetDepthEnable(false);
-    }
-
     RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] = CreateRenderPass<DirectionalLightPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
@@ -215,6 +205,7 @@ bool MRenderer::Initialize()
 
         RenderPasses[EnumToIndex(ERenderPass::Combine)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
     }
+
 
     //addRenderTargetForDebug(ERenderTarget::DepthPre);
     DebugRenderTarget(ERenderTarget::Diffuse);
@@ -660,12 +651,13 @@ std::shared_ptr<MRenderTarget> MRenderer::GetRenderTarget(ERenderTarget InRender
 
 ID3D11ShaderResourceView* MRenderer::GetResourceView(ERenderTarget InRenderTarget)
 {
-    if (InRenderTarget == ERenderTarget::Depth)
+    switch (InRenderTarget)
     {
-        return getGraphicDevice()->GetDepthStencilResourceView();
-    }
-    else
-    {
+    case ERenderTarget::Depth:
+        return getGraphicDevice()->GetDepthResourceView();
+    case ERenderTarget::Stencil:
+        return getGraphicDevice()->GetStencilResourceView();
+    default:
         return GetRenderTarget(InRenderTarget)->AsTexture()->getRawResourceViewPointer();
     }
 }
