@@ -443,7 +443,7 @@ FWorldRenderInfo MEngine::GetWorldInfo(int32 InIndex)
     return FWorldRenderInfo();
 }
 
-const std::shared_ptr<MWindow>& MEngine::GetWorldBoundedWindow(const MWorld* InWorld)
+const std::shared_ptr<MWindow> MEngine::GetWorldBoundedWindow(const MWorld* InWorld)
 {
     uint32 ID = InWorld->GetID();
     return GetWorldInfo(ID).DstWindow;
