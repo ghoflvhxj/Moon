@@ -25,7 +25,7 @@ public:
 	virtual void SetRotation(const Vec3& InRotation);
     virtual void AddRotation(const Vec3& InAdditiveRot);
 	const Vec3&	getRotation() const;
-    const Vec3& GetWorldRotation() const;
+    const Vec3 GetWorldRotation() const;
 protected:
 	Vec3 Rotation;
     bool bWorldRotation = false;

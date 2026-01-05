@@ -107,7 +107,7 @@ const Vec3& MSceneComponent::getRotation() const
 	return Rotation;
 }
 
-const Vec3& MSceneComponent::GetWorldRotation() const
+const Vec3 MSceneComponent::GetWorldRotation() const
 {
     const Mat4& WorldMat = getWorldMatrix();
     Vec3 Rot, Dummy;

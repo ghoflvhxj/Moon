@@ -112,9 +112,9 @@ std::shared_ptr<MObject> MObject::Duplicate()
             {
                 if (FVectorPropertyDesc* VectorProp = static_cast<FVectorPropertyDesc*>(PropDesc))
                 {
-                    uint32 Num = VectorProp->GetNum(this);
+                    size_t Num = VectorProp->GetNum(this);
                     VectorProp->Resize(NewObject.get(), Num);
-                    for (uint32 i = 0; i < Num; ++i)
+                    for (size_t i = 0; i < Num; ++i)
                     {
                         if (PropDesc->IsA<MAsset>())
                         {
