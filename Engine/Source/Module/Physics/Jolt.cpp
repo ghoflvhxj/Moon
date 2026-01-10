@@ -280,11 +280,16 @@ void MJoltPhysics::StartSimulate(MWorld* InWorld)
             JPH::Vec3 Pos = ToJPHPos(MeshComp->getWorldTranslation());
             JPH::Quat Rot = DXAngleToJPHQuat(MeshComp->getRotation());
             EMotionType MotionType = ConvertPhysicsType(MeshComp->GetPhysicsType());
-            ObjectLayer Layer = (MotionType == EMotionType::Static) ? Layers::NON_MOVING : Layers::MOVING;
+            ObjectLayer Layer = (MotionType != EMotionType::Dynamic) ? Layers::NON_MOVING : Layers::MOVING;
 
             BodyCreationSettings BodyCreationSetting = BodyCreationSettings(NewShape, Pos, Rot, MotionType, Layer);
-            BodyCreationSetting.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
-            BodyCreationSetting.mMassPropertiesOverride.mMass = 1.f;
+            //BodyCreationSetting.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+            BodyCreationSetting.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateMassAndInertia;
+            if (MotionType == EMotionType::Kinematic)
+            {
+                BodyCreationSetting.mOverrideMassProperties = EOverrideMassProperties::MassAndInertiaProvided;
+                BodyCreationSetting.mMassPropertiesOverride.ScaleToMass(1.f);
+            }
 
             EActivation Activation = EActivation::DontActivate;
             if (MeshComp->IsPhysicsEnable() && bSimulating)
@@ -376,10 +381,7 @@ void MJoltPhysics::SaveTest(std::shared_ptr<MMesh> InMesh)
     std::vector<JPH::Vec3> JPHVertices(Vertices.size());
     for (int i = 0; i < Vertices.size(); ++i)
     {
-        JPHVertices[i].SetX(Vertices[i].x);
-        JPHVertices[i].SetY(Vertices[i].y);
-        JPHVertices[i].SetZ(Vertices[i].z);
-        JPHVertices[i].mF32[3] = JPHVertices[i].mF32[2];
+        JPHVertices[i] = ToJPHPos(Vertices[i]);
     }
 
     std::filesystem::path Path = MFileSystem::AbsolutePath(InMesh->GetAssetPath());
@@ -415,24 +417,35 @@ JPH::ConvexHullShapeSettings MJoltPhysics::MakeConvexHull(FBodyConstructData& In
 
 JPH::MeshShapeSettings MJoltPhysics::MakeMeshShape(std::shared_ptr<StaticMesh> InMesh)
 {
-    BodyInterface& bodyInterface = physics_system->GetBodyInterface();
-
-    const std::vector<::Vec3>& Vertices = InMesh->GetAllVertexPosition();
-    const std::vector<uint32>& Indices = InMesh->GetMeshData(0).Indices;
-
     JPH::VertexList vertexList;
-	vertexList.resize(Vertices.size());
-    for (int i = 0; i < Vertices.size(); ++i)
+    vertexList.resize(InMesh->GetAllVertexPosition().size());
+
+    IndexedTriangleList triangleList; // 인덱스 3개로 이뤄진 삼감형들
+    triangleList.reserve(vertexList.size() * 3);
+
+    uint32 Offset = 0;
+    for (uint32 MeshIndex = 0; MeshIndex < InMesh->GetMeshNum(); ++MeshIndex)
     {
-		ToJPHPos(Vertices[i]).StoreFloat3(&vertexList[i]);
+        const auto& MeshData = InMesh->GetMeshData(MeshIndex);
+
+        uint32 VertexNum = GetSize(MeshData.Vertices);
+        for (uint32 VtxIndex = 0; VtxIndex < VertexNum; ++VtxIndex)
+        {
+            ToJPHPos(MeshData.Vertices[VtxIndex].Pos).StoreFloat3(&vertexList[Offset + VtxIndex]);
+        }
+
+        uint32 IndexLoopNum = GetSize(MeshData.Indices) / 3;
+        for (uint32 i = 0; i < IndexLoopNum; ++i)
+        {
+            // TriangleList는 반드시 반시계 방향으로 넣어줘야 함 
+            // https://jrouwe.github.io/JoltPhysics/class_mesh_shape_settings.html mIndexedTriangles 항목 참고
+            triangleList.push_back(IndexedTriangle(Offset + MeshData.Indices[i * 3 + 2], Offset + MeshData.Indices[i * 3 + 1], Offset + MeshData.Indices[i * 3]));
+        }
+
+        Offset += VertexNum;
     }
 
-    IndexedTriangleList triangleList;
-    uint32 IndexLoopNum = GetSize(Indices) / 3;
-    for (uint32 i = 0; i < IndexLoopNum; ++i)
-    {
-        triangleList.push_back(IndexedTriangle(Indices[i * 3], Indices[i * 3 + 1], Indices[i * 3 + 2]));
-    }
+    triangleList.shrink_to_fit();
 
     return MeshShapeSettings(vertexList, triangleList);
 }
