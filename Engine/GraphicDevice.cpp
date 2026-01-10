@@ -994,7 +994,7 @@ void GraphicDevice::MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData
 
     uint32 InstanceSize = static_cast<uint32>(sizeof(FVertex_Instance));
     FVertex_Instance Temp = {};
-    OutBuffers.InstanceBuffer = std::make_shared<MVertexBuffer>(InstanceSize, 1, &Temp, bInDynamic);
+    OutBuffers.InstanceBuffer = std::make_shared<MVertexBuffer>(InstanceSize, 1, &Temp, true);
 }
 
 GraphicDevice::Exception::Exception(const int line, const char *file, const HRESULT hr)
