@@ -56,15 +56,20 @@ void MMaterial::SetTexturesToDevice()
         }
         else
         {
-            rawData.push_back(texture->getRawResourceViewPointer());
+            rawData.push_back(texture->GetShaderResourceView());
         }
-
-		//rawData.push_back(texture != nullptr ? texture->getRawResourceViewPointer() : nullptr);
 	}
 
-	g_pGraphicDevice->getContext()->PSSetShaderResources(0, CastValue<UINT>(rawData.size()), &rawData[0]);
+    if (bTest)
+    {
+        g_pGraphicDevice->getContext()->PSSetShaderResources(6, CastValue<UINT>(rawData.size()), &rawData[0]);
+    }
+    else
+    {
+	    g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(ETextureType::Diffuse), CastValue<UINT>(rawData.size()), &rawData[0]);
+    }
 
-	ID3D11SamplerState* SamplerState = IsAlphaMasked() ? g_pGraphicDevice->getSamplerState(ESamplerFilter::Point) : g_pGraphicDevice->getSamplerState(ESamplerFilter::Anisotropic);
+	ID3D11SamplerState* SamplerState = IsAlphaMasked() ? g_pGraphicDevice->getSamplerState(ESamplerFilter::Point) : g_pGraphicDevice->getSamplerState(ESamplerFilter::Linear);
 	if (SamplerState)
 	{
 		g_pGraphicDevice->getContext()->PSSetSamplers(0, 1, &SamplerState);
@@ -148,50 +153,9 @@ const Graphic::CullMode MMaterial::getCullMode() const
 	return _eCullMode;
 }
 
-std::vector<FBufferVariable>& MMaterial::getConstantBufferVariables(const ShaderType InShaderType, const uint32 index)
+void MMaterial::Test()
 {
-	return getConstantBufferVariables(InShaderType, static_cast<EConstantBufferLayer>(index));
-}
-
-std::vector<FBufferVariable>& MMaterial::getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer)
-{
-	//size_t shaderTypeCount = CastValue<size_t>(ShaderType::Count);
-	//std::vector<std::shared_ptr<MShader>> shaders(shaderTypeCount, nullptr);
-	//shaders[CastValue<uint32>(ShaderType::Vertex)] = _vertexShader;
-	//shaders[CastValue<uint32>(ShaderType::Pixel)] = _pixelShader;
-
-	//uint32 shaderTypeIndex = static_cast<uint32>(shaderType);
-	//if (shaders[shaderTypeIndex] == nullptr)
-	//{
-	//	static std::vector<FShaderVariable> Dummy;
-	//	return Dummy;
-	//}
-
-	//return shaders[shaderTypeIndex]->GetVariables()[CastValue<uint32>(layer)];
-
-    std::shared_ptr<MShader> Shader = nullptr;
-
-    switch (InShaderType)
-    {
-    case ShaderType::Vertex:
-    {
-        Shader = getVertexShader();
-        break;
-    }
-    case ShaderType::Pixel:
-    {
-        Shader = getPixelShader();
-        break;
-    }
-    }
-
-    if (Shader == nullptr)
-    {
-        static std::vector<FBufferVariable> Dummy;
-        return Dummy;
-    }
-
-    return Shader->GetVariables()[CastValue<uint32>(layer)];
+    bTest = true;
 }
 
 const bool MMaterial::IsTextureTypeUsed(const ETextureType type)

@@ -28,9 +28,9 @@ MShader::~MShader()
 
 void MShader::Apply()
 {
-    if (GetConstantBuffer())
+    if (GetConstantBuffer(EConstantBufferLayer::Object))
     {
-        GetConstantBuffer()->Commit();
+        GetConstantBuffer(EConstantBufferLayer::Object)->Commit();
     }
 
     SetToDevice();
@@ -45,17 +45,10 @@ void MShader::SetToDevice()
 std::vector<ID3D11Buffer*> MShader::GetBuffers()
 {
     std::vector<ID3D11Buffer*> Buffers;
-    /*
-    Buffers.reserve(ConstantBuffers.size());
-    for (auto& ConstantBuffer : ConstantBuffers)
-    {
-        Buffers.emplace_back(ConstantBuffer ? ConstantBuffer->getRaw() : nullptr);
-    }
-    */
 
-    if (HasConstantBuffer())
+    if (HasConstantBuffer(EConstantBufferLayer::Object))
     {
-        Buffers.push_back(GetConstantBuffer()->getRaw());
+        Buffers.push_back(GetConstantBuffer(EConstantBufferLayer::Object)->getRaw());
     }
     else
     {
@@ -65,31 +58,31 @@ std::vector<ID3D11Buffer*> MShader::GetBuffers()
     return Buffers;
 }
 
-void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FBufferVariable>& InVariables)
-{
-	uint32 Index = CastValue<uint32>(layer);
-    
-    for (int i=0; i< Variables[Index].size(); ++i)
-    {
-        Variables[Index][i] = InVariables[i];
-    }
+//void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer, std::vector<FBufferVariable>& InVariables)
+//{
+//	uint32 Index = CastValue<uint32>(layer);
+//    
+//    for (int i=0; i< Variables[Index].size(); ++i)
+//    {
+//        Variables[Index][i] = InVariables[i];
+//    }
+//
+//    UpdateConstantBuffer(layer);
+//}
 
-    UpdateConstantBuffer(layer);
-}
-
-void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
-{
-	uint32 Index = CastValue<uint32>(layer);
-	if (nullptr == ConstantBuffers[Index])
-	{
-		return;
-	}
-
-	for (const FBufferVariable& Variable : Variables[Index])
-	{
-		ConstantBuffers[Index]->SetData(Variable.Offset, Variable.Value, Variable.Size);
-	}
-}
+//void MShader::UpdateConstantBuffer(const EConstantBufferLayer layer)
+//{
+//	if (HasConstantBuffer(layer) == false)
+//	{
+//		return;
+//	}
+//
+//	uint32 Index = CastValue<uint32>(layer);
+//	for (const FBufferVariable& Variable : Variables[Index])
+//	{
+//		ConstantBuffers[Index]->SetData(Variable.Offset, Variable.Value, Variable.Size);
+//	}
+//}
 
 void MShader::CreateCosntantBuffers()
 {
@@ -101,40 +94,60 @@ void MShader::CreateCosntantBuffers()
 	FAILED_CHECK_THROW(DX_ShaderReflection->GetDesc(&DX_ShaderDesc));
 
 	uint32 ConstantBufferLayerNum = CastValue<uint32>(EConstantBufferLayer::Count);
-	uint32 constantBufferNum = static_cast<uint32>(DX_ShaderDesc.ConstantBuffers);
-	if (constantBufferNum > ConstantBufferLayerNum)
+	uint32 BufferNum = static_cast<uint32>(DX_ShaderDesc.ConstantBuffers);
+	if (BufferNum > ConstantBufferLayerNum)
 	{
 		DEV_ASSERT_MSG("ConstantBuffer의 개수가 ConstantBuffersLayer::Countf를 넘어섭니다.");
 	}
 
-    if (constantBufferNum == 0)
+    if (BufferNum == 0)
     {
         return;
     }
 
-    uint32 BufferrIndexer = 0;
-    if (SharedBuffers[EnumToIndex(EConstantBufferLayer::Global)] == nullptr)
+    for (uint32 BufferIndex = 0; BufferIndex < BufferNum; ++BufferIndex)
     {
-        SharedBuffers[EnumToIndex(EConstantBufferLayer::Global)] = ParsingBuffer(DX_ShaderReflection, EConstantBufferLayer::Global, BufferrIndexer);
-    }
-    if(SharedBuffers[EnumToIndex(EConstantBufferLayer::Tick)] == nullptr)
-    {
-        SharedBuffers[EnumToIndex(EConstantBufferLayer::Tick)] = ParsingBuffer(DX_ShaderReflection, EConstantBufferLayer::Tick, BufferrIndexer);
-    }
+        EConstantBufferLayer BufferLayer = EConstantBufferLayer::Count;
+        std::shared_ptr<MConstantBuffer> NewBuffer = ParseBuffer(DX_ShaderReflection, BufferIndex, BufferLayer);
 
-    BufferrIndexer = constantBufferNum - 1;
-    ConstantBuffers[EnumToIndex(EConstantBufferLayer::Object)] = ParsingBuffer(DX_ShaderReflection, EConstantBufferLayer::Object, BufferrIndexer);
+        if (BufferLayer == EConstantBufferLayer::Count)
+        {
+            continue;
+        }
+
+        switch (BufferLayer)
+        {
+        case EConstantBufferLayer::Global:
+        case EConstantBufferLayer::Tick:
+        {
+            auto& BufferSlot = SharedBuffers[EnumToIndex(BufferLayer)];
+            if (BufferSlot == nullptr)
+            {
+                BufferSlot = NewBuffer;
+            }
+        }
+        break;
+        case EConstantBufferLayer::Object:
+        case EConstantBufferLayer::Custom:
+        {
+            ConstantBuffers[EnumToIndex(BufferLayer)] = NewBuffer;
+        }
+        break;
+        }
+    }
 
 	SafeRelease(DX_ShaderReflection);
 }
 
-std::shared_ptr<MConstantBuffer> MShader::ParsingBuffer(ID3D11ShaderReflection* InShaderReflection, EConstantBufferLayer InLayer, uint32& BufferrIndexer)
+std::shared_ptr<MConstantBuffer> MShader::ParseBuffer(ID3D11ShaderReflection* InShaderReflection, uint32 InBufferIndex, EConstantBufferLayer& OutLayer)
 {
-    ID3D11ShaderReflectionConstantBuffer* pReflectionConstantBuffer = InShaderReflection->GetConstantBufferByIndex(BufferrIndexer);
-    if (nullptr == pReflectionConstantBuffer)
-    {
-        FAILED_CHECK_THROW(E_FAIL);
-    }
+    /*********************************************
+     cbuffer 사용 여부에 따라서 cbuffer개수와 인덱스가 정해짐.
+     총 A, B, C 레이어가 있는데 MyShader.hlsl에서 B만 사용한다면
+     B의 정보만 저장되있고 해당 인덱스는 0이 됨
+    *********************************************/
+    ID3D11ShaderReflectionConstantBuffer* pReflectionConstantBuffer = InShaderReflection->GetConstantBufferByIndex(static_cast<UINT>(InBufferIndex));
+    assert(pReflectionConstantBuffer);
 
     D3D11_SHADER_BUFFER_DESC DX_BufferDesc = {};
     FAILED_CHECK_THROW(pReflectionConstantBuffer->GetDesc(&DX_BufferDesc));
@@ -145,15 +158,8 @@ std::shared_ptr<MConstantBuffer> MShader::ParsingBuffer(ID3D11ShaderReflection* 
 
     D3D11_SHADER_INPUT_BIND_DESC ShaderInputBindDesc = {};
     InShaderReflection->GetResourceBindingDescByName(DX_BufferDesc.Name, &ShaderInputBindDesc);
-    uint32 BindPoint = ShaderInputBindDesc.BindPoint;
 
-    uint32 ConstantBufferLayer = EnumToIndex(InLayer);
-    if (BindPoint != ConstantBufferLayer)
-    {
-        return nullptr;
-    }
-
-    ++BufferrIndexer;
+    OutLayer = static_cast<EConstantBufferLayer>(ShaderInputBindDesc.BindPoint);
 
     for (uint32 VariableIndex = 0; VariableIndex < VariableNum; ++VariableIndex)
     {
@@ -187,12 +193,13 @@ std::shared_ptr<MConstantBuffer> MShader::ParsingBuffer(ID3D11ShaderReflection* 
         StringToWString(variableDesc.Name, VariableName);
 
         FBufferVariableInfo NewVarbleInfo;
-        NewVarbleInfo.Layer = InLayer;
+        NewVarbleInfo.Layer = OutLayer;
         NewVarbleInfo.Index = VariableIndex;
 
         FBufferVariable NewVariable(variableDesc.StartOffset, variableDesc.Size);
 
         NewConstantBuffer->AddVariable(VariableName, NewVarbleInfo, NewVariable);
+        VariableInfos.emplace(VariableName, NewVarbleInfo);
     }
 
     //ConstantBuffers[BindPoint] = std::make_shared<MConstantBuffer>(bufferDesc.Size, bufferData.data(), bufferDesc.Variables);
@@ -204,9 +211,14 @@ const uint32 MShader::getVariableCountOfConstantBuffer(const EConstantBufferLaye
 	return ConstantBuffers[CastValue<uint32>(layer)]->getCountOfVariables();
 }
 
-std::shared_ptr<MConstantBuffer> MShader::GetConstantBuffer()
+std::shared_ptr<MConstantBuffer> MShader::GetConstantBuffer(EConstantBufferLayer InLayer)
 {
-    return ConstantBuffers[EnumToIndex(EConstantBufferLayer::Object)];
+    return ConstantBuffers[EnumToIndex(InLayer)];
+}
+
+bool MShader::HasConstantBuffer(EConstantBufferLayer InLayer)
+{
+    return GetConstantBuffer(InLayer) != nullptr;
 }
 
 ID3D10Blob* MShader::getBlob()

@@ -1,4 +1,4 @@
-#include "Include.h"
+﻿#include "Include.h"
 #include "TextureSetter.h"
 
 #include "GraphicDevice.h"
@@ -15,7 +15,7 @@ TextureSetter::TextureSetter(std::vector<std::shared_ptr<MTexture>> &textureList
 		if (nullptr == textureList[i])
 			continue;
 
-		textureList[i]->setTexture(i);                                        
+		//textureList[i]->setTexture(i);                                        
 	}
 }
 

@@ -75,7 +75,7 @@ Texture2D g_Specular			                : register(t3); // 여기 까지가 매�
 
 Texture2D g_LightDiffuse		                : register(t4);
 Texture2D g_LightSpecular		                : register(t5);
-Texture2DArray g_ShadowDepth	                : register(t6);
+Texture2DArray<float> g_ShadowDepth	            : register(t6);
 TextureCubeArray T_PointLightDepth              : register(t7);
 Texture2D T_Collision                           : register(t8);
 Texture2D T_PointLightDiffuse                   : register(t9); 
@@ -141,8 +141,11 @@ float3 UnpackNormal(float3 InPackedNormal)
 #define SHADOW_PCF_SAMPLES 0
 float PixelCascadeSahdow(int cascadeIndex, float4 PixelPosInLightViewProj)
 {
-    // 픽셀의 투영 좌표계 위치를 NDC(-1~1, -1~1)로 만들고(직교투영은 생략), UV(0~1, 0~1)로 변환. 
-    //float3 projCoords = lightspacepos.xyz / lightspacepos.w;
+    /****************************************
+    1. World -> View -> Proj -> NDC(-1~1, -1~1)로 만듬.
+    2. 직교투영이기 때문에 나눌 z값이 1이므로 생략
+    3. UV(0~1, 0~1)로 변환. 
+    ****************************************/
     float shadow = 0.f;
     float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
     saturate(ShadowDepthUV);

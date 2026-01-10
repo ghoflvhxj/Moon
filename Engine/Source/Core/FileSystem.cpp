@@ -58,3 +58,25 @@ bool MFileSystem::IsExist(const std::wstring& InPath)
 {
     return fs::exists(AbsolutePath(InPath));
 }
+
+bool MFileSystem::HasExtension(const std::wstring& InPath)
+{
+    fs::path Path(InPath);
+    return Path.has_extension();
+}
+
+bool MFileSystem::IsExtension(const std::wstring& InPath, const std::wstring& InExtension)
+{
+    if (HasExtension(InPath))
+    {
+        return fs::path(InPath).extension().wstring() == InExtension;
+    }
+
+    return false;
+}
+
+std::wstring MFileSystem::ReplaceExtension(const std::wstring& InPath, const std::wstring& InExtension)
+{
+    fs::path Path(InPath);
+    return Path.replace_extension(InExtension).wstring();
+}

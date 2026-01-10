@@ -201,8 +201,15 @@ bool GraphicDevice::BuildInputLayout()
 
 void GraphicDevice::ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRenderTarget, DirectX::XMVECTORF32 InColor)
 {
-    getContext()->ClearRenderTargetView(InRenderTarget->AsRenderTargetView(), reinterpret_cast<const float*>(&InColor));
-    getContext()->ClearDepthStencilView(InRenderTarget->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+    if (InRenderTarget->AsRenderTargetView())
+    {
+        getContext()->ClearRenderTargetView(InRenderTarget->AsRenderTargetView(), reinterpret_cast<const float*>(&InColor));
+    }
+
+    if (InRenderTarget->GetRenderTargetInfo().Type == ERenderTargetType::Depth && InRenderTarget->getDepthStencilView())
+    {
+        getContext()->ClearDepthStencilView(InRenderTarget->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+    }
 }
 
 ID3D11DepthStencilView* GraphicDevice::GetDepthStencilView()

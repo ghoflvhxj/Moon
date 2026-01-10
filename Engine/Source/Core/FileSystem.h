@@ -22,4 +22,8 @@ public:
     static std::wstring RelativePath(const std::filesystem::path& InPath);
 
     static bool IsExist(const std::wstring& InPath);
+
+    static bool HasExtension(const std::wstring& InPath);
+    static bool IsExtension(const std::wstring& InPath, const std::wstring& InExtension);
+    static std::wstring ReplaceExtension(const std::wstring& InPath, const std::wstring& InExtension);
 };

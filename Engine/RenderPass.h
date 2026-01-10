@@ -128,10 +128,12 @@ public:
 protected:
     bool bDepthEnable = true;
 
-public:
-	void SetUseOwningDepthStencilBuffer(const ERenderTarget bUse);
-private:
-	ERenderTarget UseOwningDepthStencilBuffer;
+    // 렌더 타겟이 뎁스 전용인 경우만 자기것을 사용하니 필요없으나, 일단은 남겨둠
+//public:
+//	void SetUseOwningDepthStencilBuffer(const ERenderTarget bUse);
+//private:
+//	ERenderTarget UseOwningDepthStencilBuffer;
+
 public:
     void UseCommonDepthStencil() { bUseCommonDepthStencil = true; }
     bool bUseCommonDepthStencil = false;

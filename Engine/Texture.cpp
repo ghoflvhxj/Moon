@@ -9,15 +9,12 @@
 using namespace DirectX;
 
 MTexture::MTexture(const std::wstring& InPath)
-	: _rawTexture{ nullptr }
-	, _pResourceView{ nullptr }
 {
 	loadTextureFile(InPath.c_str());
 }
 
 MTexture::MTexture(ID3D11Texture2D* pTexture)
-	: _rawTexture{ pTexture }
-	, _pResourceView{ nullptr }
+	: Texture(pTexture)
 {
 	D3D11_TEXTURE2D_DESC texturDesc = {};
 	pTexture->GetDesc(&texturDesc);
@@ -27,26 +24,19 @@ MTexture::MTexture(ID3D11Texture2D* pTexture)
 	desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	desc.Texture2D.MipLevels = 1;
 
-	g_pGraphicDevice->getDevice()->CreateShaderResourceView(_rawTexture, &desc, &_pResourceView);
+	g_pGraphicDevice->getDevice()->CreateShaderResourceView(Texture, &desc, &ShaderResurceView);
 }
 
 MTexture::MTexture(ID3D11ShaderResourceView* pShaderResourceView)
-	: _rawTexture{ nullptr }
-	, _pResourceView{ pShaderResourceView }
 {
-	SAFE_ADDREF(_pResourceView);
 }
 
 MTexture::MTexture()
-	: _rawTexture{ nullptr }
-	, _pResourceView{ nullptr }
 {
 
 }
 
 MTexture::MTexture(const MTexture& Rhs)
-    : _rawTexture{ nullptr }
-    , _pResourceView{ nullptr }
 {
     Path = Rhs.Path;
 }
@@ -54,8 +44,8 @@ MTexture::MTexture(const MTexture& Rhs)
 MTexture::~MTexture()
 {
 	OutputDebugStringW((TEXT("Release Texture: ") + GetAssetPath() + TEXT("\n")).c_str());
-	SafeRelease(_pResourceView);
-	SafeRelease(_rawTexture);
+    SafeRelease(ShaderResurceView);
+    SafeRelease(Texture);
 }
 
 bool MTexture::Load(const std::wstring& InPath)
@@ -73,45 +63,54 @@ const bool MTexture::loadTextureFile(const wchar_t *fileName)
 {
     SetAssetPath(fileName);
 
-	if(nullptr != _pResourceView)
-		SafeRelease(_pResourceView);
-	if (nullptr != _rawTexture)
-		SafeRelease(_rawTexture);
+    SafeRelease(ShaderResurceView);
+    SafeRelease(Texture);
 
 #ifdef _DEBUG
     std::wstring Msg = GetAssetPath() + TEXT("텍스쳐 로딩 시간: ");
     PerformanceTimer Pt(Msg);
 #endif
 
-	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource **)&_rawTexture, &_pResourceView));
+    ID3D11ShaderResourceView* NewSRV = nullptr;
+	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource**)&Texture, &ShaderResurceView));
 	
 	return true;
 }
 
-void MTexture::setTexture(const uint32 index)
+//void MTexture::setTexture(const uint32 index)
+//{
+//	g_pGraphicDevice->getContext()->PSSetShaderResources(index, 1, &_pResourceView);
+//}
+
+void MTexture::SetTexture(ID3D11Texture2D* InTexture)
 {
-	g_pGraphicDevice->getContext()->PSSetShaderResources(index, 1, &_pResourceView);
+    Texture = InTexture;
 }
 
-ID3D11Texture2D*& MTexture::GetTextureResource()
+ID3D11Texture2D* MTexture::GetTexture()
 {
-	return _rawTexture;
+	return Texture;
 }
 
-ID3D11ShaderResourceView*& MTexture::getRawResourceViewPointer()
+void MTexture::SetShaderResourceView(ID3D11ShaderResourceView* InSRV)
 {
-	return _pResourceView;
+    ShaderResurceView = InSRV;
+}
+
+ID3D11ShaderResourceView* MTexture::GetShaderResourceView()
+{
+	return ShaderResurceView;
 }
 
 const bool MTexture::GetResolution(uint32& OutWidth, uint32& OutHeight)
 {
-	if (_rawTexture == nullptr)
+	if (Texture == nullptr)
 	{
 		return false;
 	}
 
 	D3D11_TEXTURE2D_DESC TextureDesc = {};
-	_rawTexture->GetDesc(&TextureDesc);
+    Texture->GetDesc(&TextureDesc);
 	
 	OutWidth = TextureDesc.Width;
 	OutHeight = TextureDesc.Height;

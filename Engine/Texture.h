@@ -16,12 +16,20 @@ public:
 public:
     virtual bool Load(const std::wstring& InPath) override;
 	const bool loadTextureFile(const wchar_t *fileName);
-	void setTexture(const uint32 index = 0);
-	ID3D11Texture2D*& GetTextureResource();
-	ID3D11ShaderResourceView*& getRawResourceViewPointer();
-private:
-	ID3D11Texture2D*			_rawTexture;
-	ID3D11ShaderResourceView*	_pResourceView;
+	//void setTexture(const uint32 index = 0);
+
+public:
+    void SetTexture(ID3D11Texture2D* InTexture);
+    ID3D11Texture2D* GetTexture();
+protected:
+    ID3D11Texture2D* Texture = nullptr;
+
+public:
+    void SetShaderResourceView(ID3D11ShaderResourceView* InSRVs);
+    ID3D11ShaderResourceView* GetShaderResourceView();
+protected:
+    // 쉐이더에서 사용할 SRV 보관. 
+    ID3D11ShaderResourceView* ShaderResurceView = nullptr;
 
 public:
 	const bool GetResolution(uint32& OutWidth, uint32& OutHeight);

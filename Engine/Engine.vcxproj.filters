@@ -554,6 +554,7 @@
     <FxCompile Include="Shader\Pixel\PS_Collision.hlsl" />
     <FxCompile Include="Shader\Vertex\VS_DebugLine.hlsl" />
     <FxCompile Include="Shader\Pixel\PS_DebugLine.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_SampleDepth.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.hlsli" />

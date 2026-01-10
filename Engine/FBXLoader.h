@@ -76,6 +76,7 @@ struct FFBXVertexKey
     int TangentIndex = -1;
     int BiNormalIndex = -1;
 
+    // Pos, UV, Normal, Tangent, Bionrmal 가 모두 같아야 같은 점임
     bool operator==(const FFBXVertexKey& Rhs) const
     {
         return ControlPointIndex == Rhs.ControlPointIndex && UVIndex == Rhs.UVIndex && NormalIndex == Rhs.NormalIndex && TangentIndex == Rhs.TangentIndex && BiNormalIndex == Rhs.BiNormalIndex;

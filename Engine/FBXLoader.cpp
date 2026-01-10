@@ -389,7 +389,9 @@ std::wstring MFBXLoader::GetMaterialIName(uint32 Index)
     {
         if (FbxSurfaceMaterial* Material = _pScene->GetMaterial(Index))
         {
-            return StringToWString(Material->GetName());
+            std::wstring Name = StringToWString(Material->GetName());
+            std::replace(Name.begin(), Name.end(), L':', L'_');
+            return Name;
         }
     }
 
@@ -483,7 +485,7 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 	linkMaterial(pNode);
 
     // 버텍스 키 - 인덱스 쌍
-    std::unordered_map<FFBXVertexKey, int> Loaded;
+    std::unordered_map<FFBXVertexKey, int> UniqueVertices;
 
 	for (int i = 0; i < polygonCount; ++i)
 	{
@@ -505,16 +507,18 @@ void MFBXLoader::parseMeshNode(FbxNode *pNode, const uint32 meshIndex)
 			loadBinormal(NewVertex, controlPointIndex, vertexIndex, VertexKey);
 
             // 등록안된 정점이면 정점으로 추가해줌
-            if (Loaded.find(VertexKey) == Loaded.end())
+            if (UniqueVertices.find(VertexKey) == UniqueVertices.end())
             {
-                Loaded[VertexKey] = vertexCounter;
+                uint32 Index = vertexCounter;
+                UniqueVertices[VertexKey] = Index;
+
                 MeshVertices.push_back(NewVertex);
-                ControlPointToVertexIndices[meshIndex][controlPointIndex].push_back(vertexCounter);
+                ControlPointToVertexIndices[meshIndex][controlPointIndex].push_back(Index);
+
                 ++vertexCounter;
             }
 
-            // 정점의 인덱스를 설정해 줌.
-            MeshIndices.push_back(Loaded[VertexKey]);
+            MeshIndices.push_back(UniqueVertices[VertexKey]);
 		}
 	}
 
@@ -930,7 +934,12 @@ void MFBXLoader::LoadTexturesFromFBXMaterial(FbxSurfaceMaterial* SurfaceMaterial
 
 			const char* TempFilePath = FileTexture->GetFileName();
 			std::wstring FilePath = Directory + std::filesystem::path(TempFilePath).filename().wstring();
-	
+
+            if (MFileSystem::HasExtension(FilePath) == false)
+            {
+                FilePath = MFileSystem::ReplaceExtension(FilePath, TEXT(".png"));
+            }
+
 			std::shared_ptr<MTexture> Texture = nullptr;
 			if (g_ResourceManager->Load(FilePath, Texture))
 			{
@@ -953,7 +962,7 @@ const char* MFBXLoader::GetTexturePropertyString(ETextureType TextureType)
 	case ETextureType::Diffuse:
 		return FbxSurfaceMaterial::sDiffuse;
 	case ETextureType::Normal:
-		return FbxSurfaceMaterial::sBump;
+		return FbxSurfaceMaterial::sNormalMap;
 	case ETextureType::Specular:
 		return FbxSurfaceMaterial::sSpecular;
 	default:

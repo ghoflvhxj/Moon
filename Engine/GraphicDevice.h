@@ -214,10 +214,16 @@ private:
 private:
 	D3D11_VIEWPORT _viewport;
 
-/***************************************** 
-버퍼를 관리하는 기능들
-생성, 삭제(작업해야함), 얻기 기능이 있음
-******************************************/
+    /***********************************************
+     SRV 생성
+    ***********************************************/
+//public:
+//    void CreateShaderResourceView();
+
+    /***************************************** 
+     버퍼를 관리하는 기능들
+     생성, 삭제(작업해야함), 얻기 기능이 있음
+    ******************************************/
 public:
     void GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<MMesh>& InMesh);
     void GetBuffers(FBufferContainer& OutBuffers, const std::wstring InKey);

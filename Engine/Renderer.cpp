@@ -49,7 +49,7 @@
 using namespace DirectX;
 
 #define MinimalRendering 0
-#define RenderPassPerformanceProfiling 0
+#define RenderPassPerformanceProfiling 1
 
 constexpr wchar_t* CoordinateKey = TEXT("Coordinate");
 constexpr wchar_t* CapsuleKey = TEXT("Capsule");
@@ -103,7 +103,7 @@ bool MRenderer::Initialize()
             ERenderTarget::DirectionalShadowDepth
         );
 
-        RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPixel.cso"), TEXT("ShadowDepthGS.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), nullptr, TEXT("ShadowDepthGS.cso"));
         RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
     }
 
@@ -113,7 +113,7 @@ bool MRenderer::Initialize()
             ERenderTarget::PointShadowDepth
         );
 
-        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), TEXT("ShadowDepthPointPS.cso"), TEXT("ShadowDepthPointGS.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), nullptr, TEXT("ShadowDepthPointGS.cso"));
         RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
     }
 #endif
@@ -206,20 +206,6 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::Combine)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
     }
 
-
-    //addRenderTargetForDebug(ERenderTarget::DepthPre);
-    DebugRenderTarget(ERenderTarget::Diffuse);
-    DebugRenderTarget(ERenderTarget::Depth);
-    DebugRenderTarget(ERenderTarget::Normal);
-    DebugRenderTarget(ERenderTarget::Specular);
-    DebugRenderTarget(ERenderTarget::LightDiffuse);
-    DebugRenderTarget(ERenderTarget::LightSpecular);
-    //DebugRenderTarget(ERenderTarget::DirectionalShadowDepth);
-    //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
-    DebugRenderTarget(ERenderTarget::Outline);
-    DebugRenderTarget(ERenderTarget::Stencil);
-    DebugRenderTarget(ERenderTarget::Collision);
-
     Mesh::MakeSphere(SphereMesh, 16);
 
     Mesh::MakeCoordinate(CoordinateMesh);
@@ -236,7 +222,7 @@ void MRenderer::Release()
     RenderTargetss.clear();
     RenderPasses.clear();
 
-    DebugRenderTargetMehses.clear();
+    DebugRenderTargetData.clear();
 
     //PrimitiveDatasPerType.clear();
 
@@ -601,36 +587,55 @@ void MRenderer::ResizeRenderTargets(uint32 InWindowID, uint32 InOldWidth, uint32
 
 void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
 {
-    /*
 #ifdef _DEBUG
-    std::shared_ptr<MMaterial> BaseMat = nullptr;
-    g_ResourceManager->Load(TEXT("Base/RenderTarget.json"), BaseMat);
-
-	float scale = 200.f;
-	float x = (-1.f * g_pSetting->getResolutionWidth<float>() / 2.f) + (scale / 2.f);
-	float y = g_pSetting->getResolutionHeight<float>();
-
-    auto& MeshComp = std::make_shared<StaticMeshComponent>();
-	MeshComp->SetPhysics(false);
-    MeshComp->SetMesh(TEXT("Base/Plane.fbx"));
-    if (MapUtility::FindInsert(DebugRenderTargetMehses, InRenderTarget, MeshComp))
+    if (DebugRenderTargetData.find(InRenderTarget) == DebugRenderTargetData.end())
     {
-        uint32 count = CastValue<uint32>(DebugRenderTargetMehses.size() - 1);
-        MeshComp->setScale(scale, scale, 0.f);
-        MeshComp->setTranslation(x + scale * count, scale, 1.f);
+        std::shared_ptr<MMaterial> BaseMat = nullptr;
+        std::shared_ptr<MMaterial> NewMat = nullptr;
 
-        std::shared_ptr<MMaterial> NewMat = std::make_shared<MMaterial>();
-        *NewMat.get() = *BaseMat.get();// 텍스쳐가 다 달라서...
-        NewMat->setTexture(ETextureType::Diffuse, GetRenderTarget(InRenderTarget)->AsTexture()); 
+        if (InRenderTarget == ERenderTarget::DirectionalShadowDepth)
+        {
+            g_ResourceManager->Load(TEXT("Base/RenderTarget_Depth.json"), BaseMat);
+            NewMat = DuplicateObject(BaseMat)->CastToShared<MMaterial>();
+            NewMat->Test();
+        }
+        else
+        {
+            g_ResourceManager->Load(TEXT("Base/RenderTarget.json"), BaseMat);
+            NewMat = DuplicateObject(BaseMat)->CastToShared<MMaterial>();
+        }
 
-		MeshComp->SetMaterial(0, NewMat);
-        MeshComp->setRenderMode(MPrimitiveComponent::ERenderMode::Orthogonal);
-		MeshComp->SceneComponent::Update(0.f);
+        FRenderTargetDebugData NewData = {};
+        NewData.Material = NewMat;
+        NewData.Index = CastValue<uint32>(DebugRenderTargetData.size());
 
-        AddPrimitiveComponentTemp(MeshComp);
+        DebugRenderTargetData.emplace(InRenderTarget, NewData);
     }
+
+    DebugRenderTargetData[InRenderTarget].Material->setTexture(ETextureType::Diffuse, GetRenderTarget(InRenderTarget)->AsTexture());
+
+    std::shared_ptr<StaticMesh> PlaneMesh = g_ResourceManager->Load(TEXT("Base/Plane.json"), StaticMesh::GetTypeDescStatic())->CastToShared<StaticMesh>();
+    getGraphicDevice()->BuildMeshSharedBuffers(PlaneMesh);
+
+    uint32 Index = DebugRenderTargetData[InRenderTarget].Index;
+    Vec3 Trans = { -0.5f + (float)Index, 0.f, 1.f };
+
+    FPrimitiveData NewPrimitiveData = {};
+    NewPrimitiveData.MeshData = &PlaneMesh->GetMeshData(0);
+    NewPrimitiveData.PrimitiveType = EPrimitiveType::CustomPrimitiveType0;
+    NewPrimitiveData.Material = DebugRenderTargetData[InRenderTarget].Material;
+    NewPrimitiveData.Scale = { 1.f, 1.f, 1.f };
+    NewPrimitiveData.Translation = Trans;
+    NewPrimitiveData.ProjectionType = EProjectionType::Orthograhpic;
+
+    FBufferContainer Buffers;
+    getGraphicDevice()->GetBuffers(Buffers, PlaneMesh);
+    NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
+    NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
+
+    GetCurrentScene()->DrawPrimitive(NewPrimitiveData);
+    //DrawPrimitive(GetWorld().get(), PlaneMesh, Trans, VEC3ZERO, VEC3ONE, EPrimitiveType::Mesh);
 #endif
-    */
 }
 
 std::shared_ptr<MRenderTarget> MRenderer::GetRenderTarget(ERenderTarget InRenderTarget)
@@ -656,7 +661,7 @@ ID3D11ShaderResourceView* MRenderer::GetResourceView(ERenderTarget InRenderTarge
     case ERenderTarget::Stencil:
         return getGraphicDevice()->GetStencilResourceView();
     default:
-        return GetRenderTarget(InRenderTarget)->AsTexture()->getRawResourceViewPointer();
+        return GetRenderTarget(InRenderTarget)->AsTexture()->GetShaderResourceView();
     }
 }
 
@@ -731,6 +736,22 @@ void MRenderer::Render()
     }
 #endif
     */
+
+    if (bDebugRenderTargets)
+    {
+        //addRenderTargetForDebug(ERenderTarget::DepthPre);
+        //DebugRenderTarget(ERenderTarget::Diffuse);
+        //DebugRenderTarget(ERenderTarget::Depth);
+       // DebugRenderTarget(ERenderTarget::Normal);
+        //DebugRenderTarget(ERenderTarget::Specular);
+        //DebugRenderTarget(ERenderTarget::LightDiffuse);
+        //DebugRenderTarget(ERenderTarget::LightSpecular);
+        DebugRenderTarget(ERenderTarget::DirectionalShadowDepth);
+        //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
+        //DebugRenderTarget(ERenderTarget::Outline);
+        //DebugRenderTarget(ERenderTarget::Stencil);
+        //DebugRenderTarget(ERenderTarget::Collision);
+    }
 }
 
 void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
@@ -855,15 +876,18 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
             }
             Radius = std::ceil(Radius * 2.f) / 2.f;
 
-            XMVECTOR Eye = CascadeCenterInWorld - (LightDirection * Radius);
+            //float Temp = Radius;
+            float Temp = std::max(Radius, 100.f);
+            XMVECTOR Eye = CascadeCenterInWorld - (LightDirection * Temp);
             XMVECTOR Focus = CascadeCenterInWorld;
             XMMATRIX LightView = XMMatrixLookAtLH(Eye, Focus, UpVector);
-            XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-Radius, Radius, -Radius, Radius, 0.1f, Radius * 2.f);
+            //XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-Radius, Radius, -Radius, Radius, 0.1f, Radius * 2.f);
+            XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-Radius, Radius, -Radius, Radius, 0.1f, Temp * 2.f);
 
             Scene->SetLightInfoCascadeShadow(cascadeIndex, Eye, LightView * OrthoProjMatrix);
         }
     }
-
+      
     PerformanceTimer p(TEXT("SceneRenderTime: "));
     RenderScene(Scene);
     SceneRenderTime = p.Record();
@@ -1038,8 +1062,8 @@ MScene::MScene()
 {
     CascadeDistances[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
     CascadeDistances[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
-    CascadeDistances[CastValue<int>(EFrustumCascade::Middle2)] = 18.f;
-    CascadeDistances[CastValue<int>(EFrustumCascade::Far)] = 1000.f;
+    CascadeDistances[CastValue<int>(EFrustumCascade::Middle2)] = 30.f;
+    CascadeDistances[CastValue<int>(EFrustumCascade::Far)] = 100.f;
 }
 
 void MScene::Begin()

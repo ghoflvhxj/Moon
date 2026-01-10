@@ -23,6 +23,12 @@ struct FInstancingData
     Vec4 RotationQuat = IDENTITY3;
 };
 
+struct FRenderTargetDebugData
+{
+    uint32 Index = 0;
+    std::shared_ptr<MMaterial> Material = nullptr;
+};
+
 class ENGINE_DLL MRenderer : public MModule
 {
 public:
@@ -131,8 +137,8 @@ public:
 	uint32 CulledPrimitiveNum = 0;
 
 private:
-    std::unordered_map<ERenderTarget, std::shared_ptr<StaticMeshComponent>> DebugRenderTargetMehses;
-	bool bDebugRenderTargets = true;
+    std::unordered_map<ERenderTarget, FRenderTargetDebugData> DebugRenderTargetData;
+	bool bDebugRenderTargets = false;
 
 public:
     Mat4 ViewPerspectiveProjMatrix = {};

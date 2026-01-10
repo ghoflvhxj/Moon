@@ -86,9 +86,12 @@ private:
     bool bRimLight = false;
 
 public:
-	std::vector<FBufferVariable>& getConstantBufferVariables(const ShaderType InShaderType, const EConstantBufferLayer layer);
-	std::vector<FBufferVariable>& getConstantBufferVariables(const ShaderType InShaderType, const uint32 index);
-	
+    void Test();
+protected:
+    bool bTest = false;
+
+
+
 	// 유틸리티	함수들
 public:
 	const bool IsTextureTypeUsed(const ETextureType type);

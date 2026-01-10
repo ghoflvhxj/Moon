@@ -35,7 +35,7 @@ MRenderPass::MRenderPass()
 	, _geometryShader{ nullptr }
 	, _bShaderSet{ false }
 	, bClearTargets{ true }
-	, UseOwningDepthStencilBuffer{ ERenderTarget::Count }
+	//, UseOwningDepthStencilBuffer{ ERenderTarget::Count }
 {
 }
 
@@ -86,15 +86,24 @@ void MRenderPass::Begin()
 {
 	if (bRenderTarget)
 	{
-		std::vector<ID3D11RenderTargetView*> RawRenderTargets;
-        RawRenderTargets.reserve(RenderTargetViewData.size());
+		std::vector<ID3D11RenderTargetView*> RenderTargetViews;
+        RenderTargetViews.reserve(RenderTargetViewData.size());
+
+        ID3D11DepthStencilView* DepthStencilView = nullptr;
 
 		for (const FRenderTargetBindData& BindData : RenderTargetViewData)
 		{
             auto& RenderTarget = getRenderer()->GetRenderTarget(BindData.Index);
             assert(RenderTarget);
 
-			RawRenderTargets.push_back(RenderTarget->AsRenderTargetView());
+            if (RenderTarget->GetRenderTargetInfo().Type != ERenderTargetType::Depth)
+            {
+                RenderTargetViews.push_back(RenderTarget->AsRenderTargetView());
+            }
+            else
+            {
+                DepthStencilView = RenderTarget->getDepthStencilView();
+            }
 
 			if (true == bClearTargets)
 			{
@@ -102,12 +111,12 @@ void MRenderPass::Begin()
 			}
 		}
 
-        g_pGraphicDevice->getContext()->OMSetRenderTargets(
-            static_cast<UINT>(RawRenderTargets.size()),
-            RawRenderTargets.data(),
-            //UseOwningDepthStencilBuffer != ERenderTarget::Count ? getRenderer()->GetRenderTarget(UseOwningDepthStencilBuffer)->getDepthStencilView() : g_pGraphicDevice->GetDepthStencilView()
-            UseOwningDepthStencilBuffer != ERenderTarget::Count ? getRenderer()->GetRenderTarget(UseOwningDepthStencilBuffer)->getDepthStencilView() : (bUseCommonDepthStencil ? g_pGraphicDevice->GetDepthStencilView() : nullptr)
-        );
+        if (bUseCommonDepthStencil)
+        {
+            DepthStencilView = g_pGraphicDevice->GetDepthStencilView();
+        }
+
+        g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetViews.size()), RenderTargetViews.data(), DepthStencilView);
 	}
 
     auto& ViewportSize = getGraphicDevice()->GetViewportSize();
@@ -189,7 +198,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 버텍스쉐이더 ConstantBuffer
-    if (VS->HasConstantBuffer())
+    if (VS->HasConstantBuffer(EConstantBufferLayer::Object))
     {
         BOOL animated = FALSE;
         if (Primitive)
@@ -245,7 +254,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer
     std::shared_ptr<MShader>& PS = GetPixelShader(PrimitiveData);
-    if (PS->HasConstantBuffer())
+    if (PS->HasConstantBuffer(EConstantBufferLayer::Object))
     {
         if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
         {
@@ -361,7 +370,7 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
 void MRenderPass::HandleVertexShaderStage(const FPrimitiveData& PrimitiveData)
 {
     std::shared_ptr<MShader>& VertexShader = GetVertexShader(PrimitiveData);
-    VertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
+    //VertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
     VertexShader->Apply();
 }
 
@@ -374,7 +383,7 @@ void MRenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
     }
     else
     {
-        GeometryShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
+        //GeometryShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
         GeometryShader->Apply();
     }
 }
@@ -382,7 +391,7 @@ void MRenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
 void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
 {
     std::shared_ptr<MShader> PixelShader = GetPixelShader(PrimitiveData);
-    PixelShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
+    //PixelShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
     PixelShader->Apply();
 
     if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
@@ -531,8 +540,8 @@ void MRenderPass::SetClearTargets(const bool bClear)
 	bClearTargets = bClear;
 }
 
-void MRenderPass::SetUseOwningDepthStencilBuffer(const ERenderTarget bUse)
-{
-	UseOwningDepthStencilBuffer = bUse;
-}
-
+//void MRenderPass::SetUseOwningDepthStencilBuffer(const ERenderTarget bUse)
+//{
+//	UseOwningDepthStencilBuffer = bUse;
+//}
+//

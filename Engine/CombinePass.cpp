@@ -42,7 +42,7 @@ bool GeometryPass::IsValidPrimitive(const FPrimitiveData &PrimitiveData) const
 DirectionalShadowDepthPass::DirectionalShadowDepthPass()
 	: MRenderPass()
 {
-	SetUseOwningDepthStencilBuffer(ERenderTarget::DirectionalShadowDepth);
+	//SetUseOwningDepthStencilBuffer(ERenderTarget::DirectionalShadowDepth);
     bUseDefaultShaderOnly = true;
 }
 
@@ -65,7 +65,7 @@ bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& Primitiv
 PointShadowDepthPass::PointShadowDepthPass()
     : MRenderPass()
 {
-    SetUseOwningDepthStencilBuffer(ERenderTarget::PointShadowDepth);
+    //SetUseOwningDepthStencilBuffer(ERenderTarget::PointShadowDepth);
     bUseDefaultShaderOnly = true;
 }
 
@@ -176,8 +176,8 @@ void PointLightPass::Begin()
     // TODO. Directional 패스에서 그린 Specular 를 지우지 않도록 임시 수정. 개선해야 함
     auto& ViewBindData = RenderTargetViewData[0];
     auto& RenderTarget = getRenderer()->GetRenderTarget(RenderTargetViewData[0].Index);
-    g_pGraphicDevice->getContext()->ClearRenderTargetView(RenderTarget->AsRenderTargetView(), reinterpret_cast<const float*>(&Color));
-    g_pGraphicDevice->getContext()->ClearDepthStencilView(RenderTarget->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+
+    getGraphicDevice()->ClearRenderTarget(RenderTarget, Color);
 }
 
 void PointLightPass::End()
@@ -249,6 +249,7 @@ bool MLinePass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 
 MDepthPre::MDepthPre()
 {
+    UseCommonDepthStencil();
 }
 
 bool MDepthPre::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const

@@ -8,11 +8,11 @@ class MTexture;
 enum class ERenderTargetType
 {
     None,
-    Default,
-    Depth,
-    Normal,
-    Light,
-    Bool
+    Default = 1 << 0,
+    Depth = 1 << 1,
+    Normal = 1 << 2,
+    Light = 1 << 3,
+    Bool = 1 << 4
 };
 
 struct FRenderTagetInfo
@@ -29,9 +29,16 @@ struct FRenderTagetInfo
 	uint32 Height;
 	bool bCube;
     ERenderTargetType Type;
+    uint32 TypeFlag = 0;
 
 	static const FRenderTagetInfo GetDefault(uint32 InWidth, uint32 InHeight);
 	static const FRenderTagetInfo GetCube();
+};
+
+enum class EDXResourceType
+{
+    Texture,
+    View,
 };
 
 class MRenderTarget
@@ -43,11 +50,11 @@ public:
 public:
 	std::shared_ptr<MTexture> AsTexture();
 protected:
-    std::shared_ptr<MTexture> RenderTargetTexture;	// uniqueptr로 변경하기
-    std::shared_ptr<MTexture> DepthStencilTexture;	// uniqueptr로 변경하기
+    std::shared_ptr<MTexture> Texture = nullptr;
 
 public:
 	void initializeTexture(const FRenderTagetInfo& InRenderTargetInfo);
+    const FRenderTagetInfo& GetRenderTargetInfo() const { return RenderTargetInfo; }
 protected:
     FRenderTagetInfo RenderTargetInfo;
 
@@ -55,7 +62,7 @@ public:
     void UpdateResolution(float InWidth, float InHeight);
 
 private:
-    DXGI_FORMAT GetFormat(const ERenderTargetType InRenderTargetType) const;
+    DXGI_FORMAT GetFormat(EDXResourceType InViewType, ERenderTargetType InRenderTargetType) const;
 
 public:
 	ID3D11RenderTargetView* AsRenderTargetView();
