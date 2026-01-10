@@ -12,6 +12,7 @@ public:
 	virtual ~MLightComponent(void);
 
 public:
+    virtual void OnLoaded() override;
     virtual void Update(const Time deltaTime) override;
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 

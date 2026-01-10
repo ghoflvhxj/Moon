@@ -22,18 +22,27 @@ MLightComponent::MLightComponent(void)
     g_ResourceManager->Load(TEXT("Base/Plane.json"), _pStaticMesh);
 
     Material = std::make_shared<MMaterial>();
-
-	setScale(g_pSetting->getResolutionWidth<float>(), g_pSetting->getResolutionHeight<float>(), 1.f);
-	setTranslation(0.f, 0.f, 1.f);
 }
 
 MLightComponent::~MLightComponent(void)
 {
 }
 
+void MLightComponent::OnLoaded()
+{
+    Super::OnLoaded();
+
+    auto& ViewportSize = getGraphicDevice()->GetViewportSize();
+    float Width = std::get<0>(ViewportSize);
+    float Height = std::get<1>(ViewportSize);
+
+    UpdateSize(Width, Height);
+}
+
 void MLightComponent::Update(const Time deltaTime)
 {
     Super::Update(deltaTime);
+
     setRenderMode(ERenderMode::Orthogonal);
 
     Direction = GetForward();
