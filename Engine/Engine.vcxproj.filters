@@ -533,14 +533,12 @@
     <FxCompile Include="PointLightShader.hlsl" />
     <FxCompile Include="ShadowDepth.hlsl" />
     <FxCompile Include="ShadowDepthGS.hlsl" />
-    <FxCompile Include="ShadowDepthPixel.hlsl" />
     <FxCompile Include="SkyPixelShader.hlsl" />
     <FxCompile Include="TexAnimVertexShader.hlsl" />
     <FxCompile Include="TexPixelShader.hlsl" />
     <FxCompile Include="TexVertexShader.hlsl" />
     <FxCompile Include="VertexShader.hlsl" />
     <FxCompile Include="DirectionalLightShader.hlsl" />
-    <FxCompile Include="ShadowDepthPointPS.hlsl" />
     <FxCompile Include="ShadowDepthPointGS.hlsl" />
     <FxCompile Include="SimpleVertexShader.hlsl" />
     <FxCompile Include="Shader\Pixel\PS_VertexColorOut.hlsl" />

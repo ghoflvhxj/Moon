@@ -4,6 +4,7 @@
 #include "World.h"
 #include "Window.h"
 #include "DirectInput.h"
+#include "GraphicDevice.h"
 
 // Utility
 #include "Factory.h"
@@ -47,6 +48,11 @@ void MCamera::initialize()
 	SceneComp = CreateDefaultSubObject<MSceneComponent>();
 	AddComponent(ROOT_COMPONENT, SceneComp);
 	SceneComp->Update(0.f);
+
+    if (GraphicDevice::bReverseDepth)
+    {
+        std::swap(Near, Far);
+    }
 }
 
 void MCamera::tick(const Time deltaTime)

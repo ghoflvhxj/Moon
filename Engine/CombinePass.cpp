@@ -149,6 +149,11 @@ bool DirectionalLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData)
     return PrimitiveData.PrimitiveType == EPrimitiveType::DirectionalLight && MRenderPass::IsValidPrimitive(PrimitiveData);
 }
 
+void DirectionalLightPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
+{
+    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->ShadowDepthRS.Get());
+}
+
 void DirectionalLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)
 {
     uint32 DepthStencilFlag = 0;

@@ -1,8 +1,8 @@
 #include "VSCommon.hlsli"
 
-VertexOut main(VertexIn vIn)
+VertexOut_ShadowDepth main(VertexIn vIn)
 {
-    VertexOut vOut = (VertexOut)0;
+    VertexOut_ShadowDepth vOut = (VertexOut_ShadowDepth) 0;
     
     row_major matrix boneTransform =
     {
@@ -24,8 +24,7 @@ VertexOut main(VertexIn vIn)
     float4 animatedPos = mul(float4(vIn.pos.xyz, 1.f), boneTransform);
     animatedPos.w = 1.f;
     
-    vOut.pos = mul(animatedPos, worldMatrix);
-    vOut.worldPos = mul(animatedPos, worldMatrix).xyz;
+    vOut.Pos = mul(animatedPos, worldMatrix);
     
     return vOut;
 }

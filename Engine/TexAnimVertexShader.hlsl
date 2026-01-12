@@ -28,7 +28,6 @@ VertexOut main(VertexIn vIn)
     vOut.pos = Temp(vIn);
     vOut.worldPos = mul(float4(animatedPos, 1.f), worldMatrix).xyz;
 	vOut.uv			= vIn.uv;
-    vOut.Clip		= vOut.pos.zw;
 
     float4x4 SkinnedWorldView = mul(boneTransform, WorldView);
     vOut.normal = mul(float4(vIn.normal, 0.f), SkinnedWorldView).xyz;

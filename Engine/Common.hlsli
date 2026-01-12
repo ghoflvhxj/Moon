@@ -4,6 +4,8 @@
 #define FXAA_HLSL_5 1
 #endif
 
+#define REVERSE_DEPTH 1
+
 cbuffer CBuffer_ABVD : register(b0)
 {
     float4 resolution;
@@ -24,7 +26,55 @@ cbuffer CBuffer_PerTick : register(b1)
     float4 lightPos[3];
     row_major matrix lightViewProjMatrix[3];
     float4 cascadeDistance;
+    
+    float NormalBiasScale = 0.1f;
+    float DepthBias = 0.001f;
+    
+    bool bDebugDirectionalLight = false;
+    bool bDebugDirectionalShadow = false;
+    bool bDebugCascade = false;
 };
+
+inline float GetNear()
+{
+#if REVERSE_DEPTH == 1
+    return 1.f;
+#else 
+    return 0.f;
+#endif
+}
+
+inline float GetFar()
+{
+#if REVERSE_DEPTH == 1
+    return 0.f;
+#else 
+    return 1.f;
+#endif
+}
+
+inline float ToNear()
+{
+    /************************************************
+                                Near
+     Normal     0.5 -> 0.4      0
+     Reverse    0.4 -> 0.5      1
+    ************************************************/
+#if REVERSE_DEPTH == 1
+    return 1.f;
+#else 
+    return -1.f;
+#endif
+}
+
+// NDC 공간에서 z를 가깝게 만듬
+inline float DepthCloser(float InBase, float InBias)
+{
+    /**************************************
+     Near < NDC.z << Far
+    **************************************/
+    return InBase + ToNear() * InBias;
+}
 
 float getComp(float4 v, int i)
 {

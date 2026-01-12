@@ -50,6 +50,7 @@ public:
 	virtual void UpdateObjectConstantBuffer(const FPrimitiveData &primitiveData) override;
 
 protected:
+    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
     virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
 };
 

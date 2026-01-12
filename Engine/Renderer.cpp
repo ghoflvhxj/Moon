@@ -107,15 +107,15 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
     }
 
-    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)] = CreateRenderPass<PointShadowDepthPass>();
-    {
-        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
-            ERenderTarget::PointShadowDepth
-        );
+    //RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)] = CreateRenderPass<PointShadowDepthPass>();
+    //{
+    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
+    //        ERenderTarget::PointShadowDepth
+    //    );
 
-        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), nullptr, TEXT("ShadowDepthPointGS.cso"));
-        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
-    }
+    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), nullptr, TEXT("ShadowDepthPointGS.cso"));
+    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
+    //}
 #endif
 
     RenderPasses[EnumToIndex(ERenderPass::Geometry)] = CreateRenderPass<GeometryPass>();
@@ -687,70 +687,9 @@ void MRenderer::AddRenderPass(ERenderPass InRenderPassIndex, const std::shared_p
 
 void MRenderer::Render()
 {
-    /*
-    // 스피어 그리기
-    PrimitiveDatas[SpherePID].clear();
-    if (SphereRenderDatas.empty() == false)
+    if (0 <= DebugRenderTargetIndex && DebugRenderTargetIndex < (int)ERenderTarget::Count)
     {
-        std::vector<FVertex_Instance> InstanceDatas;
-        for (auto& SphereRenderData : SphereRenderDatas)
-        {
-            FVertex_Instance NewInstance = {};
-            XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&SphereRenderData.Scale)) * XMMatrixTranslationFromVector(XMLoadFloat3(&SphereRenderData.Translation));
-            XMStoreFloat4x4(&NewInstance.WorldMatrix, XMWorldMat);
-            InstanceDatas.push_back(NewInstance);
-        }
-
-        std::vector<FPrimitiveData> NewPrimitiveDatas;
-        FPrimitiveData NewPrimitivData = {};
-        NewPrimitivData.MeshData = &SphereMesh;
-        NewPrimitivData.PrimitiveType = EPrimitiveType::Collision;
-        NewPrimitivData.VertexBuffer = VertexBuffers[SpherePID][0];
-        NewPrimitivData.IndexBuffer = IndexBuffers[SpherePID][0];
-        NewPrimitivData.InstanceBuffer = InstanceBuffer;
-        NewPrimitivData.InstanceNum = GetSize(SphereRenderDatas);
-
-        InstanceBuffer->Update(InstanceDatas.data(), NewPrimitivData.InstanceNum);
-        NewPrimitiveDatas.push_back(NewPrimitivData);
-
-        PrimitiveDatas[SpherePID].insert(PrimitiveDatas[SpherePID].end(), NewPrimitiveDatas.begin(), NewPrimitiveDatas.end());
-    }
-    SphereRenderDatas.clear();
-    */
-    
-    /*
-    std::vector<FPrimitiveData> PostRenderPrimitiveDatas;
-
-#ifdef _DEBUG
-    // 렌더 타겟
-    if (true == bDebugRenderTargets)
-    {
-        for (auto pair : DebugRenderTargetMehses)
-        {
-            auto& RenderTargetMesh = pair.second;
-            uint32 PID = RenderTargetMesh->GetPrimitiveID();
-            RenderTargetMesh->GetPrimitiveData(PostRenderPrimitiveDatas);
-            PostRenderPrimitiveDatas.back().VertexBuffer = VertexBuffers[PID][0];
-            PostRenderPrimitiveDatas.back().IndexBuffer = IndexBuffers[PID][0];
-        }
-    }
-#endif
-    */
-
-    if (bDebugRenderTargets)
-    {
-        //addRenderTargetForDebug(ERenderTarget::DepthPre);
-        //DebugRenderTarget(ERenderTarget::Diffuse);
-        //DebugRenderTarget(ERenderTarget::Depth);
-       // DebugRenderTarget(ERenderTarget::Normal);
-        //DebugRenderTarget(ERenderTarget::Specular);
-        //DebugRenderTarget(ERenderTarget::LightDiffuse);
-        //DebugRenderTarget(ERenderTarget::LightSpecular);
-        DebugRenderTarget(ERenderTarget::DirectionalShadowDepth);
-        //addRenderTargetForDebug(ERenderTarget::PointShadowDepth);
-        //DebugRenderTarget(ERenderTarget::Outline);
-        //DebugRenderTarget(ERenderTarget::Stencil);
-        //DebugRenderTarget(ERenderTarget::Collision);
+        DebugRenderTarget((ERenderTarget)DebugRenderTargetIndex);
     }
 }
 
@@ -838,26 +777,26 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
 
         for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Far); ++cascadeIndex)
         {
-            float Near = Scene->GetCascadeDistance(cascadeIndex);
-            float Far = Scene->GetCascadeDistance(cascadeIndex + 1);
+            float CascadeNear = Scene->GetCascadeDistance(cascadeIndex);
+            float CascadeFar = Scene->GetCascadeDistance(cascadeIndex + 1);
 
-            float XNear = Near * tanHalfHorizen;
-            float XFar = Far * tanHalfHorizen;
-            float YNear = Near * tanHalfVertical;
-            float YFar = Far * tanHalfVertical;
-            float DepthCenter = (Near + Far) / 2.f;
+            float XNear = CascadeNear * tanHalfHorizen;
+            float XFar = CascadeFar * tanHalfHorizen;
+            float YNear = CascadeNear * tanHalfVertical;
+            float YFar = CascadeFar * tanHalfVertical;
+            float DepthCenter = (CascadeNear + CascadeFar) / 2.f;
 
             std::vector<Vec3> FrustumVertices = {
                 //near Face
-                {XNear,YNear,Near},
-                {-XNear,YNear,Near},
-                {XNear,-YNear,Near},
-                {-XNear,-YNear,Near},
+                {XNear,YNear,CascadeNear},
+                {-XNear,YNear,CascadeNear},
+                {XNear,-YNear,CascadeNear},
+                {-XNear,-YNear,CascadeNear},
                 //far Face
-                {XFar,YFar,Far},
-                {-XFar,YFar,Far},
-                {XFar,-YFar,Far},
-                {-XFar,-YFar,Far}
+                {XFar,YFar,CascadeFar},
+                {-XFar,YFar,CascadeFar},
+                {XFar,-YFar,CascadeFar},
+                {-XFar,-YFar,CascadeFar}
             };
 
             XMVECTOR CascadeCenterInWorld = {};
@@ -876,13 +815,16 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
             }
             Radius = std::ceil(Radius * 2.f) / 2.f;
 
-            //float Temp = Radius;
-            float Temp = std::max(Radius, 100.f);
+            float Temp = Radius;
+            //float Temp = std::max(Radius, 100.f);
             XMVECTOR Eye = CascadeCenterInWorld - (LightDirection * Temp);
             XMVECTOR Focus = CascadeCenterInWorld;
             XMMATRIX LightView = XMMatrixLookAtLH(Eye, Focus, UpVector);
-            //XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-Radius, Radius, -Radius, Radius, 0.1f, Radius * 2.f);
-            XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-Radius, Radius, -Radius, Radius, 0.1f, Temp * 2.f);
+            
+            float Near = GraphicDevice::bReverseDepth ? Temp * 2.f : 0.1f;
+            float Far = GraphicDevice::bReverseDepth ? 0.1f : Temp * 2.f;
+
+            XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-Radius, Radius, -Radius, Radius, Near, Far);
 
             Scene->SetLightInfoCascadeShadow(cascadeIndex, Eye, LightView * OrthoProjMatrix);
         }
@@ -1152,6 +1094,12 @@ void MScene::UpdateTickConstantBuffer()
     TickBuffer->SetData(TEXT("identityMatrix"), &IDENTITYMATRIX);
     TickBuffer->SetData(TEXT("orthographicProjectionMatrix"), &GetWorld()->getMainCameraOrthographicProjectionMatrix());
     TickBuffer->SetData(TEXT("inverseOrthographicProjectionMatrix"), &GetWorld()->getMainCamera()->getInverseOrthographicProjectionMatrix());
+
+    // 기타 옵션들 자동으로 설정
+    for(auto& Prop : GetTypeDesc()->Properties)
+    { 
+        TickBuffer->SetData(StringToWString(Prop->Name), Prop->GetAsVoid(this));
+    }
 
     TickBuffer->Commit();
 

@@ -5,7 +5,6 @@ struct PixelIn
 	float4 pos			: SV_POSITION;
     float3 worldPos		: POSITION0;
 	float2 uv			: TEXCOORD0;
-    float2 Clip			: TEXCOORD1;
 	float3 normal		: NORMAL0;
 	float3 tangent		: NORMAL1;
 	float3 binormal		: NORMAL2;
@@ -86,30 +85,13 @@ Texture2D T_RimLight : register(t12);
 
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);
-SamplerComparisonState g_SamplerLess : register(s1);
-SamplerComparisonState g_SamplerGreater : register(s2);
-
-// 픽셀 좌표를 월드 좌표로 변환하는 함수
-float4 PixelToWorld(float2 uv, float4 depth, matrix inverseProjectiveMatrix, matrix inverseCameraViewMatrix)
-{
-	// 역투영, uv좌표를 (0 <= x, y <= 1) 투영좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 1이다)
-	float4 pixelProjectionPosition = float4(0.f, 0.f, 0.f, 0.f);
-	pixelProjectionPosition.x = (uv.x * 2.f - 1.f) * depth.w;
-	pixelProjectionPosition.y = (uv.y * -2.f + 1.f) * depth.w;
-    pixelProjectionPosition.z = depth.x * depth.w;
-	pixelProjectionPosition.w = depth.w;
-
-	// 투영좌표에 역투영&뷰 행렬을 곱해 월드 좌표를 얻음
-	float4x4 inverseProjectViewMatrix = mul(inverseProjectiveMatrix, inverseCameraViewMatrix);
-	float4 pixelWorldPosition = mul(pixelProjectionPosition, inverseProjectViewMatrix);
-
-	return pixelWorldPosition;
-}
+SamplerComparisonState g_SamplerCloser : register(s1);
+SamplerComparisonState g_SamplerFarther : register(s2);
 
 float4 PixelToView(float2 uv, float depth, matrix inverseProjectiveMatrix)
 {
 	// UV좌표를 (0 <= x, y <= 1) NDC좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 0이다)
-    float4 NDCPos = float4(0.f, 0.f, 0.f, 0.f);
+    float4 NDCPos = float4(0.f, 0.f, GetNear(), 0.f);
     NDCPos.x = uv.x * 2.f - 1.f;
     NDCPos.y = uv.y * -2.f + 1.f;
     NDCPos.z = depth;
@@ -137,21 +119,26 @@ float3 UnpackNormal(float3 InPackedNormal)
     return normalize(InPackedNormal * 2.f - 1.f);
 }
 
-// 그림자가 없으면 1, 있으면 1보다 작을거임
-#define SHADOW_PCF_SAMPLES 0
-float PixelCascadeSahdow(int cascadeIndex, float4 PixelPosInLightViewProj)
+float3 TransformPosition(float3 InPos, float4x4 InTransformMat)
+{
+    return mul(float4(InPos, 1.f), InTransformMat).xyz;
+}
+
+float3 TransformNormal(float3 InNormal, float4x4 InTransformMat)
+{
+    return mul(float4(InNormal, 0.f), InTransformMat).xyz;
+}
+
+float2 ToUV(float2 InClipPos)
 {
     /****************************************
-    1. World -> View -> Proj -> NDC(-1~1, -1~1)로 만듬.
-    2. 직교투영이기 때문에 나눌 z값이 1이므로 생략
-    3. UV(0~1, 0~1)로 변환. 
+     1. World -> View -> Proj -> NDC(-1~1, -1~1)로 만듬.
+     2. 직교투영이기 때문에 나눌 z값이 1이므로 생략
+     3. UV(0~1, 0~1)로 변환. 
     ****************************************/
-    float shadow = 0.f;
-    float3 ShadowDepthUV = float3(PixelPosInLightViewProj.x * 0.5f + 0.5f, PixelPosInLightViewProj.y * -0.5f + 0.5f, cascadeIndex);
-    saturate(ShadowDepthUV);
+    return float2(InClipPos.x * 0.5f + 0.5f, InClipPos.y * -0.5f + 0.5f);
+}
 
-    float bias = 0.005f;
-    float Depth = PixelPosInLightViewProj.z - bias;
 
     if (Depth < 1.f)
     {

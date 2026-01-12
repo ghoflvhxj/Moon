@@ -107,6 +107,10 @@ public:
 	GraphicDevice &operator=(const GraphicDevice &ref) = delete;
 
 public:
+    static bool bReverseDepth;
+    static float GetFar();
+
+public:
 	virtual bool Initialize() override;
 	virtual void Release() override;
 
@@ -173,9 +177,11 @@ private:
 private:
 	std::vector<ID3D11SamplerState*>		SamplerStates;
 	std::vector<ID3D11RasterizerState*>		RasterizeStates;
-    ID3D11RasterizerState* DepthBiasRS = nullptr;
+    ID3D11RasterizerState* DepthPrePassRS = nullptr;
 	std::map<uint32, ID3D11DepthStencilState*>	DepthStencilStates;
 	std::vector<ID3D11BlendState*>			BlendStates;
+public:
+    ComPtr<ID3D11RasterizerState> ShadowDepthRS = nullptr;
 
 private:
 	const bool initializeDirectXTK();

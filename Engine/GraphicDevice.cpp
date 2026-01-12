@@ -15,6 +15,7 @@
 
 #pragma comment(lib, "dxgi.lib")
 
+bool GraphicDevice::bReverseDepth = true;
 
 using namespace DirectX;
 using namespace Graphic;
@@ -35,6 +36,11 @@ GraphicDevice::GraphicDevice()
 GraphicDevice::~GraphicDevice()
 {
 
+}
+
+float GraphicDevice::GetFar()
+{
+    return bReverseDepth ? 0.f : 1.f;
 }
 
 bool GraphicDevice::Initialize()
@@ -127,7 +133,7 @@ void GraphicDevice::Release()
         SafeRelease(DepthStencilState);
     }
 
-    SafeRelease(DepthBiasRS);
+    SafeRelease(DepthPrePassRS);
 
     SafeRelease(m_pInputLayout); 
 
@@ -208,7 +214,15 @@ void GraphicDevice::ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRe
 
     if (InRenderTarget->GetRenderTargetInfo().Type == ERenderTargetType::Depth && InRenderTarget->getDepthStencilView())
     {
-        getContext()->ClearDepthStencilView(InRenderTarget->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+        /****************************
+                    0.f     1.f
+         Normal     Near    Far
+         Reverse    Far     Near
+        ****************************/ 
+
+        
+
+        getContext()->ClearDepthStencilView(InRenderTarget->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, GetFar(), 0u);
     }
 }
 
@@ -530,7 +544,7 @@ void GraphicDevice::End()
 
     UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();
     getContext()->ClearRenderTargetView(Test.RenderTargetViews[BufferIndex].Get(), reinterpret_cast<const float*>(&EngineColors::Blue));
-    getContext()->ClearDepthStencilView(Test.DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+    getContext()->ClearDepthStencilView(Test.DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, GetFar(), 0u);
 
     getContext()->End(Query[Counter].Get());
 
@@ -576,9 +590,17 @@ bool GraphicDevice::buildRasterizerState()
 	rd.AntialiasedLineEnable = FALSE;
 
     {
-        rd.DepthBias = 100000;
-        rd.SlopeScaledDepthBias = 1.f;
-        FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &DepthBiasRS));
+        //rd.DepthBias = 100000;
+        //rd.SlopeScaledDepthBias = 1.f;
+        FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &DepthPrePassRS));
+        rd.DepthBias = 0;
+        rd.SlopeScaledDepthBias = 0.f;
+    }
+
+    {
+        //rd.DepthBias = 100000;
+        //rd.SlopeScaledDepthBias = 1.f;
+        FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, ShadowDepthRS.GetAddressOf()));
         rd.DepthBias = 0;
         rd.SlopeScaledDepthBias = 0.f;
     }
@@ -603,7 +625,7 @@ ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode
 {
     if (bDepthBias)
     {
-        return DepthBiasRS;
+        return DepthPrePassRS;
     }
 
 	return RasterizeStates[(EnumToIndex(eFillMode) * CastValue<uint32>(Graphic::CullMode::Count)) + EnumToIndex(eCullMode)];
@@ -611,13 +633,21 @@ ID3D11RasterizerState *GraphicDevice::getRasterizerState(const Graphic::FillMode
 
 bool GraphicDevice::buildDepthStencilState()
 {
-	ID3D11DepthStencilState *pDepthStencilState = nullptr;
+    /*********************************************
+                Cur         Buffer      기록
+     Normal     0.1f        0.5f        O
+     Reverse    0.1f        0.5f        X
+     Normal     0.5f        0.1f        X
+     Reverse    0.5f        0.1f        O
+    *********************************************/
 
+
+	ID3D11DepthStencilState *pDepthStencilState = nullptr;
 	//-------------------------------------------------------------------------------------
 	D3D11_DEPTH_STENCIL_DESC dsd = {};
 	dsd.DepthEnable = TRUE;
 	dsd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	dsd.DepthFunc = D3D11_COMPARISON_LESS;
+	dsd.DepthFunc = bReverseDepth ? D3D11_COMPARISON_GREATER : D3D11_COMPARISON_LESS;
 	dsd.StencilEnable = TRUE;
 	dsd.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
     dsd.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
@@ -747,6 +777,10 @@ ID3D11BlendState *GraphicDevice::getBlendState(const Graphic::Blend eBlend)
 
 bool GraphicDevice::buildSamplerState()
 {
+    /**********************************************************
+     Index      DpethCompare    
+       0            X
+    **********************************************************/
 	auto CreateSamplerLambda = [this](D3D11_SAMPLER_DESC& samplerDesc)
 	{
 		ID3D11SamplerState* pSamplerState = nullptr;
@@ -786,19 +820,21 @@ bool GraphicDevice::buildSamplerState()
 	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 	SamplerDesc.BorderColor[0] = 1.f;
-	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS;
 	SamplerDesc.MaxAnisotropy = 1u;
 	SamplerDesc.MipLODBias = 0.f;
 
+    // 가까운 거
     {
+        SamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_GREATER : D3D11_COMPARISON_LESS;
         ID3D11SamplerState* pSamplerState = nullptr;
         FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
         SamplerStates.emplace_back(pSamplerState);
         m_pImmediateContext->PSSetSamplers(1, 1, &pSamplerState);
     }
 
+    // 먼 거
     {
-        SamplerDesc.ComparisonFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_GREATER;
+        SamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_LESS : D3D11_COMPARISON_GREATER;
         ID3D11SamplerState* pSamplerState = nullptr;
         FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
         SamplerStates.emplace_back(pSamplerState);

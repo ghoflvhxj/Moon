@@ -27,7 +27,7 @@ PixelOut_LightPass main(PixelIn pIn)
     }
     
     float3 PixelPosInCamera = PixelToView(pIn.uv, depth, g_inverseProjectiveMatrix).xyz;
-    float4 PixelPosInWorld = mul(float4(PixelPosInCamera, 1.f), g_inverseCameraViewMatrix);
+    float3 PixelPosInWorld = TransformPosition(PixelPosInCamera, g_inverseCameraViewMatrix);
     
     // 그림자 계산을 위해 CascadeIndex를 구함
     int CascadeIndex = 0;
@@ -41,26 +41,24 @@ PixelOut_LightPass main(PixelIn pIn)
         }
     }
     
-    // 그림자 팩터 얻기
-    float4 PixelPosInLightViewProj = mul(float4(PixelPosInWorld.xyz, 1.f), lightViewProjMatrix[CascadeIndex]);
-    float ShadowFactor = PixelCascadeSahdow(CascadeIndex, PixelPosInLightViewProj);
-
 	float3 LightDirection = g_lightDirection.xyz;
 	float3 color = g_lightColor.xyz;
 	float intensity = g_lightColor.w;
     
     float3 CameraWorldPos = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]);
-    float3 PixelToCamera = normalize(CameraWorldPos - PixelPosInWorld.xyz);
+    float3 PixelToCamera = normalize(CameraWorldPos - PixelPosInWorld);
     
 	//-------------------------------------------------------------------------------------------------
     // 난반사
 	float3 normalInWorld = mul(normal, g_inverseCameraViewMatrix).xyz;
-    
     float Dot = dot(normalInWorld, -LightDirection);
     float Bright = saturate(Dot);                       // 0 ~ 1
     
     float3 Direct = Bright * intensity * (1.f - ShadowFactor);
     float3 InDirect = Ambient * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
+    
+    float3 Direct = Bright * intensity * ShadowFactor; //(1.f - ShadowFactor);
+    float3 InDirect = Ambient.xyz * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
     pOut.lightDiffuse.xyz = color * (Direct + InDirect);
     
     if(T_RimLight.Sample(g_Sampler, pIn.uv).x > 0.f)
@@ -90,20 +88,31 @@ PixelOut_LightPass main(PixelIn pIn)
     //pOut.lightDiffuse.xyz = float3(depth.x, depth.x, depth.x);
     //pOut.lightDiffuse.xyz = PixelPosInCamera.xyz;
     //pOut.lightDiffuse.xyz = PixelPosInWorld.xyz;
-    //pOut.lightDiffuse.xyz = PixelPosInLightViewProj.z;
+    //pOut.lightDiffuse.xyz = PixelPosInLightViewProj.xyz;
     //pOut.lightDiffuse.xyz = normalInWorld;
-    //if (CascadeIndex == 0)
-    //{
-    //    pOut.lightDiffuse.x = 1.f;
-    //}
-    //else if (CascadeIndex == 1)
-    //{
-    //    pOut.lightDiffuse.y = 1.f;
-    //}
-    //else if (CascadeIndex == 2)
-    //{
-    //    pOut.lightDiffuse.z = 1.f;
-    //}
+    //pOut.lightDiffuse.xyz = SurfaceNormal;
+    //pOut.lightDiffuse.xyz = pIn.normal; // 라이트용 메시의 노말이기 때문에 의미없음. 
+    
+    if (bDebugDirectionalShadow)
+    {
+        pOut.lightDiffuse.xyz = ShadowFactor;
+    }
+    
+    if (bDebugCascade)
+    {
+        if (CascadeIndex == 0)
+        {
+            pOut.lightDiffuse.xyz = float3(1.f, 0.f, 0.f);
+        }
+        else if (CascadeIndex == 1)
+        {
+            pOut.lightDiffuse.xyz = float3(0.f, 1.f, 0.f);
+        }
+        else if (CascadeIndex == 2)
+        {
+            pOut.lightDiffuse.xyz = float3(0.f, 0.f, 1.f);
+        }
+    }
 
     return pOut;
 }

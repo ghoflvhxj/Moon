@@ -30,8 +30,13 @@ PixelOut_CombinePass main(PixelIn pIn)
     /******************
         디버깅 용
     ******************/
-    //pOut.color = diffuse;
-    //pOut.color = DirectionalLight;
 
-	return pOut;
+    //pOut.color = diffuse;
+    
+    if (bDebugDirectionalLight)
+    {
+        pOut.color = DirectionalLight;
+    }
+
+    return pOut;
 }

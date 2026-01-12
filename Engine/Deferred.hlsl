@@ -8,7 +8,6 @@ VertexOut main(VertexIn vIn)
 	matrix worldViewProj = mul(worldView, orthographicProjectionMatrix);
 
 	vOut.pos = mul(float4(vIn.pos.x, vIn.pos.y, vIn.pos.z, 1.f), worldViewProj);
-    vOut.Clip = float2(0.f, 0.f);
 	vOut.uv = vIn.uv;
 	vOut.normal = mul(float4(vIn.normal, 0.f), worldView).xyz;
 	vOut.tangent = mul(float4(vIn.tangent, 0.f), worldView).xyz;

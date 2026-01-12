@@ -138,7 +138,7 @@ public:
 
 private:
     std::unordered_map<ERenderTarget, FRenderTargetDebugData> DebugRenderTargetData;
-	bool bDebugRenderTargets = false;
+	int DebugRenderTargetIndex = -1;
 
 public:
     Mat4 ViewPerspectiveProjMatrix = {};
@@ -155,7 +155,7 @@ public:
 
     REFLECT(
         MRenderer
-        , PROPERTY(bDebugRenderTargets)
+        , PROPERTY(DebugRenderTargetIndex)
         , PROPERTY(Ambient)
         , PROPERTY(bDrawShadow)
     )
@@ -245,6 +245,14 @@ protected:
     std::vector<float> CascadeDistances;
     std::vector<Vec4> CascadeLightPositions;
     std::vector<Mat4> CascadeLightMatrices;
+public:
+
+    // HLSL 글로벌 파라미터
+    float NormalBiasScale = 0.1f;
+    float DepthBias = 0.001f;
+    bool bDebugDirectionalLight = false;
+    bool bDebugDirectionalShadow = false;
+    bool bDebugCascade = false;
 
 public:
     // 인스턴싱 데이터
@@ -256,6 +264,11 @@ public:
     REFLECT(
         MScene
         , PROPERTY(bDrawCollision)
+        , PROPERTY(NormalBiasScale)
+        , PROPERTY(DepthBias)
+        , PROPERTY(bDebugDirectionalLight)
+        , PROPERTY(bDebugDirectionalShadow)
+        , PROPERTY(bDebugCascade)
     )
     /* 카메라 */
 //public:
