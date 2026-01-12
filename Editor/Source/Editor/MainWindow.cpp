@@ -253,6 +253,7 @@ void MEditorMainWindow::ImGuiRender()
             ImGui::Text("Frame: %d", GetMainWorld()->getFrame());
 
             DispatchType2(Renderer->GetTypeDesc(), Renderer.get());
+            DispatchType2(Renderer->GetScene(0)->GetTypeDesc(), Renderer->GetScene(0));
         }
 
         if (ImGui::CollapsingHeader("Performance"))

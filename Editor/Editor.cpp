@@ -687,7 +687,13 @@ void DispatchType2(const FTypeDesc* InTypeDesc, void* InData)
 
     while (InTypeDesc != nullptr)
     {
-        if (ImGui::CollapsingHeader(InTypeDesc->Name.c_str()))
+        bool bShow = true;
+        if (InTypeDesc == MObject::GetTypeDescStatic())
+        {
+            bShow = false;
+        }
+
+        if (bShow && ImGui::CollapsingHeader(InTypeDesc->Name.c_str()))
         {
             for (FPropertyDesc* Prop : InTypeDesc->Properties)
             {
