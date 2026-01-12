@@ -139,11 +139,34 @@ float2 ToUV(float2 InClipPos)
     return float2(InClipPos.x * 0.5f + 0.5f, InClipPos.y * -0.5f + 0.5f);
 }
 
+#define SHADOW_PCF_SAMPLES 0
+float PixelCascadeSahdow(int cascadeIndex, float3 InPixelWorldPos, float3 InSurfaceNormal)
+{
+    /**********************************************
+     float Bias = lerp(0.005f, 0.05f, InSlope); -> 이렇게 하면 면과 빛의 기울기마다 bias가 다르게 되니, 일관된 bias로 적용이 안됨
+     모든 면에 대해 같은 bias를 적용하되, 기울기에 따라 bias 수치를 높이고 싶은데 흠.
+     기울기에 대한 Bias 스케일링은 쉐이더에서 하는게 아니라 RasterizeState에서 설정할 수 있음
+     참고: https://www.gamedev.net/forums/topic/662625-slope-scale-depth-bias-shadow-map-in-hlsl/
+    **********************************************/
+    
+    // 노말 바이어스
+    float3 NormalBiasedPos = InPixelWorldPos + (InSurfaceNormal * NormalBiasScale);
+    float3 NDCPos = TransformPosition(NormalBiasedPos, lightViewProjMatrix[cascadeIndex]); // 직교투영이기 때문에 ClipPos = NDCPos나 마찬가지
+    
+    // 단순 바이어스
+    float Bias = DepthBias;
+    float SurfaceDepth = DepthCloser(NDCPos.z, Bias);
 
-    if (Depth < 1.f)
+    // 쉐도우 맵 뎁스 샘플링은 원래 위치를 UV로 변환
+    float3 PixelPosInLightViewProj = TransformPosition(NormalBiasedPos, lightViewProjMatrix[cascadeIndex]);
+    float3 ShadowDepthUV = float3(ToUV(PixelPosInLightViewProj.xy), cascadeIndex);
+    float shadow = 0.f;
+
+    if (SurfaceDepth > GetFar())
     {
-#if SHADOW_PCF_SAMPLES == 1
-        shadow = 1.f - g_ShadowDepth.SampleCmpLevelZero(g_SamplerLess, ShadowDepthUV, Depth, int2(0, 0)).x;
+#if SHADOW_PCF_SAMPLES == 0
+        // 기준은 CompareValue임. s
+        shadow = g_ShadowDepth.SampleCmpLevelZero(g_SamplerCloser, ShadowDepthUV, SurfaceDepth, int2(0, 0)).x;
 #else
         int sampleCount = 3;
         int temp = sampleCount / 2;
@@ -158,7 +181,7 @@ float2 ToUV(float2 InClipPos)
                 // ShadowDepth을 샘플링해 저장된 깊이(빛 시점에서의 깊이)와, 현재 픽셀을 깊이를 비교함
                 // 즉 샘플링한 게 더 적으면 그림자가 적용됨
                 
-                shadow += 1.f - g_ShadowDepth.SampleCmpLevelZero(g_SamplerLess, ShadowDepthUV, Depth, int2(x, y)).x;
+                shadow += g_ShadowDepth.SampleCmpLevelZero(g_SamplerLess, ShadowDepthUV, SurfaceDepth, int2(x, y)).x;
             }
         }
         
@@ -167,4 +190,12 @@ float2 ToUV(float2 InClipPos)
     }
     
     return shadow;
+}
+
+
+float3 GetWorldPos(float2 InUV, float2 InOffset, float4x4 InInvProj, float4x4 InViewInv)
+{
+    float2 UV = InUV + InOffset;
+    float Depth = g_Depth.Sample(g_Sampler, UV).r;
+    return PixelToWorld(UV, Depth, InInvProj, InViewInv).xyz;
 }

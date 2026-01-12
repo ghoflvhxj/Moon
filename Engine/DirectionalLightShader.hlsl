@@ -54,8 +54,14 @@ PixelOut_LightPass main(PixelIn pIn)
     float Dot = dot(normalInWorld, -LightDirection);
     float Bright = saturate(Dot);                       // 0 ~ 1
     
-    float3 Direct = Bright * intensity * (1.f - ShadowFactor);
-    float3 InDirect = Ambient * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
+    // 면의 노말 얻기
+    float3 Right = GetWorldPos(pIn.uv, float2(1.f / resolution.x, 0.f), g_inverseProjectiveMatrix, g_inverseCameraViewMatrix);
+    float3 Up = GetWorldPos(pIn.uv, float2(0.f, 1.f / resolution.y), g_inverseProjectiveMatrix, g_inverseCameraViewMatrix);
+    float3 SurfaceNormal = normalize(cross(Right - PixelPosInWorld, Up - PixelPosInWorld));
+    float Temp = 1.f - saturate(dot(SurfaceNormal, -LightDirection));
+    
+    // 그림자 팩터 얻기
+    float ShadowFactor = PixelCascadeSahdow(CascadeIndex, PixelPosInWorld, SurfaceNormal);
     
     float3 Direct = Bright * intensity * ShadowFactor; //(1.f - ShadowFactor);
     float3 InDirect = Ambient.xyz * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
