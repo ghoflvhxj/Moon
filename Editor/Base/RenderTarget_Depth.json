@@ -1,7 +1,7 @@
 {
     "MMaterial": {
         "_vertexShaderFileName": "VS_SimpleTexture.cso",
-        "_pixelShaderFileName": "PS_SimpleTexture.cso",
+        "_pixelShaderFileName": "PS_SampleDepth.cso",
         "_textureList": {
             "0": {
                 "MAsset": {}
@@ -29,6 +29,6 @@
         "bAlphaMask": false
     },
     "MAsset": {
-        "Path": "Base\\RenderTaget.json"
+        "Path": "Base\\RenderTaget_Depth.json"
     }
 }
