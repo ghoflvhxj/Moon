@@ -1,3 +1,5 @@
 *.fbx filter=lfs diff=lfs merge=lfs -text
 *.lib filter=lfs diff=lfs merge=lfs -text
 *.FBX filter=lfs diff=lfs merge=lfs -text
+Editor/Scene/g10919/g10919out.json filter=lfs diff=lfs merge=lfs -text
+Editor/Scene/g50300out.json filter=lfs diff=lfs merge=lfs -text

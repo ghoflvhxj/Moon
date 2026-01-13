@@ -1,0 +1,40 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "TexVertexShader.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MAsset": {
+                    "Path": "Scene\\4a3c3c1f.png"
+                }
+            },
+            "1": {
+                "MAsset": {}
+            },
+            "2": {
+                "MAsset": {
+                    "Path": "Scene\\630d5a74.png"
+                }
+            },
+            "3": {
+                "MAsset": {}
+            },
+            "4": {
+                "MAsset": {}
+            },
+            "5": {
+                "MAsset": {}
+            }
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 0,
+        "bUseAlpha": false,
+        "bAlphaMask": false,
+        "bRimLight": false
+    },
+    "MAsset": {
+        "Path": "Scene\\kaj_ground_rock_AAA3_tga.json"
+    },
+    "MObject": {}
+}

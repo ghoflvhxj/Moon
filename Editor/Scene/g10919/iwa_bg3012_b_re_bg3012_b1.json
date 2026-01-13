@@ -1,0 +1,40 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "TexVertexShader.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MAsset": {
+                    "Path": "Scene\\g10919\\3671d8be.png"
+                }
+            },
+            "1": {
+                "MAsset": {}
+            },
+            "2": {
+                "MAsset": {
+                    "Path": "Scene\\g10919\\7e4e26cd.png"
+                }
+            },
+            "3": {
+                "MAsset": {}
+            },
+            "4": {
+                "MAsset": {}
+            },
+            "5": {
+                "MAsset": {}
+            }
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 2,
+        "bUseAlpha": false,
+        "bAlphaMask": false,
+        "bRimLight": false
+    },
+    "MAsset": {
+        "Path": "Scene\\g10919\\iwa_bg3012_b_re_bg3012_b1.json"
+    },
+    "MObject": {}
+}

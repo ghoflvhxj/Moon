@@ -1,0 +1,40 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "TexVertexShader.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MAsset": {
+                    "Path": "Scene\\3d36aba2.png"
+                }
+            },
+            "1": {
+                "MAsset": {}
+            },
+            "2": {
+                "MAsset": {
+                    "Path": "Scene\\750955d1.png"
+                }
+            },
+            "3": {
+                "MAsset": {}
+            },
+            "4": {
+                "MAsset": {}
+            },
+            "5": {
+                "MAsset": {}
+            }
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 2,
+        "bUseAlpha": false,
+        "bAlphaMask": false,
+        "bRimLight": false
+    },
+    "MAsset": {
+        "Path": "Scene\\b10_room00_03_aaax_tga1.json"
+    },
+    "MObject": {}
+}
