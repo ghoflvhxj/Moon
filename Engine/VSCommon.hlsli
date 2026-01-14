@@ -59,6 +59,8 @@ cbuffer VS_CBuffer_PerObject : register(b2)
 	bool animated;
     bool bOrtho;
     bool bInstance;
+    float ScaleU;
+    float ScaleV;
 };
 
 int getCascadeIndex(float3 pos)

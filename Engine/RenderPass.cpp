@@ -188,7 +188,7 @@ void MRenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
 void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
     const auto& Camera = getRenderer()->GetWorld()->getMainCamera();
-	const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
+	const std::shared_ptr<MPrimitiveComponent>& PrimitiveComp = PrimitiveData.PrimitiveComponent.lock();
 
     std::shared_ptr<MShader>& VS = GetVertexShader(PrimitiveData);
 
@@ -201,29 +201,36 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
     if (VS->HasConstantBuffer(EConstantBufferLayer::Object))
     {
         BOOL animated = FALSE;
-        if (Primitive)
+        Vec2 UV = { 1.f, 1.f };
+
+        if (PrimitiveComp)
         {
-            VS->SetValue(TEXT("worldMatrix"), Primitive->getWorldMatrix());
+            VS->SetValue(TEXT("worldMatrix"), PrimitiveComp->getWorldMatrix());
 
             Mat4 WorldView = {};
-            XMStoreFloat4x4(&WorldView, XMLoadFloat4x4(&Primitive->getWorldMatrix()) * XMLoadFloat4x4(&Camera->getViewMatrix()));
+            XMStoreFloat4x4(&WorldView, XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix()) * XMLoadFloat4x4(&Camera->getViewMatrix()));
             VS->SetValue(TEXT("WorldView"), WorldView);
 
             Mat4 WorldViewProj = {};
-            XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&Primitive->getWorldMatrix()) * XMLoadFloat4x4(&GetViewProjMatrix(Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)));
+            XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix()) * XMLoadFloat4x4(&GetViewProjMatrix(PrimitiveComp->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)));
             //const Mat4& Proj = Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? Camera->getOrthographicProjectionMatrix() : Camera->getPerspectiveProjectionMatrix();
             //XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&WorldView) * XMLoadFloat4x4(&Proj));
             VS->SetValue(TEXT("WorldViewProj"), WorldViewProj);
 
-            VS->SetValue(TEXT("inverseWorldMatrix"), Primitive->GetInverseWorldMatrix());
-            VS->SetValue(TEXT("bOrtho"), Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
-            if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = Primitive->CastToShared<DynamicMeshComponent>())
+            VS->SetValue(TEXT("inverseWorldMatrix"), PrimitiveComp->GetInverseWorldMatrix());
+            VS->SetValue(TEXT("bOrtho"), PrimitiveComp->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
+            if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = PrimitiveComp->CastToShared<DynamicMeshComponent>())
             {
                 animated = DynamicMeshComp->HasAnim() && DynamicMeshComp->bBindPose == false ? TRUE : FALSE;
                 if (animated)
                 {
                     VS->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
                 }
+            }
+
+            if (auto& Mat = PrimitiveData.Material.lock())
+            {
+                UV = Mat->UVScale;
             }
         }
         else
@@ -249,6 +256,9 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 
         VS->SetValue(TEXT("animated"), animated);
         VS->SetValue(TEXT("bInstance"), PrimitiveData.InstanceBuffer.expired() == false ? TRUE : FALSE);
+
+        VS->SetValue(TEXT("ScaleU"), UV.x);
+        VS->SetValue(TEXT("ScaleV"), UV.y);
     }
 
 	// -------------------------------------------------------------------------------------------------------------------------

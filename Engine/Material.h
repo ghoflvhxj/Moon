@@ -90,7 +90,9 @@ public:
 protected:
     bool bTest = false;
 
-
+public:
+    // UV 스케일링
+    Vec2 UVScale = { 1.f ,1.f };
 
 	// 유틸리티	함수들
 public:
@@ -98,15 +100,16 @@ public:
 
 public:
     REFLECT(
-        MMaterial,
-        PROPERTY(_vertexShaderFileName),
-        PROPERTY(_pixelShaderFileName),
-        PROPERTY(_textureList),
-        PROPERTY(_eTopology),
-        PROPERTY(_eFillMode),
-        PROPERTY(_eCullMode),
-        PROPERTY(bUseAlpha),
-        PROPERTY(bAlphaMask)
+        MMaterial
+        , PROPERTY(_vertexShaderFileName)
+        , PROPERTY(_pixelShaderFileName)
+        , PROPERTY(_textureList)
+        , PROPERTY(_eTopology)
+        , PROPERTY(_eFillMode)
+        , PROPERTY(_eCullMode)
+        , PROPERTY(bUseAlpha)
+        , PROPERTY(bAlphaMask)
         , PROPERTY(bRimLight)
+        , PROPERTY(UVScale)
     )
 };
