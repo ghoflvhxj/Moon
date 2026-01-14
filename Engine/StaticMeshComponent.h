@@ -39,9 +39,13 @@ public:
     void SetAngularVelocity(float x, float y, float z);
     void SetVelocity(float x, float y, float z);
 
+public:
+    std::vector<int> MeshVisibilities;
+
     REFLECT(StaticMeshComponent
         , PROPERTY_DELEGATE(Mesh, [&](StaticMeshComponent* InObject) {
             InObject->Reload();
         })
+        , PROPERTY(MeshVisibilities)
     )
 };

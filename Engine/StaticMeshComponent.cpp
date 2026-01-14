@@ -140,6 +140,7 @@ void StaticMeshComponent::SetMesh(const std::wstring& InPath)
     }
 
     Materials = Mesh->getMaterials();
+    MeshVisibilities.resize(Mesh->GetMeshNum(), 1);
 
     OnMeshChangedDelegate.Broadcast(this);
     OnPrimitiveChangedDelegate.Broadcast(this);

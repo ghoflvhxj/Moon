@@ -22,6 +22,15 @@ MLightComponent::MLightComponent(void)
     g_ResourceManager->Load(TEXT("Base/Plane.json"), _pStaticMesh);
 
     Material = std::make_shared<MMaterial>();
+
+    if (getGraphicDevice())
+    {
+        auto& ViewportSize = getGraphicDevice()->GetViewportSize();
+        float Width = std::get<0>(ViewportSize);
+        float Height = std::get<1>(ViewportSize);
+
+        UpdateSize(Width, Height);
+    }
 }
 
 MLightComponent::~MLightComponent(void)

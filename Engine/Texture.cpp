@@ -71,7 +71,6 @@ const bool MTexture::loadTextureFile(const wchar_t *fileName)
     PerformanceTimer Pt(Msg);
 #endif
 
-    ID3D11ShaderResourceView* NewSRV = nullptr;
 	FAILED_CHECK_THROW(CreateWICTextureFromFile(g_pGraphicDevice->getDevice(), fileName, (ID3D11Resource**)&Texture, &ShaderResurceView));
 	
 	return true;
