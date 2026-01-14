@@ -5,7 +5,7 @@
         "_textureList": {
             "0": {
                 "MAsset": {
-                    "Path": "Scene\\4a3c3c1f.png"
+                    "Path": "Object\\bg0006_LunarTear\\261590aa.png"
                 }
             },
             "1": {
@@ -13,33 +13,36 @@
             },
             "2": {
                 "MAsset": {
-                    "Path": "Scene\\630d5a74.png"
+                    "Path": "Object\\bg0006_LunarTear\\612a97ed.png"
                 }
             },
             "3": {
-                "MAsset": {
-                }
+                "MAsset": {}
             },
             "4": {
-                "MAsset": {}
+                "MAsset": {
+                    "Path": "Object\\bg0006_LunarTear\\261590aa.png"
+                }
             },
             "5": {
-                "MAsset": {}
+                "MAsset": {
+                    "Path": "Object\\bg0006_LunarTear\\261590aa.png"
+                }
             }
         },
         "_eTopology": 4,
         "_eFillMode": 1,
-        "_eCullMode": 0,
+        "_eCullMode": 2,
         "bUseAlpha": false,
-        "bAlphaMask": false,
+        "bAlphaMask": true,
         "bRimLight": false,
         "UVScale": [
-            15.0,
-            15.0
+            1.0,
+            1.0
         ]
     },
     "MAsset": {
-        "Path": "Scene\\kaj_ground_rock_AAA3_tga.json"
+        "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
     },
     "MObject": {}
 }

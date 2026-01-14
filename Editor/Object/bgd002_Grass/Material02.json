@@ -5,7 +5,7 @@
         "_textureList": {
             "0": {
                 "MAsset": {
-                    "Path": "Scene\\4a3c3c1f.png"
+                    "Path": "Object\\bgd002_Grass\\1d8acffa.png"
                 }
             },
             "1": {
@@ -13,12 +13,11 @@
             },
             "2": {
                 "MAsset": {
-                    "Path": "Scene\\630d5a74.png"
+                    "Path": "Object\\bgd002_Grass\\5ab5c8bd.png"
                 }
             },
             "3": {
-                "MAsset": {
-                }
+                "MAsset": {}
             },
             "4": {
                 "MAsset": {}
@@ -29,17 +28,17 @@
         },
         "_eTopology": 4,
         "_eFillMode": 1,
-        "_eCullMode": 0,
+        "_eCullMode": 2,
         "bUseAlpha": false,
-        "bAlphaMask": false,
+        "bAlphaMask": true,
         "bRimLight": false,
         "UVScale": [
-            15.0,
-            15.0
+            1.0,
+            1.0
         ]
     },
     "MAsset": {
-        "Path": "Scene\\kaj_ground_rock_AAA3_tga.json"
+        "Path": "Object\\bgd002_Grass\\Material02.json"
     },
     "MObject": {}
 }
