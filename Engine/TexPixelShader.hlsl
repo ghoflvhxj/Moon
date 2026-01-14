@@ -4,7 +4,13 @@ PixelOut_GeometryPass main(PixelIn pIn)
 {
     PixelOut_GeometryPass pOut = (PixelOut_GeometryPass)0;
     
-	pOut.color		= g_Diffuse.Sample(g_Sampler, pIn.uv);
+    //pOut.color      = T_Diffuse.Sample(g_Sampler, pIn.uv);
+    /***************************************
+     TODO
+      WIC이 모든 텍스쳐를 R8G8B8A8_UNORM 으로만 불러오는 듯
+      Diffuse 텍스쳐 포맷 모디파이어를 R8G8B8A8_UNORM_SRGB로 설정하고 샘플링 하도록 변경한다면, 자동 변환이 되기 때문에 위 코드로 변경해야 함
+    ***************************************/
+    pOut.color      = pow(T_Diffuse.Sample(g_Sampler, pIn.uv), 2.2f);
 	pOut.normal		= float4(pIn.normal, 1.f);  
 	pOut.specular	= float4(0.f, 0.f, 0.f, 0.f);
 

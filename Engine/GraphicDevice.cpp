@@ -298,7 +298,12 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     for (uint32 i = 0; i < GetSize(SawpChainBuffers); ++i)
     {
         FAILED_CHECK_THROW(NewWindowRenderData.SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&SawpChainBuffers[i]));
-        FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(SawpChainBuffers[i], nullptr, NewWindowRenderData.RenderTargetViews[i].GetAddressOf()));
+
+        D3D11_RENDER_TARGET_VIEW_DESC RTVDesc = {};
+        RTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        RTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        RTVDesc.Texture2D.MipSlice = 0;
+        FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(SawpChainBuffers[i], &RTVDesc, NewWindowRenderData.RenderTargetViews[i].GetAddressOf()));
     }
     SafeReleaseArray(SawpChainBuffers);
 
@@ -375,10 +380,12 @@ void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint3
             for (uint32 i = 0; i < GetSize(SawpChainBuffers); ++i)
             {
                 FAILED_CHECK_THROW(WindowRenderData.SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&SawpChainBuffers[i]));
-                D3D11_TEXTURE2D_DESC De = {};
-                SawpChainBuffers[i]->GetDesc(&De);
 
-                FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(SawpChainBuffers[i], nullptr, WindowRenderData.RenderTargetViews[i].GetAddressOf()));
+                D3D11_RENDER_TARGET_VIEW_DESC RTVDesc = {};
+                RTVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+                RTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+                RTVDesc.Texture2D.MipSlice = 0;
+                FAILED_CHECK_THROW(m_pDevice->CreateRenderTargetView(SawpChainBuffers[i], &RTVDesc, WindowRenderData.RenderTargetViews[i].GetAddressOf()));
             }
             SafeReleaseArray(SawpChainBuffers);
 
