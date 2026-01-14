@@ -813,6 +813,15 @@ void PropertyUI(EType InType, const char* DisplayName, void* InData)
     }
     break;
     case EType::Vec2:
+    {
+        auto Temp = static_cast<Vec2*>(InData);
+        float TempArr[2] = { Temp->x, Temp->y };
+        if (ImGui::InputFloat2(DisplayName, TempArr))
+        {
+            *Temp = { TempArr[0], TempArr[1] };
+        }
+    }
+    break;
     case EType::Vec4:
     {
 
