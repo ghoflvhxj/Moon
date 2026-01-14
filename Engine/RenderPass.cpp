@@ -272,6 +272,8 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
             PS->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
             BOOL bUseSpecular = Material->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
             PS->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
+            BOOL bUseEmissive = Material->IsTextureTypeUsed(ETextureType::Emssive) ? TRUE : FALSE;
+            PS->SetValue(TEXT("bUseEmissiveTexture"), bUseEmissive);
             BOOL bAlphaMask = Material->IsAlphaMasked() ? TRUE : FALSE;
             PS->SetValue(TEXT("bAlphaMask"), bAlphaMask);
             BOOL bRimLight = Material->IsRimLighted() ? TRUE : FALSE;

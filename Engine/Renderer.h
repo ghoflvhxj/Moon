@@ -214,6 +214,7 @@ protected:
 
 public:
     void AddRenderablePrimitiveDatas(const std::vector<FPrimitiveData>& InPrimitiveDatas);
+    void AddRenderablePrimitiveData(const FPrimitiveData& InPrimitiveData);
     const std::vector<FPrimitiveData>& GetRenderablePrimitiveData() const;
 protected:
     // 컬링 후 실제로 렌더링되는 PrimitiveData를 저장함

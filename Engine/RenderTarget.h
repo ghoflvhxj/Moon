@@ -9,10 +9,11 @@ enum class ERenderTargetType
 {
     None,
     Default = 1 << 0,
-    Depth = 1 << 1,
-    Normal = 1 << 2,
-    Light = 1 << 3,
-    Bool = 1 << 4
+    Diffuse = 1 << 1,
+    Depth   = 1 << 2,
+    Normal  = 1 << 3,
+    Light   = 1 << 4,
+    Bool    = 1 << 5
 };
 
 struct FRenderTagetInfo
@@ -38,7 +39,8 @@ struct FRenderTagetInfo
 enum class EDXResourceType
 {
     Texture,
-    View,
+    RenderTargetView,
+    ShaderResourceView,
 };
 
 class MRenderTarget

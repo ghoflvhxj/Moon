@@ -20,23 +20,22 @@ using RenderTargets = std::vector<std::shared_ptr<MRenderTarget>>;
 // PixelShader랑 맞춰줘야 함
 enum class ERenderTarget
 {
-	Diffuse,
-	Depth,
+	Diffuse = 10,
 	Normal,
 	Specular,
+    Emissive,
 
-	LightDiffuse,
-	LightSpecular,
-
+	Depth = 20,
 	DirectionalShadowDepth,
 	PointShadowDepth,
 
-    Collision,
-
+	LightDiffuse,
     PointLightDiffuse,
+	LightSpecular,
+
+    Collision = 30,
     Stencil,
     Outline,
-
     RimLight,
 
 	Count

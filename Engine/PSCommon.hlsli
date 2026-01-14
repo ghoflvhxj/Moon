@@ -30,16 +30,11 @@ struct PixelOut_Simple
 
 struct PixelOut_GeometryPass
 {
-	//float4 color	: SV_TARGET0;
-	//float4 depth	: SV_TARGET1;
-	//float4 normal	: SV_TARGET2;
-	//float4 specular : SV_TARGET3;
-    //float4 RimLight : SV_TARGET4;
-    
     float4 color : SV_TARGET0;
     float4 normal : SV_TARGET1;
     float4 specular : SV_TARGET2;
-    float4 RimLight : SV_TARGET3;
+    float4 Emissive : SV_TARGET3;
+    float4 RimLight : SV_TARGET4;
 };
 
 struct PixelOut_CombinePass
@@ -62,26 +57,35 @@ cbuffer PS_CBuffer_PerObject : register(b2)
 {
     bool bUseNormalTexture;
     bool bUseSpecularTexture;
+    bool bUseEmissiveTexture;
     bool bAlphaMask;
     bool bRimLight;
 };
 
-// 셰이더에서 사용하는 텍스쳐. 렌더 타겟인 경우는 인덱스가 ERenderTarget과 일치해야 함
-Texture2D g_Diffuse				                : register(t0);
-Texture2D g_Depth				                : register(t1);
-Texture2D g_Normal				                : register(t2);
-Texture2D g_Specular			                : register(t3); // 여기 까지가 매터리얼에 할당된 텍스쳐들
+// 텍스쳐. ETextureType과 일치해야 함
+Texture2D T_Diffuse				                : register(t0);
+Texture2D T_Dummy                               : register(t1);
+Texture2D T_Normal				                : register(t2);
+Texture2D T_Specular			                : register(t3);
+Texture2D T_Emissive                            : register(t4);
 
-Texture2D g_LightDiffuse		                : register(t4);
-Texture2D g_LightSpecular		                : register(t5);
-Texture2DArray<float> g_ShadowDepth	            : register(t6);
-TextureCubeArray T_PointLightDepth              : register(t7);
-Texture2D T_Collision                           : register(t8);
-Texture2D T_PointLightDiffuse                   : register(t9); 
-Texture2D<uint2> T_Stencil                      : register(t10);
-Texture2D T_Outline                             : register(t11);
-Texture2D T_RimLight : register(t12);
+// 렌더 타겟. ERenderTarget 과 일치해야 함
+Texture2D G_Diffuse                             : register(t10);
+Texture2D G_Normal                              : register(t11);
+Texture2D G_Specular                            : register(t12);
+Texture2D G_Emissive                            : register(t13);
 
+Texture2D G_Depth				                : register(t20);
+Texture2DArray<float> G_ShadowDepth	            : register(t21);
+TextureCubeArray T_PointLightDepth              : register(t22);
+Texture2D G_LightDiffuse                        : register(t23);
+Texture2D G_PointLightDiffuse                   : register(t24);
+Texture2D g_LightSpecular		                : register(t25);
+
+Texture2D G_Collision                           : register(t30); 
+Texture2D<uint2> T_Stencil                      : register(t31);
+Texture2D G_Outline                             : register(t32);
+Texture2D G_RimLight                            : register(t33);
 
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);
@@ -139,7 +143,7 @@ float2 ToUV(float2 InClipPos)
     return float2(InClipPos.x * 0.5f + 0.5f, InClipPos.y * -0.5f + 0.5f);
 }
 
-#define SHADOW_PCF_SAMPLES 0
+#define SHADOW_PCF_SAMPLES 1
 float PixelCascadeSahdow(int cascadeIndex, float3 InPixelWorldPos, float3 InSurfaceNormal)
 {
     /**********************************************
@@ -166,7 +170,7 @@ float PixelCascadeSahdow(int cascadeIndex, float3 InPixelWorldPos, float3 InSurf
     {
 #if SHADOW_PCF_SAMPLES == 0
         // 기준은 CompareValue임. s
-        shadow = g_ShadowDepth.SampleCmpLevelZero(g_SamplerCloser, ShadowDepthUV, SurfaceDepth, int2(0, 0)).x;
+        shadow = G_ShadowDepth.SampleCmpLevelZero(g_SamplerCloser, ShadowDepthUV, SurfaceDepth, int2(0, 0)).x;
 #else
         int sampleCount = 3;
         int temp = sampleCount / 2;
@@ -181,7 +185,7 @@ float PixelCascadeSahdow(int cascadeIndex, float3 InPixelWorldPos, float3 InSurf
                 // ShadowDepth을 샘플링해 저장된 깊이(빛 시점에서의 깊이)와, 현재 픽셀을 깊이를 비교함
                 // 즉 샘플링한 게 더 적으면 그림자가 적용됨
                 
-                shadow += g_ShadowDepth.SampleCmpLevelZero(g_SamplerLess, ShadowDepthUV, SurfaceDepth, int2(x, y)).x;
+                shadow += G_ShadowDepth.SampleCmpLevelZero(g_SamplerCloser, ShadowDepthUV, SurfaceDepth, int2(x, y)).x;
             }
         }
         
@@ -196,6 +200,6 @@ float PixelCascadeSahdow(int cascadeIndex, float3 InPixelWorldPos, float3 InSurf
 float3 GetWorldPos(float2 InUV, float2 InOffset, float4x4 InInvProj, float4x4 InViewInv)
 {
     float2 UV = InUV + InOffset;
-    float Depth = g_Depth.Sample(g_Sampler, UV).r;
+    float Depth = G_Depth.Sample(g_Sampler, UV).r;
     return PixelToWorld(UV, Depth, InInvProj, InViewInv).xyz;
 }

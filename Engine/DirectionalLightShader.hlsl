@@ -1,5 +1,21 @@
 #include "PSCommon.hlsli"
 
+/****************************************************************************************************************************
+ 면과 빛이 수직에 가까워 질수록, 그림자가 지면 안되는데 그림자가 짐.
+ 그림자 뎁스가 서페이스 뎁스보다 가깝다고 판단됬다는 것
+ 
+ 넓은 메쉬가 라이트 뷰 상에서 좁은 영역으로 변화하면서 뎁스를 기록함
+ 극단적으로 면이 한줄에 기록된다면 뎁스는 가까운 뎁스가 기록될 거임. 즉, 멀리 있는 부분의 뎁스가 무시된다.
+ 쉐도우 뎁스는 고정된 값, 서페이스 뎁스는 점점 멀어지게 됨
+ 
+ 그림자 뎁스가 서페이스 뎁스보다 가까워 진다.
+ 
+ 1. 서페이스 뎁스를 더 가깝게 만드는 방법
+ 2. 쉐도우 뎁스를 더 멀게 만드는 방법
+
+ 일단은 Normal Bias Offset + Depth Bias 방식을 사용
+****************************************************************************************************************************/
+
 cbuffer CBuffer : register(b2)
 {
 	float4 g_lightPosition;		// w = Range
@@ -15,11 +31,11 @@ PixelOut_LightPass main(PixelIn pIn)
 {
 	PixelOut_LightPass pOut = (PixelOut_LightPass)0;
 
-	float depth = g_Depth.Sample(g_Sampler, pIn.uv).r;
-	float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);
+	float depth = G_Depth.Sample(g_Sampler, pIn.uv).r;
+	float4 normal = G_Normal.Sample(g_Sampler, pIn.uv);
     normal.xyz = UnpackNormal(normal.xyz);
 	normal.w = 0.f;
-	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
+	float4 specular = G_Specular.Sample(g_Sampler, pIn.uv);
 
     if (all(normal.xyz == float3(0.f, 0.f, 0.f)))
     {
@@ -67,7 +83,7 @@ PixelOut_LightPass main(PixelIn pIn)
     float3 InDirect = Ambient.xyz * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
     pOut.lightDiffuse.xyz = color * (Direct + InDirect);
     
-    if(T_RimLight.Sample(g_Sampler, pIn.uv).x > 0.f)
+    if(G_RimLight.Sample(g_Sampler, pIn.uv).x > 0.f)
     {
         float Rim = 1.f - saturate(dot(PixelToCamera, normalInWorld));
         Rim = pow(Rim, 20.f);

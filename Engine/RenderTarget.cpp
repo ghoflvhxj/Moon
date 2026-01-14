@@ -64,7 +64,7 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
         // RenderTarget 렌더 타겟 뷰
         SafeRelease(_pRenderTargetView);
         D3D11_RENDER_TARGET_VIEW_DESC RenderTargetViewDesc = { };
-        RenderTargetViewDesc.Format = GetFormat(EDXResourceType::View, RenderTargetInfo.Type);
+        RenderTargetViewDesc.Format = GetFormat(EDXResourceType::ShaderResourceView, RenderTargetInfo.Type);
         if (bSingleTexture)
         {
             RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
@@ -88,7 +88,7 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
 
         // RenderTarget 쉐이더 리소스 뷰
         D3D11_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc = { };
-        ShaderResourceViewDesc.Format = GetFormat(EDXResourceType::View, RenderTargetInfo.Type);
+        ShaderResourceViewDesc.Format = GetFormat(EDXResourceType::ShaderResourceView, RenderTargetInfo.Type);
         ShaderResourceViewDesc.ViewDimension = bSingleTexture ? D3D11_SRV_DIMENSION_TEXTURE2D : RenderTargetInfo.bCube ? D3D11_SRV_DIMENSION_TEXTURECUBE : D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
         if (bSingleTexture)
         {
@@ -225,7 +225,8 @@ DXGI_FORMAT MRenderTarget::GetFormat(EDXResourceType InViewType, ERenderTargetTy
         switch (InRenderTargetType)
         {
         case ERenderTargetType::Default:
-            return DXGI_FORMAT_R8G8B8A8_UNORM;
+        case ERenderTargetType::Diffuse:
+            return DXGI_FORMAT_R8G8B8A8_TYPELESS;
         case ERenderTargetType::Normal:
             return DXGI_FORMAT_R10G10B10A2_UNORM;
         case ERenderTargetType::Light:
@@ -238,11 +239,33 @@ DXGI_FORMAT MRenderTarget::GetFormat(EDXResourceType InViewType, ERenderTargetTy
             return DXGI_FORMAT_UNKNOWN;
         }
     }
-    else if (InViewType == EDXResourceType::View)
+    //else if (InViewType == EDXResourceType::RenderTargetView)
+    //{
+    //    switch (InRenderTargetType)
+    //    {
+    //    case ERenderTargetType::Default:
+    //        return DXGI_FORMAT_R8G8B8A8_UNORM;
+    //    case ERenderTargetType::Diffuse:
+    //        return DXGI_FORMAT_R8G8B8A8_UNORM;
+    //    case ERenderTargetType::Normal:
+    //        return DXGI_FORMAT_R10G10B10A2_UNORM;
+    //    case ERenderTargetType::Light:
+    //        return DXGI_FORMAT_R16G16B16A16_FLOAT;
+    //    case ERenderTargetType::Depth:
+    //        return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+    //    case ERenderTargetType::Bool:
+    //        return DXGI_FORMAT_R8_UNORM;
+    //    default:
+    //        return DXGI_FORMAT_UNKNOWN;
+    //    }
+    //}
+    else if (InViewType == EDXResourceType::ShaderResourceView)
     {
         switch (InRenderTargetType)
         {
         case ERenderTargetType::Default:
+            return DXGI_FORMAT_R8G8B8A8_UNORM;
+        case ERenderTargetType::Diffuse:
             return DXGI_FORMAT_R8G8B8A8_UNORM;
         case ERenderTargetType::Normal:
             return DXGI_FORMAT_R10G10B10A2_UNORM;

@@ -24,13 +24,13 @@ enum class ETextureType : uint32
 {
 	// 기본
 	Diffuse
-	, Depth
+    , Dummy
 	, Normal
 	, Specular
 
 	// 특수효과
-	, Distortion
 	, Emssive
+	, Distortion
 
 	, End
 };

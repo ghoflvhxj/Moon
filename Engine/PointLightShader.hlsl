@@ -17,11 +17,11 @@ PixelOut_LightPass main(PixelIn pIn)
 {
 	PixelOut_LightPass pOut = (PixelOut_LightPass)0;
 
-	float depth	= g_Depth.Sample(g_Sampler, pIn.uv).r;
-    float4 normal = g_Normal.Sample(g_Sampler, pIn.uv);
+	float depth	= G_Depth.Sample(g_Sampler, pIn.uv).r;
+    float4 normal = G_Normal.Sample(g_Sampler, pIn.uv);
     normal.xyz = UnpackNormal(normal.xyz);
     normal.w = 0.f;
-	float4 specular = g_Specular.Sample(g_Sampler, pIn.uv);
+	float4 specular = G_Specular.Sample(g_Sampler, pIn.uv);
 
 	//float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
     float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
@@ -34,7 +34,7 @@ PixelOut_LightPass main(PixelIn pIn)
 	float Range				= g_lightPosition.w;
 	float intensity			= g_lightColor.w;
 
-	//clip((distance < Range) ? 1 : -1);
+	clip((distance < Range) ? 1 : -1);
 	
     float a0 = 0.f;
     float a1 = 1.f;
@@ -63,10 +63,10 @@ PixelOut_LightPass main(PixelIn pIn)
     [unroll]
         for (int y = -temp; y <= temp; ++y)
         {
-            ShadowFactor += T_PointLightDepth.SampleCmpLevelZero(g_SamplerCloser, float4(normalize(BaseDir + float3(x / 2048.f, y / 2048.f, 0.f)), PointLightIndex), distance - 0.005f).x;
+            //ShadowFactor += T_PointLightDepth.SampleCmpLevelZero(g_SamplerCloser, float4(normalize(BaseDir + float3(x / 2048.f, y / 2048.f, 0.f)), PointLightIndex), distance - 0.005f).x;
         }
     }
-    ShadowFactor /= sampleCount * sampleCount;
+    //ShadowFactor /= sampleCount * sampleCount;
 
     
     float3 Direct = Bright * intensity * attenuation * (1.f - ShadowFactor);

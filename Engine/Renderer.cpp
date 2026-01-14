@@ -124,6 +124,7 @@ bool MRenderer::Initialize()
             ERenderTarget::Diffuse,
             ERenderTarget::Normal,
             ERenderTarget::Specular,
+            ERenderTarget::Emissive,
             ERenderTarget::RimLight
         );
     }
@@ -137,9 +138,9 @@ bool MRenderer::Initialize()
         );
 
         RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindResourceViews(_renderTargets,
-            ERenderTarget::Depth,
             ERenderTarget::Normal,
             ERenderTarget::Specular,
+            ERenderTarget::Depth,
             ERenderTarget::DirectionalShadowDepth,
             ERenderTarget::RimLight
         );
@@ -149,11 +150,12 @@ bool MRenderer::Initialize()
     {
         RenderPasses[EnumToIndex(ERenderPass::PointLight)]->BindRenderTargets(_renderTargets,
             ERenderTarget::PointLightDiffuse,
-            ERenderTarget::LightSpecular);
+            ERenderTarget::LightSpecular
+        );
         RenderPasses[EnumToIndex(ERenderPass::PointLight)]->BindResourceViews(_renderTargets,
-            ERenderTarget::Depth,
             ERenderTarget::Normal,
             ERenderTarget::Specular,
+            ERenderTarget::Depth,
             ERenderTarget::PointShadowDepth
         );
         RenderPasses[EnumToIndex(ERenderPass::PointLight)]->SetClearTargets(false);
@@ -196,6 +198,7 @@ bool MRenderer::Initialize()
     {
         RenderPasses[EnumToIndex(ERenderPass::Combine)]->BindResourceViews(_renderTargets,
             ERenderTarget::Diffuse,
+            ERenderTarget::Emissive,
             ERenderTarget::LightDiffuse,
             ERenderTarget::LightSpecular,
             ERenderTarget::Collision,
@@ -510,6 +513,7 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
         case ERenderTarget::Diffuse:
         {
             RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+            RenderTargetInfo.Type = ERenderTargetType::Diffuse;
         }
         break;
         case ERenderTarget::Depth:
@@ -522,6 +526,12 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
         {
             RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
             RenderTargetInfo.Type = ERenderTargetType::Normal;
+        }
+        break;
+        case ERenderTarget::Emissive:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+            RenderTargetInfo.Type = ERenderTargetType::Light;
         }
         break;
         case ERenderTarget::LightDiffuse:
@@ -987,7 +997,19 @@ void MRenderer::FrustumCulling(std::unique_ptr<MScene>& InScene)
             }
         } 
 
-        InScene->AddRenderablePrimitiveDatas(PrimitiveDatas);
+        std::shared_ptr<StaticMeshComponent> StaticMeshComp = PrimitiveDatas[0].PrimitiveComponent.lock()->CastToShared<StaticMeshComponent>();
+
+        //InScene->AddRenderablePrimitiveDatas(PrimitiveDatas);
+        for (uint32 i=0; i<GetSize(PrimitiveDatas); ++i)
+        {
+            const auto& PrimitiveData = PrimitiveDatas[i];
+            if (StaticMeshComp && StaticMeshComp->MeshVisibilities[i]== 0)
+            {
+                continue;
+            }
+
+            InScene->AddRenderablePrimitiveData(PrimitiveData);
+        }
     }
 
     auto& TemporalPrimitiveDatas = InScene->GetTemporalPrimitiveDatas();
@@ -1198,6 +1220,11 @@ const std::map<uint32, std::vector<FPrimitiveData>>& MScene::GetPrimitiveDatas()
 void MScene::AddRenderablePrimitiveDatas(const std::vector<FPrimitiveData>& InPrimitiveDatas)
 {
     RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), InPrimitiveDatas.begin(), InPrimitiveDatas.end());
+}
+
+void MScene::AddRenderablePrimitiveData(const FPrimitiveData& InPrimitiveData)
+{
+    RenderablePrimitiveData.push_back(InPrimitiveData);
 }
 
 const std::vector<FPrimitiveData>& MScene::GetRenderablePrimitiveData() const
