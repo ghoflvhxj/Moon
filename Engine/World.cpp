@@ -300,8 +300,8 @@ bool MWorld::Raycast(const std::vector<FPrimitiveData>& InPrimitives, FHitData& 
     Vec3 NearNdc = {}, FarNdc = {};
     NearNdc.x = FarNdc.x = MousePos.x / (Width / 2.f) - 1.f;
     NearNdc.y = FarNdc.y = MousePos.y / -(Height / 2.f) + 1.f;
-    NearNdc.z = 0.f;
-    FarNdc.z = 1.f;
+    NearNdc.z = GraphicDevice::GetNear();
+    FarNdc.z = GraphicDevice::GetFar();
 
     // NDC -> 투영 -> 뷰 -> 월드
     XMVECTOR NearViewPos = XMVector3TransformCoord(XMLoadFloat3(&NearNdc), XMLoadFloat4x4(&getMainCamera()->getInverseProjectionMatrix()));
