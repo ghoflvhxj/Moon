@@ -553,6 +553,10 @@
     <FxCompile Include="Shader\Vertex\VS_DebugLine.hlsl" />
     <FxCompile Include="Shader\Pixel\PS_DebugLine.hlsl" />
     <FxCompile Include="Shader\Pixel\PS_SampleDepth.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_DownSample.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_BoxBlur.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_GaussianBlurRow.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_GaussianBlurCol.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.hlsli" />

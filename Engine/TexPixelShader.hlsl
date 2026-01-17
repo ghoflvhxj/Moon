@@ -32,8 +32,9 @@ PixelOut_GeometryPass main(PixelIn pIn)
     
     if (bUseEmissiveTexture)
     {
+        float3 Emissive = T_Emissive.Sample(g_Sampler, pIn.uv).xyz;
         float EmissiveScale = 1.f;
-        pOut.Emissive = T_Emissive.Sample(g_Sampler, pIn.uv) * EmissiveScale;
+        pOut.Emissive = float4(Emissive * EmissiveScale, 0.f);
     }
     
     if (bUseSpecularTexture)

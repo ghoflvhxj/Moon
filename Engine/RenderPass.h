@@ -65,25 +65,20 @@ public:
 	template<class... TList>
 	void BindRenderTargets(RenderTargets& InRenderTargets, TList... args)
 	{
-		bRenderTarget = true;
-		//CachedRenderTargets = renderTargetList;
 		BindView(InRenderTargets, RenderTargetViewData, args...);
 	}
 	// 쉐이더 리소스 뷰 바인드
 	template<class... TList>
 	void BindResourceViews(RenderTargets& InRenderTargets, TList... args)
 	{
-		//CachedResourceViews = InRenderTargets;
 		BindView(InRenderTargets, ResourceViewData, args...);
 	}
 protected:
 	template<class T, class... TList>
 	void BindView(RenderTargets& Source, std::vector<FRenderTargetBindData>& Target, T arg)
 	{
-		//int32 Index = CastValue<int32>(arg);
 		FRenderTargetBindData ResourceViewBindData;
 		ResourceViewBindData.Index = arg;
-		//ResourceViewBindData.RenderTarget = Source[Index];
 
 		Target.push_back(ResourceViewBindData);
 	}
@@ -97,9 +92,10 @@ protected:
 protected:
 	std::vector<FRenderTargetBindData> RenderTargetViewData;
 	std::vector<FRenderTargetBindData> ResourceViewData;
-	bool bRenderTarget = false;
-	//RenderTargets CachedRenderTargets;
-	//RenderTargets CachedResourceViews;
+
+public:
+    // 렌더 타겟 리소스 뷰들을 매터리얼 취급할지
+    bool bLikeMaterial = false;
 
 public:
 	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);

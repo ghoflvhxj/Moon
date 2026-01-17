@@ -87,6 +87,16 @@ public:
     //uint32 DrawLine(const std::vector<Vec3>& InWorldPositions);
     //uint32 DrawCapsule(float InRadius, float InHalfHeight);
 
+    /***************************************
+     이미시브 구현 중에 개발한 업다운 샘플링 기능
+     이미시브는 렌더타겟, 패스 시스템을 이용해 개발했고, 혹시 나중에 렌더패스를 통해 처리하지 않고 싶을 상황이 있을 수 있으니 남겨둠
+    ***************************************/
+public:
+    //std::shared_ptr<MRenderTarget> UpDownSampling(std::shared_ptr<MRenderTarget> InRenderTarget, uint32 InWidth, uint32 InHeight);
+    //std::shared_ptr<MRenderTarget> Blur(std::shared_ptr<MRenderTarget> InRenderTarget);
+    //std::shared_ptr<MRenderTarget> SamplingRenderTarget;
+    //FMeshData MeshData;
+
 public:
     void Test(uint32 InWorldID, uint32 InPID, std::shared_ptr<MMesh> InMesh);
     
@@ -118,6 +128,7 @@ public:
     void AddRenderTargets(uint32 InWidth, uint32 InHeight);
     void ResizeRenderTargets(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight, bool InFullScreen);
 	void DebugRenderTarget(ERenderTarget InRenderTarget);
+    void DebugRenderTarget(std::shared_ptr<MRenderTarget> InRederTarget, const Vec3& InTrans);
 public:
     std::shared_ptr<MRenderTarget> GetRenderTarget(ERenderTarget InRenderTarget);
     ID3D11ShaderResourceView* GetResourceView(ERenderTarget InRenderTarget);
@@ -219,9 +230,6 @@ public:
 protected:
     // 컬링 후 실제로 렌더링되는 PrimitiveData를 저장함
     std::vector<FPrimitiveData> RenderablePrimitiveData;
-
-public:
-
 
 public:
     void DrawPrimitive(const FPrimitiveData& InPrimitiveData);

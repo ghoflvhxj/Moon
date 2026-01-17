@@ -75,6 +75,7 @@ Texture2D G_Normal                              : register(t11);
 Texture2D G_Specular                            : register(t12);
 Texture2D G_Emissive                            : register(t13);
 
+
 Texture2D G_Depth				                : register(t20);
 Texture2DArray<float> G_ShadowDepth	            : register(t21);
 TextureCubeArray T_PointLightDepth              : register(t22);
@@ -87,10 +88,16 @@ Texture2D<uint2> T_Stencil                      : register(t31);
 Texture2D G_Outline                             : register(t32);
 Texture2D G_RimLight                            : register(t33);
 
+Texture2D G_EmissiveDownSampled                 : register(t40);
+Texture2D G_EmissiveBlurRow                     : register(t41);
+Texture2D G_EmissiveBlurCol                     : register(t42);
+Texture2D G_EmissiveUpSampled                   : register(t43);
+
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);
-SamplerComparisonState g_SamplerCloser : register(s1);
-SamplerComparisonState g_SamplerFarther : register(s2);
+SamplerState S_Linear : register(s1);
+SamplerComparisonState g_SamplerCloser : register(s2);
+SamplerComparisonState g_SamplerFarther : register(s3);
 
 float4 PixelToView(float2 uv, float depth, matrix inverseProjectiveMatrix)
 {
@@ -202,4 +209,118 @@ float3 GetWorldPos(float2 InUV, float2 InOffset, float4x4 InInvProj, float4x4 In
     float2 UV = InUV + InOffset;
     float Depth = G_Depth.Sample(g_Sampler, UV).r;
     return PixelToWorld(UV, Depth, InInvProj, InViewInv).xyz;
+}
+
+float3 BoxBlur(Texture2D InTexture, float2 InUV, int2 InBoxSize)
+{
+    float Width = 0, Height = 0;
+    InTexture.GetDimensions(Width, Height);
+    
+    float TexelWidth = 1.f / Width;
+    float TexelHeight = 1.f / Height;
+    
+    int HalfWidth = InBoxSize.x / 2;
+    int HalfHeight = InBoxSize.y / 2;
+    
+    float3 Sum = float3(0.f, 0.f, 0.f);
+    float SampleNum = 0;
+    for (int i = -HalfWidth; i <= HalfWidth; ++i)
+    {
+        for (int j = -HalfHeight; j <= HalfHeight; ++j)
+        {
+            float3 Color = InTexture.Sample(S_Linear, InUV + float2(i * TexelWidth, j * TexelHeight)).xyz;
+            float lum = dot(Color, float3(0.2126, 0.7152, 0.0722));
+            if (lum > 0.1f)
+            {
+                Sum += Color;
+                SampleNum += 1.f;
+            }
+        }
+    }
+    
+    if (SampleNum <= 0.0f)
+        return float3(0.0f, 0.0f, 0.0f);
+    
+    //return Sum / SampleNum;
+    return Sum / float(InBoxSize.x * InBoxSize.y);
+}
+
+//StructuredBuffer<float> Kernal : register(t99);
+
+float2 UVToSnappedTexel(float2 InUV, float2 InTextureSize)
+{
+    return (floor(InUV * InTextureSize) + 0.5f) / InTextureSize;
+}
+
+float3 GaussianBlur(Texture2D InTexture, float2 InUV, bool bInRow)
+{
+    float Weight[11] = { 0.009, 0.027, 0.065, 0.121, 0.176, 0.204, 0.176, 0.121, 0.065, 0.027, 0.009 };
+    int KernalWidth = 11;
+
+    float2 TexSize = float2(0.f, 0.f);
+    InTexture.GetDimensions(TexSize.x, TexSize.y);
+    
+    float TexelWidth = 1.f / TexSize.x;
+    float TexelHeight = 1.f / TexSize.y;
+    
+    float3 BlurColor = float3(0.f, 0.f, 0.f);
+
+    /*
+    총 10 * 10 픽셀이라면
+    
+    한번에 평균을 구할 경우
+     한 픽셀의 평균은 5x5 픽셀 합/25 = 덧셈:24 나눗셈:1 총:25
+     이미지에 적용하면 25 * 100 = 2500번 계산
+     총 2500번 계산
+
+    가로 세로를 분리할 경우
+     가로의 한 픽셀의 평균은, 5픽셀 합/5 = 덧셈:4 나눗셈:1 총:5
+     이미지에 적용하면 5 * 100 = 500번 계산
+
+     세로의 한 픽셀의 평균은, 5픽셀 합/5 = 덧셈:4 나눗셈:1 총:5
+     이미지에 적용하면 5 * 100 = 500번 계산
+     총 1000번 계산
+    */
+
+    // 가로
+    if (bInRow)
+    {
+        int HalfWidth = KernalWidth / 2;
+        for (int i = -HalfWidth; i <= HalfWidth; ++i)
+        {
+            float2 SnappedUV = UVToSnappedTexel(InUV + float2(TexelWidth * i, 0.f), TexSize);
+            float3 Color = InTexture.Sample(S_Linear, SnappedUV).xyz;
+            
+            float lum = dot(Color, float3(0.2126, 0.7152, 0.0722));
+
+            float knee = 1.f * 0.5; // 0.3~0.6 추천
+            float soft = saturate((lum - 1.f + knee) / knee);
+            float contrib = max(lum - 1.f, 0) + soft * soft;
+
+            float3 bright = Color * contrib;
+            
+            BlurColor += bright * Weight[i + HalfWidth];
+        }
+    }
+    else
+    {
+        int HalfHeight = KernalWidth / 2;
+        for (int i = -HalfHeight; i <= HalfHeight; ++i)
+        {
+            float2 SnappedUV = UVToSnappedTexel(InUV + float2(0.f, TexelHeight * i), TexSize);
+            float3 Color = InTexture.Sample(S_Linear, SnappedUV).xyz;
+            
+            float lum = dot(Color, float3(0.2126, 0.7152, 0.0722));
+
+            float knee = 1.f * 0.5; // 0.3~0.6 추천
+            float soft = saturate((lum - 1.f + knee) / knee);
+            float contrib = max(lum - 1.f, 0) + soft * soft;
+
+            float3 bright = Color * contrib;
+            
+            BlurColor += bright * Weight[i + HalfHeight];
+        }
+    }
+
+    return BlurColor;
 }

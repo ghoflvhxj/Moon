@@ -9,27 +9,13 @@ PixelOut_CombinePass main(PixelIn pIn)
 	float4 specular = g_LightSpecular.Sample(g_Sampler, pIn.uv);
     float4 PointLight = G_PointLightDiffuse.Sample(g_Sampler, pIn.uv);
     float4 Emissive = G_Emissive.Sample(g_Sampler, pIn.uv);
-    
-    float TexelWidth = 1.f / resolution.x;
-    float TexelHeight = 1.f / resolution.y;
-    
-    float4 Blur = float4(0.f, 0.f, 0.f, 0.f);
-    int Count = 25;
-    int A = Count / 2;
-    for (int i = -A; i <= A; ++i)
-    {
-        for (int j = -A; j <= A; ++j)
-        {
-            Blur += G_Emissive.Sample(g_Sampler, pIn.uv + float2(i * TexelWidth, j * TexelHeight));
-        }
-    }
-    Blur /= pow(Count, 2);
+    float4 EmissiveBlur = G_EmissiveUpSampled.Sample(g_Sampler, pIn.uv);
     
     pOut.color = diffuse;
     
     if (bLight)
     {
-        pOut.color = diffuse * (DirectionalLight + PointLight + specular) + (Emissive + Blur);
+        pOut.color = diffuse * (DirectionalLight + PointLight + specular) + (Emissive + EmissiveBlur);
     }
     
     float4 Collision = G_Collision.Sample(g_Sampler, pIn.uv);

@@ -38,6 +38,11 @@ GraphicDevice::~GraphicDevice()
 
 }
 
+float GraphicDevice::GetNear()
+{
+    return bReverseDepth ? 1.f : 0.f;
+}
+
 float GraphicDevice::GetFar()
 {
     return bReverseDepth ? 0.f : 1.f;
@@ -836,7 +841,7 @@ bool GraphicDevice::buildSamplerState()
         ID3D11SamplerState* pSamplerState = nullptr;
         FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
         SamplerStates.emplace_back(pSamplerState);
-        m_pImmediateContext->PSSetSamplers(1, 1, &pSamplerState);
+        m_pImmediateContext->PSSetSamplers(2, 1, &pSamplerState);
     }
 
     // 먼 거
@@ -845,10 +850,11 @@ bool GraphicDevice::buildSamplerState()
         ID3D11SamplerState* pSamplerState = nullptr;
         FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
         SamplerStates.emplace_back(pSamplerState);
-        m_pImmediateContext->PSSetSamplers(2, 1, &pSamplerState);
+        m_pImmediateContext->PSSetSamplers(3, 1, &pSamplerState);
     }
 
-	m_pImmediateContext->PSSetSamplers(0, 1, &SamplerStates[0]);
+    m_pImmediateContext->PSSetSamplers(0, 1, &SamplerStates[0]);
+    m_pImmediateContext->PSSetSamplers(1, 1, &SamplerStates[1]);
 
 	return true;
 }

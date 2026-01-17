@@ -129,6 +129,62 @@ bool MRenderer::Initialize()
         );
     }
 
+    RenderPasses[EnumToIndex(ERenderPass::EmissiveDownSample)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveDownSample)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::EmissiveDownSampled
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveDownSample)]->BindResourceViews(_renderTargets,
+            ERenderTarget::Emissive
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveDownSample)]->bLikeMaterial = true;
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveDownSample)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_DownSample.cso"));
+    }
+
+    RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::EmissiveBlurRow
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->BindResourceViews(_renderTargets,
+            ERenderTarget::EmissiveDownSampled
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->bLikeMaterial = true;
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_GaussianBlurRow.cso"));
+    }
+
+    RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::EmissiveBlurCol
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->BindResourceViews(_renderTargets,
+            ERenderTarget::EmissiveBlurRow
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->bLikeMaterial = true;
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_GaussianBlurCol.cso"));
+    }
+
+    RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::EmissiveUpSampled
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)]->BindResourceViews(_renderTargets,
+            ERenderTarget::EmissiveBlurCol
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)]->bLikeMaterial = true;
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_DownSample.cso"));
+    }
+
 #if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] = CreateRenderPass<DirectionalLightPass>();
     {
@@ -203,7 +259,8 @@ bool MRenderer::Initialize()
             ERenderTarget::LightSpecular,
             ERenderTarget::Collision,
             ERenderTarget::PointLightDiffuse,
-            ERenderTarget::Outline
+            ERenderTarget::Outline,
+            ERenderTarget::EmissiveUpSampled
         );
 
         RenderPasses[EnumToIndex(ERenderPass::Combine)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("DeferredShader.cso"));
@@ -213,6 +270,12 @@ bool MRenderer::Initialize()
 
     Mesh::MakeCoordinate(CoordinateMesh);
     getGraphicDevice()->BuildMeshBuffer(CoordinateKey, CoordinateMesh, 0);
+
+    std::shared_ptr<StaticMesh> PlaneMesh = g_ResourceManager->Load(TEXT("Base/Plane.json"), StaticMesh::GetTypeDescStatic())->CastToShared<StaticMesh>();
+    getGraphicDevice()->BuildMeshSharedBuffers(PlaneMesh);
+
+    Mesh::MakeRect(MeshData);
+    getGraphicDevice()->BuildMeshBuffer(TEXT("Plane"), MeshData, 0, true);
 
     return EnumToIndex(ERenderPass::End) == GetSize(RenderPasses);
 }
@@ -349,6 +412,89 @@ void MRenderer::DrawPrimitive(MWorld* InWorld, const std::shared_ptr<StaticMesh>
         Scenes[WorldID]->DrawPrimitive(NewPrimitiveData);
     }
 }
+
+/*
+std::shared_ptr<MRenderTarget> MRenderer::UpDownSampling(std::shared_ptr<MRenderTarget> InRenderTarget, uint32 InWidth, uint32 InHeight)
+{
+    assert(InRenderTarget);
+
+    std::shared_ptr<MRenderTarget> RenderTarget = std::make_shared<MRenderTarget>();
+
+    FRenderTagetInfo RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+    RenderTargetInfo.Type = ERenderTargetType::Light;
+    RenderTarget->initializeTexture(RenderTargetInfo);
+
+    MRenderPass RenderPass;
+
+    RenderTargets Dummy;
+    RenderPass.SetRenderTarget(RenderTarget);
+
+    FBufferContainer BufferContainer = {};
+    getGraphicDevice()->GetBuffers(BufferContainer, TEXT("Plane"));
+
+    std::shared_ptr<MMaterial> Material = std::make_shared<MMaterial>();
+    Material->setShader(TEXT("Deferred.cso"), TEXT("PS_DownSample.cso"));
+    Material->setTexture(ETextureType::Diffuse, InRenderTarget->AsTexture());
+
+    FPrimitiveData PrimitiveData = {};
+    PrimitiveData.MeshData = &MeshData;
+    PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
+    PrimitiveData.Material = Material;
+    PrimitiveData.Scale.x = static_cast<float>(1920);
+    PrimitiveData.Scale.y = static_cast<float>(1080);
+    PrimitiveData.ProjectionType = EProjectionType::Orthograhpic;
+
+    PrimitiveData.VertexBuffer = BufferContainer.VertexBuffers[0];
+    PrimitiveData.IndexBuffer = BufferContainer.IndexBuffers[0];
+
+    std::vector<FPrimitiveData> PrimitiveDatas;
+    PrimitiveDatas.push_back(PrimitiveData);
+
+    RenderPass.RenderPass(PrimitiveDatas);
+
+    return RenderTarget;
+}
+
+std::shared_ptr<MRenderTarget> MRenderer::Blur(std::shared_ptr<MRenderTarget> InRenderTarget)
+{
+    assert(InRenderTarget);
+
+    std::shared_ptr<MRenderTarget> RenderTarget = std::make_shared<MRenderTarget>();
+
+    FRenderTagetInfo RenderTargetInfo = InRenderTarget->GetRenderTargetInfo();
+    RenderTarget->initializeTexture(RenderTargetInfo);
+
+    MRenderPass RenderPass;
+
+    RenderTargets Dummy;
+    RenderPass.SetRenderTarget(RenderTarget);
+
+    FBufferContainer BufferContainer = {};
+    getGraphicDevice()->GetBuffers(BufferContainer, TEXT("Plane"));
+
+    std::shared_ptr<MMaterial> Material = std::make_shared<MMaterial>();
+    Material->setShader(TEXT("Deferred.cso"), TEXT("PS_BoxBlur.cso"));
+    Material->setTexture(ETextureType::Diffuse, InRenderTarget->AsTexture());
+
+    FPrimitiveData PrimitiveData = {};
+    PrimitiveData.MeshData = &MeshData;
+    PrimitiveData.PrimitiveType = EPrimitiveType::Mesh;
+    PrimitiveData.Material = Material;
+    PrimitiveData.Scale.x = static_cast<float>(1920);
+    PrimitiveData.Scale.y = static_cast<float>(1080);
+    PrimitiveData.ProjectionType = EProjectionType::Orthograhpic;
+
+    PrimitiveData.VertexBuffer = BufferContainer.VertexBuffers[0];
+    PrimitiveData.IndexBuffer = BufferContainer.IndexBuffers[0];
+
+    std::vector<FPrimitiveData> PrimitiveDatas;
+    PrimitiveDatas.push_back(PrimitiveData);
+
+    RenderPass.RenderPass(PrimitiveDatas);
+
+    return RenderTarget;
+}
+*/
 
 void MRenderer::Test(uint32 InWorldID, uint32 InPID, std::shared_ptr<MMesh> InMesh)
 {
@@ -529,8 +675,17 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
         }
         break;
         case ERenderTarget::Emissive:
+        case ERenderTarget::EmissiveUpSampled:
         {
             RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+            RenderTargetInfo.Type = ERenderTargetType::Light;
+        }
+        break;
+        case ERenderTarget::EmissiveBlurRow:
+        case ERenderTarget::EmissiveBlurCol:
+        case ERenderTarget::EmissiveDownSampled:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth / 4, InHeight / 4);
             RenderTargetInfo.Type = ERenderTargetType::Light;
         }
         break;
@@ -625,7 +780,6 @@ void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
     DebugRenderTargetData[InRenderTarget].Material->setTexture(ETextureType::Diffuse, GetRenderTarget(InRenderTarget)->AsTexture());
 
     std::shared_ptr<StaticMesh> PlaneMesh = g_ResourceManager->Load(TEXT("Base/Plane.json"), StaticMesh::GetTypeDescStatic())->CastToShared<StaticMesh>();
-    getGraphicDevice()->BuildMeshSharedBuffers(PlaneMesh);
 
     uint32 Index = DebugRenderTargetData[InRenderTarget].Index;
     Vec3 Trans = { -0.5f + (float)Index, 0.f, 1.f };
@@ -646,6 +800,32 @@ void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
     GetCurrentScene()->DrawPrimitive(NewPrimitiveData);
     //DrawPrimitive(GetWorld().get(), PlaneMesh, Trans, VEC3ZERO, VEC3ONE, EPrimitiveType::Mesh);
 #endif
+}
+
+void MRenderer::DebugRenderTarget(std::shared_ptr<MRenderTarget> InRederTarget, const Vec3& InTrans)
+{
+    std::shared_ptr<MMaterial> BaseMat = nullptr;
+    std::shared_ptr<MMaterial> NewMat = nullptr;
+
+    g_ResourceManager->Load(TEXT("Base/RenderTarget.json"), BaseMat);
+    NewMat = DuplicateObject(BaseMat)->CastToShared<MMaterial>();
+
+    std::shared_ptr<StaticMesh> PlaneMesh = g_ResourceManager->Load(TEXT("Base/Plane.json"), StaticMesh::GetTypeDescStatic())->CastToShared<StaticMesh>();
+
+    FPrimitiveData NewPrimitiveData = {};
+    NewPrimitiveData.MeshData = &PlaneMesh->GetMeshData(0);
+    NewPrimitiveData.PrimitiveType = EPrimitiveType::CustomPrimitiveType0;
+    NewPrimitiveData.Material = NewMat;
+    NewPrimitiveData.Scale = { 1.f, 1.f, 1.f };
+    NewPrimitiveData.Translation = InTrans;
+    NewPrimitiveData.ProjectionType = EProjectionType::Orthograhpic;
+
+    FBufferContainer Buffers;
+    getGraphicDevice()->GetBuffers(Buffers, PlaneMesh);
+    NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
+    NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
+
+    GetCurrentScene()->DrawPrimitive(NewPrimitiveData);
 }
 
 std::shared_ptr<MRenderTarget> MRenderer::GetRenderTarget(ERenderTarget InRenderTarget)

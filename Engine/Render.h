@@ -38,6 +38,11 @@ enum class ERenderTarget
     Outline,
     RimLight,
 
+    EmissiveDownSampled = 40,
+    EmissiveBlurRow,
+    EmissiveBlurCol,
+    EmissiveUpSampled,
+
 	Count
 };
 
@@ -47,7 +52,10 @@ enum class ERenderPass
 	ShadowDepth,
 	PointShadowDepth,
 	Geometry,
-    Stencil,
+    EmissiveDownSample,
+    EmissiveBlurRow,
+    EmissiveBlurCol,
+    EmissiveUpSample,
 	DirectionalLight,
     PointLight,
 	SkyPass,

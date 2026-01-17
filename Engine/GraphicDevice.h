@@ -108,6 +108,7 @@ public:
 
 public:
     static bool bReverseDepth;
+    static float GetNear();
     static float GetFar();
 
 public:
@@ -198,8 +199,9 @@ public:
     void QueryStart(uint32 InIndex);
     void QueryFinish(uint32 InIndex);
     std::array<ComPtr<ID3D11Query>, 3> Query;
-    std::array<std::array<ComPtr<ID3D11Query>, 12>, 3> Start;
-    std::array<std::array<ComPtr<ID3D11Query>, 12>, 3> Finish;
+    // 렌더패스 - 쿼리 쌍
+    std::array<std::array<ComPtr<ID3D11Query>, 15>, 3> Start;
+    std::array<std::array<ComPtr<ID3D11Query>, 15>, 3> Finish;
     int Counter = 0;
     std::vector<std::wstring> RenderPassTimes;
 

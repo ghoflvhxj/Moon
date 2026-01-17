@@ -10,9 +10,6 @@
 MFullScreenQuadPass::MFullScreenQuadPass()
 {
     Mesh::MakeRect(MeshData);
-    PID = MPrimitiveComponent::MakePrimitiveID();
-    
-    //getRenderer()->MakeBuffer(PID, MeshData);
     getGraphicDevice()->BuildMeshBuffer(TEXT("Plane"), MeshData, 0, true);
 
     bWriteDepthStencil = false;

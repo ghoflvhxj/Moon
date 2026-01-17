@@ -63,7 +63,7 @@ void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList
 
 void MRenderPass::Clear()
 {
-    if (bRenderTarget)
+    if (RenderTargetViewData.empty() == false)
     {
         std::vector<ID3D11RenderTargetView*> RawRenderTargets;
         RawRenderTargets.reserve(RenderTargetViewData.size());
@@ -84,7 +84,7 @@ void MRenderPass::Clear()
 
 void MRenderPass::Begin()
 {
-	if (bRenderTarget)
+	if (RenderTargetViewData.empty() == false)
 	{
 		std::vector<ID3D11RenderTargetView*> RenderTargetViews;
         RenderTargetViews.reserve(RenderTargetViewData.size());
@@ -213,8 +213,6 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
 
             Mat4 WorldViewProj = {};
             XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix()) * XMLoadFloat4x4(&GetViewProjMatrix(PrimitiveComp->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)));
-            //const Mat4& Proj = Primitive->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? Camera->getOrthographicProjectionMatrix() : Camera->getPerspectiveProjectionMatrix();
-            //XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&WorldView) * XMLoadFloat4x4(&Proj));
             VS->SetValue(TEXT("WorldViewProj"), WorldViewProj);
 
             VS->SetValue(TEXT("inverseWorldMatrix"), PrimitiveComp->GetInverseWorldMatrix());
@@ -251,7 +249,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
             Mat4 InvWorldMatrix = {};
             XMStoreFloat4x4(&InvWorldMatrix, XMMatrixInverse(nullptr, XMWorldMat));
             VS->SetValue(TEXT("inverseWorldMatrix"), InvWorldMatrix);
-            VS->SetValue(TEXT("bOrtho"), FALSE);
+            VS->SetValue(TEXT("bOrtho"), PrimitiveData.ProjectionType == EProjectionType::Orthograhpic ? TRUE : FALSE);
         }
 
         VS->SetValue(TEXT("animated"), animated);
@@ -395,7 +393,6 @@ void MRenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
     }
     else
     {
-        //GeometryShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
         GeometryShader->Apply();
     }
 }
@@ -403,7 +400,6 @@ void MRenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
 void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
 {
     std::shared_ptr<MShader> PixelShader = GetPixelShader(PrimitiveData);
-    //PixelShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
     PixelShader->Apply();
 
     if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
@@ -411,11 +407,22 @@ void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
         Material->SetTexturesToDevice();
     }
 
-    for (const FRenderTargetBindData& Data : ResourceViewData)
+    if (bLikeMaterial)
     {
-        //g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(Data.Index), 1, &getRenderer()->GetRenderTarget(Data.Index)->AsTexture()->getRawResourceViewPointer());
-        ID3D11ShaderResourceView* SRV = getRenderer()->GetResourceView(Data.Index);
-        g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(Data.Index), 1, &SRV);
+        for (uint32 i=0; i<GetSize(ResourceViewData); ++i)
+        {
+            const FRenderTargetBindData& Data = ResourceViewData[i];
+            ID3D11ShaderResourceView* SRV = getRenderer()->GetResourceView(Data.Index);
+            g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(EnumToIndex(ETextureType::Diffuse) + i), 1, &SRV);
+        }
+    }
+    else
+    {
+        for (const FRenderTargetBindData& Data : ResourceViewData)
+        {
+            ID3D11ShaderResourceView* SRV = getRenderer()->GetResourceView(Data.Index);
+            g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(Data.Index), 1, &SRV);
+        }
     }
 }
 
