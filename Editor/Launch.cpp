@@ -32,6 +32,17 @@ bool bImGuiInitialized = false;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+enum class WCHAR_CTRL
+{
+    CTRL_BASE = 'A' - 1,
+    SELECT_ALL = 'A' - CTRL_BASE, // Ctrl+A
+    COPY = 'C' - CTRL_BASE, // Ctrl+C
+    CUT = 'X' - CTRL_BASE, // Ctrl+X
+    PASTE = 'V' - CTRL_BASE, // Ctrl+V
+    UNDO = 'Z' - CTRL_BASE, // Ctrl+Z
+    REDO = 'Y' - CTRL_BASE, // Ctrl+Y
+};
+
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd)
 {
 	// 콘솔 창
@@ -111,16 +122,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {    
     auto Window = GetWindowManager()->GetWindow(hWnd);
+    MEditorBaseWindow* EditorWindow = nullptr;
     if (Window)
     {
-        if (auto EditorWindow = Window->CastTo<MEditorBaseWindow>())
+        EditorWindow = Window->CastTo<MEditorBaseWindow>();
+        if (EditorWindow && EditorWindow->SetImGuiContext())
         {
-            if (EditorWindow->SetImGuiContext())
+            if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
             {
-                if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-                {
-                    return 1;
-                }
+                return 1;
             }
         }
     }
@@ -169,6 +179,36 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     Window->UpdateSize();
                 }
             }
+        }
+        break;
+        case WM_KEYDOWN:
+        {
+            if (wParam == 'C' && (GetKeyState(VK_CONTROL) & 0x8000) && ((lParam & (1 << 30)) == 0))
+            {
+                EditorWindow->Copy();
+                cout << "복사" << endl;
+            }
+
+            if (wParam == 'V' && (GetKeyState(VK_CONTROL) & 0x8000) && ((lParam & (1 << 30)) == 0))
+            {
+                EditorWindow->Paste();
+                cout << "붙여넣기" << endl;
+            }
+
+            //if (EditorWindow)
+            //{
+            //    if (wParam == (WPARAM)WCHAR_CTRL::COPY)
+            //    {
+            //        EditorWindow->Copy();
+            //        cout << "복사" << endl;
+            //    }
+
+            //    if (wParam == (WPARAM)WCHAR_CTRL::PASTE)
+            //    {
+            //        EditorWindow->Paste();
+            //        cout << "붙여넣기" << endl;
+            //    }
+            //}
         }
         break;
         case WM_EXITSIZEMOVE:

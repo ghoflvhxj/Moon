@@ -54,7 +54,6 @@
     <ClInclude Include="Source\ThirdParty\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\imstb_textedit.h" />
     <ClInclude Include="Source\ThirdParty\ImGui\imstb_truetype.h" />
-    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

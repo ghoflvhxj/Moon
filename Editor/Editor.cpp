@@ -443,6 +443,35 @@ void MEditor::OutLine(MActor* InActor, bool bOutLine)
     }
 }
 
+void MEditor::SetCopyActor()
+{
+    if (ClickedComp.expired())
+    {
+        return;
+    }
+
+    std::shared_ptr<MActor> Actor = ClickedComp.lock()->getOwningActor();
+    assert(Actor);
+
+    if (CopyActor.lock() != Actor)
+    {
+        CopyActor = Actor;
+    }
+}
+
+void MEditor::CreateCopyActor()
+{
+    if (CopyActor.expired())
+    {
+        return;
+    }
+
+    std::shared_ptr<MActor> NewActor = DuplicateObject(CopyActor.lock())->CastToShared<MActor>();
+    GetMainWorld()->addActor(NewActor);
+
+    SetClickedComp(NewActor->getComponent(ROOT_COMPONENT));
+}
+
 void DispatchContainer(const FTypeDesc* InElementTypeDesc, FVectorPropertyDesc* InContainerDesc, void* InObject)
 {
     if (InObject == nullptr)

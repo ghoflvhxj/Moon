@@ -11,10 +11,17 @@ public:
 	//-------------------------------------------------------------------------------------------------------
 public:
     MWindow();
-    explicit MWindow(const std::wstring& title, const int width, const int height, const std::wstring& className);
-    explicit MWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className);
-	explicit MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className);
+ //   explicit MWindow(const std::wstring& title, const int width, const int height, const std::wstring& className);
+ //   explicit MWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className);
+	//explicit MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className);
 	virtual ~MWindow();
+
+
+public:
+    void InitWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className);
+    bool IsInitlized() const { return bInitlized; }
+protected:
+    bool bInitlized = false;
 
 public:
     virtual void Initialize() {}

@@ -19,36 +19,70 @@ LRESULT MWindow::DefaultWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 
 MWindow::MWindow()
 {
-    RECT rt = { 0, 0, 1920, 1080 };
-    AdjustWindowRect(&rt, WS_OVERLAPPED, false);
+    //RECT rt = { 0, 0, 1920, 1080 };
+    //AdjustWindowRect(&rt, WS_OVERLAPPED, false);
 
-    m_hWnd = CreateWindow(TEXT("className"), TEXT("title"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
-    if (m_hWnd == nullptr)
-        throw WINDOW_EXCEPTION(GetLastError());
+    //m_hWnd = CreateWindow(TEXT("className"), TEXT("title"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
+    //if (m_hWnd == nullptr)
+    //    throw WINDOW_EXCEPTION(GetLastError());
 
-    ShowWindow(m_hWnd, SW_SHOW);
+    //ShowWindow(m_hWnd, SW_SHOW);
 }
 
-MWindow::MWindow(const std::wstring &title, const int width, const int height, const std::wstring &className)
-	: m_hWnd{ 0 }
-    , Width(width)
-    , Height(height)
+//MWindow::MWindow(const std::wstring &title, const int width, const int height, const std::wstring &className)
+//	: m_hWnd{ 0 }
+//    , Width(width)
+//    , Height(height)
+//{
+//	RECT rt = { 0, 0, width, height };
+//	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
+//
+//	m_hWnd = CreateWindow(className.c_str(), title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
+//	if (m_hWnd == nullptr)
+//		throw WINDOW_EXCEPTION(GetLastError());
+//
+//	ShowWindow(m_hWnd, SW_SHOW);
+//}
+//
+//MWindow::MWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
+//    : m_hWnd{ 0 }
+//    , Width(width)
+//    , Height(height)
+//{
+//    RECT rt = { 0, 0, width, height };
+//    AdjustWindowRect(&rt, WS_OVERLAPPED, false);
+//
+//    m_hWnd = CreateWindow(className.c_str(), title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, Parent, 0, g_hInstance, 0);
+//    if (m_hWnd == nullptr)
+//        throw WINDOW_EXCEPTION(GetLastError());
+//
+//    ShowWindow(m_hWnd, SW_SHOW);
+//}
+//
+//MWindow::MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
+//    : m_hWnd{ 0 }
+//    , Width(width)
+//    , Height(height)
+//{
+//	RECT rt = { 0, 0, width, height };
+//	AdjustWindowRect(&rt, WS_OVERLAPPED, false);
+//
+//	m_hWnd = CreateWindow(className, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
+//	if (m_hWnd == nullptr)
+//		throw WINDOW_EXCEPTION(GetLastError());
+//	ShowWindow(m_hWnd, SW_SHOW);
+//}
+
+MWindow::~MWindow()
 {
-	RECT rt = { 0, 0, width, height };
-	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
-
-	m_hWnd = CreateWindow(className.c_str(), title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
-	if (m_hWnd == nullptr)
-		throw WINDOW_EXCEPTION(GetLastError());
-
-	ShowWindow(m_hWnd, SW_SHOW);
+    LOGTEXT(TEXT("윈도우 파괴"));
 }
 
-MWindow::MWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
-    : m_hWnd{ 0 }
-    , Width(width)
-    , Height(height)
+void MWindow::InitWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
 {
+    Width = width;
+    Height = height;;
+
     RECT rt = { 0, 0, width, height };
     AdjustWindowRect(&rt, WS_OVERLAPPED, false);
 
@@ -57,25 +91,8 @@ MWindow::MWindow(const std::wstring& title, const int width, const int height, H
         throw WINDOW_EXCEPTION(GetLastError());
 
     ShowWindow(m_hWnd, SW_SHOW);
-}
 
-MWindow::MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
-    : m_hWnd{ 0 }
-    , Width(width)
-    , Height(height)
-{
-	RECT rt = { 0, 0, width, height };
-	AdjustWindowRect(&rt, WS_OVERLAPPED, false);
-
-	m_hWnd = CreateWindow(className, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
-	if (m_hWnd == nullptr)
-		throw WINDOW_EXCEPTION(GetLastError());
-	ShowWindow(m_hWnd, SW_SHOW);
-}
-
-MWindow::~MWindow()
-{
-    LOGTEXT(TEXT("윈도우 파괴"));
+    bInitlized = true;
 }
 
 void MWindow::SetTitle(const std::wstring title)

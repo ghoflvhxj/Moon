@@ -30,7 +30,14 @@ public:
             return nullptr;
         }
 
-        auto pWindow = std::make_shared<T>(InTitle.c_str(), width, height, className);
+        auto pWindow = std::make_shared<T>();
+        pWindow->InitWindow(InTitle, width, height, NULL, className);
+
+        if(pWindow->IsInitlized() == false)
+        {
+            return nullptr;
+        }
+
         AddWindow(pWindow);
         return pWindow;
     }
@@ -43,7 +50,14 @@ public:
             return nullptr;
         }
 
-        auto pWindow = std::make_shared<T>(InTitle.c_str(), width, height, className);
+        auto pWindow = std::make_shared<T>();
+        pWindow->InitWindow(InTitle, width, height, Parent, className);
+
+        if (pWindow->IsInitlized() == false)
+        {
+            return nullptr;
+        }
+
         AddWindow(pWindow);
         return pWindow;
     }
