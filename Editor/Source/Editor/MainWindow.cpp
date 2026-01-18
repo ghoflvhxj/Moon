@@ -25,13 +25,8 @@
 
 const ImVec4 HighlightColor = { 1.f, 1.f, 0.f, 1.f };
 
-MEditorMainWindow::MEditorMainWindow(const std::wstring& title, const int width, const int height, const std::wstring& className)
-    : Super(title, width, height, className)
-{
-}
-
-MEditorMainWindow::MEditorMainWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
-    : Super(title, width, height, Parent, className)
+MEditorMainWindow::MEditorMainWindow()
+    : Super()
 {
 }
 
@@ -47,25 +42,9 @@ void MEditorMainWindow::ImGuiRender()
             auto SelectedComp = ClickedComp == nullptr ? nullptr : ClickedComp->CastTo<StaticMeshComponent>();
             if (ImGui::CollapsingHeader("Actor") && SelectedComp)
             {
-                auto IsNotEqual = [](float lhs, float rhs)->bool {
-                    return std::fabsf(lhs - rhs) > 0.00001;
-                    };
-
-                //ImGui::SliderFloat("ForceY", &Force, 0.f, 10000.f);
-                //if (ImGui::Button("AddForce"))
-                //{
-                //    SelectedComp->Temp(Force);
-                //}
-
-                if (ImGui::Button("ResetVelocity"))
+                if (ImGui::Button("Paste Actor"))
                 {
-                    SelectedComp->SetVelocity(0.f, 0.f, 0.f);
-                    SelectedComp->SetAngularVelocity(0.f, 0.f, 0.f);
-                }
-
-                if (ImGui::Button("ResetPos"))
-                {
-                    SelectedComp->setTranslation(0.f, 5.f, 0.f);
+                    EditorModule->CreateCopyActor();
                 }
             }
 
@@ -407,19 +386,35 @@ void MEditorMainWindow::ImGuiRender()
     //}
 }
 
+void MEditorMainWindow::Copy()
+{
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        return;
+    }
+
+    EditorModule->SetCopyActor();
+}
+
+void MEditorMainWindow::Paste()
+{
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        return;
+    }
+
+    EditorModule->CreateCopyActor();
+}
+
+MEditorBaseWindow::MEditorBaseWindow()
+{
+    EditorModule = GetEngine()->GetModule<MEditor>().get();
+    assert(EditorModule);
+}
+
 MEditorBaseWindow::~MEditorBaseWindow()
 {
 
-}
-
-MEditorBaseWindow::MEditorBaseWindow(const std::wstring& title, const int width, const int height, const std::wstring& className)
-    : Super(title, width, height, className)
-{
-}
-
-MEditorBaseWindow::MEditorBaseWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
-    : Super(title, width, height, className)
-{
 }
 
 void MEditorBaseWindow::Initialize()
@@ -439,6 +434,7 @@ void MEditorBaseWindow::Render()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+
 
     ImGuiRender();
     GetOnImGuiRenderedDelegate().Broadcast();
@@ -469,23 +465,21 @@ void MEditorBaseWindow::ImGuiRender()
 
 void MEditorBaseWindow::InitImGui()
 {
-    if (getGraphicDevice() == nullptr)
+    if (getGraphicDevice())
     {
-        return;
+        Context = ImGui::CreateContext();
+        ImGui::SetCurrentContext(Context);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        std::wstring WFontPath = MFileSystem::AbsolutePath("Resources/Fonts/NanumSquareRoundR.ttf");
+        std::string FontPath = WStringToString(WFontPath);
+        io.Fonts->AddFontFromFileTTF(FontPath.c_str(), 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
+
+        ImGui::StyleColorsDark();
+        ImGui_ImplWin32_Init(getHandle());
+        ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
     }
-
-    Context = ImGui::CreateContext();
-    ImGui::SetCurrentContext(Context);
-
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    std::wstring WFontPath = MFileSystem::AbsolutePath("Resources/Fonts/NanumSquareRoundR.ttf");
-    std::string FontPath = WStringToString(WFontPath);
-    io.Fonts->AddFontFromFileTTF(FontPath.c_str(), 16.0f, nullptr, io.Fonts->GetGlyphRangesDefault());
-
-    ImGui::StyleColorsDark();
-    ImGui_ImplWin32_Init(getHandle());
-    ImGui_ImplDX11_Init(getGraphicDevice()->getDevice(), getGraphicDevice()->getContext());
 }
 
 bool MEditorBaseWindow::SetImGuiContext()

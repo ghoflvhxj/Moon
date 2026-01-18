@@ -5,10 +5,10 @@
 class MEditorBaseWindow : public MWindow
 {
 public:
-    MEditorBaseWindow() = default;
+    MEditorBaseWindow();
     virtual ~MEditorBaseWindow();
-    explicit MEditorBaseWindow(const std::wstring& title, const int width, const int height, const std::wstring& className);
-    explicit MEditorBaseWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className);
+protected:
+    class MEditor* EditorModule = nullptr;
 
 public:
     virtual void Initialize() override;
@@ -21,11 +21,15 @@ protected:
     FDelegate<void> OnImGuiRendered;
 
 public:
+    virtual void Copy() {}
+    virtual void Paste() {}
+
+public:
     void InitImGui();
     bool IsImGuiInitialized() const { return Context != nullptr; }
-    struct ImGuiContext* Context = nullptr;
-
     bool SetImGuiContext();
+protected:
+    struct ImGuiContext* Context = nullptr;
 
     REFLECT(MEditorBaseWindow)
 };
@@ -33,12 +37,15 @@ public:
 class MEditorMainWindow : public MEditorBaseWindow
 {
 public:
-    MEditorMainWindow() = default;
-    explicit MEditorMainWindow(const std::wstring& title, const int width, const int height, const std::wstring& className);
-    explicit MEditorMainWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className);
+    MEditorMainWindow();
+    virtual ~MEditorMainWindow() = default;
 
 public:
     virtual void ImGuiRender() override;
+
+public:
+    virtual void Copy() override;
+    virtual void Paste() override;
 
     REFLECT(MEditorMainWindow)
 };
