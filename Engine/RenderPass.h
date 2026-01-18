@@ -45,16 +45,15 @@ protected:
     virtual void HandleVertexShaderStage(const FPrimitiveData& PrimitiveData);
     virtual void HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData);
     virtual void HandlePixelShaderStage(const FPrimitiveData& PrimitiveData);
-
-protected:
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData);
-protected:
-    uint32 RectWidth = 0;
-    uint32 RectHeight = 0;
-
     virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData);
 protected:
     bool bWriteDepthStencil = true;
+
+public:
+    FDelegate<void, const FPrimitiveData&, std::shared_ptr<MShader>>& GetHandlePixelShaderStageDelegate() { return OnHandlePxielShaderStage; }
+protected:
+    FDelegate<void, const FPrimitiveData&, std::shared_ptr<MShader>> OnHandlePxielShaderStage;
 
 protected:
     std::shared_ptr<MShader> GetVertexShader(const FPrimitiveData& InPrimitiveData);

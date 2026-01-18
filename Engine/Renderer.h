@@ -88,8 +88,7 @@ public:
     //uint32 DrawCapsule(float InRadius, float InHalfHeight);
 
     /***************************************
-     이미시브 구현 중에 개발한 업다운 샘플링 기능
-     이미시브는 렌더타겟, 패스 시스템을 이용해 개발했고, 혹시 나중에 렌더패스를 통해 처리하지 않고 싶을 상황이 있을 수 있으니 남겨둠
+        업다운 샘플링 기능, 이미시브 개발 중에 임시로 만들었으나 남겨둠
     ***************************************/
 public:
     //std::shared_ptr<MRenderTarget> UpDownSampling(std::shared_ptr<MRenderTarget> InRenderTarget, uint32 InWidth, uint32 InHeight);
@@ -97,6 +96,17 @@ public:
     //std::shared_ptr<MRenderTarget> SamplingRenderTarget;
     //FMeshData MeshData;
 
+    /***************************************
+        블러 기능
+    ***************************************/
+public:
+    std::vector<float> MakeGaussianWeights(int InRadius, float InSigma);
+protected:
+    float GaussianSigma = 2.0f;
+    int GaussianRadius = 5;
+    std::vector<float> Weights;
+    MStructuredBuffer Buffer;
+    
 public:
     void Test(uint32 InWorldID, uint32 InPID, std::shared_ptr<MMesh> InMesh);
     
@@ -169,6 +179,8 @@ public:
         , PROPERTY(DebugRenderTargetIndex)
         , PROPERTY(Ambient)
         , PROPERTY(bDrawShadow)
+        , PROPERTY(GaussianSigma)
+        , PROPERTY(GaussianRadius)
     )
 };
 
@@ -199,7 +211,7 @@ protected:
     std::weak_ptr<MWorld> World;
 
 /**********************************
-HLSL ConstantBuffer 업데이트
+ HLSL ConstantBuffer 업데이트
 **********************************/
 public:
     void UpdateGlobalConstantBuffer();

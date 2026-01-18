@@ -49,10 +49,11 @@
 using namespace DirectX;
 
 #define MinimalRendering 0
-#define RenderPassPerformanceProfiling 1
+#define RenderPassPerformanceProfiling 0
 
 constexpr wchar_t* CoordinateKey = TEXT("Coordinate");
 constexpr wchar_t* CapsuleKey = TEXT("Capsule");
+constexpr UINT RenderPassStructuredBuffer = 100;
 
 enum class EFrustumCascade
 {
@@ -86,6 +87,9 @@ bool MRenderer::Initialize()
     Super::Initialize();
 
     GetEngine()->GetOnWorldAddedDelegate().Add(this, &MRenderer::AddScene);
+
+    Weights = std::move(MakeGaussianWeights(GaussianRadius, GaussianSigma));
+    Buffer = getGraphicDevice()->CreateStructuredBuffer(Weights.data(), sizeof(float) * Weights.size(), Weights.size(), sizeof(float));
 
     // BindRenderTargets 컴파일 성공용. 제거해야함
     RenderTargets _renderTargets;
@@ -155,6 +159,9 @@ bool MRenderer::Initialize()
 
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->bLikeMaterial = true;
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_GaussianBlurRow.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->GetHandlePixelShaderStageDelegate().Add([&](const FPrimitiveData& InPrimitiveData, std::shared_ptr<MShader> InPixelShader) {
+            getGraphicDevice()->PSSetSRV(RenderPassStructuredBuffer, Buffer.GetSRVID());
+        });
     }
 
     RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)] = CreateRenderPass<MFullScreenQuadPass>();
@@ -169,6 +176,9 @@ bool MRenderer::Initialize()
 
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->bLikeMaterial = true;
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_GaussianBlurCol.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->GetHandlePixelShaderStageDelegate().Add([&](const FPrimitiveData& InPrimitiveData, std::shared_ptr<MShader> InPixelShader) {
+            getGraphicDevice()->PSSetSRV(RenderPassStructuredBuffer, Buffer.GetSRVID());
+            });
     }
 
     RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)] = CreateRenderPass<MFullScreenQuadPass>();
@@ -273,9 +283,6 @@ bool MRenderer::Initialize()
 
     std::shared_ptr<StaticMesh> PlaneMesh = g_ResourceManager->Load(TEXT("Base/Plane.json"), StaticMesh::GetTypeDescStatic())->CastToShared<StaticMesh>();
     getGraphicDevice()->BuildMeshSharedBuffers(PlaneMesh);
-
-    Mesh::MakeRect(MeshData);
-    getGraphicDevice()->BuildMeshBuffer(TEXT("Plane"), MeshData, 0, true);
 
     return EnumToIndex(ERenderPass::End) == GetSize(RenderPasses);
 }
@@ -495,6 +502,23 @@ std::shared_ptr<MRenderTarget> MRenderer::Blur(std::shared_ptr<MRenderTarget> In
     return RenderTarget;
 }
 */
+
+std::vector<float> MRenderer::MakeGaussianWeights(int InRadius, float InSigma)
+{
+    int Size = InRadius * 2 + 1;
+    std::vector<float> Weights(Size);
+    float Sum = 0.f;
+
+    for (int i = -InRadius; i <= InRadius; ++i)
+    {
+        float Exponent = -(float)(i * i) / (2.f * InSigma * InSigma);
+        float Weight = (1.f / (std::sqrt(2.f * XM_PI) * InSigma)) * std::exp(Exponent);
+        Weights[i + InRadius] = Weight;
+        Sum += Weight;
+    }
+
+    return Weights;
+}
 
 void MRenderer::Test(uint32 InWorldID, uint32 InPID, std::shared_ptr<MMesh> InMesh)
 {
@@ -920,10 +944,10 @@ void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
 
 void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
 {
-    if (InWorld == nullptr)
-    {
-        return;
-    }
+    assert(InWorld);
+
+    Weights = std::move(MakeGaussianWeights(GaussianRadius, GaussianSigma));
+    getGraphicDevice()->UpdateStructuredBuffer(Buffer, Weights.data(), sizeof(float) * Weights.size(), Weights.size(), sizeof(float));
 
     if (InWorld->getMainCamera() == nullptr)
     {
@@ -1006,7 +1030,7 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
             Radius = std::ceil(Radius * 2.f) / 2.f;
 
             float Temp = Radius;
-            //float Temp = std::max(Radius, 100.f);
+            Temp = std::max(Radius, 100.f);
             XMVECTOR Eye = CascadeCenterInWorld - (LightDirection * Temp);
             XMVECTOR Focus = CascadeCenterInWorld;
             XMMATRIX LightView = XMMatrixLookAtLH(Eye, Focus, UpVector);

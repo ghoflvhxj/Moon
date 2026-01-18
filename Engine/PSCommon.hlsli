@@ -99,6 +99,8 @@ SamplerState S_Linear : register(s1);
 SamplerComparisonState g_SamplerCloser : register(s2);
 SamplerComparisonState g_SamplerFarther : register(s3);
 
+#define RENDERPASS_STURCTURED_BUFFER t100
+
 float4 PixelToView(float2 uv, float depth, matrix inverseProjectiveMatrix)
 {
 	// UV좌표를 (0 <= x, y <= 1) NDC좌표로 (-1 <= x, y <= 1, 단 UV좌표는 Y위 쪽이 0이다)
@@ -252,11 +254,14 @@ float2 UVToSnappedTexel(float2 InUV, float2 InTextureSize)
     return (floor(InUV * InTextureSize) + 0.5f) / InTextureSize;
 }
 
-float3 GaussianBlur(Texture2D InTexture, float2 InUV, bool bInRow)
+float3 GaussianBlur(Texture2D InTexture, float2 InUV, StructuredBuffer<float> InWeights, bool bInRow)
 {
-    float Weight[11] = { 0.009, 0.027, 0.065, 0.121, 0.176, 0.204, 0.176, 0.121, 0.065, 0.027, 0.009 };
-    int KernalWidth = 11;
-
+    //float Weight[11] = { 0.009, 0.027, 0.065, 0.121, 0.176, 0.204, 0.176, 0.121, 0.065, 0.027, 0.009 };
+    //int KernalWidth = 11;
+    
+    uint KernalWidth = 0, Stride = 0;
+    InWeights.GetDimensions(KernalWidth, Stride);
+    
     float2 TexSize = float2(0.f, 0.f);
     InTexture.GetDimensions(TexSize.x, TexSize.y);
     
@@ -285,40 +290,44 @@ float3 GaussianBlur(Texture2D InTexture, float2 InUV, bool bInRow)
     // 가로
     if (bInRow)
     {
-        int HalfWidth = KernalWidth / 2;
+        int HalfWidth = (int)(KernalWidth / 2);
         for (int i = -HalfWidth; i <= HalfWidth; ++i)
         {
             float2 SnappedUV = UVToSnappedTexel(InUV + float2(TexelWidth * i, 0.f), TexSize);
             float3 Color = InTexture.Sample(S_Linear, SnappedUV).xyz;
             
-            float lum = dot(Color, float3(0.2126, 0.7152, 0.0722));
+            //float lum = dot(Color, float3(0.2126, 0.7152, 0.0722));
 
-            float knee = 1.f * 0.5; // 0.3~0.6 추천
-            float soft = saturate((lum - 1.f + knee) / knee);
-            float contrib = max(lum - 1.f, 0) + soft * soft;
+            //float knee = 1.f * 0.5; // 0.3~0.6 추천
+            //float soft = saturate((lum - 1.f + knee) / knee);
+            //float contrib = max(lum - 1.f, 0) + soft * soft;
 
-            float3 bright = Color * contrib;
+            //float3 bright = Color * contrib;
             
-            BlurColor += bright * Weight[i + HalfWidth];
+            //BlurColor += bright * Weight[i + HalfWidth];
+            
+            BlurColor += Color * InWeights[i + HalfWidth];
         }
     }
     else
     {
-        int HalfHeight = KernalWidth / 2;
+        int HalfHeight = (int)(KernalWidth / 2);
         for (int i = -HalfHeight; i <= HalfHeight; ++i)
         {
             float2 SnappedUV = UVToSnappedTexel(InUV + float2(0.f, TexelHeight * i), TexSize);
             float3 Color = InTexture.Sample(S_Linear, SnappedUV).xyz;
             
-            float lum = dot(Color, float3(0.2126, 0.7152, 0.0722));
+            //float lum = dot(Color, float3(0.2126, 0.7152, 0.0722));
 
-            float knee = 1.f * 0.5; // 0.3~0.6 추천
-            float soft = saturate((lum - 1.f + knee) / knee);
-            float contrib = max(lum - 1.f, 0) + soft * soft;
+            //float knee = 1.f * 0.5; // 0.3~0.6 추천
+            //float soft = saturate((lum - 1.f + knee) / knee);
+            //float contrib = max(lum - 1.f, 0) + soft * soft;
 
-            float3 bright = Color * contrib;
+            //float3 bright = Color * contrib;
             
-            BlurColor += bright * Weight[i + HalfHeight];
+            //BlurColor += bright * Weight[i + HalfHeight];
+            
+            BlurColor += Color * InWeights[i + HalfHeight];
         }
     }
 

@@ -234,6 +234,7 @@
     <ClCompile Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.cpp" />
     <ClCompile Include="Source\Module\Physics\CapsuleComponent.cpp" />
     <ClCompile Include="Source\Module\Physics\Physics.cpp" />
+    <ClCompile Include="Source\Module\Graphic\StructuredBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -522,6 +523,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\Reflection\Property\MapProperty.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Graphic\StructuredBuffer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

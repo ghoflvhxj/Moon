@@ -892,6 +892,11 @@ ID3D11Device *GraphicDevice::getDevice()
 	return m_pDevice;
 }
 
+void GraphicDevice::PSSetSRV(UINT InSlot, uint32 InSRVID)
+{
+    getContext()->PSSetShaderResources(InSlot, 1, &StructuredBufferSRVs[InSRVID]);
+}
+
 void GraphicDevice::QueryStart(uint32 InIndex)
 {
     getContext()->End(Start[Counter][InIndex].Get());
@@ -921,7 +926,93 @@ ID3D11DeviceContext *GraphicDevice::getDefferedContext()
 	return m_pDeferredContext;
 }
 
-void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::shared_ptr<MMesh>& InMesh)
+void GraphicDevice::CreateStructuredBufferSRV(MStructuredBuffer& InBuffer)
+{
+    // 일단 StructuredBuffer 용으로만 만들어 놓음
+    D3D11_BUFFER_SRV BufferSRV = {};
+    BufferSRV.FirstElement = 0;
+    BufferSRV.ElementOffset = 0;
+    BufferSRV.ElementWidth = InBuffer.GetElementSize();
+    BufferSRV.NumElements = InBuffer.GetElementNum();
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+    desc.Format = DXGI_FORMAT_UNKNOWN;
+    desc.Buffer = BufferSRV;
+    desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+
+    ID3D11ShaderResourceView* ShaderResourceView = nullptr;
+    g_pGraphicDevice->getDevice()->CreateShaderResourceView(GetRawBuffer(InBuffer), &desc, &ShaderResourceView);
+    StructuredBufferSRVs[SRVCounter] = ShaderResourceView;
+    
+    ++SRVCounter;
+}
+
+MStructuredBuffer GraphicDevice::CreateStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize)
+{
+    // 일단 StructuredBuffer 용으로만 만들어 놓음
+    D3D11_BUFFER_DESC BufferDesc = {};
+    BufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    BufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    BufferDesc.ByteWidth = InDataSize;
+    BufferDesc.StructureByteStride = InElementSize;
+
+    D3D11_SUBRESOURCE_DATA SubDesc = {};
+    SubDesc.pSysMem = InData;
+
+    ID3D11Buffer* NewRawBuffer = nullptr;
+    FAILED_CHECK_THROW(m_pDevice->CreateBuffer(&BufferDesc, &SubDesc, &NewRawBuffer));
+    StructuredBuffers[BufferCounter] = NewRawBuffer;
+
+    MStructuredBuffer NewBuffer;
+    NewBuffer.Init(InElementSize, InElementNum);
+    NewBuffer.SetBufferID(BufferCounter);
+
+    CreateStructuredBufferSRV(NewBuffer);
+
+    BufferToSRV[BufferCounter] = SRVCounter - 1;
+    NewBuffer.SetSRVID(BufferToSRV[BufferCounter]);
+
+    ++BufferCounter;
+
+    return NewBuffer;
+}
+
+void GraphicDevice::UpdateStructuredBuffer(MStructuredBuffer& InBuffer, const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize)
+{
+    bool bShouldCreate = InBuffer.GetBufferSize() != InDataSize;
+
+    if (bShouldCreate)
+    {
+        InBuffer = CreateStructuredBuffer(InData, InDataSize, InElementNum, InElementSize);
+    }
+    else
+    {
+        D3D11_MAPPED_SUBRESOURCE MappedSubResource = {};
+        g_pGraphicDevice->getContext()->Map(GetRawBuffer(InBuffer), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &MappedSubResource);
+        memcpy(MappedSubResource.pData, InData, InDataSize);
+        g_pGraphicDevice->getContext()->Unmap(GetRawBuffer(InBuffer), 0u);
+    }
+}
+
+ID3D11ShaderResourceView* GraphicDevice::GetShaderResourceView(const std::wstring& InKey)
+{
+    //auto& Iter = StructuredBufferSRVs.find(InKey);
+    //if (Iter != StructuredBufferSRVs.end())
+    //{
+    //    return Iter->second;
+    //}
+
+    return nullptr;
+}
+
+ID3D11Buffer* GraphicDevice::GetRawBuffer(MStructuredBuffer& InBuffer)
+{
+    return StructuredBuffers[InBuffer.GetBufferID()];
+}
+
+void GraphicDevice::GetBuffers(FMeshBufferContainer& OutBuffers, const std::shared_ptr<MMesh>& InMesh)
 {
     const std::wstring& AssetPath = InMesh->GetAssetPath();
     GetBuffers(OutBuffers, AssetPath);

@@ -120,8 +120,8 @@ void MRenderPass::Begin()
 	}
 
     auto& ViewportSize = getGraphicDevice()->GetViewportSize();
-    RectWidth = std::get<0>(ViewportSize);
-    RectHeight = std::get<1>(ViewportSize);
+    uint32 RectWidth = std::get<0>(ViewportSize);
+    uint32 RectHeight = std::get<1>(ViewportSize);
 
 	if (RenderTargetViewData.size() > 0)
 	{
@@ -424,6 +424,8 @@ void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
             g_pGraphicDevice->getContext()->PSSetShaderResources(static_cast<UINT>(Data.Index), 1, &SRV);
         }
     }
+
+    OnHandlePxielShaderStage.Broadcast(PrimitiveData, PixelShader);
 }
 
 void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)

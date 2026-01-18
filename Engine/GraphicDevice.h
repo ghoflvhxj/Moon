@@ -17,6 +17,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "ConstantBuffer.h"
+#include "Module/Graphic/StructuredBuffer.h"
 
 class VertexShader;
 class PixelShader;
@@ -115,6 +116,12 @@ public:
 	virtual bool Initialize() override;
 	virtual void Release() override;
 
+private:
+    const bool initializeDirectXTK();
+public:
+    std::unique_ptr<SpriteBatch> _spriteBatch;
+    std::unique_ptr<SpriteFont> _spriteFont;
+
     void Test()
     {
         _spriteBatch->Begin();
@@ -124,6 +131,18 @@ public:
 
         _spriteBatch->End();
     }
+
+public:
+    ID3D11Device* getDevice();
+    ID3D11DeviceContext* getContext();
+    ID3D11DeviceContext* getImmediateContext();
+    ID3D11DeviceContext* getDefferedContext();
+    ID3D11InputLayout* GetInputLayout() const { return m_pInputLayout; }
+private:
+    ID3D11Device* m_pDevice;
+    ID3D11DeviceContext* m_pImmediateContext;	// 즉시 문맥: 싱글 쓰레드용
+    ID3D11DeviceContext* m_pDeferredContext;	// 지연 문맥: 멀티 쓰레드용 CreateDeferredContext로 생성한다
+    ID3D11InputLayout* m_pInputLayout;
 
 public:
     void Begin(int32 InWindowID, uint32 InWidth, uint32 InHeight);
@@ -161,8 +180,9 @@ public:
 public:
     std::unique_ptr<MShaderManager> ShaderManager = nullptr;
 
-	//-------------------------------------------------------------------------
-	// State
+    /***********************************************
+        상태 관리
+    ***********************************************/
 public:
 	ID3D11SamplerState* getSamplerState(ESamplerFilter SamplerFilter);
 	ID3D11RasterizerState *getRasterizerState(const Graphic::FillMode eFillMode, const Graphic::CullMode eCullMode, bool bDepthBias = false);
@@ -174,7 +194,6 @@ private:
     bool buildRasterizerState();
     bool buildDepthStencilState();
     bool buildBlendState();
-
 private:
 	std::vector<ID3D11SamplerState*>		SamplerStates;
 	std::vector<ID3D11RasterizerState*>		RasterizeStates;
@@ -184,17 +203,15 @@ private:
 public:
     ComPtr<ID3D11RasterizerState> ShadowDepthRS = nullptr;
 
-private:
-	const bool initializeDirectXTK();
+    /***********************************************
+        바인딩
+    ***********************************************/
 public:
-	std::unique_ptr<SpriteBatch> _spriteBatch;
-	std::unique_ptr<SpriteFont> _spriteFont;
+    void PSSetSRV(UINT InSlot, uint32 InSRVID);
 
-public:
-	ID3D11Device *getDevice();
-private:
-	ID3D11Device *m_pDevice;
-
+    /***********************************************
+        GPU 프로파일링
+    ***********************************************/
 public:
     void QueryStart(uint32 InIndex);
     void QueryFinish(uint32 InIndex);
@@ -205,18 +222,7 @@ public:
     int Counter = 0;
     std::vector<std::wstring> RenderPassTimes;
 
-public:
-	ID3D11DeviceContext *getContext();
-public:
-	ID3D11DeviceContext *getImmediateContext();
-	ID3D11DeviceContext *getDefferedContext();
-    ID3D11InputLayout* GetInputLayout() const { return m_pInputLayout; }
 private:
-	ID3D11DeviceContext *m_pImmediateContext;	// 즉시 문맥: 싱글 쓰레드용
-	ID3D11DeviceContext *m_pDeferredContext;	// 지연 문맥: 멀티 쓰레드용 CreateDeferredContext로 생성한다
-    ID3D11InputLayout *m_pInputLayout;
-private:
-    //std::vector<FWindowRenderData> WindowRenderDatas;
     std::map<uint32, FWindowRenderData> WindowRenderDatas;
 
 private:
@@ -242,6 +248,26 @@ protected:
     std::map<const std::wstring, FMeshBufferContainer> SharedBuffers;
     // PrimitiveComponent의 전용 버퍼를 저장함
     std::map<uint32, FMeshBufferContainer> PrivateBuffers;
+
+    /******************************************
+        버퍼, SRV 관리
+    ******************************************/
+public:
+    MStructuredBuffer CreateStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
+    void UpdateStructuredBuffer(MStructuredBuffer& InBuffer, const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
+    void CreateStructuredBufferSRV(MStructuredBuffer& InBuffer);
+public:
+    ID3D11ShaderResourceView* GetShaderResourceView(const std::wstring& InKey);
+private:
+    ID3D11Buffer* GetRawBuffer(MStructuredBuffer& InBuffer);
+protected:
+    std::map<uint32, ID3D11Buffer*> StructuredBuffers;
+    std::map<uint32, ID3D11ShaderResourceView*> StructuredBufferSRVs;
+private:
+    uint32 BufferCounter = 1;
+    uint32 SRVCounter = 0;
+    std::map<uint32, uint32> BufferToSRV;
+
 
     REFLECT(GraphicDevice)
 };

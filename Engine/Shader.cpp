@@ -152,6 +152,11 @@ std::shared_ptr<MConstantBuffer> MShader::ParseBuffer(ID3D11ShaderReflection* In
     D3D11_SHADER_BUFFER_DESC DX_BufferDesc = {};
     FAILED_CHECK_THROW(pReflectionConstantBuffer->GetDesc(&DX_BufferDesc));
 
+    if (DX_BufferDesc.Type == D3D_CBUFFER_TYPE::D3D11_CT_RESOURCE_BIND_INFO)
+    {
+        return nullptr;
+    }
+
     std::vector<Byte> bufferData(DX_BufferDesc.Size, 0);
     uint32 VariableNum = DX_BufferDesc.Variables;
     std::shared_ptr<MConstantBuffer>& NewConstantBuffer = std::make_shared<MConstantBuffer>(DX_BufferDesc.Size, bufferData.data(), VariableNum);
