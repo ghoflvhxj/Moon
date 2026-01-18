@@ -859,7 +859,7 @@ void MJoltPhysics::Update()
 				Vertices[i].Pos.z = -(SoftBodyVertices[SoftBodyVertexIndex].mPosition.GetZ() + Joint.Position.z);
             }
 
-            FBufferContainer BufferContainer = {};
+            FMeshBufferContainer BufferContainer = {};
             getGraphicDevice()->GetPrivateBuffers(BufferContainer, PhysicObject->GetPrimitiveComponent()->GetPrimitiveID());
 
             if (std::shared_ptr<MVertexBuffer> VertexBuffer = BufferContainer.VertexBuffers[MeshIndex])

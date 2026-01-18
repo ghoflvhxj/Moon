@@ -20,7 +20,7 @@ void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& Primitiv
 {
     Begin();
 
-    FBufferContainer BufferContainer = {};
+    FMeshBufferContainer BufferContainer = {};
     getGraphicDevice()->GetBuffers(BufferContainer, TEXT("Plane"));
 
     auto& Window = getRenderer()->GetCurrentScene()->GetWindow();

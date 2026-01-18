@@ -349,7 +349,7 @@ void MRenderer::DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight,
     NewPrimitiveData.Rotation = InQuatRotation;
     NewPrimitiveData.Scale = VEC3ONE;
 
-    FBufferContainer Buffers;
+    FMeshBufferContainer Buffers;
     getGraphicDevice()->GetBuffers(Buffers, BufferKey);
     NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
@@ -372,7 +372,7 @@ void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const
     NewPrimitiveData.Rotation = InQuatRotation;
     NewPrimitiveData.Scale = InScale;
 
-    FBufferContainer Buffers;
+    FMeshBufferContainer Buffers;
     getGraphicDevice()->GetBuffers(Buffers, CoordinateKey);
     NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
@@ -404,7 +404,7 @@ void MRenderer::DrawPrimitive(MWorld* InWorld, const std::shared_ptr<StaticMesh>
         NewPrimitiveData.Rotation = EulerToQuaternion(InRotation);
         NewPrimitiveData.Scale = InScale;
 
-        FBufferContainer Buffers;
+        FMeshBufferContainer Buffers;
         getGraphicDevice()->GetBuffers(Buffers, InMesh);
         NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[i];
         NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[i];
@@ -792,7 +792,7 @@ void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
     NewPrimitiveData.Translation = Trans;
     NewPrimitiveData.ProjectionType = EProjectionType::Orthograhpic;
 
-    FBufferContainer Buffers;
+    FMeshBufferContainer Buffers;
     getGraphicDevice()->GetBuffers(Buffers, PlaneMesh);
     NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
@@ -820,7 +820,7 @@ void MRenderer::DebugRenderTarget(std::shared_ptr<MRenderTarget> InRederTarget, 
     NewPrimitiveData.Translation = InTrans;
     NewPrimitiveData.ProjectionType = EProjectionType::Orthograhpic;
 
-    FBufferContainer Buffers;
+    FMeshBufferContainer Buffers;
     getGraphicDevice()->GetBuffers(Buffers, PlaneMesh);
     NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
@@ -1322,10 +1322,10 @@ void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh)
         return;
     }
 
-    FBufferContainer SharedBuffers = {};
+    FMeshBufferContainer SharedBuffers = {};
     getGraphicDevice()->GetBuffers(SharedBuffers, InMesh);
 
-    FBufferContainer PrivateBuffers = {};
+    FMeshBufferContainer PrivateBuffers = {};
     getGraphicDevice()->GetPrivateBuffers(PrivateBuffers, InPID);
 
     for (uint32 i = 0; i < PrimitiveDataNum; ++i)

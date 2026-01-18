@@ -927,7 +927,7 @@ void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::shared_p
     GetBuffers(OutBuffers, AssetPath);
 }
 
-void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::wstring InKey)
+void GraphicDevice::GetBuffers(FMeshBufferContainer& OutBuffers, const std::wstring InKey)
 {
     auto& Iter = SharedBuffers.find(InKey);
 
@@ -939,7 +939,7 @@ void GraphicDevice::GetBuffers(FBufferContainer& OutBuffers, const std::wstring 
     OutBuffers = Iter->second;
 }
 
-void GraphicDevice::GetPrivateBuffers(FBufferContainer& OutBuffers, uint32 InPID)
+void GraphicDevice::GetPrivateBuffers(FMeshBufferContainer& OutBuffers, uint32 InPID)
 {
     auto& Iter = PrivateBuffers.find(InPID);
 
@@ -953,7 +953,7 @@ void GraphicDevice::GetPrivateBuffers(FBufferContainer& OutBuffers, uint32 InPID
 
 void GraphicDevice::BuildMeshBuffer(const std::wstring& InKey, const FMeshData& InMeshData, uint32 InIndex, bool bInDynamic)
 {
-    FBuffers NewSharedBuffers = {};
+    FMeshBuffers NewSharedBuffers = {};
     MakeBuffer(NewSharedBuffers, InMeshData, bInDynamic);
     SharedBuffers[InKey].AddBuffers(InIndex, NewSharedBuffers);
 }
@@ -991,7 +991,7 @@ void GraphicDevice::BuildMeshSharedBuffers(const std::shared_ptr<MMesh>& InMesh)
     {
         const FMeshData& MeshData = InMesh->GetMeshData(i);
 
-        FBuffers NewSharedBuffers = {};
+        FMeshBuffers NewSharedBuffers = {};
         MakeBuffer(NewSharedBuffers, MeshData);
         SharedBuffers[AssetPath].AddBuffers(i, NewSharedBuffers);
     }
@@ -1025,13 +1025,13 @@ void GraphicDevice::BuildMeshPrivateBuffers(int32 InPID, const std::shared_ptr<M
             continue;
         }
 
-        FBuffers NewPrivateBuffers = {};
+        FMeshBuffers NewPrivateBuffers = {};
         MakeBuffer(NewPrivateBuffers, MeshData, true);
         PrivateBuffers[InPID].AddBuffers(i, NewPrivateBuffers);
     }
 }
 
-void GraphicDevice::MakeBuffer(FBuffers& OutBuffers, const FMeshData& InMeshData, bool bInDynamic)
+void GraphicDevice::MakeBuffer(FMeshBuffers& OutBuffers, const FMeshData& InMeshData, bool bInDynamic)
 {
     uint32 VertexSize = CastValue<uint32>(sizeof(Vertex));
     uint32 VertexNum = GetSize(InMeshData.Vertices);
