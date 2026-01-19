@@ -793,62 +793,68 @@ bool GraphicDevice::buildSamplerState()
      Index      DpethCompare    
        0            X
     **********************************************************/
-	auto CreateSamplerLambda = [this](D3D11_SAMPLER_DESC& samplerDesc)
+	auto CreateSamplerLambda = [this](D3D11_SAMPLER_DESC& BaseSamplerDesc)
 	{
 		ID3D11SamplerState* pSamplerState = nullptr;
-        FAILED_CHECK(m_pDevice->CreateSamplerState(&samplerDesc, &pSamplerState));
+        FAILED_CHECK(m_pDevice->CreateSamplerState(&BaseSamplerDesc, &pSamplerState));
 		SamplerStates.emplace_back(pSamplerState);
 	};
 
-	D3D11_SAMPLER_DESC SamplerDesc = {};
-	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	SamplerDesc.BorderColor[0] = 1.f;
-	SamplerDesc.BorderColor[1] = 1.f;
-	SamplerDesc.BorderColor[2] = 1.f;
-	SamplerDesc.BorderColor[3] = 1.f;
-	SamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	SamplerDesc.MaxAnisotropy = 1u;
-	SamplerDesc.MinLOD = 0.f;
-	SamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	SamplerDesc.MipLODBias = 0.f;
+	D3D11_SAMPLER_DESC BaseSamplerDesc = {};
+	BaseSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	BaseSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	BaseSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	BaseSamplerDesc.BorderColor[0] = 1.f;
+	BaseSamplerDesc.BorderColor[1] = 1.f;
+	BaseSamplerDesc.BorderColor[2] = 1.f;
+	BaseSamplerDesc.BorderColor[3] = 1.f;
+	BaseSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	BaseSamplerDesc.MaxAnisotropy = 1u;
+	BaseSamplerDesc.MinLOD = 0.f;
+	BaseSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	BaseSamplerDesc.MipLODBias = 0.f;
 
 	// Point
-	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_POINT;
-	CreateSamplerLambda(SamplerDesc);
+	BaseSamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_POINT;
+	CreateSamplerLambda(BaseSamplerDesc);
 
 	// Linear
-	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	CreateSamplerLambda(SamplerDesc);
+    {
+        D3D11_SAMPLER_DESC SamplerDesc = BaseSamplerDesc;
+        SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+        SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+        SamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
+        SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+        CreateSamplerLambda(SamplerDesc);
+    }
 
 	// Anisotropic
-	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
-	SamplerDesc.MaxAnisotropy = 1u;
-	CreateSamplerLambda(SamplerDesc);
+	BaseSamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
+	BaseSamplerDesc.MaxAnisotropy = 1u;
+	CreateSamplerLambda(BaseSamplerDesc);
 
 	// Comparison MIN MAG LINEAR MIP POINT
-	SamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-	SamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-	SamplerDesc.BorderColor[0] = 1.f;
-	SamplerDesc.MaxAnisotropy = 1u;
-	SamplerDesc.MipLODBias = 0.f;
+	BaseSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	BaseSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	BaseSamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	BaseSamplerDesc.BorderColor[0] = 1.f;
+	BaseSamplerDesc.MaxAnisotropy = 1u;
+	BaseSamplerDesc.MipLODBias = 0.f;
 
     // 가까운 거
     {
-        SamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_GREATER : D3D11_COMPARISON_LESS;
+        BaseSamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_GREATER : D3D11_COMPARISON_LESS;
         ID3D11SamplerState* pSamplerState = nullptr;
-        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
+        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&BaseSamplerDesc, &pSamplerState), false);
         SamplerStates.emplace_back(pSamplerState);
         m_pImmediateContext->PSSetSamplers(2, 1, &pSamplerState);
     }
 
     // 먼 거
     {
-        SamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_LESS : D3D11_COMPARISON_GREATER;
+        BaseSamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_LESS : D3D11_COMPARISON_GREATER;
         ID3D11SamplerState* pSamplerState = nullptr;
-        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
+        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&BaseSamplerDesc, &pSamplerState), false);
         SamplerStates.emplace_back(pSamplerState);
         m_pImmediateContext->PSSetSamplers(3, 1, &pSamplerState);
     }
