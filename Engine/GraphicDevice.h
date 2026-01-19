@@ -251,20 +251,21 @@ protected:
 
     /******************************************
         버퍼, SRV 관리
+        TODO. 삭제는 어떻게 해야할지 생각해봐야 함.
     ******************************************/
 public:
-    MStructuredBuffer CreateStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
+    MStructuredBuffer AddStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
     void UpdateStructuredBuffer(MStructuredBuffer& InBuffer, const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
-    void CreateStructuredBufferSRV(MStructuredBuffer& InBuffer);
-public:
-    ID3D11ShaderResourceView* GetShaderResourceView(const std::wstring& InKey);
+private:
+    ComPtr<ID3D11Buffer> CreateStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
+    ComPtr<ID3D11ShaderResourceView> CreateStructuredBufferSRV(ID3D11Buffer* InBuffer, UINT InElementNum, UINT InElementSize);
 private:
     ID3D11Buffer* GetRawBuffer(MStructuredBuffer& InBuffer);
 protected:
-    std::map<uint32, ID3D11Buffer*> StructuredBuffers;
-    std::map<uint32, ID3D11ShaderResourceView*> StructuredBufferSRVs;
+    std::map<uint32, ComPtr<ID3D11Buffer>> StructuredBuffers;
+    std::map<uint32, ComPtr<ID3D11ShaderResourceView>> StructuredBufferSRVs;
 private:
-    uint32 BufferCounter = 1;
+    uint32 BufferCounter = 0;
     uint32 SRVCounter = 0;
     std::map<uint32, uint32> BufferToSRV;
 

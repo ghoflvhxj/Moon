@@ -53,7 +53,7 @@ using namespace DirectX;
 
 constexpr wchar_t* CoordinateKey = TEXT("Coordinate");
 constexpr wchar_t* CapsuleKey = TEXT("Capsule");
-constexpr UINT RenderPassStructuredBuffer = 100;
+constexpr UINT BufferSlot = 100;
 
 enum class EFrustumCascade
 {
@@ -89,7 +89,7 @@ bool MRenderer::Initialize()
     GetEngine()->GetOnWorldAddedDelegate().Add(this, &MRenderer::AddScene);
 
     Weights = std::move(MakeGaussianWeights(GaussianRadius, GaussianSigma));
-    Buffer = getGraphicDevice()->CreateStructuredBuffer(Weights.data(), sizeof(float) * Weights.size(), Weights.size(), sizeof(float));
+    Buffer = getGraphicDevice()->AddStructuredBuffer(Weights.data(), sizeof(float) * Weights.size(), Weights.size(), sizeof(float));
 
     // BindRenderTargets 컴파일 성공용. 제거해야함
     RenderTargets _renderTargets;
@@ -160,7 +160,7 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->bLikeMaterial = true;
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_GaussianBlurRow.cso"));
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->GetHandlePixelShaderStageDelegate().Add([&](const FPrimitiveData& InPrimitiveData, std::shared_ptr<MShader> InPixelShader) {
-            getGraphicDevice()->PSSetSRV(RenderPassStructuredBuffer, Buffer.GetSRVID());
+            getGraphicDevice()->PSSetSRV(BufferSlot, Buffer.GetSRVID());
         });
     }
 
@@ -177,8 +177,8 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->bLikeMaterial = true;
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_GaussianBlurCol.cso"));
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->GetHandlePixelShaderStageDelegate().Add([&](const FPrimitiveData& InPrimitiveData, std::shared_ptr<MShader> InPixelShader) {
-            getGraphicDevice()->PSSetSRV(RenderPassStructuredBuffer, Buffer.GetSRVID());
-            });
+            getGraphicDevice()->PSSetSRV(BufferSlot, Buffer.GetSRVID());
+        });
     }
 
     RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)] = CreateRenderPass<MFullScreenQuadPass>();
