@@ -39,6 +39,7 @@ cbuffer CBuffer_PerTick : register(b1)
     bool bDebugDirectionalLight = false;
     bool bDebugDirectionalShadow = false;
     bool bDebugCascade = false;
+    bool bDebugPointLight = false;
 };
 
 inline float GetNear()

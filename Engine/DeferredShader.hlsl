@@ -40,6 +40,11 @@ PixelOut_CombinePass main(PixelIn pIn)
     {
         pOut.color = DirectionalLight;
     }
+    
+    if (bDebugPointLight)
+    {
+        pOut.color = PointLight;
+    }
 
     return pOut;
 }

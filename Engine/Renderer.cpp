@@ -1066,6 +1066,15 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
             }
         }
 
+        if (bPointLighting == false)
+        {
+            if (PassIndex == EnumToIndex(ERenderPass::PointShadowDepth) || PassIndex == EnumToIndex(ERenderPass::PointLight))
+            {
+                RenderPasses[PassIndex]->Clear();
+                continue;
+            }
+        }
+
 #if RenderPassPerformanceProfiling == 1
         std::wstring Name = TEXT("Pass") + std::to_wstring(PassIndex) + TEXT(" :");
         PerformanceTimer Temp(Name);
@@ -1306,7 +1315,16 @@ void MScene::UpdateTickConstantBuffer()
     // 기타 옵션들 자동으로 설정
     for(auto& Prop : GetTypeDesc()->Properties)
     { 
-        TickBuffer->SetData(StringToWString(Prop->Name), Prop->GetAsVoid(this));
+        if (Prop->Type == EType::Bool)
+        {
+            bool bValue = *static_cast<bool*>(Prop->GetAsVoid(this));
+            BOOL Value = bValue ? TRUE : FALSE;
+            TickBuffer->SetData(StringToWString(Prop->Name), &Value);
+        }
+        else
+        {
+            TickBuffer->SetData(StringToWString(Prop->Name), Prop->GetAsVoid(this));
+        }
     }
 
     TickBuffer->Commit();

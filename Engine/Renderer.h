@@ -126,6 +126,7 @@ public:
 
 public:
     // 현재 그리는 씬에서 PrimitiveData를 얻어옴
+    // 포인터 말고 인덱스로 변경하는게 좋을듯
     const std::vector<const FPrimitiveData*>& GetPrimitiveDatas(EPrimitiveType InPrimitiveType);
 
 private:
@@ -170,6 +171,8 @@ public:
     std::wstring SceneRenderTime;
     std::wstring RenderPassTime;
 
+    bool bPointLighting = true;
+
     RENDERER_OPTION(DrawShadow);
 
     REFLECT(
@@ -178,6 +181,7 @@ public:
         , PROPERTY(bDrawShadow)
         , PROPERTY(GaussianSigma)
         , PROPERTY(GaussianRadius)
+        , PROPERTY(bPointLighting)
     )
 };
 
@@ -271,6 +275,9 @@ public:
     bool bDebugDirectionalLight = false;
     bool bDebugDirectionalShadow = false;
     bool bDebugCascade = false;
+    bool bDebugPointLight = false;
+    bool bPointLighting = true;
+    bool bDirectionalLighting = true;
 
 public:
     // 인스턴싱 데이터
@@ -287,6 +294,8 @@ public:
         , PROPERTY(bDebugDirectionalLight)
         , PROPERTY(bDebugDirectionalShadow)
         , PROPERTY(bDebugCascade)
+        , PROPERTY(bDebugPointLight)
+        //, PROPERTY(bPointLighting)
     )
     /* 카메라 */
 //public:
