@@ -58,6 +58,11 @@ bool MWorld::Update()
     {
         for (auto& [Name, Actor] : Actors)
         {
+            if (Actor->IsUpdatable() == false)
+            {
+                continue;
+            }
+
             Actor->update(_deltaTime);
         }
     }

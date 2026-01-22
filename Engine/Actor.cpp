@@ -271,3 +271,8 @@ bool MActor::AddComponent(const wchar_t componentName[], std::shared_ptr<MSceneC
 
 	return MapUtility::FindInsert(SceneComponents, componentName, InComponent, true);
 }
+
+bool MActor::IsUpdatable() const
+{
+    return bUpdatable;
+}

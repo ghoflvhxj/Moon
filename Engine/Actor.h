@@ -69,8 +69,14 @@ protected:
 	std::unordered_map<std::wstring, std::shared_ptr<MSceneComponent>>	SceneComponents;
     std::vector<FAttachData> AttachDatas;
 
+public:
+    bool IsUpdatable() const;
+protected:
+    bool bUpdatable = true;
+
     REFLECT(
         MActor
-        //, PROPERTY(AttachDatas)
+        , PROPERTY(AttachDatas)
+        , PROPERTY(bUpdatable)
     );
 };
