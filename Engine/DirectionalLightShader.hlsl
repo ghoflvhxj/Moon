@@ -37,25 +37,29 @@ PixelOut_LightPass main(PixelIn pIn)
 	normal.w = 0.f;
 	float4 specular = G_Specular.Sample(g_Sampler, pIn.uv);
 
-    if (all(normal.xyz == float3(0.f, 0.f, 0.f)))
-    {
-        return pOut;
-    }
+    //if (all(normal.xyz == float3(0.f, 0.f, 0.f)))
+    //{
+    //    return pOut;
+    //}
+    bool IsNormalValid = any(normal.xyz);
     
     float3 PixelPosInCamera = PixelToView(pIn.uv, depth, g_inverseProjectiveMatrix).xyz;
     float3 PixelPosInWorld = TransformPosition(PixelPosInCamera, g_inverseCameraViewMatrix);
     
     // 그림자 계산을 위해 CascadeIndex를 구함
     int CascadeIndex = 0;
-    [unroll]
-    for (int i = 1; i < 4; ++i)
-    {
-        if (PixelPosInCamera.z < getComp(cascadeDistance, i))
-        {
-            CascadeIndex = i - 1;
-            break;
-        }
-    }
+    //[unroll]
+    //for (int i = 1; i < 4; ++i)
+    //{
+    //    if (PixelPosInCamera.z < getComp(cascadeDistance, i))
+    //    {
+    //        CascadeIndex = i - 1;
+    //        break;
+    //    }
+    //}
+    CascadeIndex += (PixelPosInCamera.z >= cascadeDistance.y);
+    CascadeIndex += (PixelPosInCamera.z >= cascadeDistance.z);
+    CascadeIndex += (PixelPosInCamera.z >= cascadeDistance.w);
     
 	float3 LightDirection = g_lightDirection.xyz;
 	float3 color = g_lightColor.xyz;
@@ -77,9 +81,9 @@ PixelOut_LightPass main(PixelIn pIn)
     float Temp = 1.f - saturate(dot(SurfaceNormal, -LightDirection));
     
     // 그림자 팩터 얻기
-    float ShadowFactor = PixelCascadeSahdow(CascadeIndex, PixelPosInWorld, SurfaceNormal);
+    float NonShadow = 1.f - PixelCascadeSahdow(CascadeIndex, PixelPosInWorld, SurfaceNormal);
     
-    float3 Direct = Bright * intensity * ShadowFactor; //(1.f - ShadowFactor);
+    float3 Direct = Bright * intensity * NonShadow;
     float3 InDirect = Ambient.xyz * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
     pOut.lightDiffuse.xyz = color * (Direct + InDirect);
     
@@ -96,15 +100,15 @@ PixelOut_LightPass main(PixelIn pIn)
     float3 specularFactor = pow(saturate(dot(PixelToCamera, ReflectDirection)), 10.f);
     if (Bright > 0.f)
     {
-        pOut.lightSpecular = float4(specular.xyz * specularFactor * (1.f - ShadowFactor), 1.f);
+        pOut.lightSpecular = float4(specular.xyz * specularFactor * NonShadow, 1.f);
     }
     
     //float3 specularFactor = saturate(dot(PixelToCamera, direction));
     //pOut.lightSpecular = float4(PixelPosInWorld.xyz, 1.f);
     
-    /*
+    /********************************
         디버깅용 코드
-    */
+    ********************************/
     //pOut.lightDiffuse.xyz = float3(1.f, 1.f, 1.f);
     //pOut.lightDiffuse.xyz = normal.xyz;
     //pOut.lightDiffuse.xyz = float3(depth.x, depth.x, depth.x);
@@ -117,7 +121,7 @@ PixelOut_LightPass main(PixelIn pIn)
     
     if (bDebugDirectionalShadow)
     {
-        pOut.lightDiffuse.xyz = ShadowFactor;
+        pOut.lightDiffuse.xyz = NonShadow;
     }
     
     if (bDebugCascade)
@@ -135,6 +139,9 @@ PixelOut_LightPass main(PixelIn pIn)
             pOut.lightDiffuse.xyz = float3(0.f, 0.f, 1.f);
         }
     }
+    
+    pOut.lightDiffuse *= IsNormalValid;
+    pOut.lightSpecular *= IsNormalValid;
 
     return pOut;
 }

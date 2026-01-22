@@ -164,8 +164,6 @@ private:
 public:
     Mat4 ViewPerspectiveProjMatrix = {};
     Mat4 ViewOrthogonalProjMatrix = {};
-public:
-    Vec3 Ambient = VEC3ONE;
 
 public:
     std::vector<std::wstring> Times;
@@ -177,7 +175,6 @@ public:
     REFLECT(
         MRenderer
         , PROPERTY(DebugRenderTargetIndex)
-        , PROPERTY(Ambient)
         , PROPERTY(bDrawShadow)
         , PROPERTY(GaussianSigma)
         , PROPERTY(GaussianRadius)
