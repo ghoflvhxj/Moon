@@ -35,6 +35,8 @@ cbuffer CBuffer_PerTick : register(b1)
     
     float NormalBiasScale = 0.1f;
     float DepthBias = 0.001f;
+    float Dummy;
+    float Dummy2;
     
     bool bDebugDirectionalLight = false;
     bool bDebugDirectionalShadow = false;
@@ -92,4 +94,14 @@ float getComp(float4 v, int i)
     if (i == 2)
         return v.z;
     return v.w;
+}
+
+float3 TransformPosition(float3 InPos, float4x4 InTransformMat)
+{
+    return mul(float4(InPos, 1.f), InTransformMat).xyz;
+}
+
+float3 TransformNormal(float3 InNormal, float4x4 InTransformMat)
+{
+    return mul(float4(InNormal, 0.f), InTransformMat).xyz;
 }
