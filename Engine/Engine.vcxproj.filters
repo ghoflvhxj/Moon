@@ -226,7 +226,6 @@
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Source\Core\Reflection\TypeDesc.cpp" />
     <ClCompile Include="Source\Core\Object.cpp" />
-    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass.cpp" />
     <ClCompile Include="Source\Module\Module.cpp" />
     <ClCompile Include="Source\Module\Physics\CapsuleBody.cpp" />
     <ClCompile Include="Source\Module\Physics\Jolt.cpp" />
@@ -235,6 +234,9 @@
     <ClCompile Include="Source\Module\Physics\CapsuleComponent.cpp" />
     <ClCompile Include="Source\Module\Physics\Physics.cpp" />
     <ClCompile Include="Source\Module\Graphic\StructuredBuffer.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\FullScreenQuadPass.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\PointLightPass.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\DirectionalLightPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -492,9 +494,6 @@
     <ClInclude Include="Source\Utility\PerformanceTimer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Module\Module.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -526,6 +525,15 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Module\Graphic\StructuredBuffer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\FullScreenQuadPass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\PointLightPass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\DirectionalLightPass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -561,6 +569,7 @@
     <FxCompile Include="Shader\Pixel\PS_BoxBlur.hlsl" />
     <FxCompile Include="Shader\Pixel\PS_GaussianBlurRow.hlsl" />
     <FxCompile Include="Shader\Pixel\PS_GaussianBlurCol.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_PointLightShadow.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.hlsli" />

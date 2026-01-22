@@ -20,28 +20,46 @@ void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& Primitiv
 {
     Begin();
 
-    FMeshBufferContainer BufferContainer = {};
-    getGraphicDevice()->GetBuffers(BufferContainer, TEXT("Plane"));
-
-    auto& Window = getRenderer()->GetCurrentScene()->GetWindow();
-
-    FPrimitiveData NewPrimitivData = {};
-    NewPrimitivData.MeshData = &MeshData;
-    NewPrimitivData.PrimitiveType = EPrimitiveType::Mesh;
-    NewPrimitivData.VertexBuffer = BufferContainer.VertexBuffers[0];
-    NewPrimitivData.IndexBuffer = BufferContainer.IndexBuffers[0];
-    NewPrimitivData.Scale.x =  Window->GetWidth<float>();
-    NewPrimitivData.Scale.y = Window->GetHeight<float>();
-    NewPrimitivData.ProjectionType = EProjectionType::Orthograhpic;
-
-    if (IsValidPrimitive(NewPrimitivData))
+    const std::vector<FPrimitiveData>& PrimitiveDatas = MakePrimitiveDatas();
+    
+    for (const FPrimitiveData& PrimitiveData : PrimitiveDatas)
     {
-        UpdateTickConstantBuffer(NewPrimitivData);
-        UpdateObjectConstantBuffer(NewPrimitivData);
-        DrawPrimitive(NewPrimitivData);
+        if (IsValidPrimitive(PrimitiveData))
+        {
+            UpdateTickConstantBuffer(PrimitiveData);
+            UpdateObjectConstantBuffer(PrimitiveData);
+            DrawPrimitive(PrimitiveData);
+        }
     }
 
     End();
+}
+
+std::vector<FPrimitiveData> MFullScreenQuadPass::MakePrimitiveDatas()
+{
+    std::vector<FPrimitiveData> PrimitiveDatas;
+    PrimitiveDatas.push_back(CreatePrimitiveData(EPrimitiveType::Mesh));
+
+    return PrimitiveDatas;
+}
+
+FPrimitiveData MFullScreenQuadPass::CreatePrimitiveData(EPrimitiveType InType)
+{
+    FPrimitiveData NewPrimitivData = {};
+    NewPrimitivData.MeshData = &MeshData;
+    NewPrimitivData.PrimitiveType = InType;
+    NewPrimitivData.ProjectionType = EProjectionType::Orthograhpic;
+
+    FMeshBufferContainer BufferContainer = {};
+    getGraphicDevice()->GetBuffers(BufferContainer, TEXT("Plane"));
+    NewPrimitivData.VertexBuffer = BufferContainer.VertexBuffers[0];
+    NewPrimitivData.IndexBuffer = BufferContainer.IndexBuffers[0];
+
+    auto& Window = getRenderer()->GetCurrentScene()->GetWindow();
+    NewPrimitivData.Scale.y = Window->GetHeight<float>();
+    NewPrimitivData.Scale.x = Window->GetWidth<float>();
+
+    return NewPrimitivData;
 }
 
 void MCombinePass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)

@@ -19,7 +19,9 @@
 #include "RenderTarget.h"
 #include "RenderPass.h"
 #include "CombinePass.h"
-#include "Module/Render/RenderPass/FullScreenQuadPass.h"
+#include "Module/Render/RenderPass/FullScreenQuadPass/FullScreenQuadPass.h"
+#include "Module/Render/RenderPass/FullScreenQuadPass/PointLightPass.h"
+#include "Module/Render/RenderPass/FullScreenQuadPass/DirectionalLightPass.h"
 
 #include "Material.h"
 #include "Shader.h"
@@ -33,7 +35,8 @@
 
 #include "PrimitiveComponent.h"
 #include "MeshComponent.h"
-#include "LightComponent.h"
+#include "DirectionalLightComponent.h"
+#include "PointLightComponent.h"
 #include "StaticMeshComponent.h"
 #include "DynamicMeshComponent.h"
 

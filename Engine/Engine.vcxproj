@@ -48,7 +48,9 @@
     <ClCompile Include="Source\Module\Physics\CharacterPhysics.cpp" />
     <ClCompile Include="Source\Module\Physics\Jolt.cpp" />
     <ClCompile Include="Source\Module\Physics\Physics.cpp" />
-    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\DirectionalLightPass.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\FullScreenQuadPass.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\PointLightPass.cpp" />
     <ClCompile Include="World.cpp" />
     <ClCompile Include="MainGameSetting.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -137,7 +139,9 @@
     <ClInclude Include="Source\Module\Physics\Jolt.h" />
     <ClInclude Include="Source\Module\Physics\Physics.h" />
     <ClInclude Include="Source\Module\Physics\PhysicsEnum.h" />
-    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass.h" />
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\DirectionalLightPass.h" />
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\FullScreenQuadPass.h" />
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\PointLightPass.h" />
     <ClInclude Include="Source\Utility\PerformanceTimer.h" />
     <ClInclude Include="World.h" />
     <ClInclude Include="MainGameSetting.h" />
@@ -280,6 +284,13 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Shader\Pixel\PS_PointLightShadow.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="Shader\Pixel\PS_SampleDepth.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

@@ -34,43 +34,12 @@ public:
 	explicit PointShadowDepthPass();
 	virtual ~PointShadowDepthPass() = default;
 
+public:
+    virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData) override;
+
 private:
     virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-};
-
-class DirectionalLightPass : public MRenderPass
-{
-public:
-	explicit DirectionalLightPass() = default;
-	virtual ~DirectionalLightPass() = default;
-
-public:
-    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-	virtual void UpdateObjectConstantBuffer(const FPrimitiveData &primitiveData) override;
-
-protected:
-    virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData) override;
-    virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
-};
-
-class PointLightPass : public MRenderPass
-{
-public:
-    explicit PointLightPass() = default;
-    virtual ~PointLightPass() = default;
-
-public:
-    virtual void Begin() override;
-    virtual void End() override;
-    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData) override;
-
-protected:
-    virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
-
-protected:
-    uint32 PointLightIndex = 0;
 };
 
 class SkyPass : public MRenderPass

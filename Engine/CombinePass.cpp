@@ -42,7 +42,6 @@ bool GeometryPass::IsValidPrimitive(const FPrimitiveData &PrimitiveData) const
 DirectionalShadowDepthPass::DirectionalShadowDepthPass()
 	: MRenderPass()
 {
-	//SetUseOwningDepthStencilBuffer(ERenderTarget::DirectionalShadowDepth);
     bUseDefaultShaderOnly = true;
 }
 
@@ -65,8 +64,13 @@ bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& Primitiv
 PointShadowDepthPass::PointShadowDepthPass()
     : MRenderPass()
 {
-    //SetUseOwningDepthStencilBuffer(ERenderTarget::PointShadowDepth);
     bUseDefaultShaderOnly = true;
+    Color = { 1000.f, 1000.f, 1000.f, 1.f };
+}
+
+void PointShadowDepthPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
+{
+    g_pGraphicDevice->LinearDepthStencil();
 }
 
 void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
@@ -80,28 +84,47 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
     for (uint32 PointLightIndex = 0; PointLightIndex < PointLightNum; ++PointLightIndex)
     {
         const FPrimitiveData& PrimitiveData = *PointLightPrimitives[PointLightIndex];
-        std::shared_ptr<MLightComponent>& LightComponent = PrimitiveData.GetPrimitiveComponent<MLightComponent>();
+        std::shared_ptr<MPointLightComponent>& LightComponent = PrimitiveData.GetPrimitiveComponent<MPointLightComponent>();
+
+        if (LightComponent->IsShadowing() == false)
+        {
+            continue;
+        }
 
         // 콘스탄트 버퍼 업데이트
         Vec3 Position = LightComponent->getTranslation();
         _geometryShader->SetValue(TEXT("PointLightPos"), Position);
         _geometryShader->SetValue(TEXT("PointLightIndex"), PointLightIndex);
 
+        XMVECTOR XMPosition = XMLoadFloat3(&Position);
         XMVECTOR Up = XMLoadFloat3(&VEC3UP);
-        XMMATRIX Proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.f), 1.f, 0.1f, 1000.f);
-        XMVECTOR LoadedPosition = XMLoadFloat3(&Position);
 
+        // 순서는 오른쪽, 왼쪽, 위, 아래, 앞, 뒤
+        std::vector<Mat4> PointLightView(6);
+        XMStoreFloat4x4(&PointLightView[0], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(1.f, 0.f, 0.f, 0.f), Up));
+        XMStoreFloat4x4(&PointLightView[1], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(-1.f, 0.f, 0.f, 0.f), Up));
+        XMStoreFloat4x4(&PointLightView[2], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(0.f, 1.f, 0.f, 0.f), XMVectorSet(0.f, 0.f, 1.f, 0.f)));
+        XMStoreFloat4x4(&PointLightView[3], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(0.f, -1.f, 0.f, 0.f), XMVectorSet(0.f, 0.f, 1.f, 0.f)));
+        XMStoreFloat4x4(&PointLightView[4], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(0.f, 0.f, 1.f, 0.f), Up));
+        XMStoreFloat4x4(&PointLightView[5], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(0.f, 0.f, -1.f, 0.f), Up));
+
+        float Near = GraphicDevice::bReverseDepth ? 1000.f : 0.1f;
+        float Far = GraphicDevice::bReverseDepth ? 0.1f : 1000.f;
+        XMMATRIX Proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.f), 1.f, Near, Far);
         std::vector<Mat4> PointLightViewProj(6);
-        XMStoreFloat4x4(&PointLightViewProj[0], XMMatrixLookAtLH(LoadedPosition, LoadedPosition + XMVectorSet(1.f, 0.f, 0.f, 0.f), Up) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[1], XMMatrixLookAtLH(LoadedPosition, LoadedPosition + XMVectorSet(-1.f, 0.f, 0.f, 0.f), Up) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[2], XMMatrixLookAtLH(LoadedPosition, LoadedPosition + XMVectorSet(0.f, 1.f, 0.f, 0.f), XMVectorSet(0.f, 0.f, 1.f, 1.f)) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[3], XMMatrixLookAtLH(LoadedPosition, LoadedPosition + XMVectorSet(0.f, -1.f, 0.f, 0.f), XMVectorSet(0.f, 0.f, 1.f, 1.f)) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[4], XMMatrixLookAtLH(LoadedPosition, LoadedPosition + XMVectorSet(0.f, 0.f, 1.f, 0.f), Up) * Proj);
-        XMStoreFloat4x4(&PointLightViewProj[5], XMMatrixLookAtLH(LoadedPosition, LoadedPosition + XMVectorSet(0.f, 0.f, -1.f, 0.f), Up) * Proj);
+        for (uint32 i = 0; i < 6; ++i)
+        {
+            XMStoreFloat4x4(&PointLightViewProj[i], XMLoadFloat4x4(&PointLightView[i]) * Proj);
+        }
         _geometryShader->SetValue(TEXT("PointLightViewProj"), PointLightViewProj);
 
         for (const FPrimitiveData* MeshPrimitiveData : MeshPrimitives)
         {
+            if (IsValidPrimitive(*MeshPrimitiveData) == false)
+            {
+                continue;
+            }
+
             UpdateObjectConstantBuffer(*MeshPrimitiveData);
             DrawPrimitive(*MeshPrimitiveData);
         }
@@ -120,50 +143,6 @@ bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData)
     return false;
 }
 
-void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData &PrimitiveData)
-{
-	auto& PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock()->CastToShared<MDirectionalLightComponent>();
-    std::shared_ptr<MShader>& PixelShader = GetPixelShader(PrimitiveData);
-
-	Vec3 trans = PrimitiveComponent->getWorldTranslation();
-	Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
-	Vec4 color = { 1.f, 1.f, 1.f, 1.f };
-	color.x = PrimitiveComponent->getColor().x;
-	color.y = PrimitiveComponent->getColor().y;
-	color.z = PrimitiveComponent->getColor().z;
-	
-    const Vec3& Direction = PrimitiveComponent->GetDirection();
-
-	PixelShader->SetValue(TEXT("g_lightPosition"), transAndRange);
-	PixelShader->SetValue(TEXT("g_lightDirection"), Direction);
-	PixelShader->SetValue(TEXT("g_lightColor"), color);
-	PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), getRenderer()->GetWorld()->getMainCamera()->getInvesrViewMatrix());
-	PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), getRenderer()->GetWorld()->getMainCamera()->getInversePerspectiveProjectionMatrix());
-    PixelShader->SetValue(TEXT("Ambient"), getRenderer()->Ambient);
-
-	MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
-}
-
-bool DirectionalLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
-{
-    return PrimitiveData.PrimitiveType == EPrimitiveType::DirectionalLight && MRenderPass::IsValidPrimitive(PrimitiveData);
-}
-
-void DirectionalLightPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
-{
-    g_pGraphicDevice->getContext()->RSSetState(g_pGraphicDevice->ShadowDepthRS.Get());
-}
-
-void DirectionalLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)
-{
-    uint32 DepthStencilFlag = 0;
-    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::DepthDisable;
-    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilDisable;
-
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFlag), 0);
-    g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
-}
-
 bool SkyPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
 	if (PrimitiveData.PrimitiveType != EPrimitiveType::Sky)
@@ -172,73 +151,6 @@ bool SkyPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 	}
 
 	return MRenderPass::IsValidPrimitive(PrimitiveData);
-}
-
-void PointLightPass::Begin()
-{
-    MRenderPass::Begin();
-
-    // TODO. Directional 패스에서 그린 Specular 를 지우지 않도록 임시 수정. 개선해야 함
-    auto& ViewBindData = RenderTargetViewData[0];
-    auto& RenderTarget = getRenderer()->GetRenderTarget(RenderTargetViewData[0].Index);
-
-    getGraphicDevice()->ClearRenderTarget(RenderTarget, Color);
-}
-
-void PointLightPass::End()
-{
-    MRenderPass::End();
-    PointLightIndex = 0;
-}
-
-bool PointLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
-{
-    //return false;
-    return PrimitiveData.PrimitiveType == EPrimitiveType::PointLight && MRenderPass::IsValidPrimitive(PrimitiveData);
-}
-
-void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
-{
-    std::shared_ptr<MPointLightComponent> LightComp = PrimitiveData.GetPrimitiveComponent<MPointLightComponent>();
-    std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-
-    Vec3 trans = LightComp->getWorldTranslation();
-    Vec4 transAndRange = { trans.x, trans.y, trans.z, LightComp->getRange()};
-    Vec4 color = { 1.f, 1.f, 1.f, 1.f };
-    color.x = LightComp->getColor().x;
-    color.y = LightComp->getColor().y;
-    color.z = LightComp->getColor().z;
-    color.w = LightComp->getIntensity();
-
-    auto& Camera = getRenderer()->GetWorld()->getMainCamera();
-
-    if (std::shared_ptr<MShader>& PixelShader = Material->getPixelShader())
-    {
-        PixelShader->SetValue(TEXT("g_lightPosition"), transAndRange);
-        PixelShader->SetValue(TEXT("g_lightColor"), color);
-
-        PixelShader->SetValue(TEXT("PointLightIndex"), PointLightIndex);
-
-        PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), Camera->getInvesrViewMatrix());
-        PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), Camera->getInversePerspectiveProjectionMatrix());
-
-        Mat4 Mat = {};
-        XMMATRIX XMMat = XMLoadFloat4x4(&Camera->getInversePerspectiveProjectionMatrix()) * XMLoadFloat4x4(&Camera->getInvesrViewMatrix());
-        XMStoreFloat4x4(&Mat, XMMat);
-        PixelShader->SetValue(TEXT("ScreenToWorldMatrix"), Mat);
-    }
-
-    MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
-}
-
-void PointLightPass::HandleOutputMergeStage(const FPrimitiveData& primitiveData)
-{
-    uint32 DepthStencilFlag = 0;
-    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::DepthDisable;
-    DepthStencilFlag |= (uint32)Graphic::EDepthStencilMode::StencilDisable;
-
-    g_pGraphicDevice->getContext()->OMSetDepthStencilState(g_pGraphicDevice->getDepthStencilState(DepthStencilFlag), 0);
-    g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Light), nullptr, 0xffffffff);
 }
 
 MLinePass::MLinePass()

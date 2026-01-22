@@ -21,7 +21,11 @@ public:
     virtual ~MFullScreenQuadPass() = default;
 
 public:
-    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;\
+    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override; 
+    virtual std::vector<FPrimitiveData> MakePrimitiveDatas();
+
+protected:
+    FPrimitiveData CreatePrimitiveData(EPrimitiveType InType);
 
 protected:
     FMeshData MeshData = {};
