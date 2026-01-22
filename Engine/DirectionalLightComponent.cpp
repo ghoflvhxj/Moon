@@ -23,20 +23,6 @@ MDirectionalLightComponent::~MDirectionalLightComponent(void)
 void MDirectionalLightComponent::Update(const Time deltaTime)
 {
     MLightComponent::Update(deltaTime);
-
-    // 빛을 그린다 = 화면을 덮는 평면체 메시를 그린다.
-    // 그려질 픽셀의 색상은 난반사, 정반사를 구분해서 결정됨.
-    // normal를 샘플링해 난반사 결과를 LightDiffuse에, specular를 샘플링해 정반사 결과를 LightSpecular에 그림
-    // 즉, Transform에 이동이나 회전이 들어가면 안된다.
-    Vec3 trans = { 0.f, 0.f, 1.f };
-
-    XMMATRIX matrices[(int)ETransform::End] = {
-        XMMatrixScalingFromVector(XMLoadFloat3(&getScale())),
-        XMLoadFloat4x4(&IDENTITYMATRIX),
-        XMMatrixTranslationFromVector(XMLoadFloat3(&trans))
-    };
-
-    XMStoreFloat4x4(&LightWorldMatrix, matrices[(int)ETransform::Scale] * matrices[(int)ETransform::Rotation] * matrices[(int)ETransform::Translation]);
 }
 
 const bool MDirectionalLightComponent::GetPrimitiveData(std::vector<FPrimitiveData>& primitiveDataList)

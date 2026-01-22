@@ -111,15 +111,15 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
     }
 
-    //RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)] = CreateRenderPass<PointShadowDepthPass>();
-    //{
-    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
-    //        ERenderTarget::PointShadowDepth
-    //    );
+    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)] = CreateRenderPass<PointShadowDepthPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::PointShadowDepth
+        );
 
-    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), nullptr, TEXT("ShadowDepthPointGS.cso"));
-    //    RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
-    //}
+        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), TEXT("PS_PointLightShadow.cso"), TEXT("ShadowDepthPointGS.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
+    }
 #endif
 
     RenderPasses[EnumToIndex(ERenderPass::Geometry)] = CreateRenderPass<GeometryPass>();
@@ -224,6 +224,8 @@ bool MRenderer::Initialize()
             ERenderTarget::Depth,
             ERenderTarget::PointShadowDepth
         );
+
+        RenderPasses[EnumToIndex(ERenderPass::PointLight)]->SetDefaultShader(TEXT("Light.cso"), TEXT("PointLightShader.cso"));
         RenderPasses[EnumToIndex(ERenderPass::PointLight)]->SetClearTargets(false);
     }
 
@@ -649,10 +651,6 @@ void MRenderer::UpdatePrimitiveData(MPrimitiveComponent* InComponent)
     {
         Mesh = MeshComp->GetMesh();
     }
-    else if (auto& LightComp = InComponent->CastToShared<MLightComponent>())
-    {
-        Mesh = LightComp->GetMesh();
-    }
 
     if (Mesh != nullptr)
     {
@@ -686,16 +684,16 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
             RenderTargetInfo.Type = ERenderTargetType::Diffuse;
         }
         break;
-        case ERenderTarget::Depth:
-        {
-            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
-            RenderTargetInfo.Type = ERenderTargetType::Depth;
-        }
-        break;
         case ERenderTarget::Normal:
         {
             RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
             RenderTargetInfo.Type = ERenderTargetType::Normal;
+        }
+        break;
+        case ERenderTarget::Depth:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+            RenderTargetInfo.Type = ERenderTargetType::Depth;
         }
         break;
         case ERenderTarget::Emissive:
@@ -714,6 +712,8 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
         }
         break;
         case ERenderTarget::LightDiffuse:
+        case ERenderTarget::PointLightDiffuse:
+        case ERenderTarget::LightSpecular:
         {
             RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
             RenderTargetInfo.Type = ERenderTargetType::Light;
@@ -730,12 +730,12 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
         break;
         case ERenderTarget::PointShadowDepth:
         {
-            static constexpr uint32 MaxPointLightNum = 10;
+            static constexpr uint32 MaxPointLightNum = 8;
             RenderTargetInfo = FRenderTagetInfo::GetCube();
-            RenderTargetInfo.Width = 1024 * 2;
-            RenderTargetInfo.Height = 1024 * 2;
-            RenderTargetInfo.TextrueNum *= MaxPointLightNum;
-            RenderTargetInfo.Type = ERenderTargetType::Depth;
+            RenderTargetInfo.Width = 512;
+            RenderTargetInfo.Height = 512;
+            RenderTargetInfo.TextrueNum = MaxPointLightNum;
+            RenderTargetInfo.Type = ERenderTargetType::LinearDepth;
         }
         break;
         case ERenderTarget::RimLight:
@@ -920,24 +920,6 @@ void MRenderer::AddScene(const FWorldRenderInfo& InWorldRenderInfo)
 
     auto& Window = InWorldRenderInfo.DstWindow;
 
-    Window->GetOnViewportSizeChangedDelegate().Add([this, WorldID](uint32, uint32, uint32, uint32 NewWidth, uint32 NewHeight, bool) {
-        const Vec3 NewScale = { static_cast<float>(NewWidth), static_cast<float>(NewHeight), 0.f};
-        for (auto& PrimitiveData : GetScene(WorldID)->GetPrimitiveDatas(EPrimitiveType::DirectionalLight))
-        {
-            std::shared_ptr<MLightComponent> LightComp = PrimitiveData->GetPrimitiveComponent<MLightComponent>();
-            assert(LightComp);
-
-            LightComp->UpdateSize(NewScale.x, NewScale.y);
-        }
-        for (auto& PrimitiveData : GetScene(WorldID)->GetPrimitiveDatas(EPrimitiveType::PointLight))
-        {
-            std::shared_ptr<MLightComponent> LightComp = PrimitiveData->GetPrimitiveComponent<MLightComponent>();
-            assert(LightComp);
-
-            LightComp->UpdateSize(NewScale.x, NewScale.y);
-        }
-    });
-
     ResizeRenderTargets(Window->GetID(), 0, 0, Window->GetWidth<uint32>(), Window->GetHeight<uint32>(), Window->IsFullScreen());
     Window->GetOnViewportSizeChangedDelegate().Add(this, &MRenderer::ResizeRenderTargets);
 }
@@ -1043,7 +1025,7 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
             Scene->SetLightInfoCascadeShadow(cascadeIndex, Eye, LightView * OrthoProjMatrix);
         }
     }
-      
+
     PerformanceTimer p(TEXT("SceneRenderTime: "));
     RenderScene(Scene);
     SceneRenderTime = p.Record();
@@ -1376,10 +1358,6 @@ void MScene::UpdatePrimitiveData(MPrimitiveComponent* InComponent)
     if (auto& MeshComp = InComponent->CastToShared<MMeshComponent>())
     {
         Mesh = MeshComp->GetMesh();
-    }
-    else if (auto& LightComp = InComponent->CastToShared<MLightComponent>())
-    {
-        Mesh = LightComp->GetMesh();
     }
 
     if (Mesh == nullptr)

@@ -11,6 +11,7 @@ cbuffer PixelShaderConstantBuffer : register (b2)
 	row_major matrix g_inverseCameraViewMatrix;
 	row_major matrix g_inverseProjectiveMatrix;
     row_major matrix ScreenToWorldMatrix;
+    row_major matrix LightProjMatrix;
 };
 
 PixelOut_LightPass main(PixelIn pIn)
@@ -23,14 +24,15 @@ PixelOut_LightPass main(PixelIn pIn)
     normal.w = 0.f;
 	float4 specular = G_Specular.Sample(g_Sampler, pIn.uv);
 
-	//float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
-    float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
+    float3 PixelPosInCamera = PixelToView(pIn.uv, depth, g_inverseProjectiveMatrix).xyz;
+    float3 PixelPosInWorld = TransformPosition(PixelPosInCamera, g_inverseCameraViewMatrix);
+    //float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
 
     float3 PointLightPos    = g_lightPosition.xyz;
-    float3 deltaPosition    = PointLightPos - pixelWorldPosition.xyz;
+    float3 deltaPosition    = PointLightPos - PixelPosInWorld;
 	float3 direction		= normalize(deltaPosition);
 	float3 color			= g_lightColor.xyz;
-	float distance			= length(deltaPosition.xyz);
+	float distance			= length(deltaPosition);
 	float Range				= g_lightPosition.w;
 	float intensity			= g_lightColor.w;
 
@@ -55,38 +57,59 @@ PixelOut_LightPass main(PixelIn pIn)
     int sampleCount = 3;
     int temp = sampleCount / 2;
     int Counter = 0;
+    
+    float SurfaceDepth = distance;
 
-    float3 BaseDir = normalize(pixelWorldPosition - PointLightPos);
+    float3 BaseDir = normalize(PixelPosInWorld - PointLightPos);
     [unroll]
     for (int x = -temp; x <= temp; ++x)
     {
     [unroll]
         for (int y = -temp; y <= temp; ++y)
         {
-            //ShadowFactor += T_PointLightDepth.SampleCmpLevelZero(g_SamplerCloser, float4(normalize(BaseDir + float3(x / 2048.f, y / 2048.f, 0.f)), PointLightIndex), distance - 0.005f).x;
+            // 서페이스 뎁스(기준)가 그림자 뎁스보다 크다면, 그림자가 생겨야 함
+            ShadowFactor += G_PointLightDepth.SampleCmpLevelZero(S_Greater, float4(normalize(BaseDir + float3(x / 512.f, y / 512.f, 0.f)), PointLightIndex), SurfaceDepth - 0.005f).x;
         }
     }
-    //ShadowFactor /= sampleCount * sampleCount;
-
+    ShadowFactor /= sampleCount * sampleCount;
+    float NonShadow = 1.f - ShadowFactor;
     
-    float3 Direct = Bright * intensity * attenuation * (1.f - ShadowFactor);
-    //float3 Direct = Bright * intensity * attenuation;
-    //float3 InDirect = ambient * abs(Dot) * attenuation; // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯
+    float3 Direct = Bright * intensity * attenuation * NonShadow;
     pOut.lightDiffuse.xyz = color * Direct;
 
 	//-------------------------------------------------------------------------------------------------
 	// Specular
-    deltaPosition = pixelWorldPosition - PointLightPos;
+    deltaPosition = PixelPosInWorld - PointLightPos;
     direction = reflect(normalize(deltaPosition), normalInWorld.xyz);
     
     float3 CameraWorldPos = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]);
-    float3 PixelToCamera = normalize(CameraWorldPos - pixelWorldPosition.xyz);
+    float3 PixelToCamera = normalize(CameraWorldPos - PixelPosInWorld);
 
     float3 specularFactor = pow(saturate(dot(PixelToCamera, direction)), 10.f);
-    if (Bright > 0.f)
-    {
-        pOut.lightSpecular = float4(specular.xyz * specularFactor * (1.f - ShadowFactor), 1.f);
-    }
+    
+    //if (Bright > 0.f)
+    //{
+    //    pOut.lightSpecular = float4(specular.xyz * specularFactor * (1.f - ShadowFactor), 1.f);
+    //}
 
+    /********************************
+        디버깅
+    ********************************/
+    //pOut.lightDiffuse.xyz = float3(SurfaceDepth, SurfaceDepth, SurfaceDepth);
+    
+    //float Temp = G_PointLightDepth.Sample(g_Sampler, float4(BaseDir, PointLightIndex)).x;
+    //float Temp2 = SurfaceDepth - Temp;
+    //pOut.lightDiffuse.xyz = float3(Temp2, Temp2, Temp2);
+    
+    //float Temp = G_PointLightDepth.Sample(g_Sampler, float4(BaseDir, PointLightIndex)).x;
+    //float Temp2 = Temp == 1.f ? 1.f : 0.f;
+    //pOut.lightDiffuse.xyz = float3(Temp2, Temp2, Temp2);
+    
+    //float Temp2 = G_PointLightDepth.Sample(g_Sampler, float4(BaseDir, PointLightIndex)).x / Range;
+    //pOut.lightDiffuse.xyz = float3(Temp2, Temp2, Temp2);
+    
+    //float Temp2 = distance / Range;
+    //pOut.lightDiffuse.xyz = float3(Temp2, Temp2, Temp2);
+    
 	return pOut;
 }

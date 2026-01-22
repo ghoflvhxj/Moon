@@ -9,6 +9,10 @@
 
 #include "MainGameSetting.h"
 
+/**************************************
+    TODO. DX 관련 코드는 GraphicDevice로 옮겨야 함.
+**************************************/
+
 MRenderTarget::MRenderTarget()
 	: _pRenderTargetView{ nullptr }
 	, _pDepthStencilView{ nullptr }
@@ -24,7 +28,7 @@ MRenderTarget::~MRenderTarget()
 
 std::shared_ptr<MTexture> MRenderTarget::AsTexture()
 {
-	return Texture;
+	return RenderTargetTexture ? RenderTargetTexture : DepthStencilTexture;
 }
 
 void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo)
@@ -54,12 +58,12 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
         TextureDesc.CPUAccessFlags = 0;
         TextureDesc.MiscFlags = RenderTargetInfo.bCube ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
 
-        Texture = std::make_shared<MTexture>();
+        RenderTargetTexture = std::make_shared<MTexture>();
 
         ID3D11Texture2D* NewTexture = nullptr;
         //g_pGraphicDevice->getDevice()->CreateTexture2D(&TextureDesc, nullptr, &NewTexture);
         FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&TextureDesc, nullptr, &NewTexture));
-        Texture->SetTexture(NewTexture);
+        RenderTargetTexture->SetTexture(NewTexture);
 
         // RenderTarget 렌더 타겟 뷰
         SafeRelease(_pRenderTargetView);
@@ -84,7 +88,7 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
             RenderTargetViewDesc.Texture2DArray.FirstArraySlice = 0;
             RenderTargetViewDesc.Texture2DArray.MipSlice = 0;
         }
-        FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(Texture->GetTexture(), &RenderTargetViewDesc, &_pRenderTargetView));
+        FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateRenderTargetView(RenderTargetTexture->GetTexture(), &RenderTargetViewDesc, &_pRenderTargetView));
 
         // RenderTarget 쉐이더 리소스 뷰
         D3D11_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc = { };
@@ -124,10 +128,11 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
 
         //FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(RenderTargetTexture->GetTexture(), &ShaderResourceViewDesc, &RenderTargetTexture->GetShaderResourceView()));
         ID3D11ShaderResourceView* ShaderResourceView = nullptr;
-        FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(Texture->GetTexture(), &ShaderResourceViewDesc, &ShaderResourceView));
-        Texture->SetShaderResourceView(ShaderResourceView);
+        FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(RenderTargetTexture->GetTexture(), &ShaderResourceViewDesc, &ShaderResourceView));
+        RenderTargetTexture->SetShaderResourceView(ShaderResourceView);
     }
-    else
+    
+    if(bNotDepth == false || RenderTargetInfo.Type == ERenderTargetType::LinearDepth)
     {
         // DepthStencil 텍스쳐
         D3D11_TEXTURE2D_DESC DepthStencilTextureDesc = { };
@@ -137,22 +142,22 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
         DepthStencilTextureDesc.SampleDesc.Count = 1;
         DepthStencilTextureDesc.SampleDesc.Quality = 0;
         DepthStencilTextureDesc.Usage = D3D11_USAGE_DEFAULT;
-        DepthStencilTextureDesc.Format = GetFormat(EDXResourceType::Texture, RenderTargetInfo.Type);
+        DepthStencilTextureDesc.Format = GetDepthStencilFormat(EDXResourceType::Texture, RenderTargetInfo.Type);
         DepthStencilTextureDesc.ArraySize = TextureNum;
         DepthStencilTextureDesc.MipLevels = 1;
         DepthStencilTextureDesc.CPUAccessFlags = 0;
         DepthStencilTextureDesc.MiscFlags = RenderTargetInfo.bCube ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
-        Texture = std::make_shared<MTexture>();
+        DepthStencilTexture = std::make_shared<MTexture>();
 
         //FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateTexture2D(&DepthStencilTextureDesc, nullptr, &DepthStencilTexture->GetTexture()));
         ID3D11Texture2D* DepthTexture = nullptr;
         g_pGraphicDevice->getDevice()->CreateTexture2D(&DepthStencilTextureDesc, nullptr, &DepthTexture);
-        Texture->SetTexture(DepthTexture);
+        DepthStencilTexture->SetTexture(DepthTexture);
 
         // DepthStencil 깊이 스텐실 뷰
         SafeRelease(_pDepthStencilView);
         D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
-        DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        DepthStencilViewDesc.Format = GetDepthStencilFormat(EDXResourceType::RenderTargetView, RenderTargetInfo.Type);
         if (bSingleTexture)
         {
             DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
@@ -172,11 +177,11 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
             DepthStencilViewDesc.Texture2DArray.FirstArraySlice = 0;
             DepthStencilViewDesc.Texture2DArray.MipSlice = 0;
         }
-        FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(Texture->GetTexture(), &DepthStencilViewDesc, &_pDepthStencilView));
+        FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateDepthStencilView(DepthTexture, &DepthStencilViewDesc, &_pDepthStencilView));
 
         // 깊이 쉐이더 리소스 뷰
         D3D11_SHADER_RESOURCE_VIEW_DESC DepthResourceViewDesc = { };
-        DepthResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+        DepthResourceViewDesc.Format = GetDepthStencilFormat(EDXResourceType::ShaderResourceView, RenderTargetInfo.Type);
         if (bSingleTexture)
         {
             DepthResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -202,7 +207,7 @@ void MRenderTarget::initializeTexture(const FRenderTagetInfo& InRenderTargetInfo
 
         ID3D11ShaderResourceView* ShaderResourceView = nullptr;
         FAILED_CHECK_THROW(g_pGraphicDevice->getDevice()->CreateShaderResourceView(DepthTexture, &DepthResourceViewDesc, &ShaderResourceView));
-        Texture->SetShaderResourceView(ShaderResourceView);
+        DepthStencilTexture->SetShaderResourceView(ShaderResourceView);
     }
 }
 
@@ -233,6 +238,8 @@ DXGI_FORMAT MRenderTarget::GetFormat(EDXResourceType InViewType, ERenderTargetTy
             return DXGI_FORMAT_R16G16B16A16_FLOAT;
         case ERenderTargetType::Depth:
             return DXGI_FORMAT_R24G8_TYPELESS;
+        case ERenderTargetType::LinearDepth:
+            return DXGI_FORMAT_R32_TYPELESS;
         case ERenderTargetType::Bool:
             return DXGI_FORMAT_R8_TYPELESS;
         default:
@@ -273,12 +280,50 @@ DXGI_FORMAT MRenderTarget::GetFormat(EDXResourceType InViewType, ERenderTargetTy
             return DXGI_FORMAT_R16G16B16A16_FLOAT;
         case ERenderTargetType::Depth:
             return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+        case ERenderTargetType::LinearDepth:
+            return DXGI_FORMAT_R32_FLOAT;
         case ERenderTargetType::Bool:
             return DXGI_FORMAT_R8_UNORM;
         default:
             return DXGI_FORMAT_UNKNOWN;
         }
     }
+}
+
+DXGI_FORMAT MRenderTarget::GetDepthStencilFormat(EDXResourceType InViewType, ERenderTargetType InRenderTargetType) const
+{
+    if (InViewType == EDXResourceType::Texture)
+    {
+        switch (InRenderTargetType)
+        {
+        case ERenderTargetType::Depth:
+            return DXGI_FORMAT_R24G8_TYPELESS;
+        case ERenderTargetType::LinearDepth:
+            return DXGI_FORMAT_R32_TYPELESS;
+        }
+    }
+    else if(InViewType == EDXResourceType::RenderTargetView)
+    {
+        switch (InRenderTargetType)
+        {
+        case ERenderTargetType::Depth:
+            return DXGI_FORMAT_D24_UNORM_S8_UINT;
+        case ERenderTargetType::LinearDepth:
+            return DXGI_FORMAT_D32_FLOAT;
+        }
+    }
+    else if (InViewType == EDXResourceType::ShaderResourceView)
+    {
+        switch (InRenderTargetType)
+        {
+        case ERenderTargetType::Depth:
+            return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+        case ERenderTargetType::LinearDepth:
+            return DXGI_FORMAT_R32_FLOAT;
+        }
+    }
+
+    return DXGI_FORMAT_UNKNOWN;
 }
 
 ID3D11RenderTargetView* MRenderTarget::AsRenderTargetView()

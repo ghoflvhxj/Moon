@@ -78,7 +78,7 @@ Texture2D G_Emissive                            : register(t13);
 
 Texture2D G_Depth				                : register(t20);
 Texture2DArray<float> G_ShadowDepth	            : register(t21);
-TextureCubeArray T_PointLightDepth              : register(t22);
+TextureCubeArray G_PointLightDepth              : register(t22);
 Texture2D G_LightDiffuse                        : register(t23);
 Texture2D G_PointLightDiffuse                   : register(t24);
 Texture2D g_LightSpecular		                : register(t25);
@@ -98,6 +98,9 @@ SamplerState g_Sampler : register(s0);
 SamplerState S_Linear : register(s1);
 SamplerComparisonState g_SamplerCloser : register(s2);
 SamplerComparisonState g_SamplerFarther : register(s3);
+
+SamplerComparisonState S_Greater : register(s4);
+
 
 #define RENDERPASS_STURCTURED_BUFFER t100
 
@@ -130,16 +133,6 @@ float3 PackNormal(float3 InNormal)
 float3 UnpackNormal(float3 InPackedNormal)
 {
     return normalize(InPackedNormal * 2.f - 1.f);
-}
-
-float3 TransformPosition(float3 InPos, float4x4 InTransformMat)
-{
-    return mul(float4(InPos, 1.f), InTransformMat).xyz;
-}
-
-float3 TransformNormal(float3 InNormal, float4x4 InTransformMat)
-{
-    return mul(float4(InNormal, 0.f), InTransformMat).xyz;
 }
 
 float2 ToUV(float2 InClipPos)
@@ -191,10 +184,10 @@ float PixelCascadeSahdow(int cascadeIndex, float3 InPixelWorldPos, float3 InSurf
             [unroll]
             for (int y = -temp; y <= temp; ++y)
             {
-                // ShadowDepth을 샘플링해 저장된 깊이(빛 시점에서의 깊이)와, 현재 픽셀을 깊이를 비교함
-                // 즉 샘플링한 게 더 적으면 그림자가 적용됨
-                
-                shadow += G_ShadowDepth.SampleCmpLevelZero(g_SamplerCloser, ShadowDepthUV, SurfaceDepth, int2(x, y)).x;
+                /***********************************************************
+                 서페이스 뎁스(기준)가 쉐도우 뎁스보다 멀다면 그림자.
+                ***********************************************************/
+                shadow += G_ShadowDepth.SampleCmpLevelZero(g_SamplerFarther, ShadowDepthUV, SurfaceDepth, int2(x, y)).x;
             }
         }
         

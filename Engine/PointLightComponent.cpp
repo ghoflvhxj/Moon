@@ -21,8 +21,6 @@ MPointLightComponent::~MPointLightComponent()
 void MPointLightComponent::Update(const Time deltaTime)
 {
 	Super::Update(deltaTime);
-	Vec3 trans = { 0.f, 0.f, 1.f };
-    TransformMatrix(LightWorldMatrix, getScale(), VEC3ZERO, trans);
 }
 
 const bool MPointLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList)

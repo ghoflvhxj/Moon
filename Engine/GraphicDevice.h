@@ -199,9 +199,17 @@ private:
 	std::vector<ID3D11RasterizerState*>		RasterizeStates;
     ID3D11RasterizerState* DepthPrePassRS = nullptr;
 	std::map<uint32, ID3D11DepthStencilState*>	DepthStencilStates;
+    ComPtr<ID3D11DepthStencilState> LinearDepthStencilState;
 	std::vector<ID3D11BlendState*>			BlendStates;
 public:
     ComPtr<ID3D11RasterizerState> ShadowDepthRS = nullptr;
+
+    /***********************************************
+        DepthStencil 설정
+    ***********************************************/
+public:
+    void LinearDepthStencil(); // 이름은 임시
+
 
     /***********************************************
         바인딩

@@ -99,7 +99,7 @@ bool GraphicDevice::Initialize()
         QueryDesc.MiscFlags = 0;
         m_pDevice->CreateQuery(&QueryDesc, Query[i].GetAddressOf());
 
-        for (int j = 0; j < 12; ++j)
+        for (int j = 0; j < 15; ++j)
         {
             QueryDesc.Query = D3D11_QUERY_TIMESTAMP;
             m_pDevice->CreateQuery(&QueryDesc, Start[i][j].GetAddressOf());
@@ -217,16 +217,13 @@ void GraphicDevice::ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRe
         getContext()->ClearRenderTargetView(InRenderTarget->AsRenderTargetView(), reinterpret_cast<const float*>(&InColor));
     }
 
-    if (InRenderTarget->GetRenderTargetInfo().Type == ERenderTargetType::Depth && InRenderTarget->getDepthStencilView())
+    if (InRenderTarget->getDepthStencilView())
     {
         /****************************
                     0.f     1.f
          Normal     Near    Far
          Reverse    Far     Near
         ****************************/ 
-
-        
-
         getContext()->ClearDepthStencilView(InRenderTarget->getDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, GetFar(), 0u);
     }
 }
@@ -566,7 +563,7 @@ void GraphicDevice::End()
     if (getContext()->GetData(Query[readIndex].Get(), &DisjointData, sizeof(D3D11_QUERY_DATA_TIMESTAMP_DISJOINT), 0) == S_OK)
     {
         RenderPassTimes.clear();
-        for (int RenderPassIndex = 0; RenderPassIndex < 12; RenderPassIndex++)
+        for (int RenderPassIndex = 0; RenderPassIndex < 15; RenderPassIndex++)
         {
             UINT64 StartTime = 0, FinishTime = 0;
             getContext()->GetData(Start[readIndex][RenderPassIndex].Get(), &StartTime, sizeof(UINT64), 0);
@@ -733,6 +730,13 @@ bool GraphicDevice::buildDepthStencilState()
         DepthStencilStates[EnumToFlag(EDepthStencilMode::DepthDisable, EDepthStencilMode::StencilDisable)] = pDepthStencilState;
     }
 
+    {
+        D3D11_DEPTH_STENCIL_DESC Copy = dsd;
+        Copy.DepthFunc = D3D11_COMPARISON_GREATER;
+        Copy.StencilEnable = FALSE;
+        FAILED_CHECK_THROW(m_pDevice->CreateDepthStencilState(&Copy, LinearDepthStencilState.GetAddressOf()));
+    }
+
 	return true;
 }
 
@@ -815,8 +819,11 @@ bool GraphicDevice::buildSamplerState()
 	BaseSamplerDesc.MipLODBias = 0.f;
 
 	// Point
-	BaseSamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_POINT;
-	CreateSamplerLambda(BaseSamplerDesc);
+    {
+        D3D11_SAMPLER_DESC SamplerDesc = BaseSamplerDesc;
+        SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_POINT;
+        CreateSamplerLambda(SamplerDesc);
+    }
 
 	// Linear
     {
@@ -829,34 +836,51 @@ bool GraphicDevice::buildSamplerState()
     }
 
 	// Anisotropic
-	BaseSamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
-	BaseSamplerDesc.MaxAnisotropy = 1u;
-	CreateSamplerLambda(BaseSamplerDesc);
+    {
+        D3D11_SAMPLER_DESC SamplerDesc = BaseSamplerDesc;
+        SamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_ANISOTROPIC;
+        SamplerDesc.MaxAnisotropy = 1u;
+        CreateSamplerLambda(SamplerDesc);
+    }
 
 	// Comparison MIN MAG LINEAR MIP POINT
-	BaseSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-	BaseSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	BaseSamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-	BaseSamplerDesc.BorderColor[0] = 1.f;
-	BaseSamplerDesc.MaxAnisotropy = 1u;
-	BaseSamplerDesc.MipLODBias = 0.f;
+    {
+        BaseSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+        BaseSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+        BaseSamplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+        BaseSamplerDesc.BorderColor[0] = 1.f;
+        BaseSamplerDesc.MaxAnisotropy = 1u;
+        BaseSamplerDesc.MipLODBias = 0.f;
+    }
 
     // 가까운 거
     {
-        BaseSamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_GREATER : D3D11_COMPARISON_LESS;
+        D3D11_SAMPLER_DESC SamplerDesc = BaseSamplerDesc;
+        SamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_GREATER : D3D11_COMPARISON_LESS;
         ID3D11SamplerState* pSamplerState = nullptr;
-        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&BaseSamplerDesc, &pSamplerState), false);
+        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
         SamplerStates.emplace_back(pSamplerState);
         m_pImmediateContext->PSSetSamplers(2, 1, &pSamplerState);
     }
 
     // 먼 거
     {
-        BaseSamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_LESS : D3D11_COMPARISON_GREATER;
+        D3D11_SAMPLER_DESC SamplerDesc = BaseSamplerDesc;
+        SamplerDesc.ComparisonFunc = bReverseDepth ? D3D11_COMPARISON_LESS : D3D11_COMPARISON_GREATER;
         ID3D11SamplerState* pSamplerState = nullptr;
-        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&BaseSamplerDesc, &pSamplerState), false);
+        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
         SamplerStates.emplace_back(pSamplerState);
         m_pImmediateContext->PSSetSamplers(3, 1, &pSamplerState);
+    }
+
+    // 작은 거
+    {
+        D3D11_SAMPLER_DESC SamplerDesc = BaseSamplerDesc;
+        SamplerDesc.ComparisonFunc = D3D11_COMPARISON_GREATER;
+        ID3D11SamplerState* pSamplerState = nullptr;
+        FAILED_CHECK_RETURN(m_pDevice->CreateSamplerState(&SamplerDesc, &pSamplerState), false);
+        SamplerStates.emplace_back(pSamplerState);
+        m_pImmediateContext->PSSetSamplers(4, 1, &pSamplerState);
     }
 
     m_pImmediateContext->PSSetSamplers(0, 1, &SamplerStates[0]);
@@ -896,6 +920,12 @@ void GraphicDevice::SetPixelShader(std::shared_ptr<PixelShader> &pixelShader)
 ID3D11Device *GraphicDevice::getDevice()
 {
 	return m_pDevice;
+}
+
+void GraphicDevice::LinearDepthStencil()
+{
+   getContext()->OMSetDepthStencilState(LinearDepthStencilState.Get(), 0);
+   getContext()->OMSetBlendState(getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 }
 
 void GraphicDevice::PSSetSRV(UINT InSlot, uint32 InSRVID)

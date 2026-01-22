@@ -17,20 +17,7 @@ MLightComponent::MLightComponent(void)
 	, Intensity { 1.f }
 	, bShow { true }
 {
-    setRenderMode(ERenderMode::Orthogonal);
-
-    g_ResourceManager->Load(TEXT("Base/Plane.json"), _pStaticMesh);
-
     Material = std::make_shared<MMaterial>();
-
-    if (getGraphicDevice())
-    {
-        auto& ViewportSize = getGraphicDevice()->GetViewportSize();
-        float Width = std::get<0>(ViewportSize);
-        float Height = std::get<1>(ViewportSize);
-
-        UpdateSize(Width, Height);
-    }
 }
 
 MLightComponent::~MLightComponent(void)
@@ -40,19 +27,13 @@ MLightComponent::~MLightComponent(void)
 void MLightComponent::OnLoaded()
 {
     Super::OnLoaded();
-
-    auto& ViewportSize = getGraphicDevice()->GetViewportSize();
-    float Width = std::get<0>(ViewportSize);
-    float Height = std::get<1>(ViewportSize);
-
-    UpdateSize(Width, Height);
 }
 
 void MLightComponent::Update(const Time deltaTime)
 {
     Super::Update(deltaTime);
 
-    setRenderMode(ERenderMode::Orthogonal);
+    TransformMatrix(LightWorldMatrix, getScale(), VEC3ZERO, VEC3ZERO);
 
     Direction = GetForward();
 }
@@ -61,18 +42,11 @@ const bool MLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primit
 {
 	FPrimitiveData primitiveData        = {};
 	primitiveData.PrimitiveComponent	= GetShared();
-	primitiveData.MeshData              = &_pStaticMesh->GetMeshData(0);
     primitiveData.Material              = Material;
 
 	primitiveDataList.emplace_back(primitiveData);
 
 	return true;
-}
-
-void MLightComponent::UpdateSize(float InWidth, float InHeight)
-{
-    setScale(InWidth, InHeight, 1.f);
-    Update(0.f);
 }
 
 Mat4& MLightComponent::getWorldMatrix()

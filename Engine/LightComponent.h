@@ -17,9 +17,6 @@ public:
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 
 public:
-    void UpdateSize(float InWidth, float InHeight);
-
-public:
     virtual Mat4& getWorldMatrix() override;
 protected:
     Mat4 LightWorldMatrix;
@@ -52,19 +49,14 @@ public:
 private:
 	bool bShow;
 
-public:
-	std::shared_ptr<StaticMesh> GetMesh() { return _pStaticMesh; }
-private:
-	std::shared_ptr<StaticMesh> _pStaticMesh;
-
 protected:
     std::shared_ptr<MMaterial> Material;
 
     REFLECT(
-        MLightComponent,
-        PROPERTY(Color),
-        PROPERTY(Direction),
-        PROPERTY(Intensity),
-        PROPERTY(bShow)
+        MLightComponent
+        , PROPERTY(Color)
+        , PROPERTY(Direction)
+        , PROPERTY(Intensity)
+        , PROPERTY(bShow)
     )
 };

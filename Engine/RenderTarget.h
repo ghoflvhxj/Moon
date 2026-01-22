@@ -11,9 +11,10 @@ enum class ERenderTargetType
     Default = 1 << 0,
     Diffuse = 1 << 1,
     Depth   = 1 << 2,
-    Normal  = 1 << 3,
-    Light   = 1 << 4,
-    Bool    = 1 << 5
+    LinearDepth = 1 << 3,
+    Normal  = 1 << 4,
+    Light   = 1 << 5,
+    Bool    = 1 << 6
 };
 
 struct FRenderTagetInfo
@@ -49,10 +50,15 @@ public:
 	explicit MRenderTarget();
 	virtual ~MRenderTarget();
 	
+    /***********************************
+        포인트 라이트 쉐도우 맵의 경우 선형 뎁스 저장 해야함
+        렌더 타겟이 필요할 뿐만 아니라, 렌더링 시 깊이 판별을 위한 깊이 스텐실도 필요함
+    ***********************************/
 public:
 	std::shared_ptr<MTexture> AsTexture();
 protected:
-    std::shared_ptr<MTexture> Texture = nullptr;
+    std::shared_ptr<MTexture> RenderTargetTexture = nullptr;
+    std::shared_ptr<MTexture> DepthStencilTexture = nullptr;
 
 public:
 	void initializeTexture(const FRenderTagetInfo& InRenderTargetInfo);
@@ -65,6 +71,7 @@ public:
 
 private:
     DXGI_FORMAT GetFormat(EDXResourceType InViewType, ERenderTargetType InRenderTargetType) const;
+    DXGI_FORMAT GetDepthStencilFormat(EDXResourceType InViewType, ERenderTargetType InRenderTargetType) const;
 
 public:
 	ID3D11RenderTargetView* AsRenderTargetView();

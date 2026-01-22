@@ -89,8 +89,9 @@ void MRenderPass::Begin()
 		std::vector<ID3D11RenderTargetView*> RenderTargetViews;
         RenderTargetViews.reserve(RenderTargetViewData.size());
 
-        ID3D11DepthStencilView* DepthStencilView = nullptr;
+        ID3D11DepthStencilView* DepthStencilView = bUseCommonDepthStencil ? g_pGraphicDevice->GetDepthStencilView() : nullptr;
 
+        // RenderTargetViews
 		for (const FRenderTargetBindData& BindData : RenderTargetViewData)
 		{
             auto& RenderTarget = getRenderer()->GetRenderTarget(BindData.Index);
@@ -100,21 +101,20 @@ void MRenderPass::Begin()
             {
                 RenderTargetViews.push_back(RenderTarget->AsRenderTargetView());
             }
-            else
+            
+            if(DepthStencilView == nullptr)
             {
-                DepthStencilView = RenderTarget->getDepthStencilView();
+                if (RenderTarget->GetRenderTargetInfo().Type == ERenderTargetType::Depth || RenderTarget->GetRenderTargetInfo().Type == ERenderTargetType::LinearDepth)
+                {
+                    DepthStencilView = RenderTarget->getDepthStencilView();
+                }
             }
 
-			if (true == bClearTargets)
+			if (bClearTargets)
 			{
                 g_pGraphicDevice->ClearRenderTarget(RenderTarget, Color);
 			}
 		}
-
-        if (bUseCommonDepthStencil)
-        {
-            DepthStencilView = g_pGraphicDevice->GetDepthStencilView();
-        }
 
         g_pGraphicDevice->getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetViews.size()), RenderTargetViews.data(), DepthStencilView);
 	}
@@ -166,10 +166,13 @@ bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
             return false;
         }
 
-        std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
-        if (Material == nullptr)
+        if (bUseDefaultShaderOnly == false)
         {
-            return false;
+            std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
+            if (Material == nullptr)
+            {
+                return false;
+            }
         }
     }
 
