@@ -113,5 +113,6 @@ protected:
         MPrimitiveComponent
         , PROPERTY(RenderMode)
         , PROPERTY(bRendering)
+        , PROPERTY(bShadowing)
     )
 };
