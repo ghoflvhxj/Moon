@@ -1,0 +1,1465 @@
+{
+    "MWorld": {
+        "Actors": [
+            {
+                "Key": "Player_0",
+                "Value": {
+                    "Player": {
+                        "CharacterMeshComponent": {
+                            "DynamicMeshComponent": {
+                                "AnimTime": 0.0,
+                                "AnimSpeed": 1.0,
+                                "bAnimPlaying": false,
+                                "bPlayAnimAtBegin": true,
+                                "Animation": {
+                                    "MAsset": {
+                                        "Path": "2B\\Anim\\pl0000_0028.mot.json"
+                                    }
+                                },
+                                "bBindPose": false,
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "2B\\2B.json"
+                                    }
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "2B\\Cloth.json"
+                                        }
+                                    },
+                                    "1": {
+                                        "MAsset": {
+                                            "Path": "2B\\Head.json"
+                                        }
+                                    },
+                                    "2": {
+                                        "MAsset": {
+                                            "Path": "2B\\Hair.json"
+                                        }
+                                    },
+                                    "3": {
+                                        "MAsset": {
+                                            "Path": "2B\\Hair2.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    0.0,
+                                    -0.8,
+                                    0.0
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "CharacterMesh"
+                            },
+                            "MObject": {}
+                        },
+                        "CapsuleComponent": {
+                            "MCapsuleComponent": {
+                                "CapsuleData": {
+                                    "HalfHeight": 0.5,
+                                    "Radius": 0.3
+                                }
+                            },
+                            "MCollisionComponent": {},
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        },
+                        "CameraComponent": {
+                            "MCameraComponent": {
+                                "TargetArmLength": 3.0
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": true,
+                                "Translation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "Camera"
+                            },
+                            "MObject": {}
+                        },
+                        "IdleAnim": {
+                            "MAsset": {
+                                "Path": "2B\\Anim\\pl0000_b0e0.mot.json"
+                            }
+                        },
+                        "WalkAnim": {
+                            "MAsset": {
+                                "Path": "2B\\Anim\\pl0000_0001.mot.json"
+                            }
+                        },
+                        "WalkToIdleAnim": {
+                            "MAsset": {
+                                "Path": "2B\\Anim\\pl0000_0028.mot.json"
+                            }
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_15",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -5.25655,
+                                    -2.2897,
+                                    -7.30548
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_5",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Scene\\g50300out.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1,
+                                    "1": 1,
+                                    "2": 1,
+                                    "3": 1,
+                                    "4": 1,
+                                    "5": 1,
+                                    "6": 1,
+                                    "7": 1,
+                                    "8": 1,
+                                    "9": 1,
+                                    "10": 1,
+                                    "11": 1,
+                                    "12": 1,
+                                    "13": 1,
+                                    "14": 1,
+                                    "15": 1,
+                                    "16": 1,
+                                    "17": 1,
+                                    "18": 1,
+                                    "19": 1,
+                                    "20": 1,
+                                    "21": 1,
+                                    "22": 1,
+                                    "23": 1,
+                                    "24": 1,
+                                    "25": 1,
+                                    "26": 1,
+                                    "27": 1,
+                                    "28": 1,
+                                    "29": 1,
+                                    "30": 1,
+                                    "31": 1,
+                                    "32": 1,
+                                    "33": 1,
+                                    "34": 1,
+                                    "35": 1,
+                                    "36": 1,
+                                    "37": 1,
+                                    "38": 1,
+                                    "39": 1,
+                                    "40": 1,
+                                    "41": 1,
+                                    "42": 1,
+                                    "43": 1,
+                                    "44": 1,
+                                    "45": 1,
+                                    "46": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": true,
+                                "PhysicsType": 2,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Scene\\b10_room00_01_aaax_tga1.json"
+                                        }
+                                    },
+                                    "1": {
+                                        "MAsset": {
+                                            "Path": "Scene\\b10_room00_02_aaa1_tga1.json"
+                                        }
+                                    },
+                                    "2": {
+                                        "MAsset": {
+                                            "Path": "Scene\\b10_room00_03_aaax_tga1.json"
+                                        }
+                                    },
+                                    "3": {
+                                        "MAsset": {
+                                            "Path": "Scene\\b10_room00_04_aaax_tga1.json"
+                                        }
+                                    },
+                                    "4": {
+                                        "MAsset": {
+                                            "Path": "Scene\\b10_room00_05_aaax_tga1.json"
+                                        }
+                                    },
+                                    "5": {
+                                        "MAsset": {
+                                            "Path": "Scene\\mas_cloth06_aaax_tga1.json"
+                                        }
+                                    },
+                                    "6": {
+                                        "MAsset": {
+                                            "Path": "Scene\\mas_cloth06_aaax_tga2.json"
+                                        }
+                                    },
+                                    "7": {
+                                        "MAsset": {
+                                            "Path": "Scene\\_kajirock_03_diffuse_8k_aaax_.json"
+                                        }
+                                    },
+                                    "8": {
+                                        "MAsset": {
+                                            "Path": "Scene\\_kajirock_04_diffuse_8k_aaax_.json"
+                                        }
+                                    },
+                                    "9": {
+                                        "MAsset": {
+                                            "Path": "Scene\\_kajirock_06_diffuse_8k_aaax_.json"
+                                        }
+                                    },
+                                    "10": {
+                                        "MAsset": {
+                                            "Path": "Scene\\_kajirock_07_diffuse_8k_aaax_.json"
+                                        }
+                                    },
+                                    "11": {
+                                        "MAsset": {
+                                            "Path": "Scene\\kaj_ground_rock_AAA3_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    117.08341,
+                                    2.0,
+                                    152.01176
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_14",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -5.75201,
+                                    -2.2897,
+                                    -5.76873
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_16",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -5.45745,
+                                    -2.2897,
+                                    -3.71428
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_0",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    0.0,
+                                    -1.79279,
+                                    0.0
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_1",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bgd002_Grass\\bgd002_Grass.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bgd002_Grass\\Material02.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -5.2574,
+                                    -1.64909,
+                                    -1.10708
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MDirectionalLightActor_0",
+                "Value": {
+                    "MDirectionalLightActor": {
+                        "LightComponent": {
+                            "MDirectionalLightComponent": {
+                                "Ambient": [
+                                    0.00498,
+                                    0.02999,
+                                    0.00498
+                                ]
+                            },
+                            "MLightComponent": {
+                                "Color": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Direction": [
+                                    -0.1635,
+                                    -0.95194,
+                                    -0.25896
+                                ],
+                                "Intensity": 1.0,
+                                "bShow": true
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 1,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1920.0,
+                                    1080.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    1.88206,
+                                    0.56318,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bUpdated": true
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_10",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -3.24187,
+                                    -2.32031,
+                                    -5.65277
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_2",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    1.33392,
+                                    -1.79279,
+                                    0.0
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_3",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    0.0,
+                                    -1.79279,
+                                    1.63653
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_4",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bgd002_Grass\\bgd002_Grass.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bgd002_Grass\\Material02.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    3.82071,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -8.68871,
+                                    -1.88972,
+                                    1.03145
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_6",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    5.92634,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -5.26593,
+                                    -1.79279,
+                                    -3.49441
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_7",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -3.24187,
+                                    -1.87686,
+                                    -3.40081
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_8",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -2.29825,
+                                    -2.27237,
+                                    -4.68956
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_9",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -4.14382,
+                                    -1.87686,
+                                    -3.40081
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_11",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -4.43032,
+                                    -2.2897,
+                                    -5.76873
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_12",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -5.98716,
+                                    -1.87686,
+                                    -3.40081
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_13",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -3.94172,
+                                    -2.09897,
+                                    -4.60058
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_17",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -4.43032,
+                                    -2.2897,
+                                    -5.76873
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MStaticMeshActor_18",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": true
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -5.63596,
+                                    -2.2897,
+                                    -4.49346
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {},
+                    "MObject": {}
+                }
+            }
+        ]
+    },
+    "MObject": {}
+}

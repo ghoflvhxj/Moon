@@ -17,7 +17,9 @@
                 }
             },
             "3": {
-                "MAsset": {}
+                "MAsset": {
+                    "Path": "Scene\\5a448623.png"
+                }
             },
             "4": {
                 "MAsset": {}
@@ -31,7 +33,11 @@
         "_eCullMode": 2,
         "bUseAlpha": false,
         "bAlphaMask": false,
-        "bRimLight": false
+        "bRimLight": false,
+        "UVScale": [
+            1.0,
+            1.0
+        ]
     },
     "MAsset": {
         "Path": "Scene\\_kajirock_07_diffuse_8k_aaax_.json"

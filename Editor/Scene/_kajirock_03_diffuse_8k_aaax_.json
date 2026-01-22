@@ -31,7 +31,11 @@
         "_eCullMode": 2,
         "bUseAlpha": false,
         "bAlphaMask": false,
-        "bRimLight": false
+        "bRimLight": false,
+        "UVScale": [
+            1.0,
+            1.0
+        ]
     },
     "MAsset": {
         "Path": "Scene\\_kajirock_03_diffuse_8k_aaax_.json"

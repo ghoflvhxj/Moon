@@ -14,3 +14,4 @@ Editor/Resources/Shader
 *.ini
 Engine/x64
 ~$개발 목록.xlsx
+Libraries/Release/Engine.lib
