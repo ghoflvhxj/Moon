@@ -58,15 +58,6 @@ constexpr wchar_t* CoordinateKey = TEXT("Coordinate");
 constexpr wchar_t* CapsuleKey = TEXT("Capsule");
 constexpr UINT BufferSlot = 100;
 
-enum class EFrustumCascade
-{
-    Near,
-    Middle,
-    Middle2,
-    Far,
-    Count
-};
-
 MRenderer::MRenderer() noexcept
 {
 	//_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
@@ -97,11 +88,11 @@ bool MRenderer::Initialize()
     // BindRenderTargets 컴파일 성공용. 제거해야함
     RenderTargets _renderTargets;
 
-    //RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();
-    //{
-    //    RenderPasses[EnumToIndex(ERenderPass::ZPre)]->SetDefaultShader(TEXT("TexAnimVertexShader.cso"), nullptr);
-    //    RenderPasses[EnumToIndex(ERenderPass::ZPre)]->ApplyDefaultShaderOnly(true);
-    //}
+    RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::ZPre)]->SetDefaultShader(TEXT("TexAnimVertexShader.cso"), nullptr);
+        RenderPasses[EnumToIndex(ERenderPass::ZPre)]->ApplyDefaultShaderOnly(true);
+    }
 
 #if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)] = CreateRenderPass<DirectionalShadowDepthPass>();
@@ -120,7 +111,7 @@ bool MRenderer::Initialize()
             ERenderTarget::PointShadowDepth
         );
 
-        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), TEXT("PS_PointLightShadow.cso"), TEXT("ShadowDepthPointGS.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->SetDefaultShader(TEXT("VS_PointLightShadow.cso"), TEXT("PS_PointLightShadow.cso"), TEXT("GS_PointShadowDepth.cso"));
         RenderPasses[EnumToIndex(ERenderPass::PointShadowDepth)]->Color = EngineColors::White;
     }
 #endif
@@ -136,6 +127,7 @@ bool MRenderer::Initialize()
         );
     }
 
+#if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::EmissiveDownSample)] = CreateRenderPass<MFullScreenQuadPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::EmissiveDownSample)]->BindRenderTargets(_renderTargets,
@@ -198,7 +190,6 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_DownSample.cso"));
     }
 
-#if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] = CreateRenderPass<DirectionalLightPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
@@ -660,9 +651,6 @@ void MRenderer::UpdatePrimitiveData(MPrimitiveComponent* InComponent)
         getGraphicDevice()->BuildMeshBuffersFromComponent(PrimitiveID, Mesh);
         Scene->UpdateBuffer(PrimitiveID, Mesh);
     }
-
-    //auto Scene = GetScene(InComponent->GetWorld()->GetID());
-    //Scene->UpdatePrimitiveData(InComponent);
 }
 
 const std::vector<const FPrimitiveData*>& MRenderer::GetPrimitiveDatas(EPrimitiveType InPrimitiveType)
@@ -727,7 +715,7 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
             RenderTargetInfo.bCube = false;
             RenderTargetInfo.Width = 1024 * 2;
             RenderTargetInfo.Height = 1024 * 2;
-            RenderTargetInfo.TextrueNum = CastValue<int>(EFrustumCascade::Count);
+            RenderTargetInfo.TextrueNum = CastValue<int>(ECascade::Count);
             RenderTargetInfo.Type = ERenderTargetType::Depth;
         }
         break;
@@ -902,6 +890,11 @@ void MRenderer::AddRenderPass(ERenderPass InRenderPassIndex, const std::shared_p
     }
 }
 
+std::shared_ptr<MRenderPass> MRenderer::GetRenderPass(ERenderPass InRenderPassIndex)
+{
+    return RenderPasses[(int)InRenderPassIndex];
+}
+
 void MRenderer::Render()
 {
     if (0 <= DebugRenderTargetIndex && DebugRenderTargetIndex < (int)ERenderTarget::Count)
@@ -946,92 +939,11 @@ void MRenderer::RenderWorld(const std::shared_ptr<MWorld>& InWorld)
     // 그래야 GetPrimitiveDatas가 정상동작함
     Scene->Begin();
 
-    // Cascade Shadow
-    auto& DirectionalLightPrimitiveDatas = Scene->GetPrimitiveDatas(EPrimitiveType::DirectionalLight);
-    if (DirectionalLightPrimitiveDatas.empty() == false)
-    {
-        const std::shared_ptr<MLightComponent>& LightComponent = DirectionalLightPrimitiveDatas[0]->GetPrimitiveComponent<MLightComponent>();
-
-        auto& Window = Scene->GetWindow();
-        float AspectRatio = Window->GetAspectRatio();
-        if (std::isnan(AspectRatio))
-        {
-            return;
-        }
-
-        auto& Camera = InWorld->getMainCamera();
-        float tanHalfVertical = tanf(XMConvertToRadians(Camera->getFov() / 2.f));
-        float tanHalfHorizen = tanHalfVertical * AspectRatio;
-
-        //float tanHalfVertical = tanf(XMConvertToRadians(g_pSetting->getFov() / 2.f));
-        //float tanHalfHorizen = tanHalfVertical * g_pSetting->getAspectRatio();
-
-        XMMATRIX XMCameraWorldMat = XMLoadFloat4x4(&Camera->getInvesrViewMatrix());
-        XMVECTOR LightDirection = XMVector3Normalize(XMLoadFloat3(&LightComponent->GetDirection()));
-        XMVECTOR UpVector = XMLoadFloat3(&VEC3UP);
-        if (fabs(XMVectorGetX(XMVector3Dot(UpVector, LightDirection))) > 0.999f)
-        {
-            UpVector = XMVectorSet(1.f, 0, 0, 0);
-        }
-
-        for (int cascadeIndex = 0; cascadeIndex < CastValue<int>(EFrustumCascade::Far); ++cascadeIndex)
-        {
-            float CascadeNear = Scene->GetCascadeDistance(cascadeIndex);
-            float CascadeFar = Scene->GetCascadeDistance(cascadeIndex + 1);
-
-            float XNear = CascadeNear * tanHalfHorizen;
-            float XFar = CascadeFar * tanHalfHorizen;
-            float YNear = CascadeNear * tanHalfVertical;
-            float YFar = CascadeFar * tanHalfVertical;
-            float DepthCenter = (CascadeNear + CascadeFar) / 2.f;
-
-            std::vector<Vec3> FrustumVertices = {
-                //near Face
-                {XNear,YNear,CascadeNear},
-                {-XNear,YNear,CascadeNear},
-                {XNear,-YNear,CascadeNear},
-                {-XNear,-YNear,CascadeNear},
-                //far Face
-                {XFar,YFar,CascadeFar},
-                {-XFar,YFar,CascadeFar},
-                {XFar,-YFar,CascadeFar},
-                {-XFar,-YFar,CascadeFar}
-            };
-
-            XMVECTOR CascadeCenterInWorld = {};
-            for (auto& FrustumVertex : FrustumVertices)
-            {
-                XMStoreFloat3(&FrustumVertex, XMVector3TransformCoord(XMLoadFloat3(&FrustumVertex), XMCameraWorldMat));
-                CascadeCenterInWorld += XMLoadFloat3(&FrustumVertex);
-            }
-            CascadeCenterInWorld /= static_cast<float>(FrustumVertices.size());
-
-            float Radius = 0.f;
-            for (auto& vertex : FrustumVertices)
-            {
-                float Length = XMVectorGetX(XMVector3Length(XMLoadFloat3(&vertex) - CascadeCenterInWorld));
-                Radius = std::max<float>(Length, Radius);
-            }
-            Radius = std::ceil(Radius * 2.f) / 2.f;
-
-            float Temp = Radius;
-            Temp = std::max(Radius, 100.f);
-            XMVECTOR Eye = CascadeCenterInWorld - (LightDirection * Temp);
-            XMVECTOR Focus = CascadeCenterInWorld;
-            XMMATRIX LightView = XMMatrixLookAtLH(Eye, Focus, UpVector);
-            
-            float Near = GraphicDevice::bReverseDepth ? Temp * 2.f : 0.1f;
-            float Far = GraphicDevice::bReverseDepth ? 0.1f : Temp * 2.f;
-
-            XMMATRIX OrthoProjMatrix = XMMatrixOrthographicOffCenterLH(-Radius, Radius, -Radius, Radius, Near, Far);
-
-            Scene->SetLightInfoCascadeShadow(cascadeIndex, Eye, LightView * OrthoProjMatrix);
-        }
-    }
-
     PerformanceTimer p(TEXT("SceneRenderTime: "));
     RenderScene(Scene);
     SceneRenderTime = p.Record();
+
+    Scene->End();
 
     InWorld->GetOnRederedDelegate().Broadcast();
 }
@@ -1043,8 +955,6 @@ std::shared_ptr<MWorld> MRenderer::GetWorld()
 
 void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
 {
-    //InScene->Begin();
-
     FrustumCulling(InScene);
 
     const auto& RenderablePrimitiveDatas = InScene->GetRenderablePrimitiveData();
@@ -1055,16 +965,19 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
     uint32 RenderPassNum = GetSize(RenderPasses);
     for (uint32 PassIndex = 0; PassIndex < RenderPassNum; ++PassIndex)
     {
-        if (RenderPasses[PassIndex] == nullptr)
+        std::shared_ptr<MRenderPass> RenderPass = RenderPasses[PassIndex];
+        if (RenderPass == nullptr)
         {
             continue;
         }
+
+        RenderPass->Begin();
 
         if (bDrawShadow)
         {
             if (PassIndex == EnumToIndex(ERenderPass::PointShadowDepth) || PassIndex == EnumToIndex(ERenderPass::ShadowDepth))
             {
-                RenderPasses[PassIndex]->Clear();
+                RenderPass->Clear();
                 continue;
             }
         }
@@ -1073,7 +986,7 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
         {
             if (PassIndex == EnumToIndex(ERenderPass::PointShadowDepth) || PassIndex == EnumToIndex(ERenderPass::PointLight))
             {
-                RenderPasses[PassIndex]->Clear();
+                RenderPass->Clear();
                 continue;
             }
         }
@@ -1084,7 +997,9 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
         g_pGraphicDevice->QueryStart(PassIndex);
 #endif
 
-        RenderPasses[PassIndex]->RenderPass(RenderablePrimitiveDatas);
+        RenderPass->RenderPass(RenderablePrimitiveDatas);
+
+        RenderPass->End();
 
 #if RenderPassPerformanceProfiling == 1
         Times.push_back(Temp.Record());
@@ -1092,8 +1007,6 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
 #endif
     }
     RenderPassTime = t.Record();
-
-    InScene->End();
 }
 
 void MRenderer::RenderText()
@@ -1219,13 +1132,11 @@ void MRenderer::FrustumCulling(std::unique_ptr<MScene>& InScene)
 
 MScene::MScene()
     : CascadeDistances(4, 0.f)
-    , CascadeLightPositions(3, VEC4ZERO)
-    , CascadeLightMatrices(3, IDENTITYMATRIX)
 {
-    CascadeDistances[CastValue<int>(EFrustumCascade::Near)] = 0.1f;
-    CascadeDistances[CastValue<int>(EFrustumCascade::Middle)] = 6.f;
-    CascadeDistances[CastValue<int>(EFrustumCascade::Middle2)] = 30.f;
-    CascadeDistances[CastValue<int>(EFrustumCascade::Far)] = 100.f;
+    CascadeDistances[CastValue<int>(ECascade::Near)] = 0.1f;
+    CascadeDistances[CastValue<int>(ECascade::Middle)] = 6.f;
+    CascadeDistances[CastValue<int>(ECascade::Middle2)] = 30.f;
+    CascadeDistances[CastValue<int>(ECascade::Far)] = 100.f;
 }
 
 void MScene::Begin()
@@ -1304,10 +1215,6 @@ void MScene::UpdateTickConstantBuffer()
     {
         return;
     }
-
-    TickBuffer->SetData(TEXT("cascadeDistance"), CascadeDistances.data());
-    TickBuffer->SetData(TEXT("lightPos"), CascadeLightPositions.data());
-    TickBuffer->SetData(TEXT("lightViewProjMatrix"), CascadeLightMatrices.data());
 
     TickBuffer->SetData(TEXT("viewMatrix"), &GetWorld()->getMainCameraViewMatrix());
     TickBuffer->SetData(TEXT("projectionMatrix"), &GetWorld()->getMainCameraProjectioinMatrix());
@@ -1460,22 +1367,3 @@ const std::vector<FPrimitiveData>& MScene::GetTemporalPrimitiveDatas() const
 {
     return CachedTemporalPrimitiveDatas;
 }
-
-void MScene::SetLightInfoCascadeShadow(uint32 InIndex, const XMVECTOR& InLightPos, const XMMATRIX& InLightMat)
-{
-    XMStoreFloat4(&CascadeLightPositions[InIndex], InLightPos);
-    XMStoreFloat4x4(&CascadeLightMatrices[InIndex], InLightMat);
-    CascadeLightMatrices[InIndex]._42 = round(CascadeLightMatrices[InIndex]._42 * 10.f) / 10.f;
-    CascadeLightMatrices[InIndex]._43 = round(CascadeLightMatrices[InIndex]._43 * 10.f) / 10.f;
-}
-
-//void MScene::Func()
-//{
-//    const std::shared_ptr<MCamera>& Camera = GetWorld()->getMainCamera();
-//
-//    XMMATRIX ViewProj = XMMatrixMultiply(XMLoadFloat4x4(&Camera->getViewMatrix()), XMLoadFloat4x4(&Camera->getPerspectiveProjectionMatrix()));
-//    XMStoreFloat4x4(&ViewPerspectiveProjMatrix, ViewProj);
-//
-//    XMMATRIX XMOrthoViewProject = XMLoadFloat4x4(&Camera->getViewMatrix()) * XMLoadFloat4x4(&Camera->getOrthographicProjectionMatrix());
-//    XMStoreFloat4x4(&ViewOrthogonalProjMatrix, XMOrthoViewProject);
-//}

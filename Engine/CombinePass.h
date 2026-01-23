@@ -19,13 +19,22 @@ public:
 	explicit DirectionalShadowDepthPass();
 	virtual ~DirectionalShadowDepthPass() = default;
 
-protected:
-    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+public:
+    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
 
 protected:
-    //std::weak_ptr<class MLightComponent> CachedLightComponent;
-    //std::vector<Vec4> LightPosition;
-    //std::vector<Mat4> LightViewProj;
+    virtual void DrawPrimitive(const FPrimitiveData& PrimitiveData) override;
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData) override;
+
+public:
+    const std::vector<Mat4>& GetViewProjs() const;
+protected:
+    std::vector<Mat4> ViewProj;
+    std::vector<Mat4> Transforms;
+
+protected:
+    std::shared_ptr<class MVertexBuffer> InstanceBuffer;
 };
 
 class PointShadowDepthPass : public MRenderPass
@@ -35,11 +44,23 @@ public:
 	virtual ~PointShadowDepthPass() = default;
 
 public:
+    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
+
+protected:
+    virtual void DrawPrimitive(const FPrimitiveData& PrimitiveData) override;
+    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData) override;
     virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData) override;
 
-private:
-    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
-    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
+protected:
+    uint32 PointLightIndex = 0;
+    Vec3 LightPos = VEC3ZERO;
+protected:
+    std::vector<Mat4> ViewProj;
+    std::vector<Mat4> Transforms;
+
+protected:
+    std::shared_ptr<class MVertexBuffer> InstanceBuffer;
 };
 
 class SkyPass : public MRenderPass

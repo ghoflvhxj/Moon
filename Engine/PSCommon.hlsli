@@ -53,15 +53,6 @@ struct PixelOut_LightPass
 	float4 lightSpecular	: SV_TARGET1;
 };
 
-cbuffer PS_CBuffer_PerObject : register(b2)
-{
-    bool bUseNormalTexture;
-    bool bUseSpecularTexture;
-    bool bUseEmissiveTexture;
-    bool bAlphaMask;
-    bool bRimLight;
-};
-
 // 텍스쳐. ETextureType과 일치해야 함
 Texture2D T_Diffuse				                : register(t0);
 Texture2D T_Dummy                               : register(t1);
@@ -117,12 +108,33 @@ float4 PixelToView(float2 uv, float depth, matrix inverseProjectiveMatrix)
     return viewPos / viewPos.w;
 }
 
-float4 PixelToWorld(float2 uv, float depth, matrix InvProjMat, matrix ScreenToWorldMatrix)
+float4 PixelToWorld(float2 uv, float depth, matrix InvProjMat, matrix InvViewMat)
 {
-    float3 ViewPos = PixelToView(uv, depth, InvProjMat).xyz;
+    float4 NDCPos = float4(0.f, 0.f, GetNear(), 0.f);
+    NDCPos.x = uv.x * 2.f - 1.f;
+    NDCPos.y = uv.y * -2.f + 1.f;
+    NDCPos.z = depth;
+    NDCPos.w = 1.f;
     
+    matrix InvViewProjMat = mul(InvProjMat, InvViewMat);
+    float4 WorldPos = mul(NDCPos, InvViewProjMat);
+    WorldPos = WorldPos / WorldPos.w;
 	// NDC좌표에 역투영,뷰 행렬을 곱해 뷰 좌표를 얻음
-    return mul(float4(ViewPos, 1.f), ScreenToWorldMatrix);
+    return WorldPos;
+}
+
+float4 PixelToWorld(float2 uv, float depth, matrix InInvProjViewMat)
+{
+    float4 NDCPos = float4(0.f, 0.f, GetNear(), 0.f);
+    NDCPos.x = uv.x * 2.f - 1.f;
+    NDCPos.y = uv.y * -2.f + 1.f;
+    NDCPos.z = depth;
+    NDCPos.w = 1.f;
+    
+    float4 WorldPos = mul(NDCPos, InInvProjViewMat);
+    WorldPos = WorldPos / WorldPos.w;
+	// NDC좌표에 역투영,뷰 행렬을 곱해 뷰 좌표를 얻음
+    return WorldPos;
 }
 
 float3 PackNormal(float3 InNormal)
@@ -146,7 +158,7 @@ float2 ToUV(float2 InClipPos)
 }
 
 #define SHADOW_PCF_SAMPLES 1
-float PixelCascadeSahdow(int cascadeIndex, float3 InPixelWorldPos, float3 InSurfaceNormal)
+float PixelCascadeSahdow(row_major matrix InLightViewProj, int cascadeIndex, float3 InPixelWorldPos, float3 InSurfaceNormal)
 {
     /**********************************************
      float Bias = lerp(0.005f, 0.05f, InSlope); -> 이렇게 하면 면과 빛의 기울기마다 bias가 다르게 되니, 일관된 bias로 적용이 안됨
@@ -157,14 +169,14 @@ float PixelCascadeSahdow(int cascadeIndex, float3 InPixelWorldPos, float3 InSurf
     
     // 노말 바이어스
     float3 NormalBiasedPos = InPixelWorldPos + (InSurfaceNormal * NormalBiasScale);
-    float3 NDCPos = TransformPosition(NormalBiasedPos, lightViewProjMatrix[cascadeIndex]); // 직교투영이기 때문에 ClipPos = NDCPos나 마찬가지
+    float3 NDCPos = TransformPosition(NormalBiasedPos, InLightViewProj); // 직교투영이기 때문에 ClipPos = NDCPos나 마찬가지
     
     // 단순 바이어스
     float Bias = DepthBias;
     float SurfaceDepth = DepthCloser(NDCPos.z, Bias);
 
     // 쉐도우 맵 뎁스 샘플링은 원래 위치를 UV로 변환
-    float3 PixelPosInLightViewProj = TransformPosition(NormalBiasedPos, lightViewProjMatrix[cascadeIndex]);
+    float3 PixelPosInLightViewProj = TransformPosition(NormalBiasedPos, InLightViewProj);
     float3 ShadowDepthUV = float3(ToUV(PixelPosInLightViewProj.xy), cascadeIndex);
     float shadow = 0.f;
 
@@ -204,6 +216,13 @@ float3 GetWorldPos(float2 InUV, float2 InOffset, float4x4 InInvProj, float4x4 In
     float2 UV = InUV + InOffset;
     float Depth = G_Depth.Sample(g_Sampler, UV).r;
     return PixelToWorld(UV, Depth, InInvProj, InViewInv).xyz;
+}
+
+float3 GetWorldPos(float2 InUV, float2 InOffset, float4x4 InInvProjView)
+{
+    float2 UV = InUV + InOffset;
+    float Depth = G_Depth.Sample(g_Sampler, UV).r;
+    return PixelToWorld(UV, Depth, InInvProjView).xyz;
 }
 
 float3 BoxBlur(Texture2D InTexture, float2 InUV, int2 InBoxSize)

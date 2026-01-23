@@ -1,10 +1,5 @@
 #include "../../PSCommon.hlsli"
 
-cbuffer PS_Depth : register(b3)
-{
-    float DepthZ = 0.f;
-};
-
 float4 main(PixelIn_SimpleTex pIn) : SV_TARGET0
 {
     float CascadeIndex = 0.f;

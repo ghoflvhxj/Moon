@@ -1,5 +1,12 @@
 ﻿#pragma once
 
+/********************************************
+ Buffer - 텍스쳐나 렌더 타겟이 관리함. Structured 버퍼는 이곳에서 관리
+ SRV - 텍스쳐나 렌더 타겟이 관리함. Structured 버퍼의 SRV는 이곳에서 관리
+
+
+*********************************************/
+
 #include "Include.h"
 #include "Module/Module.h"
 #include "EngineException.h"
@@ -157,21 +164,38 @@ protected:
     uint32 Width = 0;
     uint32 Height = 0;
 
+    /***********************************************
+        윈도우 관련 기능 및 디폴트 뷰
+    ***********************************************/
 public:
-    void ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRenderTarget, DirectX::XMVECTORF32 InColor);
-
+    void AddWindow(const FWorldRenderInfo& InWorldRenderInfo);
+    void UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight, bool InFullScreen);
 public:
     ID3D11DepthStencilView* GetDepthStencilView();
     ID3D11ShaderResourceView* GetDepthResourceView();
     ID3D11ShaderResourceView* GetStencilResourceView();
-public:
-    // 엔진에 윈도우가 추가되면 호출됨. 스왑체인 등을 생성해 WindowRenderData에 저장함
-    void AddWindow(const FWorldRenderInfo& InWorldRenderInfo);
-    void UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight, bool InFullScreen);
 
+    /***********************************************
+        컨텍스트 기능 - 쉐이더
+    ***********************************************/
 public:
-    void SetVertexShader(std::shared_ptr<VertexShader>& vertexShader);
-    void SetPixelShader(std::shared_ptr<PixelShader>& pixelShader);
+    void ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRenderTarget, DirectX::XMVECTORF32 InColor);
+
+    /***********************************************
+        컨텍스트 기능 - 드로잉
+    ***********************************************/
+public:
+    void Draw(const std::shared_ptr<MVertexBuffer>& InVertexBuffer, const std::shared_ptr<MIndexBuffer>& InIndexBuffer);
+    void DrawInstance(const std::shared_ptr<MVertexBuffer>& InVertexBuffer, const std::shared_ptr<MIndexBuffer>& InIndexBuffer, const std::shared_ptr<MVertexBuffer>& InInstanceBuffer);
+
+    /***********************************************
+        컨텍스트 기능 - 쉐이더
+    ***********************************************/
+public:
+    void PSSet(std::shared_ptr<PixelShader>& pixelShader);
+    void PSSetSRV(UINT InSlot, uint32 InSRVID);
+public:
+    void VSSet(std::shared_ptr<VertexShader>& vertexShader);
 public:
     bool GetVertexShader(const std::wstring InPath, std::shared_ptr<VertexShader>& OutShader);
     bool GetPixelShader(const std::wstring InPath, std::shared_ptr<PixelShader>& OutShader);
@@ -209,13 +233,7 @@ public:
     ***********************************************/
 public:
     void LinearDepthStencil(); // 이름은 임시
-
-
-    /***********************************************
-        바인딩
-    ***********************************************/
-public:
-    void PSSetSRV(UINT InSlot, uint32 InSRVID);
+    void RSDepthPre();
 
     /***********************************************
         GPU 프로파일링

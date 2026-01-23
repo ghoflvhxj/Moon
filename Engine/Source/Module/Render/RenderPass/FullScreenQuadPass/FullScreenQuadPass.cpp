@@ -18,21 +18,23 @@ MFullScreenQuadPass::MFullScreenQuadPass()
 
 void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 {
-    Begin();
-
     const std::vector<FPrimitiveData>& PrimitiveDatas = MakePrimitiveDatas();
     
-    for (const FPrimitiveData& PrimitiveData : PrimitiveDatas)
-    {
-        if (IsValidPrimitive(PrimitiveData))
-        {
-            UpdateTickConstantBuffer(PrimitiveData);
-            UpdateObjectConstantBuffer(PrimitiveData);
-            DrawPrimitive(PrimitiveData);
-        }
-    }
+    //for (const FPrimitiveData& PrimitiveData : PrimitiveDatas)
+    //{
+    //    if (IsValidPrimitive(PrimitiveData) == false)
+    //    {
+    //        continue;
+    //    }
 
-    End();
+    //    UpdateRenderPassConstantBuffer(PrimitiveData);
+    //    UpdateMaterialConstantBuffer(PrimitiveData.Material.lock(), PrimitiveData);
+    //    UpdateObjectConstantBuffer(PrimitiveData);
+
+    //    DrawPrimitive(PrimitiveData);
+    //}
+
+    MRenderPass::RenderPass(PrimitiveDatas);
 }
 
 std::vector<FPrimitiveData> MFullScreenQuadPass::MakePrimitiveDatas()

@@ -45,8 +45,6 @@ MRenderPass::~MRenderPass()
 
 void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
 { 
-    Begin();
-
     for (auto& PrimitiveData : PrimitiveDatList)
     {
         if (IsValidPrimitive(PrimitiveData) == false)
@@ -54,11 +52,19 @@ void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList
             continue;
         }
 
+        UpdateRenderPassConstantBuffer(PrimitiveData);
+        UpdateMaterialConstantBuffer(PrimitiveData.Material.lock(), PrimitiveData);
         UpdateObjectConstantBuffer(PrimitiveData);
+
+        HandleInputAssemblerStage(PrimitiveData);
+        HandleVertexShaderStage(PrimitiveData);
+        HandleGeometryShaderStage(PrimitiveData);
+        HandlePixelShaderStage(PrimitiveData);
+        HandleRasterizerStage(PrimitiveData);
+        HandleOutputMergeStage(PrimitiveData);
+
         DrawPrimitive(PrimitiveData);
     }
-
-    End();
 }
 
 void MRenderPass::Clear()
@@ -156,6 +162,20 @@ void MRenderPass::End()
     g_pGraphicDevice->SetToDefault();
 }
 
+void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
+{
+    std::shared_ptr<MVertexBuffer>& VertexBuffer = PrimitiveData.VertexBuffer.lock();
+
+    if (std::shared_ptr<MVertexBuffer> InstanceBuffer = PrimitiveData.InstanceBuffer.lock())
+    {
+        getGraphicDevice()->DrawInstance(PrimitiveData.VertexBuffer.lock(), PrimitiveData.IndexBuffer.lock(), InstanceBuffer);
+    }
+    else
+    {
+        getGraphicDevice()->Draw(PrimitiveData.VertexBuffer.lock(), PrimitiveData.IndexBuffer.lock());
+    }
+}
+
 bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 {
     const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
@@ -184,8 +204,22 @@ bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
     return true;
 }
 
-void MRenderPass::UpdateTickConstantBuffer(const FPrimitiveData& PrimitiveData)
+void MRenderPass::UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
+    //// 기타 옵션들 자동으로 설정
+    //for (auto& Prop : GetTypeDesc()->Properties)
+    //{
+    //    if (Prop->Type == EType::Bool)
+    //    {
+    //        bool bValue = *static_cast<bool*>(Prop->GetAsVoid(this));
+    //        BOOL Value = bValue ? TRUE : FALSE;
+    //        TickBuffer->SetData(StringToWString(Prop->Name), &Value);
+    //    }
+    //    else
+    //    {
+    //        TickBuffer->SetData(StringToWString(Prop->Name), Prop->GetAsVoid(this));
+    //    }
+    //}
 }
 
 void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
@@ -262,6 +296,7 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
         VS->SetValue(TEXT("ScaleV"), UV.y);
     }
 
+    /*
 	// -------------------------------------------------------------------------------------------------------------------------
 	// 픽셀쉐이더 ConstantBuffer
     std::shared_ptr<MShader>& PS = GetPixelShader(PrimitiveData);
@@ -288,46 +323,41 @@ void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData
             PS->SetValue(TEXT("bRimLight"), FALSE);
         }
     }
+    */
 }
 
-void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
+void MRenderPass::UpdateMaterialConstantBuffer(std::shared_ptr<MMaterial>& InMaterial, const FPrimitiveData& PrimitiveData)
 {
-    HandleInputAssemblerStage(PrimitiveData);
-    HandleVertexShaderStage(PrimitiveData);
-    HandleGeometryShaderStage(PrimitiveData);
-    HandlePixelShaderStage(PrimitiveData);
-    HandleRasterizerStage(PrimitiveData);
-    HandleOutputMergeStage(PrimitiveData);
+    BOOL bUseNormal = FALSE;
+    BOOL bUseSpecular = FALSE;
+    BOOL bUseEmissive = FALSE;
+    BOOL bAlphaMask = FALSE;
+    BOOL bRimLight = FALSE;
+    Vec2 UVScale = { 1.f, 1.f };
 
-    std::shared_ptr<MVertexBuffer>& VertexBuffer = PrimitiveData.VertexBuffer.lock();
-
-    if (std::shared_ptr<MVertexBuffer> InstanceBuffer = PrimitiveData.InstanceBuffer.lock())
+    if (InMaterial)
     {
-        UINT InstanceNum = static_cast<UINT>(InstanceBuffer->getVertexNum());
-
-        if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
-        {
-            UINT IndexNum = static_cast<UINT>(IndexBuffer->getIndexCount());
-            g_pGraphicDevice->getContext()->DrawIndexedInstanced(IndexNum, InstanceNum, 0, 0, 0);
-        }
-        else
-        {
-            UINT VertexNum = static_cast<UINT>(VertexBuffer->getVertexNum());
-            g_pGraphicDevice->getContext()->DrawInstanced(VertexNum, InstanceNum, 0, 0);
-        }
-    }
-    else
-    {
-        if (std::shared_ptr<MIndexBuffer> IndexBuffer = PrimitiveData.IndexBuffer.lock())
-        {
-            g_pGraphicDevice->getContext()->DrawIndexed(IndexBuffer->getIndexCount(), 0, 0);
-        }
-        else
-        {
-            g_pGraphicDevice->getContext()->Draw(VertexBuffer->getVertexNum(), 0);
-        }
+        bUseNormal = InMaterial->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
+        bUseSpecular = InMaterial->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
+        bUseEmissive = InMaterial->IsTextureTypeUsed(ETextureType::Emssive) ? TRUE : FALSE;
+        bAlphaMask = InMaterial->IsAlphaMasked() ? TRUE : FALSE;
+        bRimLight = InMaterial->IsRimLighted() ? TRUE : FALSE;
+        UVScale = InMaterial->UVScale;
     }
 
+    if (auto& PS = GetPixelShader(PrimitiveData))
+    {
+        PS->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
+        PS->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
+        PS->SetValue(TEXT("bUseEmissiveTexture"), bUseEmissive);
+        PS->SetValue(TEXT("bAlphaMask"), bAlphaMask);
+        PS->SetValue(TEXT("bRimLight"), bRimLight);
+    }
+
+    if (auto& VS = GetVertexShader(PrimitiveData))
+    {
+        VS->SetValue(TEXT("UVScale"), UVScale);
+    }
 }
 
 void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)

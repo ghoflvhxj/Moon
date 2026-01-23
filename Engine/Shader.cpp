@@ -10,7 +10,7 @@ std::vector<std::shared_ptr<MConstantBuffer>> MShader::SharedBuffers(EnumToIndex
 
 MShader::MShader(const std::wstring &filePathName)
 	: ConstantBuffers(CastValue<uint32>(EConstantBufferLayer::Count), nullptr)
-	, Variables(CastValue<uint32>(EConstantBufferLayer::Count), std::vector<FBufferVariable>())
+	//, Variables(CastValue<uint32>(EConstantBufferLayer::Count), std::vector<FBufferVariable>())
 {
 	if (filePathName.empty())
 	{
@@ -28,10 +28,20 @@ MShader::~MShader()
 
 void MShader::Apply()
 {
-    if (GetConstantBuffer(EConstantBufferLayer::Object))
+    for (uint32 i = EnumToIndex(EConstantBufferLayer::RenderPass); i < EnumToIndex(EConstantBufferLayer::Count); ++i)
     {
-        GetConstantBuffer(EConstantBufferLayer::Object)->Commit();
+        EConstantBufferLayer Layer = (EConstantBufferLayer)i;
+
+        if (GetConstantBuffer(Layer))
+        {
+            GetConstantBuffer(Layer)->Commit();
+        }
     }
+
+    //if (GetConstantBuffer(EConstantBufferLayer::Object))
+    //{
+    //    GetConstantBuffer(EConstantBufferLayer::Object)->Commit();
+    //}
 
     SetToDevice();
 }
@@ -46,14 +56,28 @@ std::vector<ID3D11Buffer*> MShader::GetBuffers()
 {
     std::vector<ID3D11Buffer*> Buffers;
 
-    if (HasConstantBuffer(EConstantBufferLayer::Object))
+    for (uint32 i = EnumToIndex(EConstantBufferLayer::RenderPass); i < EnumToIndex(EConstantBufferLayer::Count); ++i)
     {
-        Buffers.push_back(GetConstantBuffer(EConstantBufferLayer::Object)->getRaw());
+        EConstantBufferLayer Layer = (EConstantBufferLayer)i;
+
+        if (HasConstantBuffer(Layer))
+        {
+            Buffers.push_back(GetConstantBuffer(Layer)->getRaw());
+        }
+        else
+        {
+            Buffers.push_back(nullptr);
+        }
     }
-    else
-    {
-        Buffers.push_back(nullptr);
-    }
+
+    //if (HasConstantBuffer(EConstantBufferLayer::Material))
+    //{
+    //    Buffers.push_back(GetConstantBuffer(EConstantBufferLayer::Object)->getRaw());
+    //}
+    //else
+    //{
+    //    Buffers.push_back(nullptr);
+    //}
 
     return Buffers;
 }
@@ -127,8 +151,7 @@ void MShader::CreateCosntantBuffers()
             }
         }
         break;
-        case EConstantBufferLayer::Object:
-        case EConstantBufferLayer::Custom:
+        default:
         {
             ConstantBuffers[EnumToIndex(BufferLayer)] = NewBuffer;
         }
@@ -231,10 +254,10 @@ ID3D10Blob* MShader::getBlob()
 	return _pBlob;
 }
 
-std::vector<std::vector<FBufferVariable>>& MShader::GetVariables()
-{
-	return Variables;
-}
+//std::vector<std::vector<FBufferVariable>>& MShader::GetVariables()
+//{
+//	return Variables;
+//}
 
 std::shared_ptr<MConstantBuffer>& MShader::GetSharedConstantBuffer(EConstantBufferLayer InLayer)
 {

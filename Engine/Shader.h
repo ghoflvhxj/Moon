@@ -2,17 +2,14 @@
 
 #include "ConstantBuffer.h"
 
-// 쉐이더는 hlsl에서 사용되는 변수 값과, CBuffer를 관리를 하는 존재임
-// 지금은 쉐이더마다 CBuffer를 생성하고 있지만, 이후에는 공통된 CBuffer를 공유하는 구조로 변경하고 싶음
+// Common.hlsli의 설명을 참조
 enum class EConstantBufferLayer
 {
-	Global,		// 해상도 등 설정 값
-	Tick,		// 카메라 위치? 등등9
-
-    // World, View, Proj 등등
+	Global,
+	Tick,
+    RenderPass,
+    Material,
 	Object,
-
-    // 각 쉐이더 별로 추가할 경우 사용
     Custom,
 
 	Count
@@ -172,14 +169,14 @@ public:
     std::shared_ptr<MConstantBuffer> GetConstantBuffer(EConstantBufferLayer InLayer);
     bool HasConstantBuffer(EConstantBufferLayer InLayer);
 protected:
-	// ObjectLayer 버퍼만 관리
+	// 전역이 아닌 CosntantBuffer를 관리함
 	std::vector<std::shared_ptr<MConstantBuffer>> ConstantBuffers;
 
 public:
-	std::vector<std::vector<FBufferVariable>>& GetVariables();
+	//std::vector<std::vector<FBufferVariable>>& GetVariables();
 private:
 	// ConstantBuffer 레이어 별로 변수 정보 저장
-	std::vector<std::vector<FBufferVariable>> Variables;	
+	//std::vector<std::vector<FBufferVariable>> Variables;	
 	// 모든 ConstantBuffer 변수의 이름과 변수의 바인딩 정보 저장
 	std::unordered_map<std::wstring, FBufferVariableInfo> VariableInfos;
 

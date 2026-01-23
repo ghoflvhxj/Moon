@@ -137,3 +137,10 @@ struct FPrimitiveData
 	std::weak_ptr<MIndexBuffer> IndexBuffer;
     std::weak_ptr<MVertexBuffer> InstanceBuffer;
 };
+
+struct FInstancingData
+{
+    Vec3 Scale = VEC3ONE;
+    Vec3 Translation = VEC3ZERO;
+    Vec4 RotationQuat = IDENTITY3;
+};

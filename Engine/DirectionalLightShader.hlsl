@@ -16,15 +16,18 @@
  일단은 Normal Bias Offset + Depth Bias 방식을 사용
 ****************************************************************************************************************************/
 
-cbuffer CBuffer : register(b2)
+cbuffer CBuffer : register(CBUFFER_RENDERPASS)
 {
 	float4 g_lightPosition;		// w = Range
 	float4 g_lightDirection;
 	float4 g_lightColor;		// w = Power
     float4 Ambient;
+    float4 CascadeDistances;
     
     row_major matrix g_inverseCameraViewMatrix;
     row_major matrix g_inverseProjectiveMatrix;
+    row_major matrix LightViewProj[4];
+    row_major matrix InvProjViewMatrix;
 };
 
 PixelOut_LightPass main(PixelIn pIn)
@@ -48,18 +51,9 @@ PixelOut_LightPass main(PixelIn pIn)
     
     // 그림자 계산을 위해 CascadeIndex를 구함
     int CascadeIndex = 0;
-    //[unroll]
-    //for (int i = 1; i < 4; ++i)
-    //{
-    //    if (PixelPosInCamera.z < getComp(cascadeDistance, i))
-    //    {
-    //        CascadeIndex = i - 1;
-    //        break;
-    //    }
-    //}
-    CascadeIndex += (PixelPosInCamera.z >= cascadeDistance.y);
-    CascadeIndex += (PixelPosInCamera.z >= cascadeDistance.z);
-    CascadeIndex += (PixelPosInCamera.z >= cascadeDistance.w);
+    CascadeIndex += (PixelPosInCamera.z >= CascadeDistances.y);
+    CascadeIndex += (PixelPosInCamera.z >= CascadeDistances.z);
+    CascadeIndex += (PixelPosInCamera.z >= CascadeDistances.w);
     
 	float3 LightDirection = g_lightDirection.xyz;
 	float3 color = g_lightColor.xyz;
@@ -75,13 +69,13 @@ PixelOut_LightPass main(PixelIn pIn)
     float Bright = saturate(Dot);                       // 0 ~ 1
     
     // 면의 노말 얻기
-    float3 Right = GetWorldPos(pIn.uv, float2(1.f / resolution.x, 0.f), g_inverseProjectiveMatrix, g_inverseCameraViewMatrix);
-    float3 Up = GetWorldPos(pIn.uv, float2(0.f, 1.f / resolution.y), g_inverseProjectiveMatrix, g_inverseCameraViewMatrix);
+    float3 Right = GetWorldPos(pIn.uv, float2(1.f / resolution.x, 0.f), InvProjViewMatrix);
+    float3 Up = GetWorldPos(pIn.uv, float2(0.f, 1.f / resolution.y), InvProjViewMatrix);
     float3 SurfaceNormal = normalize(cross(Right - PixelPosInWorld, Up - PixelPosInWorld));
     float Temp = 1.f - saturate(dot(SurfaceNormal, -LightDirection));
     
     // 그림자 팩터 얻기
-    float NonShadow = 1.f - PixelCascadeSahdow(CascadeIndex, PixelPosInWorld, SurfaceNormal);
+    float NonShadow = 1.f - PixelCascadeSahdow(LightViewProj[CascadeIndex], CascadeIndex, PixelPosInWorld, SurfaceNormal);
     
     float3 Direct = Bright * intensity * NonShadow;
     float3 InDirect = Ambient.xyz * abs(Dot); // 주변광의 방향이 라이트와 일치하다는 가정하에는 동작할 듯

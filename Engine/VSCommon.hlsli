@@ -15,6 +15,7 @@ struct VertexIn
 
 struct InstanceIn
 {
+    uint InstanceID : SV_InstanceID;
     float4 WorldMatrixRow0 : TEXCOORD1;
     float4 WorldMatrixRow1 : TEXCOORD2;
     float4 WorldMatrixRow2 : TEXCOORD3;
@@ -34,6 +35,8 @@ struct VertexOut
 struct VertexOut_ShadowDepth
 {
     float4 Pos : SV_Position;
+    uint InstanceID : SV_InstanceID;
+    float Distance : DISTANCE;  // 포인트 라이트 전용
 };
 
 struct VertexOut_Simple
@@ -49,7 +52,7 @@ struct VertexOut_SimpleTex
     float2 uv : TEXCOORD0;
 };
 
-cbuffer VS_CBuffer_PerObject : register(b2)
+cbuffer VS_CBuffer_PerObject : register(CBUFFER_OBJECT)
 {
 	row_major matrix worldMatrix;
     row_major matrix WorldView;
@@ -59,28 +62,26 @@ cbuffer VS_CBuffer_PerObject : register(b2)
 	bool animated;
     bool bOrtho;
     bool bInstance;
-    float ScaleU;
-    float ScaleV;
 };
 
-int getCascadeIndex(float3 pos)
-{
-    int cascadeIndex = 0;
-    float4 posInView = mul(float4(pos, 1.f), viewMatrix);
-    for (int i = 0; i < 3; ++i)
-    {
-        if (posInView.z <= getComp(cascadeDistance, i))
-        {
-            cascadeIndex = i;
-        }
-        else
-        {
-            break;
-        }
-    }
+//int getCascadeIndex(float3 pos)
+//{
+//    int cascadeIndex = 0;
+//    float4 posInView = mul(float4(pos, 1.f), viewMatrix);
+//    for (int i = 0; i < 3; ++i)
+//    {
+//        if (posInView.z <= getComp(cascadeDistance, i))
+//        {
+//            cascadeIndex = i;
+//        }
+//        else
+//        {
+//            break;
+//        }
+//    }
 	
-    return cascadeIndex;
-}
+//    return cascadeIndex;
+//}
 
 float4 LocalToProj(float4 InLocalPos)
 {

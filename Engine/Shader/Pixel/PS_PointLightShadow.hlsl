@@ -4,7 +4,7 @@ struct TestPixelIn
 {
     float4 pos : SV_POSITION;
     uint renderTargetIndex : SV_RenderTargetArrayIndex;
-    float4 Distance : POSITION0;
+    float Distance : DISTANCE;
 };
 
 struct PixelOut_PointShadowDepth
@@ -15,7 +15,7 @@ struct PixelOut_PointShadowDepth
 PixelOut_PointShadowDepth main(TestPixelIn pIn)
 {
     PixelOut_PointShadowDepth pOut = (PixelOut_PointShadowDepth)0;
-    pOut.ShadowDepth = pIn.Distance.z;
+    pOut.ShadowDepth = pIn.Distance;
 	
     return pOut;
 }

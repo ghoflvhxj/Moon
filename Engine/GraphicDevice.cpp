@@ -228,6 +228,39 @@ void GraphicDevice::ClearRenderTarget(const std::shared_ptr<MRenderTarget>& InRe
     }
 }
 
+void GraphicDevice::Draw(const std::shared_ptr<MVertexBuffer>& InVertexBuffer, const std::shared_ptr<MIndexBuffer>& InIndexBuffer)
+{
+    assert(InVertexBuffer);
+
+    if (InIndexBuffer)
+    {
+        getContext()->DrawIndexed(InIndexBuffer->getIndexCount(), 0, 0);
+    }
+    else
+    {
+        getContext()->Draw(InVertexBuffer->getVertexNum(), 0);
+    }
+}
+
+void GraphicDevice::DrawInstance(const std::shared_ptr<MVertexBuffer>& InVertexBuffer, const std::shared_ptr<MIndexBuffer>& InIndexBuffer, const std::shared_ptr<MVertexBuffer>& InInstanceBuffer)
+{
+    assert(InVertexBuffer);
+    assert(InInstanceBuffer);
+
+    UINT InstanceNum = static_cast<UINT>(InInstanceBuffer->getVertexNum());
+
+    if (InIndexBuffer)
+    {
+        UINT IndexNum = static_cast<UINT>(InIndexBuffer->getIndexCount());
+        getContext()->DrawIndexedInstanced(IndexNum, InstanceNum, 0, 0, 0);
+    }
+    else
+    {
+        UINT VertexNum = static_cast<UINT>(InVertexBuffer->getVertexNum());
+        getContext()->DrawInstanced(VertexNum, InstanceNum, 0, 0);
+    }
+}
+
 ID3D11DepthStencilView* GraphicDevice::GetDepthStencilView()
 {
     const FWindowRenderData& Test = WindowRenderDatas[WindowID];
@@ -586,32 +619,37 @@ bool GraphicDevice::buildRasterizerState()
 	ID3D11RasterizerState *pRasterizerState = nullptr;
 
 	//-------------------------------------------------------------------------------------
-	D3D11_RASTERIZER_DESC rd = {};
-	rd.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-	rd.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
-	rd.FrontCounterClockwise = FALSE;
-	rd.DepthBias = 0;
-	rd.SlopeScaledDepthBias = 0.f;
-	rd.DepthBiasClamp = 0.f;
-	rd.DepthClipEnable = TRUE;
-	rd.ScissorEnable = TRUE;
-	rd.MultisampleEnable = FALSE;
-	rd.AntialiasedLineEnable = FALSE;
+	D3D11_RASTERIZER_DESC BaseDesc = {};
+	BaseDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+	BaseDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+	BaseDesc.FrontCounterClockwise = FALSE;
+	BaseDesc.DepthBias = 0;
+	BaseDesc.SlopeScaledDepthBias = 0.f;
+	BaseDesc.DepthBiasClamp = 0.f;
+	BaseDesc.DepthClipEnable = TRUE;
+	BaseDesc.ScissorEnable = TRUE;
+	BaseDesc.MultisampleEnable = FALSE;
+	BaseDesc.AntialiasedLineEnable = FALSE;
 
     {
-        //rd.DepthBias = 100000;
-        //rd.SlopeScaledDepthBias = 1.f;
-        FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &DepthPrePassRS));
-        rd.DepthBias = 0;
-        rd.SlopeScaledDepthBias = 0.f;
+        D3D11_RASTERIZER_DESC Desc = BaseDesc;
+        if(bReverseDepth)
+        {
+            Desc.DepthBias = -100;
+            Desc.SlopeScaledDepthBias = -1.f;
+        }
+        else
+        {
+            Desc.DepthBias = 100;
+            Desc.SlopeScaledDepthBias = 1.f;
+        }
+
+        FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&Desc, &DepthPrePassRS));
     }
 
     {
-        //rd.DepthBias = 100000;
-        //rd.SlopeScaledDepthBias = 1.f;
-        FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, ShadowDepthRS.GetAddressOf()));
-        rd.DepthBias = 0;
-        rd.SlopeScaledDepthBias = 0.f;
+        D3D11_RASTERIZER_DESC Desc = BaseDesc;
+        FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&Desc, ShadowDepthRS.GetAddressOf()));
     }
 
 	//-------------------------------------------------------------------------------------
@@ -619,10 +657,11 @@ bool GraphicDevice::buildRasterizerState()
 	{
 		for (uint32 cullMode = D3D11_CULL_MODE::D3D11_CULL_NONE; cullMode <= D3D11_CULL_MODE::D3D11_CULL_BACK; ++cullMode)
 		{
-			rd.FillMode = D3D11_FILL_MODE(fillMode);
-			rd.CullMode = D3D11_CULL_MODE(cullMode);
+            D3D11_RASTERIZER_DESC Desc = BaseDesc;
+			Desc.FillMode = D3D11_FILL_MODE(fillMode);
+			Desc.CullMode = D3D11_CULL_MODE(cullMode);
 
-            FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&rd, &pRasterizerState));
+            FAILED_CHECK_THROW(m_pDevice->CreateRasterizerState(&Desc, &pRasterizerState));
             RasterizeStates.push_back(pRasterizerState);
 		}
 	}
@@ -907,14 +946,20 @@ const bool GraphicDevice::initializeDirectXTK()
 	return true;
 }
 
-void GraphicDevice::SetVertexShader(std::shared_ptr<VertexShader> &vertexShader)
+void GraphicDevice::VSSet(std::shared_ptr<VertexShader> &vertexShader)
 {
 	getContext()->VSSetShader(vertexShader->getRaw(), nullptr, 0);
 }
 
-void GraphicDevice::SetPixelShader(std::shared_ptr<PixelShader> &pixelShader)
+void GraphicDevice::PSSet(std::shared_ptr<PixelShader> &pixelShader)
 {
 	getContext()->PSSetShader(pixelShader->getRaw(), nullptr, 0);
+}
+
+void GraphicDevice::PSSetSRV(UINT InSlot, uint32 InSRVID)
+{
+    ID3D11ShaderResourceView* RawSRV = StructuredBufferSRVs[InSRVID].Get();
+    getContext()->PSSetShaderResources(InSlot, 1, &RawSRV);
 }
 
 ID3D11Device *GraphicDevice::getDevice()
@@ -928,10 +973,10 @@ void GraphicDevice::LinearDepthStencil()
    getContext()->OMSetBlendState(getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 }
 
-void GraphicDevice::PSSetSRV(UINT InSlot, uint32 InSRVID)
+void GraphicDevice::RSDepthPre()
 {
-    ID3D11ShaderResourceView* RawSRV = StructuredBufferSRVs[InSRVID].Get();
-    getContext()->PSSetShaderResources(InSlot, 1, &RawSRV);
+    getContext()->RSSetState(getRasterizerState(Graphic::FillMode::Solid, Graphic::CullMode::Backface, true));
+    getContext()->RSSetState(DepthPrePassRS);
 }
 
 void GraphicDevice::QueryStart(uint32 InIndex)

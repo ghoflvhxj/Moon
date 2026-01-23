@@ -16,17 +16,19 @@ class MScene;
 struct FMeshData;
 struct FWorldRenderInfo;
 
-struct FInstancingData
-{
-    Vec3 Scale = VEC3ONE;
-    Vec3 Translation = VEC3ZERO;
-    Vec4 RotationQuat = IDENTITY3;
-};
-
 struct FRenderTargetDebugData
 {
     uint32 Index = 0;
     std::shared_ptr<MMaterial> Material = nullptr;
+};
+
+enum class ECascade
+{
+    Near,
+    Middle,
+    Middle2,
+    Far,
+    Count
 };
 
 class ENGINE_DLL MRenderer : public MModule
@@ -150,6 +152,7 @@ private:
 	// 렌더 패스
 public:
     void AddRenderPass(ERenderPass InRenderPassIndex, const std::shared_ptr<MRenderPass>& InRenderPass);
+    std::shared_ptr<MRenderPass> GetRenderPass(ERenderPass InRenderPassIndex);
 private:
 	std::vector<std::shared_ptr<MRenderPass>> RenderPasses;
 
@@ -211,12 +214,25 @@ public:
 protected:
     std::weak_ptr<MWorld> World;
 
-/**********************************
- HLSL ConstantBuffer 업데이트
-**********************************/
+    /**********************************
+        HLSL ConstantBuffer 업데이트
+    **********************************/
 public:
     void UpdateGlobalConstantBuffer();
     void UpdateTickConstantBuffer();
+
+    /*********************************
+        HLSL 글로벌 파라미터
+    **********************************/
+public:
+    float NormalBiasScale = 0.1f;
+    float DepthBias = 0.001f;
+    bool bDebugDirectionalLight = false;
+    bool bDebugDirectionalShadow = false;
+    bool bDebugCascade = false;
+    bool bDebugPointLight = false;
+    bool bPointLighting = true;
+    bool bDirectionalLighting = true;
 
 
     /* 렌더링에 필요한 PrimitiveData를 관리함 */
@@ -261,23 +277,10 @@ protected:
         Cascade Shadow 구현
     **********************************/
 public:
+    const std::vector<float>& GetCascadeDistances() const { return CascadeDistances; }
     float GetCascadeDistance(uint32 InIndex) const { return CascadeDistances[InIndex]; }
-    void SetLightInfoCascadeShadow(uint32 InIndex, const XMVECTOR& InXMLightPos, const XMMATRIX& InXMLightMat);
 protected:
     std::vector<float> CascadeDistances;
-    std::vector<Vec4> CascadeLightPositions;
-    std::vector<Mat4> CascadeLightMatrices;
-public:
-
-    // HLSL 글로벌 파라미터
-    float NormalBiasScale = 0.1f;
-    float DepthBias = 0.001f;
-    bool bDebugDirectionalLight = false;
-    bool bDebugDirectionalShadow = false;
-    bool bDebugCascade = false;
-    bool bDebugPointLight = false;
-    bool bPointLighting = true;
-    bool bDirectionalLighting = true;
 
 public:
     // 인스턴싱 데이터

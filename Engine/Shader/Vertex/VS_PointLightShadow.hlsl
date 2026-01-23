@@ -1,16 +1,23 @@
-#include "VSCommon.hlsli"
+#include "../../VSCommon.hlsli"
 
-cbuffer Test : register(CBUFFER_RENDERPASS)
+struct VertexOut_PointShadowDepth
 {
-    float4 LightPos;
-    int PointLightIndex;
-    
-    row_major matrix Transforms[4]; // Object World * Light View * Light Proj
+    float4 Pos : SV_Position;
+    uint InstanceID : SV_InstanceID;
+    float Distance : DISTANCE;
+    uint PointLightIndex : POINTLIGHTINDEX;
 };
 
-VertexOut_ShadowDepth main(VertexIn vIn, InstanceIn iIn)
+cbuffer CBuffer_RenderPass : register(CBUFFER_RENDERPASS)
 {
-    VertexOut_ShadowDepth vOut = (VertexOut_ShadowDepth) 0;
+    float4 LightPos;
+    row_major matrix Transforms[6]; // Object World * Light View * Light Proj
+    int PointLightIndex;
+};
+
+VertexOut_PointShadowDepth main(VertexIn vIn, InstanceIn iIn)
+{
+    VertexOut_PointShadowDepth vOut = (VertexOut_PointShadowDepth) 0;
     
     row_major matrix boneTransform =
     {
@@ -35,6 +42,8 @@ VertexOut_ShadowDepth main(VertexIn vIn, InstanceIn iIn)
     
     vOut.Pos = mul(animatedPos, Transforms[iIn.InstanceID]);
     vOut.InstanceID = iIn.InstanceID;
+    vOut.Distance = length(LightPos.xyz - mul(animatedPos, worldMatrix).xyz);
+    vOut.PointLightIndex = PointLightIndex;
     
     return vOut;
 }

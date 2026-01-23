@@ -7,18 +7,36 @@
 #define REVERSE_DEPTH 1
 
 /*********************************
- b# - 상수버퍼 0 ~ 13
- t# - 쉐이더 리소스 뷰(텍스쳐, 구조화된 버퍼 등) 0 ~ 127
- u# - 언오더드 액세스 뷰 0 ~ 7
+    b# - 상수버퍼 0 ~ 13
+    t# - 쉐이더 리소스 뷰(텍스쳐, 구조화된 버퍼 등) 0 ~ 127
+    u# - 언오더드 액세스 뷰 0 ~ 7
 *********************************/
 
-cbuffer CBuffer_ABVD : register(b0)
+/*********************************
+    EConstantBufferLayer와 맞아야 함
+    b0 ~ b1 까지는 모든 쉐이더들이 공유해서 사용함
+
+    b0 - 전역에서 사용하며, 변하지 않는 것들
+    b1 - 전역에서 사용하며, 매 프레임마다 변경되는 것들
+    b2 - 렌더 패스 전용
+    b3 - 매터리얼 전용
+    b4 - 오브젝트 전용
+    b5 - 커스텀
+*********************************/
+#define CBUFFER_GLOBAL b0
+#define CBUFFER_TICK b1
+#define CBUFFER_RENDERPASS b2
+#define CBUFFER_MATERIAL b3
+#define CBUFFER_OBJECT b4
+#define CBUFFER_CUSTOM b5
+
+cbuffer CBuffer_Global : register(CBUFFER_GLOBAL)
 {
     float4 resolution;
     bool bLight;
 };
 
-cbuffer CBuffer_PerTick : register(b1)
+cbuffer CBuffer_Tick : register(CBUFFER_TICK)
 {
     row_major matrix viewMatrix;
     row_major matrix projectionMatrix;
@@ -27,11 +45,6 @@ cbuffer CBuffer_PerTick : register(b1)
     row_major matrix identityMatrix;
     row_major matrix orthographicProjectionMatrix;
     row_major matrix inverseOrthographicProjectionMatrix;
-    
-    // 디렉셔널 라이트
-    float4 lightPos[3];
-    row_major matrix lightViewProjMatrix[3];
-    float4 cascadeDistance;
     
     float NormalBiasScale = 0.1f;
     float DepthBias = 0.001f;
@@ -42,6 +55,17 @@ cbuffer CBuffer_PerTick : register(b1)
     bool bDebugDirectionalShadow = false;
     bool bDebugCascade = false;
     bool bDebugPointLight = false;
+};
+
+cbuffer CBuffer_Material : register(CBUFFER_MATERIAL)
+{
+    bool bUseNormalTexture;
+    bool bUseSpecularTexture;
+    bool bUseEmissiveTexture;
+    bool bAlphaMask;
+    bool bRimLight;
+    
+    float2 UVScale;
 };
 
 inline float GetNear()

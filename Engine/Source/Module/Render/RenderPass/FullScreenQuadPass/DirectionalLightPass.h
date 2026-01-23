@@ -8,7 +8,7 @@ public:
 
 public:
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& primitiveData) override;
+    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& primitiveData) override;
 
 public:
     virtual std::vector<FPrimitiveData> MakePrimitiveDatas() override;

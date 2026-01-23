@@ -12,7 +12,7 @@ public:
     virtual void Begin() override;
     virtual void End() override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData) override;
+    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData) override;
     virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
 
 public:

@@ -33,7 +33,7 @@ void PixelShader::SetToDevice()
 	g_pGraphicDevice->getContext()->PSSetShader(_pPixelShader, nullptr, 0);
 
     std::vector<ID3D11Buffer*>& RawBuffers = GetBuffers();
-    g_pGraphicDevice->getContext()->PSSetConstantBuffers(2u, CastValue<UINT>(RawBuffers.size()), RawBuffers.data());
+    g_pGraphicDevice->getContext()->PSSetConstantBuffers(EnumToIndex(EConstantBufferLayer::RenderPass), CastValue<UINT>(RawBuffers.size()), RawBuffers.data());
 }
 
 ID3D11PixelShader* PixelShader::getRaw()

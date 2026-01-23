@@ -35,7 +35,7 @@ bool PointLightPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
     return PrimitiveData.PrimitiveType == EPrimitiveType::PointLight && MRenderPass::IsValidPrimitive(PrimitiveData);
 }
 
-void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
+void PointLightPass::UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
     std::shared_ptr<MPointLightComponent> LightComp = PrimitiveData.GetPrimitiveComponent<MPointLightComponent>();
     std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
@@ -70,10 +70,10 @@ void PointLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveD
         Mat4 Mat = {};
         XMMATRIX XMMat = XMLoadFloat4x4(&Camera->getInversePerspectiveProjectionMatrix()) * XMLoadFloat4x4(&Camera->getInvesrViewMatrix());
         XMStoreFloat4x4(&Mat, XMMat);
-        PixelShader->SetValue(TEXT("ScreenToWorldMatrix"), Mat);
+        PixelShader->SetValue(TEXT("InvProjViewMatrix"), Mat);
     }
 
-    MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
+    MRenderPass::UpdateRenderPassConstantBuffer(PrimitiveData);
 }
 
 std::vector<FPrimitiveData> PointLightPass::MakePrimitiveDatas()

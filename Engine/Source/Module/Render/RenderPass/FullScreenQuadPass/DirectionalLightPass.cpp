@@ -2,6 +2,8 @@
 #include "MoonEngine.h"
 #include "Renderer.h"
 
+#include "CombinePass.h"
+
 #include "Camera.h"
 #include "Material.h"
 #include "DirectionalLightComponent.h"
@@ -11,8 +13,10 @@ DirectionalLightPass::DirectionalLightPass()
 {
 }
 
-void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
+void DirectionalLightPass::UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData)
 {
+    auto Camera = getRenderer()->GetWorld()->getMainCamera();
+
     auto& PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock()->CastToShared<MDirectionalLightComponent>();
     std::shared_ptr<MShader>& PixelShader = GetPixelShader(PrimitiveData);
 
@@ -24,11 +28,22 @@ void DirectionalLightPass::UpdateObjectConstantBuffer(const FPrimitiveData& Prim
     PixelShader->SetValue(TEXT("g_lightPosition"), transAndRange);
     PixelShader->SetValue(TEXT("g_lightDirection"), Direction);
     PixelShader->SetValue(TEXT("g_lightColor"), ColorAndIntensity);
-    PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), getRenderer()->GetWorld()->getMainCamera()->getInvesrViewMatrix());
-    PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), getRenderer()->GetWorld()->getMainCamera()->getInversePerspectiveProjectionMatrix());
+    PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), Camera->getInvesrViewMatrix());
+    PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), Camera->getInversePerspectiveProjectionMatrix());
     PixelShader->SetValue(TEXT("Ambient"), PrimitiveComponent->GetAmbient());
+    PixelShader->SetValue(TEXT("CascadeDistances"), getRenderer()->GetCurrentScene()->GetCascadeDistances());
 
-    MRenderPass::UpdateObjectConstantBuffer(PrimitiveData);
+    Mat4 Mat = {};
+    XMMATRIX XMMat = XMLoadFloat4x4(&Camera->getInversePerspectiveProjectionMatrix()) * XMLoadFloat4x4(&Camera->getInvesrViewMatrix());
+    XMStoreFloat4x4(&Mat, XMMat);
+    PixelShader->SetValue(TEXT("InvProjViewMatrix"), Mat);
+
+    if (auto ShadowPass = getRenderer()->GetRenderPass(ERenderPass::ShadowDepth))
+    {
+        PixelShader->SetValue(TEXT("LightViewProj"), static_pointer_cast<DirectionalShadowDepthPass>(ShadowPass)->GetViewProjs());
+    }
+
+    MRenderPass::UpdateRenderPassConstantBuffer(PrimitiveData);
 }
 
 std::vector<FPrimitiveData> DirectionalLightPass::MakePrimitiveDatas()

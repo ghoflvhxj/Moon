@@ -1,16 +1,15 @@
 #include "PSCommon.hlsli"
 
-cbuffer PixelShaderConstantBuffer : register (b2)
+cbuffer PixelShaderConstantBuffer : register(CBUFFER_RENDERPASS)
 {
 	float4 g_lightPosition;		// w = Range
-	float4 g_lightDirection;
 	float4 g_lightColor;		// w = Power
     
     int PointLightIndex;
     
 	row_major matrix g_inverseCameraViewMatrix;
 	row_major matrix g_inverseProjectiveMatrix;
-    row_major matrix ScreenToWorldMatrix;
+    row_major matrix InvProjViewMatrix;
     row_major matrix LightProjMatrix;
 };
 
