@@ -15,7 +15,7 @@ PixelOut_CombinePass main(PixelIn pIn)
     
     if (bLight)
     {
-        pOut.color = diffuse * (DirectionalLight + PointLight + specular) + (Emissive + EmissiveBlur);
+        pOut.color = (diffuse + specular) * (DirectionalLight + PointLight) + (Emissive + EmissiveBlur);
     }
     
     float4 Collision = G_Collision.Sample(g_Sampler, pIn.uv);
