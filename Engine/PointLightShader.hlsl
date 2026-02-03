@@ -1,16 +1,16 @@
 #include "PSCommon.hlsli"
 
-cbuffer PixelShaderConstantBuffer : register(CBUFFER_RENDERPASS)
+cbuffer PixelShaderConstantBuffer : register(CBUFFER_RENDERPASSOBJECT)
 {
 	float4 g_lightPosition;		// w = Range
 	float4 g_lightColor;		// w = Power
     
     int PointLightIndex;
     
-	row_major matrix g_inverseCameraViewMatrix;
-	row_major matrix g_inverseProjectiveMatrix;
-    row_major matrix InvProjViewMatrix;
-    row_major matrix LightProjMatrix;
+    //row_major matrix InvProjViewMatrix;
+    //row_major matrix LightProjMatrix;
+    
+    bool bLightShadowing;
 };
 
 PixelOut_LightPass main(PixelIn pIn)
@@ -23,8 +23,8 @@ PixelOut_LightPass main(PixelIn pIn)
     normal.w = 0.f;
 	float4 specular = G_Specular.Sample(g_Sampler, pIn.uv);
 
-    float3 PixelPosInCamera = PixelToView(pIn.uv, depth, g_inverseProjectiveMatrix).xyz;
-    float3 PixelPosInWorld = TransformPosition(PixelPosInCamera, g_inverseCameraViewMatrix);
+    float3 PixelPosInCamera = PixelToView(pIn.uv, depth, InverseProjectionMatrix).xyz;
+    float3 PixelPosInWorld = TransformPosition(PixelPosInCamera, InverseViewMatrix);
     //float3 pixelWorldPosition = PixelToWorld(pIn.uv, depth, g_inverseProjectiveMatrix, g_inverseCameraViewMatrix).xyz;
 
     float3 PointLightPos    = g_lightPosition.xyz;
@@ -44,8 +44,7 @@ PixelOut_LightPass main(PixelIn pIn)
 
 	//-------------------------------------------------------------------------------------------------
     // Diffuse
-    float3 ambient = float3(0.f, 0.f, 0.f);
-    float3 normalInWorld = normalize(mul(normal, g_inverseCameraViewMatrix).xyz);
+    float3 normalInWorld = normalize(mul(normal, InverseViewMatrix).xyz);
     
     float Dot = dot(normalInWorld, direction);
     float Bright = saturate(Dot); // 0 ~ 1
@@ -57,8 +56,9 @@ PixelOut_LightPass main(PixelIn pIn)
     int temp = sampleCount / 2;
     int Counter = 0;
     
-    float SurfaceDepth = distance;
-
+    float Bias = 0.01f;
+    float SurfaceDepth = distance - 0.05f;
+    
     float3 BaseDir = normalize(PixelPosInWorld - PointLightPos);
     [unroll]
     for (int x = -temp; x <= temp; ++x)
@@ -66,27 +66,31 @@ PixelOut_LightPass main(PixelIn pIn)
     [unroll]
         for (int y = -temp; y <= temp; ++y)
         {
-            // 서페이스 뎁스(기준)가 그림자 뎁스보다 크다면, 그림자가 생겨야 함
-            ShadowFactor += G_PointLightDepth.SampleCmpLevelZero(S_Greater, float4(normalize(BaseDir + float3(x / 512.f, y / 512.f, 0.f)), PointLightIndex), SurfaceDepth - 0.005f).x;
+            // 서페이스 뎁스(기준)가 그림자 뎁스보다 멀다면, 그림자가 생겨야 함
+            ShadowFactor += G_PointLightDepth.SampleCmpLevelZero(S_Greater, float4(normalize(BaseDir + float3(x / 512.f, y / 512.f, 0.f)), PointLightIndex), SurfaceDepth).x;
         }
     }
     ShadowFactor /= sampleCount * sampleCount;
-    float NonShadow = 1.f - ShadowFactor;
+    float NonShadow = 1.f - (ShadowFactor * bLightShadowing);
+    saturate(NonShadow);
     
-    float3 Direct = Bright * intensity * attenuation * NonShadow;
-    pOut.lightDiffuse.xyz = color * Direct;
+    float3 Diffuse = Bright * intensity * attenuation;
 
 	//-------------------------------------------------------------------------------------------------
 	// Specular
     deltaPosition = PixelPosInWorld - PointLightPos;
     direction = reflect(normalize(deltaPosition), normalInWorld.xyz);
     
-    float3 CameraWorldPos = float3(g_inverseCameraViewMatrix[3][0], g_inverseCameraViewMatrix[3][1], g_inverseCameraViewMatrix[3][2]);
+    float3 CameraWorldPos = float3(InverseViewMatrix[3][0], InverseViewMatrix[3][1], InverseViewMatrix[3][2]);
     float3 PixelToCamera = normalize(CameraWorldPos - PixelPosInWorld);
 
     float3 specularFactor = pow(saturate(dot(PixelToCamera, direction)), 10.f);
     
-    pOut.lightSpecular = float4(specular.xyz * specularFactor * NonShadow, 1.f);
+    float3 Specular = float4(specular.xyz * specularFactor * NonShadow, 1.f).xyz;
+    
+    
+    pOut.DirectDiffuse.xyz = color * Diffuse * NonShadow;
+    pOut.DirectSpecular.xyz = color * Specular * NonShadow;
     
     /********************************
         디버깅

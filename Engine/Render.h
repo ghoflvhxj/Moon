@@ -3,7 +3,7 @@
 #include "GraphicDevice.h"
 #include "ShaderManager.h"
 
-#define RENDERER_OPTION(name)	bool b##name = false;\
+#define RENDERER_OPTION(name, InitialValue)	bool b##name = InitialValue;\
 								void Set##name(bool New##name) { b##name = New##name; }\
 								bool Is##name() { return b##name; }
 
@@ -29,9 +29,9 @@ enum class ERenderTarget
 	DirectionalShadowDepth,
 	PointShadowDepth,
 
-	LightDiffuse,
-    PointLightDiffuse,
-	LightSpecular,
+	LightDirectDiffuse,
+	LightDirectSpecular,
+    InDirectDiffuse,
 
     Collision = 30,
     Stencil,
@@ -43,6 +43,12 @@ enum class ERenderTarget
     EmissiveBlurCol,
     EmissiveUpSampled,
 
+    SSAO = 50,
+    SSAODownSample,
+    SSAOBlurRow,
+    SSAOBlurCol,
+    SSAOUpSample,
+
 	Count
 };
 
@@ -52,6 +58,12 @@ enum class ERenderPass
 	ShadowDepth,
 	PointShadowDepth,
 	Geometry,
+    FX,
+    SSAO,
+    SSAODownSample,
+    SSAOBlurRow,
+    SSAOBlurCol,
+    SSAOUpSample,
     EmissiveDownSample,
     EmissiveBlurRow,
     EmissiveBlurCol,
@@ -89,6 +101,9 @@ enum class EPrimitiveType
 	DirectionalLight,
     PointLight,
 	
+    //BillBoard,
+    FX,
+
 	Collision,
 
     CustomPrimitiveType0,
@@ -98,6 +113,16 @@ enum class EPrimitiveType
 
 	Count
 };
+
+enum class ECascade
+{
+    Near,
+    Middle,
+    Middle2,
+    Far,
+    Count
+};
+
 
 struct FMeshData;
 class MPrimitiveComponent;
@@ -127,7 +152,8 @@ struct FPrimitiveData
     // 컴포넌트 없이 렌더 시 월드변환을 위한 데이터
     Vec3 Scale = VEC3ONE;
     Vec4 Rotation = {};
-    Vec3 Translation = {};               
+    Vec3 Translation = {};          
+    bool bUseCustomTransform = false;
     
 	// 메시가 채우는 데이터
 	const FMeshData* MeshData = nullptr;
@@ -136,6 +162,9 @@ struct FPrimitiveData
 	std::weak_ptr<MVertexBuffer> VertexBuffer;
 	std::weak_ptr<MIndexBuffer> IndexBuffer;
     std::weak_ptr<MVertexBuffer> InstanceBuffer;
+    //MStructuredBuffer StructuredBuffer;
+
+    uint32 InstanceNum = 0;
 };
 
 struct FInstancingData

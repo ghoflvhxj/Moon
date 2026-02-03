@@ -36,17 +36,17 @@ MConstantBuffer::~MConstantBuffer()
 void MConstantBuffer::Commit()
 {
 	D3D11_MAPPED_SUBRESOURCE mappedSubResource = {};
-	g_pGraphicDevice->getContext()->Map(DX_Buffer, 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedSubResource);
+	g_pGraphicDevice->getContext()->Map(DX_Buffer, 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedSubResource); 
 	memcpy(mappedSubResource.pData, BufferData, BufferSize);
 	g_pGraphicDevice->getContext()->Unmap(DX_Buffer, 0u);
 }
 
-void MConstantBuffer::SetAllData(const void * pData)
-{
-	memcpy(BufferData, pData, BufferSize);
-
-	Commit();
-}
+//void MConstantBuffer::SetAllData(const void * pData)
+//{
+//	memcpy(BufferData, pData, BufferSize);
+//
+//	Commit();
+//}
 
 void MConstantBuffer::SetData(int32 Offset, const void* InData, uint32 InSize)
 {
@@ -54,7 +54,7 @@ void MConstantBuffer::SetData(int32 Offset, const void* InData, uint32 InSize)
 }
 
 void MConstantBuffer::SetData(const std::wstring& InName, const void* InData)
-{
+{ 
     auto& Iter = VariableInfos.find(InName);
     if (Iter == VariableInfos.end())
     {

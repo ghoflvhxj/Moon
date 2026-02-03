@@ -73,6 +73,11 @@ public:
 	bool Update();
 
 public:
+    void AddAlwaysUpdatableComponent(const std::shared_ptr<MSceneComponent>& InComp);
+protected:
+    std::vector<std::weak_ptr<MSceneComponent>> AlwaysUpdatableComponents;
+
+public:
     virtual void PlayGame();
     virtual void FinishGame();
     FDelegate<void>& GetGameStartedDelegate() { return OnGameStartedDelegate; }
@@ -106,9 +111,11 @@ protected:
 
 	//-------------------------------------------------------------------------
 public:
-	const Time getDeltaTime() const;
+	Time getDeltaTime() const;
+    Time GetTotalTime() const;
 public:
-	Time _deltaTime;
+	Time _deltaTime = 0.f;
+    Time TotalTime = 0.f;
 
 public:
 	std::shared_ptr<MTimerManager>& getTimerManager() const;

@@ -11,9 +11,13 @@ struct VertexOut_PointShadowDepth
 cbuffer CBuffer_RenderPass : register(CBUFFER_RENDERPASS)
 {
     float4 LightPos;
-    row_major matrix Transforms[6]; // Object World * Light View * Light Proj
     int PointLightIndex;
 };
+
+cbuffer RenderPassObject : register(CBUFFER_RENDERPASSOBJECT)
+{
+    row_major matrix Transforms[6]; // Object World * Light View * Light Proj
+}
 
 VertexOut_PointShadowDepth main(VertexIn vIn, InstanceIn iIn)
 {

@@ -211,12 +211,9 @@ std::shared_ptr<MObject> DuplicateObject(std::shared_ptr<MObject> InObject)
     return NewObject;
 }
 
-void RegisterComponent(std::shared_ptr<MComponent> InComponent)
+void RegistComponent(std::shared_ptr<MComponent> InComponent)
 {
-    if (InComponent == nullptr)
-    {
-        return;
-    }
+    assert(InComponent);
 
     if (getRenderer())
     {
@@ -234,10 +231,10 @@ void RegisterComponent(std::shared_ptr<MComponent> InComponent)
         });
     }
 
-    //GetPhysics()->AddCharacterBody()
+    InComponent->OnRegisted();
 }
 
-void UnRegisterComponent(MComponent* InComponent)
+void UnRegistComponent(MComponent* InComponent)
 {
     if (InComponent == nullptr)
     {
@@ -386,6 +383,7 @@ void MEngine::RenderWorld(uint32 InIndex)
 
     getGraphicDevice()->Begin(Window->GetID(), Window->GetWidth<uint32>(), Window->GetHeight<uint32>());
     GetRenderStartedDelegate().Broadcast();
+
     getRenderer()->RenderWorld(WorldRenderInfo.SrcWorld);
 
     RenderModules();
@@ -395,6 +393,7 @@ void MEngine::RenderWorld(uint32 InIndex)
     GetRenderFinishedDelegate().Broadcast();
 
     CPUTime = CPUProfiler.Record();
+
     getGraphicDevice()->End();
 }
 

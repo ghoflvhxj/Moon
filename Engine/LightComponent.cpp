@@ -32,9 +32,6 @@ void MLightComponent::OnLoaded()
 void MLightComponent::Update(const Time deltaTime)
 {
     Super::Update(deltaTime);
-
-    TransformMatrix(LightWorldMatrix, getScale(), VEC3ZERO, VEC3ZERO);
-
     Direction = GetForward();
 }
 
@@ -47,11 +44,6 @@ const bool MLightComponent::GetPrimitiveData(std::vector<FPrimitiveData> &primit
 	primitiveDataList.emplace_back(primitiveData);
 
 	return true;
-}
-
-Mat4& MLightComponent::getWorldMatrix()
-{
-    return LightWorldMatrix;
 }
 
 const Vec3& MLightComponent::getColor(void) const

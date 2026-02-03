@@ -20,9 +20,9 @@
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 #include "StaticMeshComponent.h"
 #include "DynamicMeshComponent.h"
-#include "GameFramework/DynamicMeshActor/DynamicMeshActor.h"
-#include "GameFramework/DirectionalLightActor/DirectionalLightActor.h"
-#include "GameFramework/StaticMeshActor/StaticMeshActor.h"
+#include "Framework/DynamicMeshActor/DynamicMeshActor.h"
+#include "Framework/DirectionalLightActor/DirectionalLightActor.h"
+#include "Framework/StaticMeshActor/StaticMeshActor.h"
 #include "Camera.h"
 
 #include "MainWindow.h"

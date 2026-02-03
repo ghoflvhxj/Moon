@@ -9,6 +9,7 @@
 
 #include "Module/Physics/Physics.h"
 #include "Module/Physics/CharacterPhysics.h"
+#include "Module/Render/Scene.h"
 
 #include "World.h"
 #include "Renderer.h"
@@ -25,9 +26,9 @@
 #include "DynamicMeshComponent.h"
 #include "Material.h"
 
-#include "GameFramework/StaticMeshActor/StaticMeshActor.h"
-#include "GameFramework/PointLightActor/PointLightActor.h"
-#include "GameFramework/DirectionalLightActor/DirectionalLightActor.h"
+#include "Framework/StaticMeshActor/StaticMeshActor.h"
+#include "Framework/PointLightActor/PointLightActor.h"
+#include "Framework/DirectionalLightActor/DirectionalLightActor.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"
@@ -67,12 +68,12 @@ bool MEditor::Initialize()
     {
         getRenderer()->AddRenderPass(ERenderPass::CustomPass0, MRenderer::CreateRenderPass<MEditorPass>());
     }
-    GetMainWindow()->GetOnViewportSizeChangedDelegate().Add(this, [&](uint32 a, uint32 b, uint32 c, uint32 d, uint32 e, bool){
-        for (auto& [Name, Actor] : GetMainWorld()->GetActors())
-        {
-            Actor->update(0.f);
-        }
-    });
+    //GetMainWindow()->GetOnViewportSizeChangedDelegate().Add(this, [&](uint32 a, uint32 b, uint32 c, uint32 d, uint32 e, bool){
+    //    for (auto& [Name, Actor] : GetMainWorld()->GetActors())
+    //    {
+    //        Actor->update(0.f);
+    //    }
+    //});
     return true;
 }
 
@@ -234,10 +235,16 @@ void MEditor::Update()
             {
                 auto& Primitives = getRenderer()->GetScene(GetMainWorld()->GetID())->GetRenderablePrimitiveData();
                 bControlGizmo = false;
-                if (World->Raycast(Primitives, HitData, (uint8)EPrimitiveType::Mesh))
+
+                if (World->Raycast(Primitives, HitData, (uint8)EPrimitiveType::CustomPrimitiveType0))
                 {
                     std::shared_ptr<MSceneComponent> Temp = HitData.HitComponent.lock()->CastToShared<MSceneComponent>();
-                    SetClickedComp(Temp);
+                    SetClickedComp(Temp->getOwningActor()->getComponent(ROOT_COMPONENT));
+                }
+                else if (World->Raycast(Primitives, HitData, (uint8)EPrimitiveType::Mesh))
+                {
+                    std::shared_ptr<MSceneComponent> Temp = HitData.HitComponent.lock()->CastToShared<MSceneComponent>();
+                    SetClickedComp(Temp->getOwningActor()->getComponent(ROOT_COMPONENT));
                 }
             }
         }
@@ -714,6 +721,8 @@ void DispatchType2(const FTypeDesc* InTypeDesc, void* InData)
         return;
     }
 
+    ImGui::PushID(InData);
+
     while (InTypeDesc != nullptr)
     {
         bool bShow = true;
@@ -814,6 +823,8 @@ void DispatchType2(const FTypeDesc* InTypeDesc, void* InData)
 
         InTypeDesc = InTypeDesc->Parent;
     }
+
+    ImGui::PopID();
 }
 
 void PropertyUI(EType InType, const char* DisplayName, void* InData)

@@ -12,7 +12,9 @@
 #include "DynamicMeshComponent.h"
 #include "Camera.h"
 
-#include "Gameframework/StaticmeshActor/StaticMeshActor.h"
+#include "Module/Render/Scene.h"
+
+#include "Framework/StaticmeshActor/StaticMeshActor.h"
 #include "Core/ResourceManager.h"
 #include "Core/FileSystem.h"
 
@@ -156,7 +158,7 @@ void MEditorMainWindow::ImGuiRender()
             ImGui::Indent(20);
             if (ImGui::Button("Save As"))
             {
-                EditorModule->SaveAs(*GetMainWorld());
+                EditorModule->SaveAs(*GetMainWorld(), TEXT("Level File(*.level)\0*.level\0\0"));
             }
             if (ImGui::Button("Load"))
             {
@@ -167,7 +169,7 @@ void MEditorMainWindow::ImGuiRender()
                         GetEngine()->OpenLevel(Path);
                         SetTitle(Path);
                     }
-                }, TEXT("Level File(*.level)\0*.level\0Json File(*json)\0*.json\0\0"));
+                }, TEXT("Level File(*.level)\0*.level\0\0"));
             }
             ImGui::Indent(-20);
 
@@ -180,7 +182,7 @@ void MEditorMainWindow::ImGuiRender()
             ImGui::Indent(20);
             if (ImGui::Button("Play"))
             {
-                std::shared_ptr<MWindow> NewWindow = GetWindowManager()->AddWindow<MWindow>(TEXT("PIE"), GetMainWindow()->GetWidth<int>(), GetMainWindow()->GetHeight<int>(), g_hWnd, TEXT("ShootingGame"));
+                std::shared_ptr<MWindow> NewWindow = GetWindowManager()->AddWindow<MWindow>(TEXT("PIE"), GetMainWindow()->GetWidth<int>(), GetMainWindow()->GetHeight<int>(), NULL, TEXT("ShootingGame"));
                 NewWindow->SetWindowPos(GetMainWindow()->GetWindowPos());
 
                 //std::shared_ptr<MWorld> NewWorld = DuplicateObject(GetMainWorld())->CastToShared<MWorld>();

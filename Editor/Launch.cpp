@@ -181,6 +181,15 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
+        case WM_EXITSIZEMOVE:
+        {
+            if (Window)
+            {
+                Window->UpdateSize();
+            }
+            std::cout << "WM_EXITSIZEMOVE" << std::endl;
+        }
+        break;
         case WM_KEYDOWN:
         {
             if (wParam == 'C' && (GetKeyState(VK_CONTROL) & 0x8000) && ((lParam & (1 << 30)) == 0))
@@ -209,15 +218,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             //        cout << "붙여넣기" << endl;
             //    }
             //}
-        }
-        break;
-        case WM_EXITSIZEMOVE:
-        {
-            if (Window)
-            {
-                Window->UpdateSize();
-            }
-            std::cout << "WM_EXITSIZEMOVE" << std::endl;
         }
         break;
 	}

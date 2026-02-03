@@ -18,6 +18,16 @@ void MComponent::BeginPlay()
     GetBeganPlay().Broadcast();
 }
 
+void MComponent::OnRegisted()
+{
+    OnRegistedDelegate.Broadcast();
+}
+
+FDelegate<void>& MComponent::GetOnRegistedDelegate()
+{
+    return OnRegistedDelegate;
+}
+
 void MComponent::setOwningActor(std::shared_ptr<MActor> &actor)
 {
 	_pOwningActor = actor;

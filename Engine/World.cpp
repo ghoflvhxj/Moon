@@ -49,6 +49,7 @@ MWorld::~MWorld()
 bool MWorld::Update()
 {
     _deltaTime = GetEngine()->FrameManager.GetTimePerFrame();
+
     if (_pMainCamera)
     {
         _pMainCamera->update(_deltaTime);
@@ -67,6 +68,27 @@ bool MWorld::Update()
         }
     }
 
+    // 시작 여부와 상관없는 업데이트
+    for (auto Iter = AlwaysUpdatableComponents.begin(); Iter != AlwaysUpdatableComponents.end();)
+    {
+        if (Iter->expired())
+        {
+            Iter = AlwaysUpdatableComponents.erase(Iter);
+            continue;
+        }
+        else
+        {
+            auto Comp = Iter->lock();
+            if (Comp->isUpdateable())
+            {
+                Comp->Update(_deltaTime);
+                Comp->OnUpdated();
+            }
+            ++Iter;
+        }
+    }
+    
+    // 액터 삭제
     GetPostLoopDelegate().Add([&]() {
         for (auto& Iter = DestroyQueue.begin(); Iter != DestroyQueue.end(); ++Iter)
         {
@@ -85,25 +107,21 @@ bool MWorld::Update()
                 Actors[TargetActorName]->Destroy();
                 Actors.erase(TargetActorName);
             }
-
-            /*
-            auto& FoundIter = std::find(Actors.begin(), Actors.end(), *Iter);
-            if (FoundIter != Actors.end())
-            {
-                Actors.erase(FoundIter->first);
-                continue;
-            }
-            else
-            {
-                ++Iter;
-            }
-            */
         }
 
         DestroyQueue.clear();
     });
 
+    TotalTime += _deltaTime;
+
 	return true;
+}
+
+void MWorld::AddAlwaysUpdatableComponent(const std::shared_ptr<MSceneComponent>& InComp)
+{
+    assert(InComp);
+
+    AlwaysUpdatableComponents.push_back(InComp);
 }
 
 void MWorld::PlayGame()
@@ -163,9 +181,14 @@ void MWorld::addActor(std::shared_ptr<MActor> InActor)
     }
 }
 
-const Time MWorld::getDeltaTime() const
+Time MWorld::getDeltaTime() const
 {
 	return _deltaTime;
+}
+
+Time MWorld::GetTotalTime() const
+{
+    return TotalTime;
 }
 
 void MWorld::OnLoaded()

@@ -38,7 +38,7 @@ struct PixelOut_GeometryPass
 };
 
 struct PixelOut_CombinePass
-{
+{ 
 	float4	color	: SV_TARGET0;
 };
 
@@ -49,8 +49,9 @@ struct PixelOut_ShadowDepth
 
 struct PixelOut_LightPass
 {
-	float4 lightDiffuse		: SV_TARGET0;
-	float4 lightSpecular	: SV_TARGET1;
+    float4 DirectDiffuse : SV_TARGET0;
+    float4 DirectSpecular : SV_TARGET1;
+    float4 InDirectDiffuse : SV_TARGET2;
 };
 
 // 텍스쳐. ETextureType과 일치해야 함
@@ -66,13 +67,13 @@ Texture2D G_Normal                              : register(t11);
 Texture2D G_Specular                            : register(t12);
 Texture2D G_Emissive                            : register(t13);
 
-
 Texture2D G_Depth				                : register(t20);
 Texture2DArray<float> G_ShadowDepth	            : register(t21);
 TextureCubeArray G_PointLightDepth              : register(t22);
-Texture2D G_LightDiffuse                        : register(t23);
-Texture2D G_PointLightDiffuse                   : register(t24);
-Texture2D g_LightSpecular		                : register(t25);
+
+Texture2D G_LightDirectDiffuse                  : register(t23);
+Texture2D G_LightDirectSpecular                 : register(t24);
+Texture2D G_IndirectDiffuse                     : register(t25);
 
 Texture2D G_Collision                           : register(t30); 
 Texture2D<uint2> T_Stencil                      : register(t31);
@@ -83,6 +84,12 @@ Texture2D G_EmissiveDownSampled                 : register(t40);
 Texture2D G_EmissiveBlurRow                     : register(t41);
 Texture2D G_EmissiveBlurCol                     : register(t42);
 Texture2D G_EmissiveUpSampled                   : register(t43);
+
+Texture2D G_SSAO : register(t50);
+Texture2D G_SSAODownSample : register(t51);
+Texture2D G_SSAOBlurRow : register(t52);
+Texture2D G_SSAOBlurCol : register(t53);
+Texture2D G_SSAOUpSample : register(t54);
 
 // 셰이더에서 사용하는 샘플러
 SamplerState g_Sampler : register(s0);
@@ -225,6 +232,13 @@ float3 GetWorldPos(float2 InUV, float2 InOffset, float4x4 InInvProjView)
     return PixelToWorld(UV, Depth, InInvProjView).xyz;
 }
 
+float3 GetViewPos(float2 InUV, float2 InOffset, float4x4 InInvProj)
+{
+    float2 UV = InUV + InOffset;
+    float Depth = G_Depth.Sample(g_Sampler, UV).r;
+    return PixelToView(UV, Depth, InInvProj).xyz;
+}
+
 float3 BoxBlur(Texture2D InTexture, float2 InUV, int2 InBoxSize)
 {
     float Width = 0, Height = 0;
@@ -237,7 +251,7 @@ float3 BoxBlur(Texture2D InTexture, float2 InUV, int2 InBoxSize)
     int HalfHeight = InBoxSize.y / 2;
     
     float3 Sum = float3(0.f, 0.f, 0.f);
-    float SampleNum = 0;
+    float SampleNum = 0.f;
     for (int i = -HalfWidth; i <= HalfWidth; ++i)
     {
         for (int j = -HalfHeight; j <= HalfHeight; ++j)

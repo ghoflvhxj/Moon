@@ -22,9 +22,11 @@
 #include "Module/Render/RenderPass/FullScreenQuadPass/FullScreenQuadPass.h"
 #include "Module/Render/RenderPass/FullScreenQuadPass/PointLightPass.h"
 #include "Module/Render/RenderPass/FullScreenQuadPass/DirectionalLightPass.h"
+#include "Module/Render/RenderPass/FullScreenQuadPass/SSAOPass.h"
+#include "Module/Render/Scene.h"
 
 #include "Material.h"
-#include "Shader.h"
+#include "Module/Graphic/Shader/Shader.h"
 
 #include "Mesh/StaticMesh/StaticMesh.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
@@ -39,6 +41,7 @@
 #include "PointLightComponent.h"
 #include "StaticMeshComponent.h"
 #include "DynamicMeshComponent.h"
+#include "Framework/Component/FX/FXComponent.h"
 
 #include "Texture.h"
 
@@ -56,17 +59,14 @@ using namespace DirectX;
 
 constexpr wchar_t* CoordinateKey = TEXT("Coordinate");
 constexpr wchar_t* CapsuleKey = TEXT("Capsule");
-constexpr UINT BufferSlot = 100;
+constexpr UINT STBufferSlot_Component = 10;
+constexpr UINT StructuredBufferSlot = 100;
 
 MRenderer::MRenderer() noexcept
 {
-	//_renderTargets.reserve(CastValue<size_t>(ERenderTarget::Count));
 	RenderPasses.resize(CastValue<size_t>(ERenderPass::End), nullptr);
 
     GetLevelChangedDelegate().Add([&]() {
-        //PrimitiveDatasPerType.clear();
-        //PrimitiveDatas.clear();
-
         GetScene(GetMainWorld()->GetID())->Clear();
     });
 }
@@ -83,16 +83,16 @@ bool MRenderer::Initialize()
     GetEngine()->GetOnWorldAddedDelegate().Add(this, &MRenderer::AddScene);
 
     Weights = std::move(MakeGaussianWeights(GaussianRadius, GaussianSigma));
-    Buffer = getGraphicDevice()->AddStructuredBuffer(Weights.data(), sizeof(float) * Weights.size(), Weights.size(), sizeof(float));
+    Buffer = getGraphicDevice()->AddStructuredBuffer(Weights.data(), sizeof(float) * Weights.size(), Weights.size(), sizeof(float), StructuredBufferSlot);
 
     // BindRenderTargets 컴파일 성공용. 제거해야함
     RenderTargets _renderTargets;
 
-    RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();
-    {
-        RenderPasses[EnumToIndex(ERenderPass::ZPre)]->SetDefaultShader(TEXT("TexAnimVertexShader.cso"), nullptr);
-        RenderPasses[EnumToIndex(ERenderPass::ZPre)]->ApplyDefaultShaderOnly(true);
-    }
+    //RenderPasses[EnumToIndex(ERenderPass::ZPre)] = CreateRenderPass<MDepthPre>();
+    //{
+    //    RenderPasses[EnumToIndex(ERenderPass::ZPre)]->SetDefaultShader(TEXT("TexAnimVertexShader.cso"), nullptr);
+    //    RenderPasses[EnumToIndex(ERenderPass::ZPre)]->ApplyDefaultShaderOnly(true);
+    //}
 
 #if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)] = CreateRenderPass<DirectionalShadowDepthPass>();
@@ -101,7 +101,7 @@ bool MRenderer::Initialize()
             ERenderTarget::DirectionalShadowDepth
         );
 
-        RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->SetDefaultShader(TEXT("ShadowDepth.cso"), nullptr, TEXT("ShadowDepthGS.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->SetDefaultShader(TEXT("VS_DirectionalLightShadow.cso"), nullptr, TEXT("ShadowDepthGS.cso"));
         RenderPasses[EnumToIndex(ERenderPass::ShadowDepth)]->Color = EngineColors::White;
     }
 
@@ -126,6 +126,96 @@ bool MRenderer::Initialize()
             ERenderTarget::RimLight
         );
     }
+
+    RenderPasses[EnumToIndex(ERenderPass::FX)] = CreateRenderPass<MFXPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::FX)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::Diffuse,
+            ERenderTarget::Normal,
+            ERenderTarget::Specular,
+            ERenderTarget::Emissive,
+            ERenderTarget::RimLight
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::FX)]->SetClearTargets(false);
+        RenderPasses[EnumToIndex(ERenderPass::FX)]->SetDefaultShader(EShaderType::Compute, TEXT("CS_Particle.cso"));
+    }
+
+    RenderPasses[EnumToIndex(ERenderPass::SSAO)] = CreateRenderPass<MSSAOPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::SSAO)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::SSAO
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAO)]->BindResourceViews(_renderTargets
+            , ERenderTarget::Normal
+            , ERenderTarget::Depth
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAO)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_AlchemySSAO.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::SSAO)]->ApplyDefaultShaderOnly(true);
+    }
+
+    RenderPasses[EnumToIndex(ERenderPass::SSAODownSample)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::SSAODownSample)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::SSAODownSample
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAODownSample)]->BindResourceViews(_renderTargets
+            , ERenderTarget::SSAO
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAODownSample)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_BoxBlur.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::SSAODownSample)]->ApplyDefaultShaderOnly(true);
+        RenderPasses[EnumToIndex(ERenderPass::SSAODownSample)]->bLikeMaterial = true;
+    }
+
+    RenderPasses[EnumToIndex(ERenderPass::SSAOBlurRow)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurRow)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::SSAOBlurRow
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurRow)]->BindResourceViews(_renderTargets
+            , ERenderTarget::SSAODownSample
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurRow)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_BoxBlur.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurRow)]->ApplyDefaultShaderOnly(true);
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurRow)]->bLikeMaterial = true;
+    }
+
+    RenderPasses[EnumToIndex(ERenderPass::SSAOBlurCol)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurCol)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::SSAOBlurCol
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurCol)]->BindResourceViews(_renderTargets
+            , ERenderTarget::SSAOBlurRow
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurCol)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_BoxBlur.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurCol)]->ApplyDefaultShaderOnly(true);
+        RenderPasses[EnumToIndex(ERenderPass::SSAOBlurCol)]->bLikeMaterial = true;
+    }
+
+    RenderPasses[EnumToIndex(ERenderPass::SSAOUpSample)] = CreateRenderPass<MFullScreenQuadPass>();
+    {
+        RenderPasses[EnumToIndex(ERenderPass::SSAOUpSample)]->BindRenderTargets(_renderTargets,
+            ERenderTarget::SSAOUpSample
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAOUpSample)]->BindResourceViews(_renderTargets
+            , ERenderTarget::SSAOBlurCol
+        );
+
+        RenderPasses[EnumToIndex(ERenderPass::SSAOUpSample)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_DownSample.cso"));
+        RenderPasses[EnumToIndex(ERenderPass::SSAOUpSample)]->ApplyDefaultShaderOnly(true);
+        RenderPasses[EnumToIndex(ERenderPass::SSAOUpSample)]->bLikeMaterial = true;
+    }
+
 
 #if MinimalRendering == 0
     RenderPasses[EnumToIndex(ERenderPass::EmissiveDownSample)] = CreateRenderPass<MFullScreenQuadPass>();
@@ -155,8 +245,8 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->bLikeMaterial = true;
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_GaussianBlurRow.cso"));
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurRow)]->GetHandlePixelShaderStageDelegate().Add([&](const FPrimitiveData& InPrimitiveData, std::shared_ptr<MShader> InPixelShader) {
-            getGraphicDevice()->PSSetSRV(BufferSlot, Buffer.GetSRVID());
-        });
+            getGraphicDevice()->PSSetSRV(Buffer);
+            });
     }
 
     RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)] = CreateRenderPass<MFullScreenQuadPass>();
@@ -172,8 +262,8 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->bLikeMaterial = true;
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->SetDefaultShader(TEXT("Deferred.cso"), TEXT("PS_GaussianBlurCol.cso"));
         RenderPasses[EnumToIndex(ERenderPass::EmissiveBlurCol)]->GetHandlePixelShaderStageDelegate().Add([&](const FPrimitiveData& InPrimitiveData, std::shared_ptr<MShader> InPixelShader) {
-            getGraphicDevice()->PSSetSRV(BufferSlot, Buffer.GetSRVID());
-        });
+            getGraphicDevice()->PSSetSRV(Buffer);
+            });
     }
 
     RenderPasses[EnumToIndex(ERenderPass::EmissiveUpSample)] = CreateRenderPass<MFullScreenQuadPass>();
@@ -193,8 +283,9 @@ bool MRenderer::Initialize()
     RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)] = CreateRenderPass<DirectionalLightPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindRenderTargets(_renderTargets,
-            ERenderTarget::LightDiffuse,
-            ERenderTarget::LightSpecular
+            ERenderTarget::LightDirectDiffuse,
+            ERenderTarget::LightDirectSpecular,
+            ERenderTarget::InDirectDiffuse
         );
 
         RenderPasses[EnumToIndex(ERenderPass::DirectionalLight)]->BindResourceViews(_renderTargets,
@@ -209,8 +300,9 @@ bool MRenderer::Initialize()
     RenderPasses[EnumToIndex(ERenderPass::PointLight)] = CreateRenderPass<PointLightPass>();
     {
         RenderPasses[EnumToIndex(ERenderPass::PointLight)]->BindRenderTargets(_renderTargets,
-            ERenderTarget::PointLightDiffuse,
-            ERenderTarget::LightSpecular
+            ERenderTarget::LightDirectDiffuse,
+            ERenderTarget::LightDirectSpecular,
+            ERenderTarget::InDirectDiffuse
         );
         RenderPasses[EnumToIndex(ERenderPass::PointLight)]->BindResourceViews(_renderTargets,
             ERenderTarget::Normal,
@@ -227,7 +319,7 @@ bool MRenderer::Initialize()
     {
         RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->BindRenderTargets(_renderTargets,
             ERenderTarget::Diffuse,
-            ERenderTarget::LightDiffuse
+            ERenderTarget::LightDirectDiffuse
         );
 
         RenderPasses[EnumToIndex(ERenderPass::SkyPass)]->SetClearTargets(false);
@@ -261,10 +353,11 @@ bool MRenderer::Initialize()
         RenderPasses[EnumToIndex(ERenderPass::Combine)]->BindResourceViews(_renderTargets,
             ERenderTarget::Diffuse,
             ERenderTarget::Emissive,
-            ERenderTarget::LightDiffuse,
-            ERenderTarget::LightSpecular,
+            ERenderTarget::LightDirectDiffuse,
+            ERenderTarget::LightDirectSpecular,
+            ERenderTarget::InDirectDiffuse,
             ERenderTarget::Collision,
-            ERenderTarget::PointLightDiffuse,
+            ERenderTarget::SSAOUpSample,
             ERenderTarget::Outline,
             ERenderTarget::EmissiveUpSampled
         );
@@ -296,6 +389,48 @@ void MRenderer::Release()
     //PrimitiveDatasPerType.clear();
 
     //PrimitiveDatas.clear();
+}
+
+void MRenderer::DrawPrimitive(MWorld* InWorld, const std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType)
+{
+    uint32 WorldID = InWorld->GetID();
+
+    getGraphicDevice()->BuildMeshSharedBuffers(InMesh);
+    FMeshBufferContainer Buffers;
+    getGraphicDevice()->GetBuffers(Buffers, InMesh);
+
+    uint32 Num = InMesh->GetMeshNum();
+    for (uint32 i = 0; i < Num; ++i)
+    {
+        FPrimitiveData NewPrimitiveData = {};
+
+        NewPrimitiveData.MeshData = &InMesh->GetMeshData(i);
+        NewPrimitiveData.Material = InMesh->getGeometryLinkMaterialIndex().empty() ? InMesh->getMaterial(0) : InMesh->getMaterial(InMesh->getGeometryLinkMaterialIndex()[i]);
+        NewPrimitiveData.PrimitiveType = InPrimitiveType;
+
+        NewPrimitiveData.Translation = InTranslation;
+        NewPrimitiveData.Rotation = EulerToQuaternion(InRotation);
+        NewPrimitiveData.Scale = InScale;
+
+        NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[i];
+        NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[i];
+
+        Scenes[WorldID]->AddTemporalPrimitiveData(NewPrimitiveData);
+
+        // 인스턴싱 무조건 사용
+        //Scenes[WorldID]->AddTemporalInstanceData(InMesh->GetAssetPath(), NewPrimitiveData, Buffers.InstanceBuffers[i]);
+
+        /*
+        if (bInstance)
+        {
+            Scenes[WorldID]->AddTemporalInstanceData(InMesh->GetAssetPath(), NewPrimitiveData, Buffers.InstanceBuffers[i]);
+        }
+        else
+        {
+            Scenes[WorldID]->AddTemporalPrimitiveData(NewPrimitiveData);
+        }
+        */
+    }
 }
 
 void MRenderer::DrawCylinder(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation)
@@ -333,12 +468,6 @@ void MRenderer::DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight,
         getGraphicDevice()->BuildMeshBuffer(BufferKey, CapsuleMeshDatas[TupleKey], 0);
     }
 
-    //if (CapsuleMeshData.Vertices.empty())
-    //{
-    //    Mesh::MakeCapsule(CapsuleMeshData, InHalfHeight, InRadius);
-    //    getGraphicDevice()->BuildMeshBuffer(CapsuleKey, CapsuleMeshData, 0);
-    //}
-
     static std::shared_ptr<MMaterial> Mat = std::make_shared<MMaterial>();
     Mat->setShader(TEXT("VS_VertexColorOut.cso"), TEXT("PS_Collision.cso"));
     Mat->setTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
@@ -357,7 +486,7 @@ void MRenderer::DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight,
     NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
 
-    Scenes[InWorld->GetID()]->DrawPrimitive(NewPrimitiveData);
+    Scenes[InWorld->GetID()]->AddTemporalInstanceData(BufferKey, NewPrimitiveData, Buffers.InstanceBuffers[0]);
 }
 
 void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec4& InQuatRotation, const Vec3& InScale)
@@ -379,41 +508,13 @@ void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const
     getGraphicDevice()->GetBuffers(Buffers, CoordinateKey);
     NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
-    NewPrimitiveData.InstanceBuffer = Buffers.InstanceBuffers[0];
 
-    Scenes[InWorld->GetID()]->DrawPrimitive(NewPrimitiveData);
+    Scenes[InWorld->GetID()]->AddTemporalInstanceData(CoordinateKey, NewPrimitiveData, Buffers.InstanceBuffers[0]);
 }
 
 void MRenderer::DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale)
 {
     DrawCoordinate(InWorld, InTranslation, EulerToQuaternion(InRotation), InScale);
-}
-
-void MRenderer::DrawPrimitive(MWorld* InWorld, const std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType)
-{
-    uint32 WorldID = InWorld->GetID();
-    getGraphicDevice()->BuildMeshSharedBuffers(InMesh);
-
-    uint32 Num = InMesh->GetMeshNum();
-    for (uint32 i = 0; i < Num; ++i)
-    {
-        FPrimitiveData NewPrimitiveData = {};
-
-        NewPrimitiveData.MeshData = &InMesh->GetMeshData(i);
-        NewPrimitiveData.Material = InMesh->getMaterial(0);
-        NewPrimitiveData.PrimitiveType = InPrimitiveType;
-
-        NewPrimitiveData.Translation = InTranslation;
-        NewPrimitiveData.Rotation = EulerToQuaternion(InRotation);
-        NewPrimitiveData.Scale = InScale;
-
-        FMeshBufferContainer Buffers;
-        getGraphicDevice()->GetBuffers(Buffers, InMesh);
-        NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[i];
-        NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[i];
-
-        Scenes[WorldID]->DrawPrimitive(NewPrimitiveData);
-    }
 }
 
 /*
@@ -522,7 +623,7 @@ void MRenderer::Test(uint32 InWorldID, uint32 InPID, std::shared_ptr<MMesh> InMe
     {
         if (SceneID == InWorldID)
         {
-            Scene->UpdateBuffer(InPID, InMesh);
+            Scene->UpdateBuffersFromMesh(InPID, InMesh);
         }
     }
 }
@@ -597,15 +698,7 @@ MScene* MRenderer::GetScene(uint32 InWorldID)
 
 void MRenderer::AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent)
 {
-	if (InPrimitiveComponent == nullptr)
-	{
-		return;
-	}
-
-    if (getGraphicDevice() == nullptr)
-    {
-        return;
-    }
+    assert(InPrimitiveComponent);
 
     InPrimitiveComponent->GetPrimitiveChangedDelegate().Add(this, &MRenderer::UpdatePrimitiveData);
     UpdatePrimitiveData(InPrimitiveComponent.get());
@@ -641,16 +734,29 @@ void MRenderer::UpdatePrimitiveData(MPrimitiveComponent* InComponent)
     Scene->AddPrimitiveDatas(PrimitiveID, NewPrimitiveDatas);
 
     std::shared_ptr<MMesh> Mesh = nullptr;
-    if (auto& MeshComp = InComponent->CastToShared<MMeshComponent>())
+    bool bInstancing = false;
+    if (MMeshComponent* MeshComp = InComponent->CastTo<MMeshComponent>())
     {
         Mesh = MeshComp->GetMesh();
     }
-
-    if (Mesh != nullptr)
+    else if (MFXComponent* FxComp = InComponent->CastTo<MFXComponent>())
     {
-        getGraphicDevice()->BuildMeshBuffersFromComponent(PrimitiveID, Mesh);
-        Scene->UpdateBuffer(PrimitiveID, Mesh);
+        Mesh = FxComp->GetMesh();
+        for (auto& PrimitiveData : NewPrimitiveDatas)
+        {
+            PrimitiveData.InstanceNum = GetSize(FxComp->Particles);
+        }
     }
+
+    if (Mesh == nullptr)
+    {
+        return;
+    }
+
+    getGraphicDevice()->BuildMeshBuffersFromComponent(PrimitiveID, Mesh);
+    Scene->UpdateBuffersFromMesh(PrimitiveID, Mesh);
+
+    //Scene->UpdateBuffersFromShader(PrimitiveID);
 }
 
 const std::vector<const FPrimitiveData*>& MRenderer::GetPrimitiveDatas(EPrimitiveType InPrimitiveType)
@@ -687,6 +793,21 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
             RenderTargetInfo.Type = ERenderTargetType::Depth;
         }
         break;
+        case ERenderTarget::SSAO:
+        case ERenderTarget::SSAOUpSample:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
+            //RenderTargetInfo.Type = ERenderTargetType::SingleFloat16;
+        }
+        break;
+        case ERenderTarget::SSAODownSample:
+        case ERenderTarget::SSAOBlurRow:
+        case ERenderTarget::SSAOBlurCol:
+        {
+            RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth / 4, InHeight / 4);
+            //RenderTargetInfo.Type = ERenderTargetType::SingleFloat16;
+        }
+        break;
         case ERenderTarget::Emissive:
         case ERenderTarget::EmissiveUpSampled:
         {
@@ -702,9 +823,9 @@ void MRenderer::AddRenderTargets(uint32 InWidth, uint32 InHeight)
             RenderTargetInfo.Type = ERenderTargetType::Light;
         }
         break;
-        case ERenderTarget::LightDiffuse:
-        case ERenderTarget::PointLightDiffuse:
-        case ERenderTarget::LightSpecular:
+        case ERenderTarget::LightDirectDiffuse:
+        case ERenderTarget::LightDirectSpecular:
+        case ERenderTarget::InDirectDiffuse:
         {
             RenderTargetInfo = FRenderTagetInfo::GetDefault(InWidth, InHeight);
             RenderTargetInfo.Type = ERenderTargetType::Light;
@@ -812,7 +933,7 @@ void MRenderer::DebugRenderTarget(ERenderTarget InRenderTarget)
     NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
 
-    GetCurrentScene()->DrawPrimitive(NewPrimitiveData);
+    GetCurrentScene()->AddTemporalPrimitiveData(NewPrimitiveData);
     //DrawPrimitive(GetWorld().get(), PlaneMesh, Trans, VEC3ZERO, VEC3ONE, EPrimitiveType::Mesh);
 #endif
 }
@@ -840,7 +961,7 @@ void MRenderer::DebugRenderTarget(std::shared_ptr<MRenderTarget> InRederTarget, 
     NewPrimitiveData.VertexBuffer = Buffers.VertexBuffers[0];
     NewPrimitiveData.IndexBuffer = Buffers.IndexBuffers[0];
 
-    GetCurrentScene()->DrawPrimitive(NewPrimitiveData);
+    GetCurrentScene()->AddTemporalPrimitiveData(NewPrimitiveData);
 }
 
 std::shared_ptr<MRenderTarget> MRenderer::GetRenderTarget(ERenderTarget InRenderTarget)
@@ -955,9 +1076,28 @@ std::shared_ptr<MWorld> MRenderer::GetWorld()
 
 void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
 {
-    FrustumCulling(InScene);
+    // HLSL 렌더 옵션
+    EConstantBufferLayer Layer = EConstantBufferLayer::Global;
+    if (std::shared_ptr<MConstantBuffer>& GlobalBuffer = MShader::GetSharedConstantBuffer(Layer))
+    {
+        for (auto& Prop : GetTypeDesc()->Properties)
+        {
+            if (Prop->Type == EType::Bool)
+            {
+                bool bValue = *static_cast<bool*>(Prop->GetAsVoid(this));
+                BOOL Value = bValue ? TRUE : FALSE;
+                GlobalBuffer->SetData(StringToWString(Prop->Name), &Value);
+            }
+            else
+            {
+                GlobalBuffer->SetData(StringToWString(Prop->Name), Prop->GetAsVoid(this));
+            }
+        }
 
-    const auto& RenderablePrimitiveDatas = InScene->GetRenderablePrimitiveData();
+        g_pGraphicDevice->SetGlboalConstantBuffer(GlobalBuffer);
+    }
+
+    FrustumCulling(InScene);
 
     Times.clear();
 
@@ -973,7 +1113,7 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
 
         RenderPass->Begin();
 
-        if (bDrawShadow)
+        if (bShadowing == false)
         {
             if (PassIndex == EnumToIndex(ERenderPass::PointShadowDepth) || PassIndex == EnumToIndex(ERenderPass::ShadowDepth))
             {
@@ -982,13 +1122,16 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
             }
         }
 
-        if (bPointLighting == false)
+        if (bDirectionalLighting == false && PassIndex == EnumToIndex(ERenderPass::DirectionalLight))
         {
-            if (PassIndex == EnumToIndex(ERenderPass::PointShadowDepth) || PassIndex == EnumToIndex(ERenderPass::PointLight))
-            {
-                RenderPass->Clear();
-                continue;
-            }
+            RenderPass->Clear();
+            continue;
+        }
+
+        if (bPointLighting == false && PassIndex == EnumToIndex(ERenderPass::PointLight))
+        {
+            RenderPass->Clear();
+            continue;
         }
 
 #if RenderPassPerformanceProfiling == 1
@@ -997,7 +1140,7 @@ void MRenderer::RenderScene(std::unique_ptr<MScene>& InScene)
         g_pGraphicDevice->QueryStart(PassIndex);
 #endif
 
-        RenderPass->RenderPass(RenderablePrimitiveDatas);
+        RenderPass->RenderPass(InScene->GetRenderablePrimitiveData());
 
         RenderPass->End();
 
@@ -1110,7 +1253,6 @@ void MRenderer::FrustumCulling(std::unique_ptr<MScene>& InScene)
 
         std::shared_ptr<StaticMeshComponent> StaticMeshComp = PrimitiveDatas[0].PrimitiveComponent.lock()->CastToShared<StaticMeshComponent>();
 
-        //InScene->AddRenderablePrimitiveDatas(PrimitiveDatas);
         for (uint32 i=0; i<GetSize(PrimitiveDatas); ++i)
         {
             const auto& PrimitiveData = PrimitiveDatas[i];
@@ -1124,246 +1266,13 @@ void MRenderer::FrustumCulling(std::unique_ptr<MScene>& InScene)
     }
 
     auto& TemporalPrimitiveDatas = InScene->GetTemporalPrimitiveDatas();
-    if (TemporalPrimitiveDatas.empty() == false)
+    for (const auto& PrimitiveData : TemporalPrimitiveDatas)
     {
-        InScene->AddRenderablePrimitiveDatas(TemporalPrimitiveDatas);
-    }
-}
-
-MScene::MScene()
-    : CascadeDistances(4, 0.f)
-{
-    CascadeDistances[CastValue<int>(ECascade::Near)] = 0.1f;
-    CascadeDistances[CastValue<int>(ECascade::Middle)] = 6.f;
-    CascadeDistances[CastValue<int>(ECascade::Middle2)] = 30.f;
-    CascadeDistances[CastValue<int>(ECascade::Far)] = 100.f;
-}
-
-void MScene::Begin()
-{
-    RenderablePrimitiveData.clear();
-    PrimitiveDatasPerType.clear();
-
-    // Draw함수마다 매번 할 필요는 없고, 패스가 시작되기 전에 해주면 될듯
-    for (auto& [InstanceBuffer, BufferInstanceDatas] : InstanceDatas)
-    {
-        InstanceBuffer->Update(BufferInstanceDatas.data(), GetSize(BufferInstanceDatas));
-    }
-
-    for (auto& [PID, PrimitiveDataList] : PrimitiveDatas)
-    {
-        for (auto& PrimitiveData : PrimitiveDataList)
+        std::shared_ptr<MBoundingBox> BoundingBox = nullptr;
+        if (BoundingBox) // && BoundingBox->cullSphere() == false
         {
-            PrimitiveDatasPerType[PrimitiveData.PrimitiveType].push_back(&PrimitiveData);
+            continue;
         }
+        InScene->AddRenderablePrimitiveData(PrimitiveData);
     }
-
-    UpdateGlobalConstantBuffer();
-    UpdateTickConstantBuffer();
-}
-
-void MScene::End()
-{
-    CachedTemporalPrimitiveDatas = std::move(TemporalPrimitiveDatas);
-    InstanceDatas.clear();
-}
-
-std::shared_ptr<MWindow> MScene::GetWindow() const
-{
-    return GetEngine()->GetWorldBoundedWindow(GetWorld().get());
-}
-
-void MScene::SetWorld(std::shared_ptr<MWorld> InWorld)
-{
-    World = InWorld;
-}
-
-std::shared_ptr<MWorld> MScene::GetWorld() const
-{
-    return World.lock();
-}
-
-void MScene::UpdateGlobalConstantBuffer()
-{
-    std::shared_ptr<MConstantBuffer>& GlobalBuffer = MShader::GetSharedConstantBuffer(EConstantBufferLayer::Global);
-    if (GlobalBuffer == nullptr)
-    {
-        return;
-    }
-
-    Vec4 resolution = { GetWindow()->GetWidth<float>(),GetWindow()->GetHeight<float>(), 0.f, 0.f };
-    GlobalBuffer->SetData(TEXT("resolution"), &resolution);
-
-    BOOL bLight = TRUE;
-    GlobalBuffer->SetData(TEXT("bLight"), &bLight);
-
-    GlobalBuffer->Commit();
-
-    // 후순위로 개선하기
-    ID3D11Buffer* DX_Buffer = GlobalBuffer->getRaw();
-    g_pGraphicDevice->getContext()->VSSetConstantBuffers(0, 1, &DX_Buffer);
-    g_pGraphicDevice->getContext()->PSSetConstantBuffers(0, 1, &DX_Buffer);
-    g_pGraphicDevice->getContext()->GSSetConstantBuffers(0, 1, &DX_Buffer);
-}
-
-void MScene::UpdateTickConstantBuffer()
-{
-    EConstantBufferLayer Layer = EConstantBufferLayer::Tick;
-    uint32 LayerIndex = EnumToIndex(Layer);
-    std::shared_ptr<MConstantBuffer>& TickBuffer = MShader::GetSharedConstantBuffer(Layer);
-    if (TickBuffer == nullptr)
-    {
-        return;
-    }
-
-    TickBuffer->SetData(TEXT("viewMatrix"), &GetWorld()->getMainCameraViewMatrix());
-    TickBuffer->SetData(TEXT("projectionMatrix"), &GetWorld()->getMainCameraProjectioinMatrix());
-    TickBuffer->SetData(TEXT("identityMatrix"), &IDENTITYMATRIX);
-    TickBuffer->SetData(TEXT("orthographicProjectionMatrix"), &GetWorld()->getMainCameraOrthographicProjectionMatrix());
-    TickBuffer->SetData(TEXT("inverseOrthographicProjectionMatrix"), &GetWorld()->getMainCamera()->getInverseOrthographicProjectionMatrix());
-
-    // 기타 옵션들 자동으로 설정
-    for(auto& Prop : GetTypeDesc()->Properties)
-    { 
-        if (Prop->Type == EType::Bool)
-        {
-            bool bValue = *static_cast<bool*>(Prop->GetAsVoid(this));
-            BOOL Value = bValue ? TRUE : FALSE;
-            TickBuffer->SetData(StringToWString(Prop->Name), &Value);
-        }
-        else
-        {
-            TickBuffer->SetData(StringToWString(Prop->Name), Prop->GetAsVoid(this));
-        }
-    }
-
-    TickBuffer->Commit();
-
-    // 후순위로 개선하기
-    ID3D11Buffer* DX_Buffer = TickBuffer->getRaw();
-    g_pGraphicDevice->getContext()->PSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
-    g_pGraphicDevice->getContext()->VSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
-    g_pGraphicDevice->getContext()->GSSetConstantBuffers(LayerIndex, 1, &DX_Buffer);
-}
-
-void MScene::UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh)
-{
-    uint32 PrimitiveDataNum = GetSize(PrimitiveDatas[InPID]);
-
-    if (PrimitiveDataNum == 0)
-    {
-        // PrimitiveData의 Buffer를 채우는 함수인데, PrimitiveData가 없으면 안됨
-        return;
-    }
-
-    FMeshBufferContainer SharedBuffers = {};
-    getGraphicDevice()->GetBuffers(SharedBuffers, InMesh);
-
-    FMeshBufferContainer PrivateBuffers = {};
-    getGraphicDevice()->GetPrivateBuffers(PrivateBuffers, InPID);
-
-    for (uint32 i = 0; i < PrimitiveDataNum; ++i)
-    {
-        FPrimitiveData& PrimitiveData = PrimitiveDatas[InPID][i];
-
-        auto& Iter = PrivateBuffers.VertexBuffers.find(i);
-        PrimitiveData.VertexBuffer = Iter == PrivateBuffers.VertexBuffers.end() ? SharedBuffers.VertexBuffers[i] : Iter->second;
-
-        auto& Iter2 = PrivateBuffers.IndexBuffers.find(i);
-        PrimitiveData.IndexBuffer = Iter2 == PrivateBuffers.IndexBuffers.end() ? SharedBuffers.IndexBuffers[i] : Iter2->second;
-
-        //PrimitiveData.VertexBuffer = Buffers.VertexBuffers[i];
-        //PrimitiveData.IndexBuffer = Buffers.IndexBuffers[i];
-    }
-}
-
-void MScene::UpdatePrimitiveData(MPrimitiveComponent* InComponent)
-{
-    uint32 PrimitiveID = InComponent->GetPrimitiveID();
-    ClearPrimtiveDatas(PrimitiveID);
-
-    std::shared_ptr<MMesh> Mesh = nullptr;
-    if (auto& MeshComp = InComponent->CastToShared<MMeshComponent>())
-    {
-        Mesh = MeshComp->GetMesh();
-    }
-
-    if (Mesh == nullptr)
-    {
-        return;
-    }
-
-    // Component로부터 PrimitiveData 생성
-    std::vector<FPrimitiveData> NewPrimitiveDatas;
-    if (InComponent->GetPrimitiveData(NewPrimitiveDatas))
-    {
-        AddPrimitiveDatas(PrimitiveID, NewPrimitiveDatas);
-    }
-}
-
-void MScene::AddPrimitiveDatas(uint32 InPID, const std::vector<FPrimitiveData>& InPrimitiveDatas)
-{
-    PrimitiveDatas[InPID].insert(PrimitiveDatas[InPID].end(), InPrimitiveDatas.begin(), InPrimitiveDatas.end());
-}
-
-void MScene::ClearPrimtiveDatas(uint32 InPID)
-{
-    PrimitiveDatas[InPID].clear();
-}
-
-const std::vector<FPrimitiveData>& MScene::GetPrimitiveDatas(uint32 InPrimitiveID)
-{
-    auto& Iter = PrimitiveDatas.find(InPrimitiveID);
-    if (Iter != PrimitiveDatas.end())
-    {
-        return PrimitiveDatas[InPrimitiveID];
-    }
-
-    return PrimitiveDatas[-1];
-}
-
-const std::map<uint32, std::vector<FPrimitiveData>>& MScene::GetPrimitiveDatas() const
-{
-    return PrimitiveDatas;
-}
-
-void MScene::AddRenderablePrimitiveDatas(const std::vector<FPrimitiveData>& InPrimitiveDatas)
-{
-    RenderablePrimitiveData.insert(RenderablePrimitiveData.end(), InPrimitiveDatas.begin(), InPrimitiveDatas.end());
-}
-
-void MScene::AddRenderablePrimitiveData(const FPrimitiveData& InPrimitiveData)
-{
-    RenderablePrimitiveData.push_back(InPrimitiveData);
-}
-
-const std::vector<FPrimitiveData>& MScene::GetRenderablePrimitiveData() const
-{
-    return RenderablePrimitiveData;
-}
-
-void MScene::DrawPrimitive(const FPrimitiveData& InPrimitiveData)
-{
-    if (auto& InstanceBuffer = InPrimitiveData.InstanceBuffer.lock())
-    {
-        // 한번은 PrimitiveData를 추가해야 함
-        if (InstanceDatas.find(InstanceBuffer.get()) == InstanceDatas.end())
-        {
-            TemporalPrimitiveDatas.push_back(InPrimitiveData);
-        }
-
-        FVertex_Instance NewInstance = {};
-        TransformMatrix(NewInstance.WorldMatrix, InPrimitiveData.Scale, InPrimitiveData.Rotation, InPrimitiveData.Translation);
-        XMStoreFloat4x4(&NewInstance.WorldMatrix, XMLoadFloat4x4(&NewInstance.WorldMatrix)* XMLoadFloat4x4(&GetWorld()->getMainCameraViewMatrix())* XMLoadFloat4x4(&GetWorld()->getMainCameraProjectioinMatrix()));
-        InstanceDatas[InstanceBuffer.get()].push_back(NewInstance);
-    }
-    else
-    {
-        TemporalPrimitiveDatas.push_back(InPrimitiveData);
-    }
-}
-
-const std::vector<FPrimitiveData>& MScene::GetTemporalPrimitiveDatas() const
-{
-    return CachedTemporalPrimitiveDatas;
 }

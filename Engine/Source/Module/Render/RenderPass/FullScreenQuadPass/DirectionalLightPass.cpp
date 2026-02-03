@@ -3,6 +3,7 @@
 #include "Renderer.h"
 
 #include "CombinePass.h"
+#include "Module/Render/Scene.h"
 
 #include "Camera.h"
 #include "Material.h"
@@ -13,37 +14,32 @@ DirectionalLightPass::DirectionalLightPass()
 {
 }
 
-void DirectionalLightPass::UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData)
+void DirectionalLightPass::UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& InPrimitiveData)
 {
+    MFullScreenQuadPass::UpdateRenderPassObjectConstantBuffer(InShader, InPrimitiveData);
+
     auto Camera = getRenderer()->GetWorld()->getMainCamera();
 
-    auto& PrimitiveComponent = PrimitiveData.PrimitiveComponent.lock()->CastToShared<MDirectionalLightComponent>();
-    std::shared_ptr<MShader>& PixelShader = GetPixelShader(PrimitiveData);
+    auto& PrimitiveComponent = InPrimitiveData.PrimitiveComponent.lock()->CastToShared<MDirectionalLightComponent>();
 
-    Vec3 trans = PrimitiveComponent->getWorldTranslation();
-    Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
-    Vec4 ColorAndIntensity = { PrimitiveComponent->getColor().x, PrimitiveComponent->getColor().y, PrimitiveComponent->getColor().z, PrimitiveComponent->getIntensity() };
-    const Vec3& Direction = PrimitiveComponent->GetDirection();
-
-    PixelShader->SetValue(TEXT("g_lightPosition"), transAndRange);
-    PixelShader->SetValue(TEXT("g_lightDirection"), Direction);
-    PixelShader->SetValue(TEXT("g_lightColor"), ColorAndIntensity);
-    PixelShader->SetValue(TEXT("g_inverseCameraViewMatrix"), Camera->getInvesrViewMatrix());
-    PixelShader->SetValue(TEXT("g_inverseProjectiveMatrix"), Camera->getInversePerspectiveProjectionMatrix());
-    PixelShader->SetValue(TEXT("Ambient"), PrimitiveComponent->GetAmbient());
-    PixelShader->SetValue(TEXT("CascadeDistances"), getRenderer()->GetCurrentScene()->GetCascadeDistances());
-
-    Mat4 Mat = {};
-    XMMATRIX XMMat = XMLoadFloat4x4(&Camera->getInversePerspectiveProjectionMatrix()) * XMLoadFloat4x4(&Camera->getInvesrViewMatrix());
-    XMStoreFloat4x4(&Mat, XMMat);
-    PixelShader->SetValue(TEXT("InvProjViewMatrix"), Mat);
-
-    if (auto ShadowPass = getRenderer()->GetRenderPass(ERenderPass::ShadowDepth))
+    if (InShader->IsPixelShader())
     {
-        PixelShader->SetValue(TEXT("LightViewProj"), static_pointer_cast<DirectionalShadowDepthPass>(ShadowPass)->GetViewProjs());
-    }
+        Vec3 trans = PrimitiveComponent->getWorldTranslation();
+        Vec4 transAndRange = { trans.x, trans.y, trans.z, 10.f };
+        Vec4 ColorAndIntensity = { PrimitiveComponent->getColor().x, PrimitiveComponent->getColor().y, PrimitiveComponent->getColor().z, PrimitiveComponent->getIntensity() };
+        const Vec3& Direction = PrimitiveComponent->GetDirection();
 
-    MRenderPass::UpdateRenderPassConstantBuffer(PrimitiveData);
+        InShader->SetValue(TEXT("g_lightPosition"), transAndRange);
+        InShader->SetValue(TEXT("g_lightDirection"), Direction);
+        InShader->SetValue(TEXT("g_lightColor"), ColorAndIntensity);
+        InShader->SetValue(TEXT("Ambient"), PrimitiveComponent->GetAmbient());
+        InShader->SetValue(TEXT("CascadeDistances"), getRenderer()->GetCurrentScene()->GetCascadeDistances());
+
+        if (auto ShadowPass = getRenderer()->GetRenderPass(ERenderPass::ShadowDepth))
+        {
+            InShader->SetValue(TEXT("LightViewProj"), static_pointer_cast<DirectionalShadowDepthPass>(ShadowPass)->GetViewProjs());
+        }
+    }
 }
 
 std::vector<FPrimitiveData> DirectionalLightPass::MakePrimitiveDatas()
@@ -56,9 +52,10 @@ std::vector<FPrimitiveData> DirectionalLightPass::MakePrimitiveDatas()
         FPrimitiveData NewPrimitiveData = CreatePrimitiveData(EPrimitiveType::DirectionalLight);
         NewPrimitiveData.PrimitiveComponent = LightPrimitiveData->PrimitiveComponent;
         NewPrimitiveData.Material = LightPrimitiveData->Material;
+        NewPrimitiveData.bUseCustomTransform = true;
 
-        LightPrimitiveData->PrimitiveComponent.lock()->setScale(NewPrimitiveData.Scale);
-        LightPrimitiveData->PrimitiveComponent.lock()->Update(0.f);
+        //LightPrimitiveData->PrimitiveComponent.lock()->setScale(NewPrimitiveData.Scale);
+        //LightPrimitiveData->PrimitiveComponent.lock()->Update(0.f);
 
         PrimitiveDatas.push_back(NewPrimitiveData);
     }

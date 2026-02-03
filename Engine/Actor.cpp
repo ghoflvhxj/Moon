@@ -149,7 +149,7 @@ void MActor::RegistComponents()
     {
         Comp->SetOwner(GetShared());
         Comp->setOwningActor(GetShared());
-        RegisterComponent(Comp);
+        RegistComponent(Comp);
     }
 }
 
@@ -171,7 +171,7 @@ void MActor::Destroy()
     // Component 소멸 처리 과정에서 Actor를 참조하는 경우가 있는데, 소멸자에서 호출하면 이 액터는 expired된 상태임.
     for (auto& [Name, Comp] : SceneComponents)
     {
-        UnRegisterComponent(Comp.get());
+        UnRegistComponent(Comp.get());
     }
 
     LOGTEXT(TEXT("Actor Destroy"));

@@ -8,7 +8,7 @@ public:
 
 public:
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& primitiveData) override;
+    virtual void UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& InPrimitiveData) override;
 
 public:
     virtual std::vector<FPrimitiveData> MakePrimitiveDatas() override;

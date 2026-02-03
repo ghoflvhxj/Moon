@@ -94,6 +94,18 @@ void MSceneComponent::SetRotation(const Vec3& InRotation)
     Lambda(Rotation.z);
 }
 
+void MSceneComponent::SetWorldRotation(const Vec3& InRotation)
+{
+    SetRotation(InRotation);
+
+    bWorldRotation = true;
+}
+
+void MSceneComponent::SetWorldRotation()
+{
+    bWorldRotation = true;
+}
+
 void MSceneComponent::AddRotation(const Vec3& InAdditiveRot)
 {
     Vec3 NewRot = {};

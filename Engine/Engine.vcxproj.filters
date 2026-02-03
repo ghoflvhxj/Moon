@@ -169,7 +169,7 @@
     <ClCompile Include="FBXLoader.cpp" />
     <ClCompile Include="FileFinder.cpp" />
     <ClCompile Include="FrameManager.cpp" />
-    <ClCompile Include="GeometryShader.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\GeometryShader.cpp" />
     <ClCompile Include="GraphicDevice.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="InputLayout.cpp" />
@@ -180,14 +180,14 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="MoonEngine.cpp" />
-    <ClCompile Include="PixelShader.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\PixelShader.cpp" />
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="PrimitiveComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="SceneComponent.cpp" />
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\Shader.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="SkyComponent.cpp" />
@@ -201,7 +201,7 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TimerManager.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="VertexShader.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\VertexShader.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowException.cpp" />
     <ClCompile Include="WindowManager.cpp" />
@@ -210,16 +210,16 @@
     </ClCompile>
     <ClCompile Include="Source\Core\ResourceManager.cpp" />
     <ClCompile Include="Source\Core\ResourceLoader.cpp" />
-    <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
+    <ClCompile Include="Source\Framework\StaticMeshActor\StaticMeshActor.cpp" />
     <ClCompile Include="Source\Core\Serialize\JsonSerializer.cpp" />
     <ClCompile Include="Source\Core\Serialize\Serializerable.cpp" />
     <ClCompile Include="Source\Core\Serialize\JsonDeserializer.cpp" />
     <ClCompile Include="Source\Mesh\StaticMesh\StaticMesh.cpp" />
     <ClCompile Include="Source\Mesh\DynamicMesh\DynamicMesh.cpp" />
-    <ClCompile Include="Source\GameFramework\BillboardComponent\BillboardComponent.cpp" />
-    <ClCompile Include="Source\GameFramework\PointLightActor\PointLightActor.cpp" />
+    <ClCompile Include="Source\Framework\Component\Billboard\BillboardComponent.cpp" />
+    <ClCompile Include="Source\Framework\PointLightActor\PointLightActor.cpp" />
     <ClCompile Include="Source\Mesh\Mesh.cpp" />
-    <ClCompile Include="Source\GameFramework\DirectionalLightActor\DirectionalLightActor.cpp" />
+    <ClCompile Include="Source\Framework\DirectionalLightActor\DirectionalLightActor.cpp" />
     <ClCompile Include="Source\Core\FileSystem.cpp" />
     <ClCompile Include="Source\Core\Asset.cpp" />
     <ClCompile Include="Source\Core\Reflection\Reflection.cpp" />
@@ -230,13 +230,18 @@
     <ClCompile Include="Source\Module\Physics\CapsuleBody.cpp" />
     <ClCompile Include="Source\Module\Physics\Jolt.cpp" />
     <ClCompile Include="Source\Module\Physics\CharacterPhysics.cpp" />
-    <ClCompile Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.cpp" />
+    <ClCompile Include="Source\Framework\DynamicMeshActor\DynamicMeshActor.cpp" />
     <ClCompile Include="Source\Module\Physics\CapsuleComponent.cpp" />
     <ClCompile Include="Source\Module\Physics\Physics.cpp" />
     <ClCompile Include="Source\Module\Graphic\StructuredBuffer.cpp" />
     <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\FullScreenQuadPass.cpp" />
     <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\PointLightPass.cpp" />
     <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\DirectionalLightPass.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\SSAOPass.cpp" />
+    <ClCompile Include="Source\Framework\Component\FX\FXComponent.cpp" />
+    <ClCompile Include="Source\Framework\FXActor\FXActor.cpp" />
+    <ClCompile Include="Source\Module\Render\Scene.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\ComputeShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -299,7 +304,7 @@
     <ClInclude Include="Function.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryShader.h">
+    <ClInclude Include="Source\Module\Graphic\Shader\GeometryShader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="GraphicDevice.h">
@@ -341,7 +346,7 @@
     <ClInclude Include="MoonEngine.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="PixelShader.h">
+    <ClInclude Include="Source\Module\Graphic\Shader\PixelShader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="PointLightComponent.h">
@@ -365,7 +370,7 @@
     <ClInclude Include="SceneComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
+    <ClInclude Include="Source\Module\Graphic\Shader\Shader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ShaderLoader.h">
@@ -419,7 +424,7 @@
     <ClInclude Include="VertexBuffer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="VertexShader.h">
+    <ClInclude Include="Source\Module\Graphic\Shader\VertexShader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Window.h">
@@ -437,7 +442,7 @@
     <ClInclude Include="Source\Core\ResourceLoader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h">
+    <ClInclude Include="Source\Framework\StaticMeshActor\StaticMeshActor.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\Serialize\JsonSerializer.h">
@@ -470,13 +475,13 @@
     <ClInclude Include="Source\Core\Reflection\TypeDesc.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\GameFramework\PointLightActor\PointLightActor.h">
+    <ClInclude Include="Source\Framework\PointLightActor\PointLightActor.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\GameFramework\BillboardComponent\BillboardComponent.h">
+    <ClInclude Include="Source\Framework\Component\Billboard\BillboardComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\GameFramework\DirectionalLightActor\DirectionalLightActor.h">
+    <ClInclude Include="Source\Framework\DirectionalLightActor\DirectionalLightActor.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\FileSystem.h">
@@ -506,7 +511,7 @@
     <ClInclude Include="Source\Module\Physics\CharacterPhysics.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.h">
+    <ClInclude Include="Source\Framework\DynamicMeshActor\DynamicMeshActor.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Source\Module\Physics\CapsuleComponent.h">
@@ -536,6 +541,21 @@
     <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\DirectionalLightPass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\SSAOPass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Component\FX\FXComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\FXActor\FXActor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Render\Scene.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Module\Graphic\Shader\ComputeShader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Bone.hlsl" />
@@ -543,7 +563,7 @@
     <FxCompile Include="DeferredShader.hlsl" />
     <FxCompile Include="PixelShader.hlsl" />
     <FxCompile Include="PointLightShader.hlsl" />
-    <FxCompile Include="ShadowDepth.hlsl" />
+    <FxCompile Include="Shader\Vertex\VS_DirectionalLightShadow.hlsl" />
     <FxCompile Include="ShadowDepthGS.hlsl" />
     <FxCompile Include="SkyPixelShader.hlsl" />
     <FxCompile Include="TexAnimVertexShader.hlsl" />
@@ -572,6 +592,9 @@
     <FxCompile Include="Shader\Pixel\PS_PointLightShadow.hlsl" />
     <FxCompile Include="Light.hlsl" />
     <FxCompile Include="Shader\Vertex\VS_PointLightShadow.hlsl" />
+    <FxCompile Include="Shader\Pixel\PS_AlchemySSAO.hlsl" />
+    <FxCompile Include="Shader\Compute\CS_Particle.hlsl" />
+    <FxCompile Include="Shader\Vertex\VS_Particle.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.hlsli" />

@@ -1,0 +1,23 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "TexVertexShader.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MAsset": {
+                    "Path": "Resources\\Texture\\BasicParticle.png"
+                }
+            },
+            "1": {},
+            "2": {},
+            "3": {},
+            "4": {},
+            "5": {}
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 2,
+        "bUseAlpha": false,
+        "bAlphaMask": true
+    }
+}

@@ -8,7 +8,7 @@
 #include "Actor.h"
 #include "DynamicMeshComponent.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
-#include "GameFramework/DynamicMeshActor/DynamicMeshActor.h"
+#include "Framework/DynamicMeshActor/DynamicMeshActor.h"
 
 #include "imgui.h"
 #include "ImGui/backends/imgui_impl_win32.h"

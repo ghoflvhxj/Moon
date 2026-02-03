@@ -5,6 +5,7 @@
   <PropertyGroup>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ShaderType)\$(Filename).cso</OutDir>
     <TargetExt>.dll</TargetExt>
+    <_PropertySheetDisplayName>ShaderOutput</_PropertySheetDisplayName>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <FxCompile>
@@ -12,6 +13,8 @@
       <ObjectFileOutput>$(OutDir)Shader\%(ShaderType)\%(Filename).cso</ObjectFileOutput>
       <ShaderType>
       </ShaderType>
+      <PreprocessorDefinitions>DEBUG</PreprocessorDefinitions>
+      <DisableOptimizations>true</DisableOptimizations>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup />

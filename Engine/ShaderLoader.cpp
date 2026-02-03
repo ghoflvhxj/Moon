@@ -1,21 +1,15 @@
-﻿#include "Include.h"
-#include "ShaderLoader.h"
+﻿#include "ShaderLoader.h"
 
 #include "ShaderManager.h"
-#include "Shader.h"
-#include "VertexShader.h"
-#include "PixelShader.h"
-#include "GeometryShader.h"
+#include "Module/Graphic/Shader/Shader.h"
+#include "Module/Graphic/Shader/VertexShader.h"
+#include "Module/Graphic/Shader/PixelShader.h"
+#include "Module/Graphic/Shader/GeometryShader.h"
+
+#include "MoonEngine.h"
+#include "GraphicDevice.h"
 
 #include "FileFinder.h"
-
-ShaderLoader::ShaderLoader()
-{
-}
-
-ShaderLoader::~ShaderLoader()
-{
-}
 
 bool ShaderLoader::loadShaderFiles(const std::unique_ptr<MShaderManager>& shaderManager)
 {
@@ -23,6 +17,7 @@ bool ShaderLoader::loadShaderFiles(const std::unique_ptr<MShaderManager>& shader
 	loadVertexShaderFromFiles(shaderManager);
 	loadPixelShaderFromFiles(shaderManager);
 	loadGeometryShaderFromFiles(shaderManager);
+    LoadComputeShaders(shaderManager);
 
 	return true;
 }
@@ -38,7 +33,7 @@ bool ShaderLoader::loadVertexShaderFromFiles(const std::unique_ptr<MShaderManage
 	auto &fileList = fileFinder.getFileList();
 	for (auto &filePathName : fileList) 
 	{
-		std::shared_ptr<VertexShader> pShader = std::make_shared<VertexShader>(filePathName);
+		std::shared_ptr<MVertexShader> pShader = std::make_shared<MVertexShader>(filePathName);
 
 		WCHAR fileName[MAX_PATH] = {};
 		lstrcpy(fileName, PathFindFileName(filePathName.c_str()));
@@ -60,7 +55,7 @@ bool ShaderLoader::loadPixelShaderFromFiles(const std::unique_ptr<MShaderManager
 	auto &fileList = fileFinder.getFileList();
 	for (auto &filePathName : fileList)
 	{
-		std::shared_ptr<PixelShader> pShader = std::make_shared<PixelShader>(filePathName);
+		std::shared_ptr<MPixelShader> pShader = std::make_shared<MPixelShader>(filePathName);
 
 		WCHAR fileName[MAX_PATH] = {};
 		lstrcpy(fileName, PathFindFileName(filePathName.c_str()));
@@ -91,4 +86,19 @@ bool ShaderLoader::loadGeometryShaderFromFiles(const std::unique_ptr<MShaderMana
 	}
 
 	return true;
+}
+
+bool ShaderLoader::LoadComputeShaders(const std::unique_ptr<MShaderManager>& shaderManager)
+{
+    OutputDebugString(TEXT("ComputeShader 불러오는 중...\r\n"));
+
+    std::wstring Path = GetComputeShaderDirectory();
+    auto& Files = MFileSystem::GetFiles(Path);
+    for (auto& FilePath : Files)
+    {
+        MComputeShader ComputeShader = getGraphicDevice()->CreateComputeShader(FilePath);
+        shaderManager->AddComputeShader(FilePath, ComputeShader);
+    }
+
+    return true;
 }

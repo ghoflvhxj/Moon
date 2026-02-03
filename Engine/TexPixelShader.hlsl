@@ -49,7 +49,8 @@ PixelOut_GeometryPass main(PixelIn pIn)
     //}
 	
     // 알파마스크
-    clip(pOut.color.rgb - float3(0.01f, 0.01f, 0.01f) * bAlphaMask);
+    float Max = max(max(pOut.color.r, pOut.color.g), pOut.color.z);
+    clip(Max - 0.01f * bAlphaMask);
     clip(pOut.color.a - 0.001f * bAlphaMask);
     
     // 노말

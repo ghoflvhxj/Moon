@@ -1,0 +1,44 @@
+{
+    "MMaterial": {
+        "_vertexShaderFileName": "VS_Particle.cso",
+        "_pixelShaderFileName": "TexPixelShader.cso",
+        "_textureList": {
+            "0": {
+                "MAsset": {
+                    "Path": "Resources\\Texture\\BasicParticle.png"
+                }
+            },
+            "1": {
+                "MAsset": {}
+            },
+            "2": {
+                "MAsset": {}
+            },
+            "3": {
+                "MAsset": {}
+            },
+            "4": {
+                "MAsset": {
+                    "Path": "Resources\\Texture\\BasicParticle.png"
+                }
+            },
+            "5": {
+                "MAsset": {}
+            }
+        },
+        "_eTopology": 4,
+        "_eFillMode": 1,
+        "_eCullMode": 2,
+        "bUseAlpha": false,
+        "bAlphaMask": true,
+        "bRimLight": false,
+        "UVScale": [
+            1.0,
+            1.0
+        ]
+    },
+    "MAsset": {
+        "Path": "ParticleMaterial.json"
+    },
+    "MObject": {}
+}

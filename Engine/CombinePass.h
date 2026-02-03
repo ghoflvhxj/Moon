@@ -10,7 +10,16 @@ public:
 
 protected:
 
-	virtual bool IsValidPrimitive(const FPrimitiveData &primitiveData) const override;
+	virtual bool IsValidPrimitive(const FPrimitiveData& InPrimitiveData) const override;
+};
+
+class MFXPass : public MRenderPass
+{
+public:
+    MFXPass();
+
+public:
+    virtual bool IsValidPrimitive(const FPrimitiveData& InPrimitiveData) const override;
 };
 
 class DirectionalShadowDepthPass : public MRenderPass
@@ -20,12 +29,12 @@ public:
 	virtual ~DirectionalShadowDepthPass() = default;
 
 public:
-    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
+    virtual void RenderPass(std::vector<FPrimitiveData>& PrimitiveDatList) override;
 
 protected:
     virtual void DrawPrimitive(const FPrimitiveData& PrimitiveData) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData) override;
+    virtual void UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData) override;
 
 public:
     const std::vector<Mat4>& GetViewProjs() const;
@@ -34,6 +43,7 @@ protected:
     std::vector<Mat4> Transforms;
 
 protected:
+    // GS에서 IntanceID를 이용해 RT 구분용으로 사용됨
     std::shared_ptr<class MVertexBuffer> InstanceBuffer;
 };
 
@@ -44,12 +54,13 @@ public:
 	virtual ~PointShadowDepthPass() = default;
 
 public:
-    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList) override;
+    virtual void RenderPass(std::vector<FPrimitiveData>& PrimitiveDatList) override;
 
 protected:
     virtual void DrawPrimitive(const FPrimitiveData& PrimitiveData) override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData) override;
+    virtual void UpdateRenderPassConstantBuffer(std::shared_ptr<MShader> InShader) override;
+    virtual void UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData) override;
     virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData) override;
 
 protected:

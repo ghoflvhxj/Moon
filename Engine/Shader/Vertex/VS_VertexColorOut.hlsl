@@ -12,8 +12,7 @@ VertexOut_Simple main(VertexIn vIn, InstanceIn iIn)
     }
     else
     {
-        row_major matrix MyWorldViewProj = mul(mul(worldMatrix, viewMatrix), projectionMatrix);
-        vOut.pos = mul(float4(vIn.pos.xyz, 1.f), MyWorldViewProj);
+        vOut.pos = LocalToProj(vIn.pos);
         vOut.color = vIn.color;
     }
     

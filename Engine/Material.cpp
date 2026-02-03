@@ -10,9 +10,9 @@
 #include "ConstantBuffer.h"
 
 #include "ShaderManager.h"
-#include "Shader.h"
-#include "VertexShader.h"
-#include "PixelShader.h"
+#include "Module/Graphic/Shader/Shader.h"
+#include "Module/Graphic/Shader/VertexShader.h"
+#include "Module/Graphic/Shader/PixelShader.h"
 
 #include "Core/ResourceManager.h"
 #include "Core/Serialize/JsonDeSerializer.h"
@@ -76,16 +76,16 @@ void MMaterial::SetTexturesToDevice()
 	}
 }
 
-std::shared_ptr<MShader> MMaterial::getVertexShader()
+std::shared_ptr<MVertexShader> MMaterial::getVertexShader()
 {
-    std::shared_ptr<VertexShader>	_vertexShader;
+    std::shared_ptr<MVertexShader>	_vertexShader;
     g_pGraphicDevice->GetVertexShader(_vertexShaderFileName.c_str(), _vertexShader);
     return _vertexShader;
 }
 
-std::shared_ptr<MShader> MMaterial::getPixelShader()
+std::shared_ptr<MPixelShader> MMaterial::getPixelShader()
 {
-    std::shared_ptr<PixelShader>	_pixelShader;
+    std::shared_ptr<MPixelShader>	_pixelShader;
     g_pGraphicDevice->GetPixelShader(_pixelShaderFileName.c_str(), _pixelShader);
     return _pixelShader;
 }

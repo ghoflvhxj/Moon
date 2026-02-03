@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "Include.h"
+
 class MMaterial;
 struct FBufferVariableInfo;
 struct FBufferVariable;
@@ -10,15 +12,22 @@ public:
 	explicit MConstantBuffer(const uint32 size, const void *buffer, const uint32 countOfVariables);
 	~MConstantBuffer();
 
+    /*************************
+        CPU -> GPU
+    *************************/
 public:
-	// 데이터를 디바이스에 올림
+	// CPU 데이터를 GPU에 올림
 	void Commit();
 	// 데이터를 업데이트 하고 디바이스에 올림
-	void SetAllData(const void *pData);
-	// 특정 데이터만 업데이트 할 떄 사용
+	//void SetAllData(const void *pData);
+    
+    /*************************
+        CPU 데이터 업데이트
+    *************************/
+public:
+	// 특정 CPU 데이터만 업데이트 할 떄 사용
 	void SetData(int32 Offset, const void* InData, uint32 InSize);
     void SetData(const std::wstring& InName, const void* InData);
-	//void setBufferToDevice(UINT &stride, UINT &offset);
 
 public:
 	const uint32 getSize() const;

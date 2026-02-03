@@ -22,15 +22,6 @@ struct FRenderTargetDebugData
     std::shared_ptr<MMaterial> Material = nullptr;
 };
 
-enum class ECascade
-{
-    Near,
-    Middle,
-    Middle2,
-    Far,
-    Count
-};
-
 class ENGINE_DLL MRenderer : public MModule
 {
 public:
@@ -69,8 +60,11 @@ protected:
     uint32 CurrentSceneID = 0;
 
     /**********************************
-        간단한 Geometry 렌더링
+        Geometry 렌더링
+        PrimitiveComponent 없이 Mesh를 직접 전달할 때 사용
     **********************************/
+public:
+    void DrawPrimitive(MWorld* InWorld, const std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType);
 public:
     void DrawCylinder(float InRadius, float InHalfHeight, Vec3& InRotation, Vec3& InTranslation);
     void DrawSphere(float InRadius, const Vec3& InTranslation, const DirectX::XMVECTORF32& InColor = EngineColors::White);
@@ -78,7 +72,6 @@ public:
     void DrawCapsule(MWorld* InWorld, float InRadius, float InHalfHeight, const Vec3& InTranslation, const Vec4& InQuatRotation);
     void DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec4& InQuatRotation, const Vec3& InScale = VEC3ONE);
     void DrawCoordinate(MWorld* InWorld, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale = VEC3ONE);
-    void DrawPrimitive(MWorld* InWorld, const std::shared_ptr<StaticMesh>& InMesh, const Vec3& InTranslation, const Vec3& InRotation, const Vec3& InScale, EPrimitiveType InPrimitiveType);
 protected:
     FMeshData SphereMesh = {};
     FMeshData CoordinateMesh = {};
@@ -123,7 +116,7 @@ protected:
 public:
 	void AddPrimitiveComponent(std::shared_ptr<MPrimitiveComponent> InPrimitiveComponent);
     void RemovePrimitiveComponent(MPrimitiveComponent* InComponent);
-
+protected:
     void UpdatePrimitiveData(MPrimitiveComponent* InComponent);
 
 public:
@@ -174,136 +167,19 @@ public:
     std::wstring SceneRenderTime;
     std::wstring RenderPassTime;
 
-    bool bPointLighting = true;
-
-    RENDERER_OPTION(DrawShadow);
+    RENDERER_OPTION(DirectionalLighting, true);
+    RENDERER_OPTION(PointLighting, true);
+    RENDERER_OPTION(Shadowing, true);
+    RENDERER_OPTION(SSAO, true);
 
     REFLECT(
         MRenderer
         , PROPERTY(DebugRenderTargetIndex)
-        , PROPERTY(bDrawShadow)
         , PROPERTY(GaussianSigma)
         , PROPERTY(GaussianRadius)
+        , PROPERTY(bDirectionalLighting)
         , PROPERTY(bPointLighting)
+        , PROPERTY(bShadowing)
+        , PROPERTY(bSSAO)
     )
-};
-
-// Scene과 World는 한쌍으로 존재함.
-// Scene은 Render모듈에서의 World라고 이해하면 편함
-class ENGINE_DLL MScene : public MObject
-{
-public:
-    MScene();
-
-public:
-    // 이름 임시
-    void Begin();
-    void End();
-    void Clear()
-    {
-        PrimitiveDatas.clear();
-        PrimitiveDatasPerType.clear();
-    }
-
-public:
-    std::shared_ptr<MWindow> GetWindow() const;
-
-public:
-    void SetWorld(std::shared_ptr<MWorld> InWorld);
-    std::shared_ptr<MWorld> GetWorld() const;
-protected:
-    std::weak_ptr<MWorld> World;
-
-    /**********************************
-        HLSL ConstantBuffer 업데이트
-    **********************************/
-public:
-    void UpdateGlobalConstantBuffer();
-    void UpdateTickConstantBuffer();
-
-    /*********************************
-        HLSL 글로벌 파라미터
-    **********************************/
-public:
-    float NormalBiasScale = 0.1f;
-    float DepthBias = 0.001f;
-    bool bDebugDirectionalLight = false;
-    bool bDebugDirectionalShadow = false;
-    bool bDebugCascade = false;
-    bool bDebugPointLight = false;
-    bool bPointLighting = true;
-    bool bDirectionalLighting = true;
-
-
-    /* 렌더링에 필요한 PrimitiveData를 관리함 */
-public:
-    // PrimitveData에 버퍼를 설정하는 함수
-    void UpdateBuffer(uint32 InPID, std::shared_ptr<MMesh>& InMesh);
-    void UpdatePrimitiveData(MPrimitiveComponent* InComponent);
-public:
-    uint32 GetPrimitiveDataNum(uint32 InPID) const { return PrimitiveDatas.find(InPID) != PrimitiveDatas.end() ? GetSize(PrimitiveDatas.at(InPID)) : 0; }
-    void AddPrimitiveDatas(uint32 InPID, const std::vector<FPrimitiveData>& InPrimitiveDatas);
-    void ClearPrimtiveDatas(uint32 InPID);
-    const std::map<uint32, std::vector<FPrimitiveData>>& GetPrimitiveDatas() const;
-    const std::vector<FPrimitiveData>& GetPrimitiveDatas(uint32 InPrimitiveID);
-    const std::vector<const FPrimitiveData*>& GetPrimitiveDatas(EPrimitiveType InPrimitiveType) { return PrimitiveDatasPerType[InPrimitiveType]; }
-protected:
-    // PrimitiveComponent로 부터 얻어낸 PrimitiveID, PrimitiveData 쌍을 저장함
-    std::map<uint32, std::vector<FPrimitiveData>> PrimitiveDatas;
-    std::map<EPrimitiveType, std::vector<const FPrimitiveData*>> PrimitiveDatasPerType;
-
-public:
-    void AddRenderablePrimitiveDatas(const std::vector<FPrimitiveData>& InPrimitiveDatas);
-    void AddRenderablePrimitiveData(const FPrimitiveData& InPrimitiveData);
-    const std::vector<FPrimitiveData>& GetRenderablePrimitiveData() const;
-protected:
-    // 컬링 후 실제로 렌더링되는 PrimitiveData를 저장함
-    std::vector<FPrimitiveData> RenderablePrimitiveData;
-
-public:
-    void DrawPrimitive(const FPrimitiveData& InPrimitiveData);
-public:
-    const std::vector<FPrimitiveData>& GetTemporalPrimitiveDatas() const;
-protected:
-    // 휘발성 PrimitiveData. 현재 틱이 끝나면 클리어됨
-    std::vector<FPrimitiveData> TemporalPrimitiveDatas;
-    std::vector<FPrimitiveData> CachedTemporalPrimitiveDatas;
-
-protected:
-    std::vector<FInstancingData> SphereRenderDatas;
-    std::vector<FInstancingData> CoordinateRenderDatas;
-
-    /*********************************
-        Cascade Shadow 구현
-    **********************************/
-public:
-    const std::vector<float>& GetCascadeDistances() const { return CascadeDistances; }
-    float GetCascadeDistance(uint32 InIndex) const { return CascadeDistances[InIndex]; }
-protected:
-    std::vector<float> CascadeDistances;
-
-public:
-    // 인스턴싱 데이터
-    std::map<MVertexBuffer*, std::vector<FVertex_Instance>> InstanceDatas;
-
-public:
-    RENDERER_OPTION(DrawCollision);
-
-    REFLECT(
-        MScene
-        , PROPERTY(bDrawCollision)
-        , PROPERTY(NormalBiasScale)
-        , PROPERTY(DepthBias)
-        , PROPERTY(bDebugDirectionalLight)
-        , PROPERTY(bDebugDirectionalShadow)
-        , PROPERTY(bDebugCascade)
-        , PROPERTY(bDebugPointLight)
-        //, PROPERTY(bPointLighting)
-    )
-    /* 카메라 */
-//public:
-//    void Func(); // 카메라의 데이터를 가져옴
-//protected:
-//    Mat4 ViewPerspectiveProjMatrix = {};
-//    Mat4 ViewOrthogonalProjMatrix = {};
 };

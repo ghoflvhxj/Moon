@@ -76,7 +76,7 @@ protected:
 
     REFLECT(
         MActor
-        , PROPERTY(AttachDatas)
+        //, PROPERTY(AttachDatas)
         , PROPERTY(bUpdatable)
     );
 };

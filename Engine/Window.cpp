@@ -1,6 +1,7 @@
 ﻿#include "Include.h"
 #include "Window.h"
 #include "WindowException.h"
+#include "MoonEngine.h"
 
 LRESULT MWindow::DefaultWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
@@ -19,59 +20,8 @@ LRESULT MWindow::DefaultWndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM 
 
 MWindow::MWindow()
 {
-    //RECT rt = { 0, 0, 1920, 1080 };
-    //AdjustWindowRect(&rt, WS_OVERLAPPED, false);
 
-    //m_hWnd = CreateWindow(TEXT("className"), TEXT("title"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
-    //if (m_hWnd == nullptr)
-    //    throw WINDOW_EXCEPTION(GetLastError());
-
-    //ShowWindow(m_hWnd, SW_SHOW);
 }
-
-//MWindow::MWindow(const std::wstring &title, const int width, const int height, const std::wstring &className)
-//	: m_hWnd{ 0 }
-//    , Width(width)
-//    , Height(height)
-//{
-//	RECT rt = { 0, 0, width, height };
-//	AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
-//
-//	m_hWnd = CreateWindow(className.c_str(), title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
-//	if (m_hWnd == nullptr)
-//		throw WINDOW_EXCEPTION(GetLastError());
-//
-//	ShowWindow(m_hWnd, SW_SHOW);
-//}
-//
-//MWindow::MWindow(const std::wstring& title, const int width, const int height, HWND Parent, const std::wstring& className)
-//    : m_hWnd{ 0 }
-//    , Width(width)
-//    , Height(height)
-//{
-//    RECT rt = { 0, 0, width, height };
-//    AdjustWindowRect(&rt, WS_OVERLAPPED, false);
-//
-//    m_hWnd = CreateWindow(className.c_str(), title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, Parent, 0, g_hInstance, 0);
-//    if (m_hWnd == nullptr)
-//        throw WINDOW_EXCEPTION(GetLastError());
-//
-//    ShowWindow(m_hWnd, SW_SHOW);
-//}
-//
-//MWindow::MWindow(LPCWSTR title, const int width, const int height, LPCWSTR className)
-//    : m_hWnd{ 0 }
-//    , Width(width)
-//    , Height(height)
-//{
-//	RECT rt = { 0, 0, width, height };
-//	AdjustWindowRect(&rt, WS_OVERLAPPED, false);
-//
-//	m_hWnd = CreateWindow(className, title, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, 0, 0, g_hInstance, 0);
-//	if (m_hWnd == nullptr)
-//		throw WINDOW_EXCEPTION(GetLastError());
-//	ShowWindow(m_hWnd, SW_SHOW);
-//}
 
 MWindow::~MWindow()
 {
@@ -84,7 +34,7 @@ void MWindow::InitWindow(const std::wstring& title, const int width, const int h
     Height = height;;
 
     RECT rt = { 0, 0, width, height };
-    AdjustWindowRect(&rt, WS_OVERLAPPED, false);
+    AdjustWindowRect(&rt, WS_OVERLAPPEDWINDOW, false);
 
     m_hWnd = CreateWindow(className.c_str(), title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, rt.right - rt.left, rt.bottom - rt.top, Parent, 0, g_hInstance, 0);
     if (m_hWnd == nullptr)
@@ -108,13 +58,33 @@ HWND MWindow::getHandle() const
 void MWindow::ToggleFullScreen()
 {
     bFullScreen = !bFullScreen;
-    //UpdateSize();
+    SetWindowLong(getHandle(), GWL_STYLE, (bFullScreen ? WS_OVERLAPPED : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 
-    GetOnViewportSizeChangedDelegate().Broadcast(ID, Width, Height, Width, Height, bFullScreen);
+    uint32 OldWidth = Width;
+    uint32 OldHeight = Height;
+    uint32 NewWidth = 0;
+    uint32 NewHeight = 0;
 
-    if (bFullScreen == false)
+    if (bFullScreen)
     {
-        SetWindowLong(getHandle(), GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+        HMONITOR hMon = MonitorFromWindow(getHandle(), MONITOR_DEFAULTTONEAREST);
+
+        MONITORINFOEX mi = {};
+        mi.cbSize = sizeof(mi);
+
+        GetMonitorInfo(hMon, &mi);
+
+        NewWidth = mi.rcMonitor.right - mi.rcMonitor.left;
+        NewHeight = mi.rcMonitor.bottom - mi.rcMonitor.top;
+        // DXGI의 ResizeTarget 사용으로 호출 안해도 됨
+        //::SetWindowPos(getHandle(), NULL, 0, 0, NewWidth, NewHeight, SWP_NOZORDER);
+
+        // 뷰포트 사이즈는 모니터로 변경되야 하지만, 스왑 체인은 설정 해상도를 유지하도록 기존 해상도를 넘김
+        GetOnViewportSizeChangedDelegate().Broadcast(ID, 0, 0, Width, Height, bFullScreen);
+    }
+    else
+    {
+        GetOnViewportSizeChangedDelegate().Broadcast(ID, OldWidth, OldHeight, Width, Height, bFullScreen);
     }
 }
 
@@ -125,16 +95,25 @@ void MWindow::Disable()
 
 void MWindow::UpdateSize()
 {
-    RECT Rect = {};
-    if (GetClientRect(getHandle(), &Rect) == FALSE)
+    uint32 OldWidth = Width;
+    uint32 OldHeight = Height;
+    uint32 NewWidth = 0;
+    uint32 NewHeight = 0;
+
+    // 뷰포트 사이즈
+    RECT ClientRect = {};
+    if (GetClientRect(getHandle(), &ClientRect) == FALSE)
     {
         return;
     }
+    NewWidth = ClientRect.right - ClientRect.left;
+    NewHeight = ClientRect.bottom - ClientRect.top;
 
-    uint32 OldWidth = Width;
-    uint32 OldHeight = Height;
-    uint32 NewWidth = Rect.right - Rect.left;
-    uint32 NewHeight = Rect.bottom - Rect.top;
+    //// 윈도우 사이즈
+    //RECT WindowRect = ClientRect;
+    //AdjustWindowRect(&WindowRect, WS_OVERLAPPEDWINDOW, false);
+    //int WindowWidth = WindowRect.right - WindowRect.left;
+    //int WindowHeight = WindowRect.bottom - WindowRect.top;
 
     if (NewWidth == OldWidth && NewHeight == OldHeight)
     {
@@ -153,7 +132,7 @@ void MWindow::UpdateSize()
 
 void MWindow::SetWindowPos(const Vec2& InPos)
 {
-    ::SetWindowPos(getHandle(), NULL, static_cast<int>(InPos.x), static_cast<int>(InPos.y), GetWidth<int>(), GetHeight<int>(), SWP_NOZORDER);
+    ::SetWindowPos(getHandle(), NULL, static_cast<int>(InPos.x), static_cast<int>(InPos.y), -1, -1, SWP_NOZORDER | SWP_NOSIZE);
 }
 
 Vec2 MWindow::GetWindowPos() const

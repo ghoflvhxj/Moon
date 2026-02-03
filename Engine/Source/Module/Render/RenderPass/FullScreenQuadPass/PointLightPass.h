@@ -9,10 +9,10 @@ public:
     virtual ~PointLightPass() = default;
 
 public:
-    virtual void Begin() override;
     virtual void End() override;
     virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const override;
-    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData) override;
+    //virtual void UpdateRenderPassConstantBuffer(std::shared_ptr<MShader> InShader) override;
+    virtual void UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData) override;
     virtual void HandleOutputMergeStage(const FPrimitiveData& primitiveData) override;
 
 public:
@@ -20,4 +20,8 @@ public:
 
 protected:
     uint32 Indexer = 0;
+
+    Vec4 LightPosAndRange;
+    Vec4 LightColorAndIntensity;
+
 };

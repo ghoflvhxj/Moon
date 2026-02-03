@@ -55,6 +55,7 @@ protected:
     bool bDisable = false;
 
 public:
+    // 윈도우 사이즈를 조절 완료 후 호출됨
     void UpdateSize();
 public:
     template <class T>

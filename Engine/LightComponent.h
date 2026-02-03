@@ -17,11 +17,6 @@ public:
 	virtual const bool GetPrimitiveData(std::vector<FPrimitiveData> &primitiveDataList) override;
 
 public:
-    virtual Mat4& getWorldMatrix() override;
-protected:
-    Mat4 LightWorldMatrix;
-
-public:
     const Vec3& GetDirection() const { return Direction; }
 protected:
     Vec3 Direction = { 0.f, -1.f, 0.f};

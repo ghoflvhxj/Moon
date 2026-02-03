@@ -1,5 +1,6 @@
 ﻿#include "FullScreenQuadPass.h"
 
+#include "Module/Render/Scene.h"
 #include "StaticMeshComponent.h"
 #include "MainGameSetting.h"
 #include "Core/ResourceManager.h"
@@ -16,9 +17,9 @@ MFullScreenQuadPass::MFullScreenQuadPass()
     bDepthEnable = false;
 }
 
-void MFullScreenQuadPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
+void MFullScreenQuadPass::RenderPass(std::vector<FPrimitiveData>& PrimitiveDatList)
 {
-    const std::vector<FPrimitiveData>& PrimitiveDatas = MakePrimitiveDatas();
+    std::vector<FPrimitiveData>& PrimitiveDatas = MakePrimitiveDatas();
     
     //for (const FPrimitiveData& PrimitiveData : PrimitiveDatas)
     //{

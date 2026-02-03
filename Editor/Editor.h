@@ -54,12 +54,14 @@ public:
         SaveInternal(InObject, InObject->GetAssetPath());
     }
     template <class T>
-    void SaveAs(T& InObject)
+    void SaveAs(T& InObject, const wchar_t* InFormat = nullptr)
     {
+        const wchar_t* Format = InFormat == nullptr ? TEXT("json파일\0*.json\0") : InFormat;
+
         TCHAR FileName[256] = {};
         OPENFILENAMEW OpenFileDesc = {};
         OpenFileDesc.lStructSize = sizeof(OPENFILENAMEW);
-        OpenFileDesc.lpstrFilter = TEXT("json파일\0*.json\0");
+        OpenFileDesc.lpstrFilter = Format;
         OpenFileDesc.lpstrFile = FileName;
         OpenFileDesc.nMaxFile = MAX_PATH;
         OpenFileDesc.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;

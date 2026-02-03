@@ -2,11 +2,9 @@
 
 namespace fs = std::filesystem;
 
-fs::path MFileSystem::RootPath = fs::current_path();
-
 MFileSystem::MFileSystem()
 {
-    fs::recursive_directory_iterator Iter(RootPath);
+    fs::recursive_directory_iterator Iter(GetRootPath());
     while (Iter != fs::end(Iter))
     {
         const fs::directory_entry& Entry = *Iter;
@@ -15,7 +13,32 @@ MFileSystem::MFileSystem()
     }
 }
 
-std::wstring MFileSystem::RootStr = MFileSystem::RootPath.wstring();
+const std::filesystem::path& MFileSystem::GetRootPath()
+{
+    static fs::path RootPath = fs::current_path();
+    return RootPath;
+}
+
+const std::filesystem::path& MFileSystem::GetResourcePath()
+{
+    static fs::path ResourcePath = fs::path(GetRootPath()) / TEXT("Resources");
+    return ResourcePath;
+}
+
+std::vector<std::wstring> MFileSystem::GetFiles(const std::wstring& InPath)
+{
+    std::vector<std::wstring> Files;
+
+    fs::recursive_directory_iterator Iter(InPath);
+    while (Iter != fs::end(Iter))
+    {
+        const fs::directory_entry& Entry = *Iter;
+        Files.push_back(Entry.path());
+        Iter++;
+    }
+
+    return Files;
+}
 
 std::wstring MFileSystem::AbsolutePath(const std::wstring& InRelativePath)
 {
@@ -29,7 +52,7 @@ fs::path MFileSystem::AbsolutePath(const fs::path InRelativePath)
 {
     if (InRelativePath.is_absolute() == false)
     {
-        return RootPath / InRelativePath;
+        return GetRootPath() / InRelativePath;
     }
     else
     {
@@ -43,6 +66,18 @@ std::wstring MFileSystem::GetDirectory(const std::wstring& InPath)
     return Path.remove_filename().wstring();
 }
 
+std::wstring MFileSystem::GetFileName(const std::wstring& InPath, bool bIncludeExtension)
+{
+    fs::path FileName = fs::path(InPath).filename();
+
+    if (bIncludeExtension == false)
+    {
+        FileName = FileName.replace_extension();
+    }
+
+    return FileName;
+}
+
 std::wstring MFileSystem::RelativePath(const std::wstring& InPath)
 {
     fs::path Path(InPath);
@@ -51,7 +86,7 @@ std::wstring MFileSystem::RelativePath(const std::wstring& InPath)
 
 std::wstring MFileSystem::RelativePath(const fs::path& InPath)
 {
-    return std::move(fs::relative(InPath, MFileSystem::RootPath).wstring());
+    return std::move(fs::relative(InPath, GetRootPath()).wstring());
 }
 
 bool MFileSystem::IsExist(const std::wstring& InPath)

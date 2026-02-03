@@ -10,9 +10,9 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Material.h"
-#include "VertexShader.h"
-#include "PixelShader.h"
-#include "GeometryShader.h"
+#include "Module/Graphic/Shader/VertexShader.h"
+#include "Module/Graphic/Shader/PixelShader.h"
+#include "Module/Graphic/Shader/GeometryShader.h"
 
 // Render
 #include "RenderTarget.h"
@@ -26,16 +26,15 @@
 #include "Texture.h"
 
 #include "DynamicMeshComponent.h"
+#include "Framework/Component/FX/FXComponent.h"
 
 using namespace DirectX;
 
 MRenderPass::MRenderPass()
 	: _vertexShader{ nullptr }
 	, _pixelShader{ nullptr }
-	, _geometryShader{ nullptr }
+	, GeometryShader{ nullptr }
 	, _bShaderSet{ false }
-	, bClearTargets{ true }
-	//, UseOwningDepthStencilBuffer{ ERenderTarget::Count }
 {
 }
 
@@ -43,8 +42,18 @@ MRenderPass::~MRenderPass()
 {
 }
 
-void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
+void MRenderPass::RenderPass(std::vector<FPrimitiveData>& PrimitiveDatList)
 { 
+    if (_vertexShader && _vertexShader->HasConstantBuffer(EConstantBufferLayer::RenderPass))
+    {
+        UpdateRenderPassConstantBuffer(_vertexShader);
+    }
+
+    if (_pixelShader && _pixelShader->HasConstantBuffer(EConstantBufferLayer::RenderPass))
+    {
+        UpdateRenderPassConstantBuffer(_pixelShader);
+    }
+
     for (auto& PrimitiveData : PrimitiveDatList)
     {
         if (IsValidPrimitive(PrimitiveData) == false)
@@ -52,18 +61,61 @@ void MRenderPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList
             continue;
         }
 
-        UpdateRenderPassConstantBuffer(PrimitiveData);
-        UpdateMaterialConstantBuffer(PrimitiveData.Material.lock(), PrimitiveData);
-        UpdateObjectConstantBuffer(PrimitiveData);
-
         HandleInputAssemblerStage(PrimitiveData);
-        HandleVertexShaderStage(PrimitiveData);
-        HandleGeometryShaderStage(PrimitiveData);
-        HandlePixelShaderStage(PrimitiveData);
+
+        if (ComputeShader.IsValid())
+        {
+            HandleComputeShaderStage(&ComputeShader, PrimitiveData);
+            getGraphicDevice()->CSSet(ComputeShader);
+        }
+        else
+        {
+            getGraphicDevice()->CSReset();
+        }
+
+        if (std::shared_ptr<MVertexShader> VS = GetVertexShader(PrimitiveData))
+        {
+            HandleVertexShaderStage(VS, PrimitiveData);
+            VS->Apply();
+        }
+        else
+        {
+            assert(false); // VS는 반드시 세팅되야 함
+        }
+
+        if (std::shared_ptr<MGeometryShader> GS = GetGeometryShader(PrimitiveData))
+        {
+            HandleGeometryShaderStage(GS, PrimitiveData);
+            GS->Apply();
+        }
+        else
+        {
+            getGraphicDevice()->GSReset();
+        }
+
+        if (std::shared_ptr<MPixelShader> PS = GetPixelShader(PrimitiveData))
+        {
+            HandlePixelShaderStage(PS, PrimitiveData);
+            PS->Apply();
+            OnHandlePxielShaderStage.Broadcast(PrimitiveData, PS);
+        }
+        else
+        {
+            getGraphicDevice()->PSSet(nullptr);
+        }
+
         HandleRasterizerStage(PrimitiveData);
         HandleOutputMergeStage(PrimitiveData);
 
         DrawPrimitive(PrimitiveData);
+
+        if (std::shared_ptr<MVertexShader> VS = GetVertexShader(PrimitiveData))
+        {
+            if (ComputeShader.IsValid())
+            {
+                getGraphicDevice()->VSSetSRV(ComputeShader.RWStructuredBuffer.GetSlot(), -1);
+            }
+        }
     }
 }
 
@@ -159,7 +211,7 @@ void MRenderPass::Begin()
 
 void MRenderPass::End()
 {
-    g_pGraphicDevice->SetToDefault();
+    getGraphicDevice()->SetToDefault();
 }
 
 void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
@@ -170,15 +222,19 @@ void MRenderPass::DrawPrimitive(const FPrimitiveData& PrimitiveData)
     {
         getGraphicDevice()->DrawInstance(PrimitiveData.VertexBuffer.lock(), PrimitiveData.IndexBuffer.lock(), InstanceBuffer);
     }
+    else if (PrimitiveData.InstanceNum > 0)
+    {
+        getGraphicDevice()->DrawInstance(PrimitiveData.VertexBuffer.lock(), PrimitiveData.IndexBuffer.lock(), PrimitiveData.InstanceNum);
+    }
     else
     {
         getGraphicDevice()->Draw(PrimitiveData.VertexBuffer.lock(), PrimitiveData.IndexBuffer.lock());
     }
 }
 
-bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
+bool MRenderPass::IsValidPrimitive(const FPrimitiveData& InPrimitiveData) const
 {
-    const std::shared_ptr<MPrimitiveComponent>& Primitive = PrimitiveData.PrimitiveComponent.lock();
+    const std::shared_ptr<MPrimitiveComponent>& Primitive = InPrimitiveData.PrimitiveComponent.lock();
     if (Primitive != nullptr)
     {
         if (Primitive->IsRendering() == false)
@@ -188,7 +244,7 @@ bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
 
         if (bUseDefaultShaderOnly == false)
         {
-            std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock();
+            std::shared_ptr<MMaterial>& Material = InPrimitiveData.Material.lock();
             if (Material == nullptr)
             {
                 return false;
@@ -204,8 +260,10 @@ bool MRenderPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData) const
     return true;
 }
 
-void MRenderPass::UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData)
+void MRenderPass::UpdateRenderPassConstantBuffer(std::shared_ptr<MShader> InShader)
 {
+    assert(InShader);
+
     //// 기타 옵션들 자동으로 설정
     //for (auto& Prop : GetTypeDesc()->Properties)
     //{
@@ -222,141 +280,125 @@ void MRenderPass::UpdateRenderPassConstantBuffer(const FPrimitiveData& Primitive
     //}
 }
 
-void MRenderPass::UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData)
+void MRenderPass::UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData)
 {
+    assert(InShader);
+}
+
+void MRenderPass::UpdateObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData)
+{
+    assert(InShader);
+
     const auto& Camera = getRenderer()->GetWorld()->getMainCamera();
 	const std::shared_ptr<MPrimitiveComponent>& PrimitiveComp = PrimitiveData.PrimitiveComponent.lock();
-
-    std::shared_ptr<MShader>& VS = GetVertexShader(PrimitiveData);
 
     auto GetViewProjMatrix = [](bool bOrtho)->Mat4 {
         return bOrtho ? getRenderer()->ViewOrthogonalProjMatrix : getRenderer()->ViewPerspectiveProjMatrix;
     };
 
-	// -------------------------------------------------------------------------------------------------------------------------
-	// 버텍스쉐이더 ConstantBuffer
-    if (VS->HasConstantBuffer(EConstantBufferLayer::Object))
+
+    bool animated = false;
+    Vec2 UV = { 1.f, 1.f };
+
+    if (PrimitiveComp && PrimitiveData.bUseCustomTransform == false)
     {
-        BOOL animated = FALSE;
-        Vec2 UV = { 1.f, 1.f };
+        InShader->SetValue(TEXT("worldMatrix"), PrimitiveComp->getWorldMatrix());
 
-        if (PrimitiveComp)
+        Mat4 WorldView = {};
+        XMStoreFloat4x4(&WorldView, XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix()) * XMLoadFloat4x4(&Camera->getViewMatrix()));
+        InShader->SetValue(TEXT("WorldView"), WorldView);
+
+        Mat4 WorldViewProj = {};
+        XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix()) * XMLoadFloat4x4(&GetViewProjMatrix(PrimitiveComp->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)));
+        InShader->SetValue(TEXT("WorldViewProj"), WorldViewProj);
+
+        InShader->SetValue(TEXT("InverseWorldMatrix"), PrimitiveComp->GetInverseWorldMatrix());
+        InShader->SetValue(TEXT("bOrtho"), PrimitiveComp->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal);
+        if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = PrimitiveComp->CastToShared<DynamicMeshComponent>())
         {
-            VS->SetValue(TEXT("worldMatrix"), PrimitiveComp->getWorldMatrix());
-
-            Mat4 WorldView = {};
-            XMStoreFloat4x4(&WorldView, XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix()) * XMLoadFloat4x4(&Camera->getViewMatrix()));
-            VS->SetValue(TEXT("WorldView"), WorldView);
-
-            Mat4 WorldViewProj = {};
-            XMStoreFloat4x4(&WorldViewProj, XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix()) * XMLoadFloat4x4(&GetViewProjMatrix(PrimitiveComp->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal)));
-            VS->SetValue(TEXT("WorldViewProj"), WorldViewProj);
-
-            VS->SetValue(TEXT("inverseWorldMatrix"), PrimitiveComp->GetInverseWorldMatrix());
-            VS->SetValue(TEXT("bOrtho"), PrimitiveComp->getRenderMdoe() == MPrimitiveComponent::ERenderMode::Orthogonal ? TRUE : FALSE);
-            if (std::shared_ptr<DynamicMeshComponent> DynamicMeshComp = PrimitiveComp->CastToShared<DynamicMeshComponent>())
+            animated = DynamicMeshComp->HasAnim() && DynamicMeshComp->bBindPose == false;
+            if (animated)
             {
-                animated = DynamicMeshComp->HasAnim() && DynamicMeshComp->bBindPose == false ? TRUE : FALSE;
-                if (animated)
-                {
-                    VS->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
-                }
-            }
-
-            if (auto& Mat = PrimitiveData.Material.lock())
-            {
-                UV = Mat->UVScale;
+                InShader->SetValue(TEXT("keyFrameMatrices"), DynamicMeshComp->GetAnimMatrices());
             }
         }
-        else
-        {
-            Mat4 WorldMatrix = {};
-            XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&PrimitiveData.Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&PrimitiveData.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&PrimitiveData.Translation));
-            XMStoreFloat4x4(&WorldMatrix, XMWorldMat);
-            VS->SetValue(TEXT("worldMatrix"), WorldMatrix);
-
-            Mat4 WorldView = {};
-            XMStoreFloat4x4(&WorldView, XMWorldMat * XMLoadFloat4x4(&Camera->getViewMatrix()));
-            VS->SetValue(TEXT("WorldView"), WorldView);
-
-            Mat4 WorldViewProj = {};
-            XMStoreFloat4x4(&WorldViewProj, XMWorldMat * XMLoadFloat4x4(&GetViewProjMatrix(PrimitiveData.ProjectionType == EProjectionType::Orthograhpic)));
-            VS->SetValue(TEXT("WorldViewProj"), WorldViewProj);
-
-            Mat4 InvWorldMatrix = {};
-            XMStoreFloat4x4(&InvWorldMatrix, XMMatrixInverse(nullptr, XMWorldMat));
-            VS->SetValue(TEXT("inverseWorldMatrix"), InvWorldMatrix);
-            VS->SetValue(TEXT("bOrtho"), PrimitiveData.ProjectionType == EProjectionType::Orthograhpic ? TRUE : FALSE);
-        }
-
-        VS->SetValue(TEXT("animated"), animated);
-        VS->SetValue(TEXT("bInstance"), PrimitiveData.InstanceBuffer.expired() == false ? TRUE : FALSE);
-
-        VS->SetValue(TEXT("ScaleU"), UV.x);
-        VS->SetValue(TEXT("ScaleV"), UV.y);
     }
-
-    /*
-	// -------------------------------------------------------------------------------------------------------------------------
-	// 픽셀쉐이더 ConstantBuffer
-    std::shared_ptr<MShader>& PS = GetPixelShader(PrimitiveData);
-    if (PS->HasConstantBuffer(EConstantBufferLayer::Object))
+    else
     {
-        if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
-        {
-            BOOL bUseNormal = Material->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
-            PS->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
-            BOOL bUseSpecular = Material->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
-            PS->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
-            BOOL bUseEmissive = Material->IsTextureTypeUsed(ETextureType::Emssive) ? TRUE : FALSE;
-            PS->SetValue(TEXT("bUseEmissiveTexture"), bUseEmissive);
-            BOOL bAlphaMask = Material->IsAlphaMasked() ? TRUE : FALSE;
-            PS->SetValue(TEXT("bAlphaMask"), bAlphaMask);
-            BOOL bRimLight = Material->IsRimLighted() ? TRUE : FALSE;
-            PS->SetValue(TEXT("bRimLight"), bRimLight);
-        }
-        else
-        {
-            PS->SetValue(TEXT("bUseNormalTexture"), FALSE);
-            PS->SetValue(TEXT("bUseSpecularTexture"), FALSE);
-            PS->SetValue(TEXT("bAlphaMask"), FALSE);
-            PS->SetValue(TEXT("bRimLight"), FALSE);
-        }
+        Mat4 WorldMatrix = {};
+        XMMATRIX XMWorldMat = XMMatrixScalingFromVector(XMLoadFloat3(&PrimitiveData.Scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&PrimitiveData.Rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&PrimitiveData.Translation));
+        XMStoreFloat4x4(&WorldMatrix, XMWorldMat);
+        InShader->SetValue(TEXT("worldMatrix"), WorldMatrix);
+
+        Mat4 WorldView = {};
+        XMStoreFloat4x4(&WorldView, XMWorldMat * XMLoadFloat4x4(&Camera->getViewMatrix()));
+        InShader->SetValue(TEXT("WorldView"), WorldView);
+
+        Mat4 WorldViewProj = {};
+        XMStoreFloat4x4(&WorldViewProj, XMWorldMat * XMLoadFloat4x4(&GetViewProjMatrix(PrimitiveData.ProjectionType == EProjectionType::Orthograhpic)));
+        InShader->SetValue(TEXT("WorldViewProj"), WorldViewProj);
+
+        Mat4 InvWorldMatrix = {};
+        XMStoreFloat4x4(&InvWorldMatrix, XMMatrixInverse(nullptr, XMWorldMat));
+        InShader->SetValue(TEXT("InverseWorldMatrix"), InvWorldMatrix);
+        InShader->SetValue(TEXT("bOrtho"), PrimitiveData.ProjectionType == EProjectionType::Orthograhpic);
     }
-    */
+
+    InShader->SetValue(TEXT("animated"), animated);
+    InShader->SetValue(TEXT("bInstance"), PrimitiveData.InstanceBuffer.expired() == false);
 }
 
-void MRenderPass::UpdateMaterialConstantBuffer(std::shared_ptr<MMaterial>& InMaterial, const FPrimitiveData& PrimitiveData)
+void MRenderPass::UpdateMaterialConstantBuffer(std::shared_ptr<MShader> InShader, std::shared_ptr<MMaterial>& InMaterial, const FPrimitiveData& PrimitiveData)
 {
-    BOOL bUseNormal = FALSE;
-    BOOL bUseSpecular = FALSE;
-    BOOL bUseEmissive = FALSE;
-    BOOL bAlphaMask = FALSE;
-    BOOL bRimLight = FALSE;
-    Vec2 UVScale = { 1.f, 1.f };
+    assert(InShader);
 
-    if (InMaterial)
+    if (InShader->IsPixelShader())
     {
-        bUseNormal = InMaterial->IsTextureTypeUsed(ETextureType::Normal) ? TRUE : FALSE;
-        bUseSpecular = InMaterial->IsTextureTypeUsed(ETextureType::Specular) ? TRUE : FALSE;
-        bUseEmissive = InMaterial->IsTextureTypeUsed(ETextureType::Emssive) ? TRUE : FALSE;
-        bAlphaMask = InMaterial->IsAlphaMasked() ? TRUE : FALSE;
-        bRimLight = InMaterial->IsRimLighted() ? TRUE : FALSE;
-        UVScale = InMaterial->UVScale;
+        bool bUseNormal = false;
+        bool bUseSpecular = false;
+        bool bUseEmissive = false;
+        bool bAlphaMask = false;
+        bool bRimLight = false;
+
+        if (InMaterial)
+        {
+            bUseNormal = InMaterial->IsTextureTypeUsed(ETextureType::Normal);
+            bUseSpecular = InMaterial->IsTextureTypeUsed(ETextureType::Specular);
+            bUseEmissive = InMaterial->IsTextureTypeUsed(ETextureType::Emssive);
+            bAlphaMask = InMaterial->IsAlphaMasked();
+            bRimLight = InMaterial->IsRimLighted();
+        }
+
+        InShader->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
+        InShader->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
+        InShader->SetValue(TEXT("bUseEmissiveTexture"), bUseEmissive);
+        InShader->SetValue(TEXT("bAlphaMask"), bAlphaMask);
+        InShader->SetValue(TEXT("bRimLight"), bRimLight);
     }
 
-    if (auto& PS = GetPixelShader(PrimitiveData))
+    if (InShader->IsVertexShader())
     {
-        PS->SetValue(TEXT("bUseNormalTexture"), bUseNormal);
-        PS->SetValue(TEXT("bUseSpecularTexture"), bUseSpecular);
-        PS->SetValue(TEXT("bUseEmissiveTexture"), bUseEmissive);
-        PS->SetValue(TEXT("bAlphaMask"), bAlphaMask);
-        PS->SetValue(TEXT("bRimLight"), bRimLight);
+        Vec2 UVScale = { 1.f, 1.f };
+        if (InMaterial)
+        {
+            UVScale = InMaterial->UVScale;
+        }
+        InShader->SetValue(TEXT("UVScale"), UVScale);
     }
+}
 
-    if (auto& VS = GetVertexShader(PrimitiveData))
+void MRenderPass::UpdateStructuredBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& InPrimitiveData)
+{
+    // FX는 Structured 버퍼 초기 세팅만 해주고, 업데이트는 GPU 쪽에서 다 해줘야 함
+    if (auto FXComp = InPrimitiveData.GetPrimitiveComponent<MFXComponent>())
     {
-        VS->SetValue(TEXT("UVScale"), UVScale);
+        UINT StructSize = static_cast<UINT>(sizeof(FParticle));
+        UINT Num = static_cast<UINT>(GetSize(FXComp->Particles));
+
+        if (InShader->StructuredBuffer.GetBufferSize() != StructSize * Num)
+        {
+            getGraphicDevice()->UpdateStructuredBuffer(InShader->StructuredBuffer, FXComp->Particles.data(), StructSize * Num, Num, StructSize);
+        }
     }
 }
 
@@ -365,36 +407,34 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
 
-    std::vector<ID3D11Buffer*> VertexBuffers;
-    std::vector<UINT> Strides;
-    std::vector<UINT> Offsets;
+    std::vector<ID3D11Buffer*> VertexBuffers(2, nullptr);
+    std::vector<UINT> Strides(2, 0);
+    std::vector<UINT> Offsets(2, 0);
+
+    /********************************
+        버텍스 버퍼 슬롯
+         0: VertexBuffer
+         1: InstanceBufer
+    ********************************/
 
     // 버텍스 버퍼
     std::shared_ptr<MVertexBuffer>& VertexBuffer = PrimitiveData.VertexBuffer.lock();
-    VertexBuffers.push_back(VertexBuffer->getBuffer());
-    Strides.push_back(VertexBuffer->GetVertexSize());
-    Offsets.push_back(0);
+    VertexBuffers[0] = VertexBuffer->getBuffer();
+    Strides[0] = VertexBuffer->GetVertexSize();
+    Offsets[0] = 0;
 
     // 인스턴싱 버퍼
     if (std::shared_ptr<MVertexBuffer>& InstanceBuffer = PrimitiveData.InstanceBuffer.lock())
     {
-        VertexBuffers.push_back(InstanceBuffer->getBuffer());
-        Strides.push_back(InstanceBuffer->GetVertexSize());
-        Offsets.push_back(0);
-    }
-    else
-    {
-        //VertexBuffers.push_back(nullptr);
-        //Strides.push_back(0);
-        //Offsets.push_back(0);
+        VertexBuffers[1] = InstanceBuffer->getBuffer();
+        Strides[1] = InstanceBuffer->GetVertexSize();
+        Offsets[1] = 0;
     }
 
     UINT VertexBufferNum = GetSize(VertexBuffers);
     getGraphicDevice()->getContext()->IASetVertexBuffers(0, VertexBufferNum, VertexBuffers.data(), Strides.data(), Offsets.data());
 
-    //g_pGraphicDevice->getContext()->IASetInputLayout(g_pGraphicDevice->m_pInputLayout);
-
-    // IA에 인덱스 버퍼 설정
+    // 인덱스 버퍼
     if (std::shared_ptr<MIndexBuffer>& IndexBuffer = PrimitiveData.IndexBuffer.lock())
     {
         IndexBuffer->setBufferToDevice(0);
@@ -410,32 +450,43 @@ void MRenderPass::HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData)
     }
 }
 
-void MRenderPass::HandleVertexShaderStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandleVertexShaderStage(std::shared_ptr<MVertexShader> InVertexShader, const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MShader>& VertexShader = GetVertexShader(PrimitiveData);
-    //VertexShader->UpdateConstantBuffer(EConstantBufferLayer::Object);
-    VertexShader->Apply();
+    assert(InVertexShader);
+
+    if (InVertexShader->HasConstantBuffer(EConstantBufferLayer::RenderPassObject))
+    {
+        UpdateRenderPassObjectConstantBuffer(InVertexShader, PrimitiveData);
+    }
+
+    if (InVertexShader->HasConstantBuffer(EConstantBufferLayer::Material))
+    {
+        UpdateMaterialConstantBuffer(InVertexShader, PrimitiveData.Material.lock(), PrimitiveData);
+    }
+
+    if (InVertexShader->HasConstantBuffer(EConstantBufferLayer::Object))
+    {
+        UpdateObjectConstantBuffer(InVertexShader, PrimitiveData);
+    }
+
+    if (ComputeShader.IsValid() && ComputeShader.RWStructuredBuffer.IsValid())
+    {
+        //UpdateStructuredBuffer(InVertexShader, PrimitiveData);
+        getGraphicDevice()->CSSetUAV(ComputeShader.RWStructuredBuffer.GetSlot(), -1);
+        getGraphicDevice()->VSSetSRV(ComputeShader.RWStructuredBuffer);
+    }
 }
 
-void MRenderPass::HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandleGeometryShaderStage(std::shared_ptr<MGeometryShader> InGeometryShader, const FPrimitiveData& PrimitiveData)
 {
-    std::shared_ptr<MShader>& GeometryShader = _geometryShader != nullptr ? _geometryShader : nullptr;
-    if (GeometryShader == nullptr)
-    {
-        g_pGraphicDevice->getContext()->GSSetShader(nullptr, nullptr, 0);
-    }
-    else
-    {
-        GeometryShader->Apply();
-    }
+    assert(InGeometryShader);
 }
 
-void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
+void MRenderPass::HandlePixelShaderStage(std::shared_ptr<MPixelShader> InPixelShader, const FPrimitiveData& InPrimitiveData)
 {
-    std::shared_ptr<MShader> PixelShader = GetPixelShader(PrimitiveData);
-    PixelShader->Apply();
+    assert(InPixelShader);
 
-    if (std::shared_ptr<MMaterial>& Material = PrimitiveData.Material.lock())
+    if (std::shared_ptr<MMaterial>& Material = InPrimitiveData.Material.lock())
     {
         Material->SetTexturesToDevice();
     }
@@ -458,7 +509,58 @@ void MRenderPass::HandlePixelShaderStage(const FPrimitiveData& PrimitiveData)
         }
     }
 
-    OnHandlePxielShaderStage.Broadcast(PrimitiveData, PixelShader);
+    if (InPixelShader->HasConstantBuffer(EConstantBufferLayer::RenderPassObject))
+    {
+        UpdateRenderPassObjectConstantBuffer(InPixelShader, InPrimitiveData);
+    }
+
+    if (InPixelShader->HasConstantBuffer(EConstantBufferLayer::Material))
+    {
+        UpdateMaterialConstantBuffer(InPixelShader, InPrimitiveData.Material.lock(), InPrimitiveData);
+    }
+
+    if (InPixelShader->HasConstantBuffer(EConstantBufferLayer::Object))
+    {
+        UpdateObjectConstantBuffer(InPixelShader, InPrimitiveData);
+    }
+
+    //if (InPixelShader->RWStructuredBuffer.IsValid())
+    //{
+    //    getGraphicDevice()->PSSetSRV(InPixelShader->RWStructuredBuffer);
+    //}
+}
+
+void MRenderPass::HandleComputeShaderStage(MComputeShader* InComputeShader, FPrimitiveData& InPrimitiveData)
+{
+    assert(InComputeShader);
+
+    // ComputeShader에서는 GPU로 계산이 이뤄지도록 세팅만 해주면 됨
+    
+    if (InComputeShader->RWStructuredBuffer.IsValid())
+    {
+        // FX는 Structured 버퍼 초기 세팅만 해주고, 업데이트는 GPU 쪽에서 다 해줘야 함
+        if (auto FXComp = InPrimitiveData.GetPrimitiveComponent<MFXComponent>())
+        {
+            UINT StructSize = static_cast<UINT>(sizeof(FParticle));
+            UINT Num = static_cast<UINT>(GetSize(FXComp->Particles));
+
+            if (Num == 0)
+            {
+                return;
+            }
+
+            if (InComputeShader->RWStructuredBuffer.GetBufferSize() != StructSize * Num)
+            {
+                getGraphicDevice()->UpdateStructuredBuffer(InComputeShader->RWStructuredBuffer, FXComp->Particles.data(), StructSize * Num, Num, StructSize);
+            }
+
+            InPrimitiveData.InstanceNum = GetSize(FXComp->Particles);
+        }
+
+        getGraphicDevice()->CSSetUAV(InComputeShader->RWStructuredBuffer);
+    }
+
+    //getGraphicDevice()->CSSetSRV(InComputeShader->RWStructuredBuffer);
 }
 
 void MRenderPass::HandleRasterizerStage(const FPrimitiveData& PrimitiveData)
@@ -507,10 +609,10 @@ void MRenderPass::HandleOutputMergeStage(const FPrimitiveData& PrimitiveData)
     g_pGraphicDevice->getContext()->OMSetBlendState(g_pGraphicDevice->getBlendState(Graphic::Blend::Object), nullptr, 0xffffffff);
 }
 
-std::shared_ptr<MShader> MRenderPass::GetVertexShader(const FPrimitiveData& InPrimitiveData)
+std::shared_ptr<MVertexShader> MRenderPass::GetVertexShader(const FPrimitiveData& InPrimitiveData)
 {
     std::shared_ptr<MMaterial>& Material = InPrimitiveData.Material.lock();
-    std::shared_ptr<MShader> OutShader = nullptr;
+    std::shared_ptr<MVertexShader> OutShader = nullptr;
     if (Material != nullptr && bUseDefaultShaderOnly == false)
     {
         OutShader = Material->getVertexShader();
@@ -523,10 +625,10 @@ std::shared_ptr<MShader> MRenderPass::GetVertexShader(const FPrimitiveData& InPr
     return OutShader;
 }
 
-std::shared_ptr<MShader> MRenderPass::GetPixelShader(const FPrimitiveData& InPrimitiveData)
+std::shared_ptr<MPixelShader> MRenderPass::GetPixelShader(const FPrimitiveData& InPrimitiveData)
 {
     std::shared_ptr<MMaterial>& Material = InPrimitiveData.Material.lock();
-    std::shared_ptr<MShader> OutShader = nullptr;
+    std::shared_ptr<MPixelShader> OutShader = nullptr;
     if (Material != nullptr && bUseDefaultShaderOnly == false)
     {
         OutShader = Material->getPixelShader();
@@ -539,17 +641,50 @@ std::shared_ptr<MShader> MRenderPass::GetPixelShader(const FPrimitiveData& InPri
     return OutShader;
 }
 
+std::shared_ptr<MGeometryShader> MRenderPass::GetGeometryShader(const FPrimitiveData& InPrimitiveData)
+{
+    return GeometryShader;
+}
+
+void MRenderPass::SetDefaultShader(EShaderType InShaderType, const std::wstring& InFileName)
+{
+    //g_pGraphicDevice->GetGeometryShader()
+    switch (InShaderType)
+    {
+        case EShaderType::Vertex:
+        {
+
+        }
+        break;
+        case EShaderType::Pixel:
+        {
+
+        }
+        break;
+        case EShaderType::Geometry:
+        {
+
+        }
+        break;
+        case EShaderType::Compute:
+        {
+            getGraphicDevice()->GetComputeShader(InFileName, ComputeShader);
+        }
+        break;
+    }
+}
+
 void MRenderPass::SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName)
 {
 	releaseShader();
-	std::shared_ptr<VertexShader> vertexShader = nullptr;
+	std::shared_ptr<MVertexShader> vertexShader = nullptr;
 	if (g_pGraphicDevice->GetVertexShader(vertexShaderFileName, vertexShader))
 	{
 		_vertexShader = vertexShader;
 		_vertexShaderFileName = vertexShaderFileName;;
 	}
 	
-	std::shared_ptr<PixelShader> pixelShader = nullptr;
+	std::shared_ptr<MPixelShader> pixelShader = nullptr;
 	if (pixelShaderFileName != nullptr && g_pGraphicDevice->GetPixelShader(pixelShaderFileName, pixelShader))
 	{
 		_pixelShader = pixelShader;
@@ -557,7 +692,7 @@ void MRenderPass::SetDefaultShader(const wchar_t *vertexShaderFileName, const wc
 	}
 	else
 	{
-		_pixelShader = std::make_shared<PixelShader>();
+		_pixelShader = std::make_shared<MPixelShader>();
 	}
 
 	_bShaderSet = true;
@@ -570,7 +705,7 @@ void MRenderPass::SetDefaultShader(const wchar_t *vertexShaderFileName, const wc
 	std::shared_ptr<MGeometryShader> geometryShader = nullptr;
 	if (g_pGraphicDevice->GetGeometryShader(geomtryShaderFileName, geometryShader))
 	{
-		_geometryShader = geometryShader;
+		GeometryShader = geometryShader;
 		_geometryShaderFileName = geomtryShaderFileName;;
 	}
 }

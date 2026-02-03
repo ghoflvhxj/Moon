@@ -4,7 +4,7 @@
 #include "Core/Asset.h"
 
 #include "Vertex.h"
-#include "Shader.h"
+#include "Module/Graphic/Shader/Shader.h"
 #include "Texture.h"
 
 class MVertexBuffer;
@@ -12,8 +12,8 @@ class MIndexBuffer;
 class MConstantBuffer;
 
 class MShader;
-class VertexShader;
-class PixelShader;
+class MVertexShader;
+class MPixelShader;
 
 //class MTexture;
 class MPrimitiveComponent;
@@ -41,8 +41,8 @@ public:
 	void SetTexturesToDevice();
 
 public:
-	std::shared_ptr<MShader> getVertexShader();
-	std::shared_ptr<MShader> getPixelShader();
+	std::shared_ptr<MVertexShader> getVertexShader();
+	std::shared_ptr<MPixelShader> getPixelShader();
 	void setShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
 private:
 	void ClearShader();

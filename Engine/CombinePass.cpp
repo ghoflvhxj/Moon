@@ -5,8 +5,10 @@
 
 // Renderer
 #include "Renderer.h"
+#include "Module/Render/Scene.h"
 
 // Graphic
+#include "Module/Graphic/Shader/Shader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Material.h"
@@ -23,9 +25,6 @@
 #include "DirectionalLightComponent.h"
 #include "PointLightComponent.h"
 
-#include "VertexBuffer.h"
-
-
 #undef max
 #undef min
 
@@ -37,10 +36,32 @@ GeometryPass::GeometryPass()
     UseCommonDepthStencil();
 }
 
-bool GeometryPass::IsValidPrimitive(const FPrimitiveData &PrimitiveData) const
+bool GeometryPass::IsValidPrimitive(const FPrimitiveData & InPrimitiveData) const
 {
-	return PrimitiveData.PrimitiveType == EPrimitiveType::Mesh && MRenderPass::IsValidPrimitive(PrimitiveData);
+    if (MRenderPass::IsValidPrimitive(InPrimitiveData))
+    {
+        return InPrimitiveData.PrimitiveType == EPrimitiveType::Mesh;
+    }
+	
+    return false;
 }
+
+MFXPass::MFXPass()
+    : MRenderPass()
+{
+    UseCommonDepthStencil();
+}
+
+bool MFXPass::IsValidPrimitive(const FPrimitiveData& InPrimitiveData) const
+{
+    if (MRenderPass::IsValidPrimitive(InPrimitiveData))
+    {
+        return InPrimitiveData.PrimitiveType == EPrimitiveType::FX;
+    }
+
+    return false;
+}
+
 
 DirectionalShadowDepthPass::DirectionalShadowDepthPass()
 	: MRenderPass()
@@ -55,7 +76,7 @@ DirectionalShadowDepthPass::DirectionalShadowDepthPass()
     InstanceBuffer = std::make_shared<MVertexBuffer>(Size, Num, InstancingData.data(), true);
 }
 
-void DirectionalShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
+void DirectionalShadowDepthPass::RenderPass(std::vector<FPrimitiveData>& PrimitiveDatList)
 {
     auto& LightPrimitiveDatas = getRenderer()->GetPrimitiveDatas(EPrimitiveType::DirectionalLight);
     for(uint32 LightIndex = 0; LightIndex < GetSize(LightPrimitiveDatas); ++LightIndex)
@@ -167,22 +188,22 @@ bool DirectionalShadowDepthPass::IsValidPrimitive(const FPrimitiveData& Primitiv
     return false;
 }
 
-void DirectionalShadowDepthPass::UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData)
+void DirectionalShadowDepthPass::UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData)
 {
-    if (auto& PrimitiveComp = PrimitiveData.GetPrimitiveComponent<MPrimitiveComponent>())
-    {
-        for (uint32 i = 0; i < GetSize(Transforms); ++i)
-        {
-            XMMATRIX XMWorldMat = XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix());
-            XMStoreFloat4x4(&Transforms[i], XMWorldMat * XMLoadFloat4x4(&ViewProj[i]));
-        }
-    }
+    MRenderPass::UpdateRenderPassObjectConstantBuffer(InShader, PrimitiveData);
 
-    // 이거는 윗단에서 자동으로 되도록 구현해줘야 함
-    auto& VS = GetVertexShader(PrimitiveData);
-    if (VS)
+    if (InShader->IsVertexShader())
     {
-        VS->SetValue(TEXT("Transforms"), Transforms);
+        if (auto& PrimitiveComp = PrimitiveData.GetPrimitiveComponent<MPrimitiveComponent>())
+        {
+            for (uint32 i = 0; i < GetSize(Transforms); ++i)
+            {
+                XMMATRIX XMWorldMat = XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix());
+                XMStoreFloat4x4(&Transforms[i], XMWorldMat * XMLoadFloat4x4(&ViewProj[i]));
+            }
+        }
+
+        InShader->SetValue(TEXT("Transforms"), Transforms);
     }
 }
 
@@ -205,7 +226,7 @@ PointShadowDepthPass::PointShadowDepthPass()
     InstanceBuffer = std::make_shared<MVertexBuffer>(Size, Num, InstancingData.data(), true);
 }
 
-void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList)
+void PointShadowDepthPass::RenderPass(std::vector<FPrimitiveData>& PrimitiveDatList)
 {
     auto& PointLightPrimitives = g_pRenderer->GetPrimitiveDatas(EPrimitiveType::PointLight);
     uint32 PointLightNum = GetSize(PointLightPrimitives);
@@ -229,24 +250,6 @@ void PointShadowDepthPass::RenderPass(const std::vector<FPrimitiveData>& Primiti
         XMVECTOR Up = XMLoadFloat3(&VEC3UP);
 
         // 순서는 오른쪽, 왼쪽, 위, 아래, 앞, 뒤
-        /*
-        std::vector<Mat4> ViewMat(6);
-        XMStoreFloat4x4(&ViewMat[0], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(1.f, 0.f, 0.f, 0.f), Up));
-        XMStoreFloat4x4(&ViewMat[1], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(-1.f, 0.f, 0.f, 0.f), Up));
-        XMStoreFloat4x4(&ViewMat[2], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(0.f, 1.f, 0.f, 0.f), XMVectorSet(0.f, 0.f, 1.f, 0.f)));
-        XMStoreFloat4x4(&ViewMat[3], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(0.f, -1.f, 0.f, 0.f), XMVectorSet(0.f, 0.f, 1.f, 0.f)));
-        XMStoreFloat4x4(&ViewMat[4], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(0.f, 0.f, 1.f, 0.f), Up));
-        XMStoreFloat4x4(&ViewMat[5], XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(0.f, 0.f, -1.f, 0.f), Up));
-        
-        float Near = GraphicDevice::bReverseDepth ? 1000.f : 0.1f;
-        float Far = GraphicDevice::bReverseDepth ? 0.1f : 1000.f;
-        XMMATRIX XMProjMat = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.f), 1.f, Near, Far);
-        for (uint32 i = 0; i < 6; ++i)
-        {
-            XMStoreFloat4x4(&ViewProj[i], XMLoadFloat4x4(&ViewMat[i]) * XMProjMat);
-        }
-        */
-
         std::vector<XMMATRIX> XMViewMats(6);
         XMViewMats[0] = XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(1.f, 0.f, 0.f, 0.f), Up);
         XMViewMats[1] = XMMatrixLookAtLH(XMPosition, XMPosition + XMVectorSet(-1.f, 0.f, 0.f, 0.f), Up);
@@ -282,23 +285,33 @@ bool PointShadowDepthPass::IsValidPrimitive(const FPrimitiveData& PrimitiveData)
     return false;
 }
 
-void PointShadowDepthPass::UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData)
+void PointShadowDepthPass::UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData)
 {
-    if (auto& PrimitiveComp = PrimitiveData.GetPrimitiveComponent<MPrimitiveComponent>())
-    {
-        XMMATRIX XMWorldMat = XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix());
-        for (uint32 i = 0; i < GetSize(Transforms); ++i)
-        {
-            XMStoreFloat4x4(&Transforms[i], XMWorldMat * XMLoadFloat4x4(&ViewProj[i]));
-        }
-    }
+    MRenderPass::UpdateRenderPassObjectConstantBuffer(InShader, PrimitiveData);
 
-    auto VS = GetVertexShader(PrimitiveData);
-    if (VS)
+    if (InShader->IsVertexShader())
     {
-        VS->SetValue(TEXT("LightPos"), LightPos);
-        VS->SetValue(TEXT("PointLightIndex"), PointLightIndex);
-        VS->SetValue(TEXT("Transforms"), Transforms);
+        if (auto& PrimitiveComp = PrimitiveData.GetPrimitiveComponent<MPrimitiveComponent>())
+        {
+            XMMATRIX XMWorldMat = XMLoadFloat4x4(&PrimitiveComp->getWorldMatrix());
+            for (uint32 i = 0; i < GetSize(Transforms); ++i)
+            {
+                XMStoreFloat4x4(&Transforms[i], XMWorldMat * XMLoadFloat4x4(&ViewProj[i]));
+            }
+        }
+
+        InShader->SetValue(TEXT("Transforms"), Transforms);
+    }
+}
+
+void PointShadowDepthPass::UpdateRenderPassConstantBuffer(std::shared_ptr<MShader> InShader)
+{
+    MRenderPass::UpdateRenderPassConstantBuffer(InShader);
+
+    if (InShader->IsVertexShader())
+    {
+        InShader->SetValue(TEXT("LightPos"), LightPos);
+        InShader->SetValue(TEXT("PointLightIndex"), PointLightIndex);
     }
 }
 

@@ -69,6 +69,11 @@ protected:
 	uint32 PrimitiveID;
 
 public:
+    bool IsInstacable() const { return bIntancing; }
+protected:
+    bool bIntancing = false;
+
+public:
 	virtual void Update(const Time deltaTime) override;
 
 public:

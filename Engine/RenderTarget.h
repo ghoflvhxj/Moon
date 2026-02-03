@@ -8,13 +8,14 @@ class MTexture;
 enum class ERenderTargetType
 {
     None,
-    Default = 1 << 0,
-    Diffuse = 1 << 1,
-    Depth   = 1 << 2,
-    LinearDepth = 1 << 3,
-    Normal  = 1 << 4,
-    Light   = 1 << 5,
-    Bool    = 1 << 6
+    Default,
+    Diffuse,
+    Depth  ,
+    LinearDepth,
+    Normal,
+    Light,
+    Bool,
+    SingleFloat16,  // 이름은 임시
 };
 
 struct FRenderTagetInfo

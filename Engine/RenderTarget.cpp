@@ -242,10 +242,13 @@ DXGI_FORMAT MRenderTarget::GetFormat(EDXResourceType InViewType, ERenderTargetTy
             return DXGI_FORMAT_R32_TYPELESS;
         case ERenderTargetType::Bool:
             return DXGI_FORMAT_R8_TYPELESS;
+        case ERenderTargetType::SingleFloat16:
+            return DXGI_FORMAT_R16_TYPELESS;
         default:
             return DXGI_FORMAT_UNKNOWN;
         }
     }
+
     //else if (InViewType == EDXResourceType::RenderTargetView)
     //{
     //    switch (InRenderTargetType)
@@ -284,6 +287,8 @@ DXGI_FORMAT MRenderTarget::GetFormat(EDXResourceType InViewType, ERenderTargetTy
             return DXGI_FORMAT_R32_FLOAT;
         case ERenderTargetType::Bool:
             return DXGI_FORMAT_R8_UNORM;
+        case ERenderTargetType::SingleFloat16:
+            return DXGI_FORMAT_R16_FLOAT;
         default:
             return DXGI_FORMAT_UNKNOWN;
         }

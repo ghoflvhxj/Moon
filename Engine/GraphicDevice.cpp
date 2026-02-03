@@ -8,8 +8,9 @@
 #include "InputLayout.h"
 #include "RenderTarget.h"
 #include "ShaderLoader.h"
-#include "VertexShader.h"
-#include "PixelShader.h"
+#include "Module/Graphic/Shader/VertexShader.h"
+#include "Module/Graphic/Shader/PixelShader.h"
+#include "Module/Graphic/Shader/ComputeShader.h"
 #include "Mesh/StaticMesh/StaticMesh.h"
 
 
@@ -54,43 +55,33 @@ bool GraphicDevice::Initialize()
 
     GetEngine()->GetOnWorldAddedDelegate().Add(this, &GraphicDevice::AddWindow);
 
-    ComPtr<IDXGIFactory2> factory = nullptr;
-    UINT flags = 0;
-    HRESULT hr = CreateDXGIFactory2(flags, IID_PPV_ARGS(&factory));
-    if (FAILED(hr)) {
-        // 폴백: CreateDXGIFactory1 사용해 볼 수도 있음
-        ComPtr<IDXGIFactory> factory1;
-        hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory1));
-        if (SUCCEEDED(hr)) {
-            factory1.As(&factory); // 가능하면 IDXGIFactory2로 업캐스트 시도
-        }
-    }
+    //ComPtr<IDXGIFactory2> factory = nullptr;
+    //UINT flags = 0;
+    //HRESULT hr = CreateDXGIFactory2(flags, IID_PPV_ARGS(&factory));
+    //if (FAILED(hr)) {
+    //    // 폴백: CreateDXGIFactory1 사용해 볼 수도 있음
+    //    ComPtr<IDXGIFactory> factory1;
+    //    hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory1));
+    //    if (SUCCEEDED(hr)) {
+    //        factory1.As(&factory); // 가능하면 IDXGIFactory2로 업캐스트 시도
+    //    }
+    //}
 
 	// 장치
-    uint32 Flags =0;
+    UINT Flags =0;
 #ifdef _DEBUG
-    Flags |= (uint32)D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_DEBUG;
+    Flags |= (UINT)D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
     FAILED_CHECK_THROW(D3D11CreateDevice(
         nullptr,
         D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE,
         nullptr,
-        (D3D11_CREATE_DEVICE_FLAG)Flags,
+        Flags,
         nullptr, 0,
         D3D11_SDK_VERSION,
         &m_pDevice, nullptr, &m_pImmediateContext
     ));
-
-	// 뷰포트
-	_viewport.TopLeftX = 0;
-	_viewport.TopLeftY = 0;
-	_viewport.Width = g_pSetting->getResolutionWidth<FLOAT>();
-	_viewport.Height = g_pSetting->getResolutionHeight<FLOAT>();
-	_viewport.MaxDepth = 1.f;
-	_viewport.MinDepth = 0.f;
-
-	m_pImmediateContext->RSSetViewports(1, &_viewport);
 
     for (int i = 0; i < 3; ++i)
     {
@@ -261,6 +252,24 @@ void GraphicDevice::DrawInstance(const std::shared_ptr<MVertexBuffer>& InVertexB
     }
 }
 
+void GraphicDevice::DrawInstance(const std::shared_ptr<MVertexBuffer>& InVertexBuffer, const std::shared_ptr<MIndexBuffer>& InIndexBuffer, const uint32 InInstanceNum)
+{
+    assert(InVertexBuffer);
+
+    UINT InstanceNum = static_cast<UINT>(InInstanceNum);
+
+    if (InIndexBuffer)
+    {
+        UINT IndexNum = static_cast<UINT>(InIndexBuffer->getIndexCount());
+        getContext()->DrawIndexedInstanced(IndexNum, InInstanceNum, 0, 0, 0);
+    }
+    else
+    {
+        UINT VertexNum = static_cast<UINT>(InVertexBuffer->getVertexNum());
+        getContext()->DrawInstanced(VertexNum, InInstanceNum, 0, 0);
+    }
+}
+
 ID3D11DepthStencilView* GraphicDevice::GetDepthStencilView()
 {
     const FWindowRenderData& Test = WindowRenderDatas[WindowID];
@@ -279,6 +288,15 @@ ID3D11ShaderResourceView* GraphicDevice::GetStencilResourceView()
     return Test.StencilSRV.Get();
 }
 
+bool GraphicDevice::GetFullScreenResolution(uint32& OutWidth, uint32& OutHeight)
+{
+    auto& Last = Resolutions[0].rbegin()->first;
+    OutWidth = Last.Width;
+    OutHeight = Last.Height;
+
+    return false;
+}
+
 void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
 {
     auto& Window = InWorldRenderInfo.DstWindow;
@@ -288,12 +306,12 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     UINT flags = 0;
     HRESULT hr = CreateDXGIFactory2(flags, IID_PPV_ARGS(&factory));
     if (FAILED(hr)) {
-        // 폴백: CreateDXGIFactory1 사용해 볼 수도 있음
-        ComPtr<IDXGIFactory> factory1;
-        hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory1));
-        if (SUCCEEDED(hr)) {
-            factory1.As(&factory); // 가능하면 IDXGIFactory2로 업캐스트 시도
-        }
+        //// 폴백: CreateDXGIFactory1 사용해 볼 수도 있음
+        //ComPtr<IDXGIFactory> factory1;
+        //hr = CreateDXGIFactory1(IID_PPV_ARGS(&factory1));
+        //if (SUCCEEDED(hr)) {
+        //    factory1.As(&factory); // 가능하면 IDXGIFactory2로 업캐스트 시도
+        //}
     }
 
     FWindowRenderData NewWindowRenderData = {};
@@ -306,27 +324,62 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
     swapDesc.SampleDesc.Count = 1;
     swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapDesc.BufferCount = 2;
-    swapDesc.Scaling = DXGI_SCALING_NONE;
+    swapDesc.Scaling = DXGI_SCALING_STRETCH;
     swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     swapDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
     swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-    //DXGI_SWAP_CHAIN_FULLSCREEN_DESC* FullScreenDescPtr = nullptr;
     DXGI_SWAP_CHAIN_FULLSCREEN_DESC FullscreenDesc = {};
     FullscreenDesc.RefreshRate.Numerator = 0;
     FullscreenDesc.RefreshRate.Denominator = 0;
     FullscreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-    //FullscreenDesc.Windowed = Window->IsFullScreen() ? TRUE : FALSE;
-    FullscreenDesc.Windowed = TRUE;
+    FullscreenDesc.Windowed = Window->IsFullScreen() ? FALSE : TRUE;
     FullscreenDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 
-    //if (Window->IsFullScreen())
-    //{
-    //    FullScreenDescPtr = &FullscreenDesc;
-    //}
-
-    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, InWorldRenderInfo.DstWindow->getHandle(), &swapDesc, &FullscreenDesc, nullptr, NewWindowRenderData.SwapChain.GetAddressOf()));
+    FAILED_CHECK_THROW(factory->CreateSwapChainForHwnd(m_pDevice, Window->getHandle(), &swapDesc, &FullscreenDesc, nullptr, NewWindowRenderData.SwapChain.GetAddressOf()));
     NewWindowRenderData.SwapChain->QueryInterface(IID_PPV_ARGS(NewWindowRenderData.SwapChain3.GetAddressOf()));
+    
+    // 이거는 왜 안되는지 모르겠네
+    //factory->MakeWindowAssociation(Window->getHandle(), DXGI_MWA_NO_ALT_ENTER);
+
+    IDXGIFactory2* pFactory = nullptr;
+    if (NewWindowRenderData.SwapChain->GetParent(__uuidof(IDXGIFactory2), (void**)&pFactory) == S_OK)
+    {
+        pFactory->MakeWindowAssociation(Window->getHandle(), DXGI_MWA_NO_ALT_ENTER);
+
+        IDXGIAdapter* pAdapter = nullptr;
+        //std::vector<IDXGIAdapter*> Adapters;
+        UINT AdapterIndex = 0;
+        while (pFactory->EnumAdapters(AdapterIndex, &pAdapter) != DXGI_ERROR_NOT_FOUND)
+        {
+            //Adapters.push_back(pAdapter);
+
+            UINT OutputIndex = 0;
+            IDXGIOutput* Output = nullptr;
+            while (pAdapter->EnumOutputs(OutputIndex, &Output) != DXGI_ERROR_NOT_FOUND)
+            {
+                UINT ModeNum = 0;
+                Output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, 0, &ModeNum, nullptr);
+
+                std::vector<DXGI_MODE_DESC> Modes(ModeNum);
+                Output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, 0, &ModeNum, Modes.data());
+
+                for (UINT i = 0; i < ModeNum; ++i)
+                {
+                    FResolution Resolution = {};
+                    Resolution.Width = Modes[i].Width;
+                    Resolution.Height = Modes[i].Height;
+                    Resolutions[OutputIndex].emplace(Resolution, true);
+                    //cout << Modes[i].Width << ", " << Modes[i].Height << endl;
+                }
+
+                ++OutputIndex;
+            }
+            ++AdapterIndex;
+        }
+
+        pFactory->Release();
+    }
 
     // 렌더 타겟 뷰 생성
     std::array<ID3D11Texture2D*, 2> SawpChainBuffers = {};
@@ -385,13 +438,23 @@ void GraphicDevice::AddWindow(const FWorldRenderInfo& InWorldRenderInfo)
 
 void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint32 InOldHeight, uint32 InNewWidth, uint32 InNewHeight, bool InFullScreen)
 {
-    std::cout << "Update Window Size" << std::endl;
+    std::wstring Msg = TEXT("UpdateWinodwSize Width:") + std::to_wstring(InNewWidth) + TEXT(" Height:") + std::to_wstring(InNewHeight);
+    LOG(Msg)
 
-    GetPostLoopDelegate().Add([&, InWindowID, InNewWidth, InNewHeight, InFullScreen]() {
+        GetPostLoopDelegate().Add([&, InWindowID, InNewWidth, InNewHeight, InFullScreen]() {
         //getContext()->ClearState();
 
         UINT Width = static_cast<UINT>(InNewWidth);
         UINT Height = static_cast<UINT>(InNewHeight);
+
+        //if (InFullScreen == false)
+        //{
+        //    RECT WindowRect = { 0, 0, Width, Height };
+        //    AdjustWindowRect(&WindowRect, WS_OVERLAPPEDWINDOW, FALSE);
+
+        //    Width = WindowRect.right - WindowRect.left;
+        //    Height = WindowRect.bottom - WindowRect.top;
+        //}
 
         auto& WindowRenderData = WindowRenderDatas[InWindowID];
 
@@ -405,10 +468,8 @@ void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint3
             std::cout << "SetFullscreenState Failed" << std::endl;
         }
 
-        //WindowRenderData.SwapChain->ResizeTarget()
-
-        HRESULT HR = WindowRenderData.SwapChain->ResizeBuffers(0, InNewWidth, InNewHeight, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-        if (HR == S_OK)
+        HRESULT hr = WindowRenderData.SwapChain->ResizeBuffers(0, Width, Height, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+        if (hr == S_OK)
         {
             // 렌더 타겟 뷰 생성
             std::array<ID3D11Texture2D*, 2> SawpChainBuffers = {};
@@ -461,27 +522,14 @@ void GraphicDevice::UpdateWindowSize(uint32 InWindowID, uint32 InOldWidth, uint3
             StencilResourceViewDesc.Texture2D.MostDetailedMip = 0;
             FAILED_CHECK_THROW(m_pDevice->CreateShaderResourceView(WindowRenderData.DepthStencilTexture.Get(), &StencilResourceViewDesc, WindowRenderData.StencilSRV.GetAddressOf()));
         }
+
+        DXGI_MODE_DESC ModeDesc = {};
+        ModeDesc.Width = Width;
+        ModeDesc.Height = Height;
+        ModeDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+        ModeDesc.Format = DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+        WindowRenderData.SwapChain->ResizeTarget(&ModeDesc);
     });
-}
-
-bool GraphicDevice::GetVertexShader(const std::wstring InPath, std::shared_ptr<VertexShader>& OutShader)
-{
-    return ShaderManager->getVertexShader(InPath.c_str(), OutShader);
-}
-
-bool GraphicDevice::GetPixelShader(const std::wstring InPath, std::shared_ptr<PixelShader>& OutShader)
-{
-    return ShaderManager->getPixelShader(InPath.c_str(), OutShader);
-}
-
-bool GraphicDevice::GetGeometryShader(const std::wstring InPath, std::shared_ptr<MGeometryShader>& OutShader)
-{
-    return ShaderManager->getGeometryShader(InPath.c_str(), OutShader);
-}
-
-std::unique_ptr<MShaderManager>& GraphicDevice::GetShaderManager()
-{
-    return ShaderManager;
 }
 
 bool GraphicDevice::Refresh()
@@ -504,12 +552,21 @@ void GraphicDevice::SetToDefault()
     std::vector<ID3D11ShaderResourceView*> RowResourceViews(ResorceViewNum, nullptr);
     getContext()->PSSetShaderResources(0, ResorceViewNum, RowResourceViews.data());
 
+    /**************************************
+        OuputMerge
+    **************************************/
     // 렌더 타겟
     uint32 RenderTargetNum = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
     std::vector<ID3D11RenderTargetView*> restoreRenderTargetViewArray(RenderTargetNum, nullptr);
     restoreRenderTargetViewArray[0] = WindowRenderData.RenderTargetViews[BufferIndex].Get();
     getContext()->OMSetRenderTargets(static_cast<UINT>(RenderTargetNum), restoreRenderTargetViewArray.data(), WindowRenderData.DepthStencilView.Get());
 
+    uint32 Flag = (uint32)EDepthStencilMode::DepthEnable | (uint32)EDepthStencilMode::StencilDisable;
+    getContext()->OMSetDepthStencilState(getDepthStencilState(Flag), 0);
+
+    /**************************************
+        Rasterize
+    **************************************/
     D3D11_VIEWPORT Viewport;
     Viewport.Width = static_cast<FLOAT>(Width);
     Viewport.Height = static_cast<FLOAT>(Height);
@@ -582,7 +639,11 @@ void GraphicDevice::End()
     Test();
 
     const FWindowRenderData& Test = WindowRenderDatas[WindowID];
-    Test.SwapChain3->Present(0u, 0u);
+    HRESULT hr = Test.SwapChain3->Present(0u, 0u);
+    if (hr != S_OK)
+    {
+        int a = 0;
+    }
 
     UINT BufferIndex = Test.SwapChain3->GetCurrentBackBufferIndex();
     getContext()->ClearRenderTargetView(Test.RenderTargetViews[BufferIndex].Get(), reinterpret_cast<const float*>(&EngineColors::Blue));
@@ -946,14 +1007,44 @@ const bool GraphicDevice::initializeDirectXTK()
 	return true;
 }
 
-void GraphicDevice::VSSet(std::shared_ptr<VertexShader> &vertexShader)
+void GraphicDevice::SetGlboalConstantBuffer(std::shared_ptr<MConstantBuffer>& InBuffer)
 {
-	getContext()->VSSetShader(vertexShader->getRaw(), nullptr, 0);
+    assert(InBuffer);
+
+    InBuffer->Commit();
+
+    UINT Layer = static_cast<UINT>(EConstantBufferLayer::Global);
+
+    ID3D11Buffer* DX_Buffer = InBuffer->getRaw();
+    getContext()->VSSetConstantBuffers(Layer, 1, &DX_Buffer);
+    getContext()->PSSetConstantBuffers(Layer, 1, &DX_Buffer);
+    getContext()->CSSetConstantBuffers(Layer, 1, &DX_Buffer);
+    getContext()->GSSetConstantBuffers(Layer, 1, &DX_Buffer);
 }
 
-void GraphicDevice::PSSet(std::shared_ptr<PixelShader> &pixelShader)
+void GraphicDevice::SetTickConstantBuffer(std::shared_ptr<MConstantBuffer>& InBuffer)
 {
-	getContext()->PSSetShader(pixelShader->getRaw(), nullptr, 0);
+    assert(InBuffer);
+
+    InBuffer->Commit();
+
+    UINT Layer = static_cast<UINT>(EConstantBufferLayer::Tick);
+
+    ID3D11Buffer* DX_Buffer = InBuffer->getRaw();
+    getContext()->VSSetConstantBuffers(Layer, 1, &DX_Buffer);
+    getContext()->PSSetConstantBuffers(Layer, 1, &DX_Buffer);
+    getContext()->CSSetConstantBuffers(Layer, 1, &DX_Buffer);
+    getContext()->GSSetConstantBuffers(Layer, 1, &DX_Buffer);
+}
+
+void GraphicDevice::PSSet(const std::shared_ptr<MPixelShader> &pixelShader)
+{
+	getContext()->PSSetShader(pixelShader ? pixelShader->getRaw() : nullptr, nullptr, 0);
+}
+
+void GraphicDevice::PSSetSRV(MStructuredBuffer InBuffer)
+{
+    PSSetSRV(InBuffer.GetSlot(), InBuffer.GetSRVID());
 }
 
 void GraphicDevice::PSSetSRV(UINT InSlot, uint32 InSRVID)
@@ -962,9 +1053,63 @@ void GraphicDevice::PSSetSRV(UINT InSlot, uint32 InSRVID)
     getContext()->PSSetShaderResources(InSlot, 1, &RawSRV);
 }
 
-ID3D11Device *GraphicDevice::getDevice()
+void GraphicDevice::VSSet(const std::shared_ptr<MVertexShader>& vertexShader)
 {
-	return m_pDevice;
+    getContext()->VSSetShader(vertexShader ? vertexShader->getRaw() : nullptr, nullptr, 0);
+}
+
+void GraphicDevice::VSSetSRV(MStructuredBuffer InBuffer)
+{
+    assert(InBuffer.IsValid());
+
+    VSSetSRV(InBuffer.GetSlot(), InBuffer.GetSRVID());
+}
+
+void GraphicDevice::VSSetSRV(UINT InSlot, int32 InSRVID)
+{
+    ID3D11ShaderResourceView* RawSRV = InSRVID != -1 ? StructuredBufferSRVs[InSRVID].Get() : nullptr;
+    getContext()->VSSetShaderResources(InSlot, 1, &RawSRV);
+}
+
+void GraphicDevice::GSReset()
+{
+    getContext()->GSSetShader(nullptr, nullptr, 0);
+}
+
+void GraphicDevice::CSSet(const MComputeShader& InComputeShader)
+{
+    uint32 ShaderID = InComputeShader.GetShaderID();
+    assert(ComputeShaders.find(ShaderID) != ComputeShaders.end());
+
+    ID3D11ComputeShader* RawShader = ComputeShaders[ShaderID].Get();
+    getContext()->CSSetShader(RawShader, nullptr, 0);
+
+    getContext()->Dispatch(32, 1, 1);
+}
+
+void GraphicDevice::CSReset()
+{
+    getContext()->CSSetShader(nullptr, nullptr, 0);
+}
+
+void GraphicDevice::CSSetUAV(MStructuredBuffer InBuffer)
+{
+    CSSetUAV(InBuffer.GetSlot(), InBuffer.GetUAVID());
+}
+
+void GraphicDevice::CSSetUAV(UINT InSlot, int32 InUAVID)
+{
+    UINT InitialCount = -1;
+    if (InUAVID != -1)
+    {
+        ID3D11UnorderedAccessView* RawUAV = StructuredBufferUAVs[InUAVID].Get();
+        getContext()->CSSetUnorderedAccessViews(InSlot, 1, &RawUAV, &InitialCount);
+    }
+    else
+    {
+        ID3D11UnorderedAccessView* nullUAVs[1] = { nullptr };
+        getContext()->CSSetUnorderedAccessViews(InSlot, 1, nullUAVs, nullptr);
+    }
 }
 
 void GraphicDevice::LinearDepthStencil()
@@ -989,6 +1134,11 @@ void GraphicDevice::QueryFinish(uint32 InIndex)
     getContext()->End(Finish[Counter][InIndex].Get());
 }
 
+ID3D11Device* GraphicDevice::getDevice()
+{
+    return m_pDevice;
+}
+
 ID3D11DeviceContext *GraphicDevice::getContext()
 {
 #ifndef MULTITHREAD
@@ -1010,7 +1160,6 @@ ID3D11DeviceContext *GraphicDevice::getDefferedContext()
 
 ComPtr<ID3D11ShaderResourceView> GraphicDevice::CreateStructuredBufferSRV(ID3D11Buffer* InBuffer, UINT InElementNum, UINT InElementSize)
 {
-    // 일단 StructuredBuffer 용으로만 만들어 놓음
     D3D11_BUFFER_SRV BufferSRV = {};
     BufferSRV.FirstElement = 0;
     BufferSRV.ElementOffset = 0;
@@ -1023,14 +1172,37 @@ ComPtr<ID3D11ShaderResourceView> GraphicDevice::CreateStructuredBufferSRV(ID3D11
     desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 
     ComPtr<ID3D11ShaderResourceView> ShaderResourceView = nullptr;
-    g_pGraphicDevice->getDevice()->CreateShaderResourceView(InBuffer, &desc, &ShaderResourceView);
+    getDevice()->CreateShaderResourceView(InBuffer, &desc, &ShaderResourceView);
 
     return ShaderResourceView;
 }
 
-MStructuredBuffer GraphicDevice::AddStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize)
+ComPtr<ID3D11UnorderedAccessView> GraphicDevice::CreateStructuredBufferUAV(ID3D11Buffer* InBuffer, UINT InElementNum, UINT InElementSize)
 {
-    ComPtr<ID3D11Buffer> RawBuffer = CreateStructuredBuffer(InData, InDataSize, InElementNum, InElementSize);
+    D3D11_BUFFER_UAV BufferUAV = {};
+    BufferUAV.NumElements = InElementNum;
+    BufferUAV.FirstElement = 0;
+    BufferUAV.Flags = 0;
+
+    D3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
+    UAVDesc.Format = DXGI_FORMAT_UNKNOWN;
+    UAVDesc.Buffer = BufferUAV;
+    UAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+
+    ComPtr<ID3D11UnorderedAccessView> UnorderedAccessView = nullptr;
+    getDevice()->CreateUnorderedAccessView(InBuffer, &UAVDesc, UnorderedAccessView.GetAddressOf());
+
+    return UnorderedAccessView;
+}
+
+MStructuredBuffer GraphicDevice::AddStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize, uint32 InLayer, bool GPUWritable)
+{
+    if (InElementNum == 0)
+    {
+        return MStructuredBuffer();
+    }
+
+    ComPtr<ID3D11Buffer> RawBuffer = CreateStructuredBuffer(InData, InDataSize, InElementNum, InElementSize, GPUWritable);
     if (RawBuffer == nullptr)
     {
         return MStructuredBuffer();
@@ -1042,26 +1214,38 @@ MStructuredBuffer GraphicDevice::AddStructuredBuffer(const void* InData, UINT In
         return MStructuredBuffer();
     }
 
-    StructuredBuffers[BufferCounter] = RawBuffer;
-    StructuredBufferSRVs[SRVCounter] = RawSRV;
-
     MStructuredBuffer NewBuffer;
+    StructuredBufferSRVs[SRVCounter] = RawSRV;
+    NewBuffer.SetSRVID(SRVCounter);
+    NewBuffer.SetSlot(InLayer);
+    ++SRVCounter;
+
+    if (GPUWritable)
+    {
+        ComPtr<ID3D11UnorderedAccessView> UAV = CreateStructuredBufferUAV(RawBuffer.Get(), InElementNum, InElementSize);
+        if( UAV == nullptr)
+        {
+            return MStructuredBuffer();
+        }
+
+        StructuredBufferUAVs[UAVCounter] = UAV;
+        NewBuffer.SetUAVID(UAVCounter);
+        ++UAVCounter;
+    }
+
+    StructuredBuffers[BufferCounter] = RawBuffer;
     NewBuffer.Init(InElementSize, InElementNum);
     NewBuffer.SetBufferID(BufferCounter);
-    NewBuffer.SetSRVID(SRVCounter);
-
     ++BufferCounter;
-    ++SRVCounter;
 
     return NewBuffer;
 }
 
-ComPtr<ID3D11Buffer> GraphicDevice::CreateStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize)
+ComPtr<ID3D11Buffer> GraphicDevice::CreateStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize, bool bGPUWritable)
 {
-    // 일단 StructuredBuffer 용으로만 만들어 놓음
     D3D11_BUFFER_DESC BufferDesc = {};
-    BufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    BufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    BufferDesc.BindFlags = (bGPUWritable ? D3D11_BIND_UNORDERED_ACCESS : 0) | D3D11_BIND_SHADER_RESOURCE;
+    BufferDesc.Usage = bGPUWritable ? D3D11_USAGE_DEFAULT : D3D11_USAGE_DYNAMIC;
     BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     BufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
     BufferDesc.ByteWidth = InDataSize;
@@ -1079,10 +1263,11 @@ ComPtr<ID3D11Buffer> GraphicDevice::CreateStructuredBuffer(const void* InData, U
 void GraphicDevice::UpdateStructuredBuffer(MStructuredBuffer& InBuffer, const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize)
 {
     bool bShouldCreate = InBuffer.GetBufferSize() != InDataSize;
+    bool bGPUWritable = InBuffer.GetUAVID() != -1;
 
     if (bShouldCreate)
     {
-        ComPtr<ID3D11Buffer> NewRawBuffer = CreateStructuredBuffer(InData, InDataSize, InElementNum, InElementSize);
+        ComPtr<ID3D11Buffer> NewRawBuffer = CreateStructuredBuffer(InData, InDataSize, InElementNum, InElementSize, bGPUWritable);
         ComPtr<ID3D11ShaderResourceView> NewRawSRV = CreateStructuredBufferSRV(NewRawBuffer.Get(), InElementNum, InElementSize);
 
 #ifdef _DEBUG
@@ -1105,6 +1290,13 @@ void GraphicDevice::UpdateStructuredBuffer(MStructuredBuffer& InBuffer, const vo
 
         StructuredBuffers[InBuffer.GetBufferID()] = NewRawBuffer;
         StructuredBufferSRVs[InBuffer.GetSRVID()] = NewRawSRV;
+
+        if (bGPUWritable)
+        {
+            StructuredBufferUAVs[InBuffer.GetUAVID()] = CreateStructuredBufferUAV(NewRawBuffer.Get(), InElementNum, InElementSize);
+        }
+
+        InBuffer.Init(InElementSize, InElementNum);
     }
     else
     {
@@ -1118,6 +1310,82 @@ void GraphicDevice::UpdateStructuredBuffer(MStructuredBuffer& InBuffer, const vo
 ID3D11Buffer* GraphicDevice::GetRawBuffer(MStructuredBuffer& InBuffer)
 {
     return StructuredBuffers[InBuffer.GetBufferID()].Get();
+}
+
+MComputeShader GraphicDevice::CreateComputeShader(const std::wstring& InPath)
+{
+    ID3D10Blob* Blob = nullptr;
+    D3DReadFileToBlob(InPath.c_str(), &Blob);
+
+    ComPtr<ID3D11ComputeShader> DXComputeShader = nullptr;
+    FAILED_CHECK_THROW(getDevice()->CreateComputeShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), nullptr, DXComputeShader.GetAddressOf()));
+    ComputeShaders[ShaderCounter] = DXComputeShader;
+
+    MComputeShader NewComputeShader;
+    NewComputeShader.SetShaderID(ShaderCounter);
+
+    ID3D11ShaderReflection* DX_ShaderReflection = nullptr;
+    FAILED_CHECK_THROW(D3DReflect(Blob->GetBufferPointer(), Blob->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&DX_ShaderReflection));
+
+    D3D11_SHADER_DESC DX_ShaderDesc = { 0 };
+    FAILED_CHECK_THROW(DX_ShaderReflection->GetDesc(&DX_ShaderDesc));
+    uint32 BufferNum = static_cast<uint32>(DX_ShaderDesc.ConstantBuffers);
+
+    for (uint32 BufferIndex = 0; BufferIndex < BufferNum; ++BufferIndex)
+    {
+        ID3D11ShaderReflectionConstantBuffer* pReflectionConstantBuffer = DX_ShaderReflection->GetConstantBufferByIndex(static_cast<UINT>(BufferIndex));
+        assert(pReflectionConstantBuffer);
+
+        D3D11_SHADER_BUFFER_DESC DX_BufferDesc = {};
+        FAILED_CHECK_THROW(pReflectionConstantBuffer->GetDesc(&DX_BufferDesc));
+
+        if (DX_BufferDesc.Type == D3D_CBUFFER_TYPE::D3D11_CT_RESOURCE_BIND_INFO)
+        {
+            D3D11_SHADER_INPUT_BIND_DESC ResourceDesc = {};
+            DX_ShaderReflection->GetResourceBindingDescByName(DX_BufferDesc.Name, &ResourceDesc);
+
+            if (ResourceDesc.Type == D3D_SHADER_INPUT_TYPE::D3D_SIT_UAV_RWSTRUCTURED)
+            {
+                std::vector<Byte> Dummy(DX_BufferDesc.Size, 0);
+                NewComputeShader.RWStructuredBuffer = getGraphicDevice()->AddStructuredBuffer(Dummy.data(), DX_BufferDesc.Size * 1, 1, DX_BufferDesc.Size, ResourceDesc.BindPoint, true);
+
+            }
+            //if (ResourceDesc.Type == D3D_SHADER_INPUT_TYPE::D3D11_SIT_STRUCTURED)
+            //{
+            //    std::vector<Byte> Dummy(DX_BufferDesc.Size, 0);
+            //    StructuredBuffer = getGraphicDevice()->AddStructuredBuffer(Dummy.data(), DX_BufferDesc.Size * 1, 1, DX_BufferDesc.Size, ResourceDesc.BindPoint, false);
+            //}
+        }
+    }
+
+    ++ShaderCounter;
+
+    return NewComputeShader;
+}
+
+bool GraphicDevice::GetVertexShader(const std::wstring InPath, std::shared_ptr<MVertexShader>& OutShader)
+{
+    return ShaderManager->getVertexShader(InPath.c_str(), OutShader);
+}
+
+bool GraphicDevice::GetPixelShader(const std::wstring InPath, std::shared_ptr<MPixelShader>& OutShader)
+{
+    return ShaderManager->getPixelShader(InPath.c_str(), OutShader);
+}
+
+bool GraphicDevice::GetGeometryShader(const std::wstring InPath, std::shared_ptr<MGeometryShader>& OutShader)
+{
+    return ShaderManager->getGeometryShader(InPath.c_str(), OutShader);
+}
+
+void GraphicDevice::GetComputeShader(const std::wstring& InFileName, MComputeShader& OutShader)
+{
+    OutShader = ShaderManager->GetComputeShader(InFileName.c_str());
+}
+
+std::unique_ptr<MShaderManager>& GraphicDevice::GetShaderManager()
+{
+    return ShaderManager;
 }
 
 void GraphicDevice::GetBuffers(FMeshBufferContainer& OutBuffers, const std::shared_ptr<MMesh>& InMesh)
@@ -1190,9 +1458,9 @@ void GraphicDevice::BuildMeshSharedBuffers(const std::shared_ptr<MMesh>& InMesh)
     {
         const FMeshData& MeshData = InMesh->GetMeshData(i);
 
-        FMeshBuffers NewSharedBuffers = {};
-        MakeBuffer(NewSharedBuffers, MeshData);
-        SharedBuffers[AssetPath].AddBuffers(i, NewSharedBuffers);
+        FMeshBuffers NewBuffers = {};
+        MakeBuffer(NewBuffers, MeshData);
+        SharedBuffers[AssetPath].AddBuffers(i, NewBuffers);
     }
 }
 

@@ -72,22 +72,46 @@ void DynamicMeshComponent::Update(const Time deltaTime)
     float AnimBlendTime = 0.f;
     bool bAnimChage = AnimBlendTime > 0.f;
 
+    bool bShouldBlendTwoAnim = false;
+    if (AnimBlendData.PrevAnim != Animation)
+    {
+        if (AnimBlendData.BlendingTime < AnimBlendData.BlendTime)
+        {
+            bShouldBlendTwoAnim = true;
+            //cout << "BlendingTime/BlendTime: " << AnimBlendData.BlendingTime << "/" << AnimBlendData.BlendTime << endl;
+        }
+    }
+
     if (HasAnim() && IsAnimPlaying())
     {
         uint32 JointNum = Mesh->GetJointNum();
 
+        XMMATRIX XMRootJointMat = XMMatrixIdentity();
+
         for (int32 JointIndex = 0; JointIndex < CastValue<int32>(JointNum); ++JointIndex)
         {
-            XMMATRIX XMJointMatrix = XMLoadFloat4x4(&GetBlendedJointMatrix(BlendData, JointIndex));
-            // 애니메이션이 바뀌었다면, 두 애니메이션을 블렌딩 해줌
-            if (bAnimChage)
-            {
+            XMMATRIX XMJointMatrix = XMLoadFloat4x4(&GetBlendedJointMatrix(FrameBlendData, JointIndex));
 
+            // 애니메이션이 바뀌었다면, 두 애니메이션을 블렌딩 해줌
+            if (bShouldBlendTwoAnim)
+            {
+                XMMATRIX XMPrevJointMat = XMLoadFloat4x4(&GetBlendedJointMatrix(AnimBlendData.PrevAnim, AnimBlendData.PrevFrame, JointIndex));
+
+                float AnimBlendFactor = AnimBlendData.BlendingTime / AnimBlendData.BlendTime;
+
+                XMJointMatrix = (XMPrevJointMat * (1.f - AnimBlendFactor)) + (XMJointMatrix * AnimBlendFactor);
+            }
+
+            if (JointIndex == 0)
+            {
+                XMRootJointMat = XMJointMatrix;
             }
 
             if (bRootMotion)
             {
-                XMMATRIX XMRootMat = XMLoadFloat4x4(&GetBlendedJointMatrix(BlendData, 0));
+                //XMMATRIX XMRootMat = XMLoadFloat4x4(&GetBlendedJointMatrix(FrameBlendData, 0));
+
+                XMMATRIX XMRootMat = XMRootJointMat;
 
                 Mat4 Mat;
                 XMStoreFloat4x4(&Mat, XMRootMat);
@@ -116,10 +140,10 @@ void DynamicMeshComponent::Update(const Time deltaTime)
 
         FloatFrame = clamp(AnimTime * Animation->GetFrameRate(), 0.f, static_cast<float>(Animation->EndFrame));
         Frame = CastValue<uint32>(FloatFrame);
-        BlendData.PrevFrame = std::min(Frame, Animation->EndFrame);
-        BlendData.NextFrame = Frame < Animation->EndFrame ? Frame + 1 : 0;
-        BlendData.PrevFrameFactor = 1.f - (FloatFrame - CastValue<float>(Frame));
-        BlendData.NextFrameFactor = 1.f - BlendData.PrevFrameFactor;
+        FrameBlendData.PrevFrame = std::min(Frame, Animation->EndFrame);
+        FrameBlendData.NextFrame = Frame < Animation->EndFrame ? Frame + 1 : 0;
+        FrameBlendData.PrevFrameFactor = 1.f - (FloatFrame - CastValue<float>(Frame));
+        FrameBlendData.NextFrameFactor = 1.f - FrameBlendData.PrevFrameFactor;
 
         if (Animation)
         {
@@ -132,6 +156,8 @@ void DynamicMeshComponent::Update(const Time deltaTime)
                 //BlendData.Reset();
             }
         }
+
+        AnimBlendData.BlendingTime += deltaTime;
 
         //getRenderer()->DrawCoordinate(GetWorld(), GetJointPosition("bone018"), VEC3ONE);
     }
@@ -334,7 +360,7 @@ Mat4 DynamicMeshComponent::GetJointMatrix(uint32 InJointIndex, bool bOption)
 
         if (bOption)
         {
-            const Mat4& RootJointMat = GetBlendedJointMatrix(BlendData, 0);
+            const Mat4& RootJointMat = GetBlendedJointMatrix(FrameBlendData, 0);
             XMJointMat = XMJointAnimMat * XMLoadFloat4x4(&RootJointMat);
         }
 
@@ -376,10 +402,11 @@ Mat4 DynamicMeshComponent::GetJointWorldMatrix(uint32 InJointIndex)
     return OutMat;
 }
 
-Mat4 DynamicMeshComponent::GetBlendedJointMatrix(const FBlendData& InBlendData, uint32 InJointIndex)
+Mat4 DynamicMeshComponent::GetBlendedJointMatrix(const FFrameBlendData& InBlendData, uint32 InJointIndex)
 {
     Mat4 CurrentMat = Animation->GetKeyFrame(InBlendData.PrevFrame).GetJointMatrix(InJointIndex);
     Mat4 NextMat = Animation->GetKeyFrame(InBlendData.NextFrame).GetJointMatrix(InJointIndex);
+
     // EndFrame에서 0으로 갈때, 행렬이 매우 다를 수 있음
     // 0프레임 행렬의 위치를 EndFrame과 같게 한다면?
     // EndFrame의 행렬을 0프레임과 같게 한다면?
@@ -395,10 +422,34 @@ Mat4 DynamicMeshComponent::GetBlendedJointMatrix(const FBlendData& InBlendData, 
     XMMATRIX XMNextMat = XMLoadFloat4x4(&NextMat);
 
 
-    XMMATRIX XMJointMatrix = (XMNextMat * BlendData.NextFrameFactor) + (XMCurrentMat * BlendData.PrevFrameFactor);
+    XMMATRIX XMJointMatrix = (XMNextMat * FrameBlendData.NextFrameFactor) + (XMCurrentMat * FrameBlendData.PrevFrameFactor);
    
     Mat4 OutMat = IDENTITYMATRIX;
     XMStoreFloat4x4(&OutMat, XMJointMatrix);
+
+    return OutMat;
+}
+
+Mat4 DynamicMeshComponent::GetBlendedJointMatrix(const std::shared_ptr<MAnimation> InAnim, float InFrame, uint32 InJointIndex)
+{
+    Mat4 OutMat = ZEROMATRIX;
+    
+    if (InAnim)
+    {
+        uint32 Frame = static_cast<uint32>(std::floor(InFrame));
+        uint32 NextFrame = Frame + 1;
+
+        float NextFactor = InFrame - static_cast<float>(Frame);
+        float Factor = 1.f - NextFactor;
+
+        Mat4 CurrentMat = InAnim->GetKeyFrame(Frame).GetJointMatrix(InJointIndex);
+        Mat4 NextMat = InAnim->GetKeyFrame(NextFrame).GetJointMatrix(InJointIndex);
+        XMMATRIX XMCurrentMat = XMLoadFloat4x4(&CurrentMat);
+        XMMATRIX XMNextMat = XMLoadFloat4x4(&NextMat);
+
+        XMMATRIX XMJointMatrix = (XMNextMat * NextFactor) + (XMCurrentMat * Factor);
+        XMStoreFloat4x4(&OutMat, XMJointMatrix);
+    }
 
     return OutMat;
 }
@@ -531,14 +582,20 @@ Mat4 DynamicMeshComponent::GetAnimMatrix(uint32 JointIndex)
     return JointAnimMatrices[JointIndex];
 }
 
-bool DynamicMeshComponent::SetAnim(std::shared_ptr<MAnimation> InAnim)
+bool DynamicMeshComponent::SetAnim(std::shared_ptr<MAnimation> InAnim, float InBlendTime)
 {
     if (Animation == InAnim)
     {
         return false;
     }
     
-    BlendData.Reset();
+    FrameBlendData.Reset();
+
+    AnimBlendData.Reset();
+    AnimBlendData.PrevAnim = Animation;
+    AnimBlendData.PrevFrame = FloatFrame;
+    AnimBlendData.BlendTime = InBlendTime;
+
     Animation = InAnim;
     AnimTime = 0.f;
 

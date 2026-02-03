@@ -23,6 +23,8 @@ private:
 public:
 	virtual XMMATRIX GetRotationMatrix();
 	virtual void SetRotation(const Vec3& InRotation);
+    virtual void SetWorldRotation(const Vec3& InRotation);
+    void SetWorldRotation();
     virtual void AddRotation(const Vec3& InAdditiveRot);
 	const Vec3&	getRotation() const;
     const Vec3 GetWorldRotation() const;

@@ -6,6 +6,7 @@
 #include "PrimitiveComponent.h"
 
 class MMaterial;
+class MComputeShader;
 
 struct FRenderTargetBindData
 {
@@ -32,25 +33,27 @@ public:
 	virtual void Begin();
     // 매 프레임마다 렌더 패스가 종료될 때 한번 호출됨
 	virtual void End();
-    virtual void RenderPass(const std::vector<FPrimitiveData>& PrimitiveDatList);
+    virtual void RenderPass(std::vector<FPrimitiveData>& PrimitiveDatList);
 
     void Clear();
 
 protected:
     virtual void DrawPrimitive(const FPrimitiveData& PrimitiveData);
-    virtual bool IsValidPrimitive(const FPrimitiveData& PrimitiveData) const;
+    virtual bool IsValidPrimitive(const FPrimitiveData& InPrimitiveData) const;
 
 protected:
-    virtual void UpdateRenderPassConstantBuffer(const FPrimitiveData& PrimitiveData);
-	virtual void UpdateObjectConstantBuffer(const FPrimitiveData& PrimitiveData);
-    virtual void UpdateMaterialConstantBuffer(std::shared_ptr<MMaterial>& InMaterial, const FPrimitiveData& PrimitiveData);
-
+    virtual void UpdateRenderPassConstantBuffer(std::shared_ptr<MShader> InShader);
+    virtual void UpdateRenderPassObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData);
+	virtual void UpdateObjectConstantBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& PrimitiveData);
+    virtual void UpdateMaterialConstantBuffer(std::shared_ptr<MShader> InShader, std::shared_ptr<MMaterial>& InMaterial, const FPrimitiveData& PrimitiveData);
+    virtual void UpdateStructuredBuffer(std::shared_ptr<MShader> InShader, const FPrimitiveData& InPrimitiveData);
 
 protected:
     virtual void HandleInputAssemblerStage(const FPrimitiveData& PrimitiveData);
-    virtual void HandleVertexShaderStage(const FPrimitiveData& PrimitiveData);
-    virtual void HandleGeometryShaderStage(const FPrimitiveData& PrimitiveData);
-    virtual void HandlePixelShaderStage(const FPrimitiveData& PrimitiveData);
+    virtual void HandleVertexShaderStage(std::shared_ptr<MVertexShader> InVertexShader, const FPrimitiveData& PrimitiveData);
+    virtual void HandleGeometryShaderStage(std::shared_ptr<MGeometryShader> InGeometryShader, const FPrimitiveData& PrimitiveData);
+    virtual void HandlePixelShaderStage(std::shared_ptr<MPixelShader> InPixelShader, const FPrimitiveData& PrimitiveData);
+    virtual void HandleComputeShaderStage(MComputeShader* InComputeShader , FPrimitiveData& InPrimitiveData);
     virtual void HandleRasterizerStage(const FPrimitiveData& PrimitiveData);
     virtual void HandleOutputMergeStage(const FPrimitiveData& PrimitiveData);
 protected:
@@ -62,8 +65,9 @@ protected:
     FDelegate<void, const FPrimitiveData&, std::shared_ptr<MShader>> OnHandlePxielShaderStage;
 
 protected:
-    std::shared_ptr<MShader> GetVertexShader(const FPrimitiveData& InPrimitiveData);
-    std::shared_ptr<MShader> GetPixelShader(const FPrimitiveData& InPrimitiveData);
+    std::shared_ptr<MVertexShader> GetVertexShader(const FPrimitiveData& InPrimitiveData);
+    std::shared_ptr<MPixelShader> GetPixelShader(const FPrimitiveData& InPrimitiveData);
+    std::shared_ptr<MGeometryShader> GetGeometryShader(const FPrimitiveData& InPrimitiveData);
 
 public:
 	// 렌더 타겟 바인드
@@ -103,6 +107,7 @@ public:
     bool bLikeMaterial = false;
 
 public:
+    void SetDefaultShader(EShaderType InShaderType, const std::wstring& InFileName);
 	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName);
 	void SetDefaultShader(const wchar_t *vertexShaderFileName, const wchar_t *pixelShaderFileName, const wchar_t *geomtryShaderFileName);
 	const bool isShaderSet() const;
@@ -113,16 +118,17 @@ protected:
 	std::wstring	_vertexShaderFileName;
 	std::wstring	_pixelShaderFileName;
 	std::wstring	_geometryShaderFileName;
-	std::shared_ptr<MShader>	_vertexShader;
-	std::shared_ptr<MShader>	_pixelShader;
-	std::shared_ptr<MShader> _geometryShader;
+	std::shared_ptr<MVertexShader>	_vertexShader;
+	std::shared_ptr<MPixelShader>	_pixelShader;
+	std::shared_ptr<MGeometryShader> GeometryShader;
+    MComputeShader ComputeShader;
 	bool _bShaderSet;
     bool bUseDefaultShaderOnly = false;
 
 public:
 	void SetClearTargets(const bool bClear);
 private:
-	bool bClearTargets;
+	bool bClearTargets = true;
 
 public:
     void SetDepthEnable(const bool InEnable) { bDepthEnable = InEnable; }
@@ -145,3 +151,4 @@ protected:
 public:
 	DirectX::XMVECTORF32 Color = EngineColors::Black;
 };
+;

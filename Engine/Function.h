@@ -12,36 +12,6 @@ using namespace DirectX;
 
 // 점점 기능이 많아지면 클래스의 Static으로 뺴야할 듯
 
-inline void GetResourceDirectory(WCHAR buffer[])
-{
-	GetCurrentDirectory(MAX_PATH, buffer);
-	PathCombine(buffer, buffer, RESOURCE_DIRECTORY);
-}
-
-inline void getShaderDirectory(WCHAR buffer[])
-{
-	GetResourceDirectory(buffer);
-	PathCombine(buffer, buffer, SHADER_DIRECTORY);
-}
-
-inline void getVertexShaderDirectory(WCHAR buffer[])
-{
-	getShaderDirectory(buffer);
-	PathCombine(buffer, buffer, SHADER_VERTEX_DIRECTORY);
-}
-
-inline void getPixelShaderDirectory(WCHAR buffer[])
-{
-	getShaderDirectory(buffer);
-	PathCombine(buffer, buffer, SHADER_PIXEL_DIRECTORY);
-}
-
-inline void getGeometryShaderDirectory(WCHAR buffer[])
-{
-	getShaderDirectory(buffer);
-	PathCombine(buffer, buffer, SHADER_GEOMETRY_DIRECTORY);
-}
-
 template <class T1, class T2>
 inline T1 CastValue(T2 value)
 {

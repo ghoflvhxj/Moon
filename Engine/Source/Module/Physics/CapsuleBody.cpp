@@ -45,7 +45,7 @@ void MCapsuleBody::Render()
     if (BodyCapsuleData.AttachJointIndex != -1)
     {
         //Renderer->DrawCoordinate(GetMainWorld().get(), DXBodyPos, DxBodyQuat);
-        Renderer->DrawCapsule(GetDynamicMeshComponent()->GetWorld(), BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight, DXBodyPos, DxBodyQuat);
+        //Renderer->DrawCapsule(GetDynamicMeshComponent()->GetWorld(), BodyCapsuleData.CapsuleData.Radius, BodyCapsuleData.CapsuleData.HalfHeight, DXBodyPos, DxBodyQuat);
     }
 
 }

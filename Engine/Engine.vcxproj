@@ -34,13 +34,16 @@
     <ClCompile Include="FBXLoader.cpp" />
     <ClCompile Include="FileFinder.cpp" />
     <ClCompile Include="FrameManager.cpp" />
-    <ClCompile Include="GeometryShader.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\GeometryShader.cpp" />
     <ClCompile Include="GraphicDevice.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="InputLayout.cpp" />
     <ClCompile Include="Launch.cpp" />
     <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.cpp" />
+    <ClCompile Include="Source\Framework\Component\FX\FXComponent.cpp" />
+    <ClCompile Include="Source\Framework\DynamicMeshActor\DynamicMeshActor.cpp" />
+    <ClCompile Include="Source\Framework\FXActor\FXActor.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\ComputeShader.cpp" />
     <ClCompile Include="Source\Module\Graphic\StructuredBuffer.cpp" />
     <ClCompile Include="Source\Module\Module.cpp" />
     <ClCompile Include="Source\Module\Physics\CapsuleBody.cpp" />
@@ -51,19 +54,21 @@
     <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\DirectionalLightPass.cpp" />
     <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\FullScreenQuadPass.cpp" />
     <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\PointLightPass.cpp" />
+    <ClCompile Include="Source\Module\Render\RenderPass\FullScreenQuadPass\SSAOPass.cpp" />
+    <ClCompile Include="Source\Module\Render\Scene.cpp" />
     <ClCompile Include="World.cpp" />
     <ClCompile Include="MainGameSetting.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="MoonEngine.cpp" />
-    <ClCompile Include="PixelShader.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\PixelShader.cpp" />
     <ClCompile Include="PointLightComponent.cpp" />
     <ClCompile Include="PrimitiveComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="SceneComponent.cpp" />
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\Shader.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="SkyComponent.cpp" />
@@ -77,10 +82,10 @@
     <ClCompile Include="Source\Core\Serialize\JsonDeserializer.cpp" />
     <ClCompile Include="Source\Core\Serialize\JsonSerializer.cpp" />
     <ClCompile Include="Source\Core\Serialize\Serializerable.cpp" />
-    <ClCompile Include="Source\GameFramework\BillboardComponent\BillboardComponent.cpp" />
-    <ClCompile Include="Source\GameFramework\DirectionalLightActor\DirectionalLightActor.cpp" />
-    <ClCompile Include="Source\GameFramework\PointLightActor\PointLightActor.cpp" />
-    <ClCompile Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.cpp" />
+    <ClCompile Include="Source\Framework\Component\Billboard\BillboardComponent.cpp" />
+    <ClCompile Include="Source\Framework\DirectionalLightActor\DirectionalLightActor.cpp" />
+    <ClCompile Include="Source\Framework\PointLightActor\PointLightActor.cpp" />
+    <ClCompile Include="Source\Framework\StaticMeshActor\StaticMeshActor.cpp" />
     <ClCompile Include="Source\Mesh\DynamicMesh\DynamicMesh.cpp" />
     <ClCompile Include="Source\Mesh\Mesh.cpp" />
     <ClCompile Include="Source\Mesh\StaticMesh\StaticMesh.cpp" />
@@ -95,7 +100,7 @@
     <ClCompile Include="TimerManager.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="VertexShader.cpp" />
+    <ClCompile Include="Source\Module\Graphic\Shader\VertexShader.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowException.cpp" />
     <ClCompile Include="WindowManager.cpp" />
@@ -121,7 +126,7 @@
     <ClInclude Include="FileFinder.h" />
     <ClInclude Include="FrameManager.h" />
     <ClInclude Include="Function.h" />
-    <ClInclude Include="GeometryShader.h" />
+    <ClInclude Include="Source\Module\Graphic\Shader\GeometryShader.h" />
     <ClInclude Include="GraphicDevice.h" />
     <ClInclude Include="Include.h" />
     <ClInclude Include="IndexBuffer.h" />
@@ -130,7 +135,10 @@
     <ClInclude Include="Macro.h" />
     <ClInclude Include="Source\Core\Reflection\Property\MapProperty.h" />
     <ClInclude Include="Source\Core\Reflection\Property\VectorProperty.h" />
-    <ClInclude Include="Source\GameFramework\DynamicMeshActor\DynamicMeshActor.h" />
+    <ClInclude Include="Source\Framework\Component\FX\FXComponent.h" />
+    <ClInclude Include="Source\Framework\DynamicMeshActor\DynamicMeshActor.h" />
+    <ClInclude Include="Source\Framework\FXActor\FXActor.h" />
+    <ClInclude Include="Source\Module\Graphic\Shader\ComputeShader.h" />
     <ClInclude Include="Source\Module\Graphic\StructuredBuffer.h" />
     <ClInclude Include="Source\Module\Module.h" />
     <ClInclude Include="Source\Module\Physics\CapsuleBody.h" />
@@ -142,6 +150,8 @@
     <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\DirectionalLightPass.h" />
     <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\FullScreenQuadPass.h" />
     <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\PointLightPass.h" />
+    <ClInclude Include="Source\Module\Render\RenderPass\FullScreenQuadPass\SSAOPass.h" />
+    <ClInclude Include="Source\Module\Render\Scene.h" />
     <ClInclude Include="Source\Utility\PerformanceTimer.h" />
     <ClInclude Include="World.h" />
     <ClInclude Include="MainGameSetting.h" />
@@ -150,7 +160,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MoonEngine.h" />
-    <ClInclude Include="PixelShader.h" />
+    <ClInclude Include="Source\Module\Graphic\Shader\PixelShader.h" />
     <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="PrimitiveComponent.h" />
     <ClInclude Include="Render.h" />
@@ -158,7 +168,7 @@
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="SceneComponent.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="Source\Module\Graphic\Shader\Shader.h" />
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="Singleton.h" />
@@ -177,10 +187,10 @@
     <ClInclude Include="Source\Core\Serialize\JsonDeserializer.h" />
     <ClInclude Include="Source\Core\Serialize\JsonSerializer.h" />
     <ClInclude Include="Source\Core\Serialize\Serializable.h" />
-    <ClInclude Include="Source\GameFramework\BillboardComponent\BillboardComponent.h" />
-    <ClInclude Include="Source\GameFramework\DirectionalLightActor\DirectionalLightActor.h" />
-    <ClInclude Include="Source\GameFramework\PointLightActor\PointLightActor.h" />
-    <ClInclude Include="Source\GameFramework\StaticMeshActor\StaticMeshActor.h" />
+    <ClInclude Include="Source\Framework\Component\Billboard\BillboardComponent.h" />
+    <ClInclude Include="Source\Framework\DirectionalLightActor\DirectionalLightActor.h" />
+    <ClInclude Include="Source\Framework\PointLightActor\PointLightActor.h" />
+    <ClInclude Include="Source\Framework\StaticMeshActor\StaticMeshActor.h" />
     <ClInclude Include="Source\Mesh\DynamicMesh\DynamicMesh.h" />
     <ClInclude Include="Source\Mesh\StaticMesh\StaticMesh.h" />
     <ClInclude Include="SphereComponent.h" />
@@ -196,7 +206,7 @@
     <ClInclude Include="Type.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexBuffer.h" />
-    <ClInclude Include="VertexShader.h" />
+    <ClInclude Include="Source\Module\Graphic\Shader\VertexShader.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowException.h" />
     <ClInclude Include="WindowManager.h" />
@@ -243,6 +253,25 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Shader\Compute\CS_Particle.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Shader\Pixel\PS_AlchemySSAO.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="Shader\Pixel\PS_BoxBlur.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -341,6 +370,13 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
     </FxCompile>
+    <FxCompile Include="Shader\Vertex\VS_Particle.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
+    </FxCompile>
     <FxCompile Include="Shader\Vertex\VS_PointLightShadow.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
@@ -365,7 +401,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="ShadowDepth.hlsl">
+    <FxCompile Include="Shader\Vertex\VS_DirectionalLightShadow.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)Shader\%(ShaderType)\%(Filename).cso </ObjectFileOutput>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
@@ -498,7 +534,7 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="ShaderOutput.props" />
+    <Import Project="ShaderOutput_Release.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

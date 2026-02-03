@@ -26,8 +26,10 @@
 #include "ConstantBuffer.h"
 #include "Module/Graphic/StructuredBuffer.h"
 
-class VertexShader;
-class PixelShader;
+#include "Module/Graphic/Shader/ComputeShader.h"
+
+class MVertexShader;
+class MPixelShader;
 class MGeometryShader;
 class MRenderTarget;
 class StaticMesh;
@@ -55,6 +57,18 @@ struct FWindowRenderData
     ComPtr<ID3D11DepthStencilView> DepthStencilView;
     ComPtr<ID3D11ShaderResourceView> DepthSRV;
     ComPtr<ID3D11ShaderResourceView> StencilSRV;
+};
+
+struct FResolution
+{
+    UINT Width;
+    UINT Height;
+
+    bool operator<(const FResolution& rhs) const
+    {
+        if (Width != rhs.Width)  return Width < rhs.Width;
+        return Height < rhs.Height;
+    }
 };
 
 /******************************************
@@ -164,6 +178,11 @@ protected:
     uint32 Width = 0;
     uint32 Height = 0;
 
+public:
+    bool GetFullScreenResolution(uint32& OutWidth, uint32& OutHeight);
+protected:
+    std::map<int, std::map<FResolution, bool>> Resolutions;
+
     /***********************************************
         윈도우 관련 기능 및 디폴트 뷰
     ***********************************************/
@@ -187,22 +206,31 @@ public:
 public:
     void Draw(const std::shared_ptr<MVertexBuffer>& InVertexBuffer, const std::shared_ptr<MIndexBuffer>& InIndexBuffer);
     void DrawInstance(const std::shared_ptr<MVertexBuffer>& InVertexBuffer, const std::shared_ptr<MIndexBuffer>& InIndexBuffer, const std::shared_ptr<MVertexBuffer>& InInstanceBuffer);
+    void DrawInstance(const std::shared_ptr<MVertexBuffer>& InVertexBuffer, const std::shared_ptr<MIndexBuffer>& InIndexBuffer, const uint32 InInstanceNum);
 
     /***********************************************
-        컨텍스트 기능 - 쉐이더
+        컨텍스트 기능 - 쉐이더 CBuffer 설정
     ***********************************************/
 public:
-    void PSSet(std::shared_ptr<PixelShader>& pixelShader);
+    void SetGlboalConstantBuffer(std::shared_ptr<MConstantBuffer>& InBuffer);
+    void SetTickConstantBuffer(std::shared_ptr<MConstantBuffer>& InBuffer);
+public:
+    void PSSet(const std::shared_ptr<MPixelShader>& pixelShader);
+    void PSSetSRV(MStructuredBuffer InBuffer);
     void PSSetSRV(UINT InSlot, uint32 InSRVID);
 public:
-    void VSSet(std::shared_ptr<VertexShader>& vertexShader);
+    void VSSet(const std::shared_ptr<MVertexShader>& vertexShader);
+    void VSSetSRV(MStructuredBuffer InBuffer);
+    void VSSetSRV(UINT InSlot, int32 InSRVID);
 public:
-    bool GetVertexShader(const std::wstring InPath, std::shared_ptr<VertexShader>& OutShader);
-    bool GetPixelShader(const std::wstring InPath, std::shared_ptr<PixelShader>& OutShader);
-    bool GetGeometryShader(const std::wstring InPath, std::shared_ptr<MGeometryShader>& OutShader);
-    std::unique_ptr<MShaderManager>& GetShaderManager();
+    void GSReset();
 public:
-    std::unique_ptr<MShaderManager> ShaderManager = nullptr;
+    void CSSet(const MComputeShader& InComputeShader);
+    void CSReset();
+    void CSSetUAV(MStructuredBuffer InBuffer);
+    void CSSetUAV(UINT InSlot, int32 InUAVID);
+public:
+
 
     /***********************************************
         상태 관리
@@ -255,6 +283,23 @@ private:
 	D3D11_VIEWPORT _viewport;
 
     /******************************************
+        쉐이더 관리
+    ******************************************/
+public:
+    MComputeShader CreateComputeShader(const std::wstring& InPath);
+public:
+    bool GetVertexShader(const std::wstring InPath, std::shared_ptr<MVertexShader>& OutShader);
+    bool GetPixelShader(const std::wstring InPath, std::shared_ptr<MPixelShader>& OutShader);
+    bool GetGeometryShader(const std::wstring InPath, std::shared_ptr<MGeometryShader>& OutShader);
+    void GetComputeShader(const std::wstring& InFileName, MComputeShader& OutShader);
+protected:
+    std::map<uint32, ComPtr<ID3D11ComputeShader>> ComputeShaders;
+    std::unique_ptr<MShaderManager>& GetShaderManager();
+public:
+    std::unique_ptr<MShaderManager> ShaderManager = nullptr;
+    uint32 ShaderCounter = 0;
+
+    /******************************************
         메시 관련 버퍼 관리
     ******************************************/
 public:
@@ -280,20 +325,34 @@ protected:
         TODO. 삭제는 어떻게 해야할지 생각해봐야 함.
     ******************************************/
 public:
-    MStructuredBuffer AddStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
+    MStructuredBuffer AddStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize, uint32 InLayer, bool GPUWritable = false);
     void UpdateStructuredBuffer(MStructuredBuffer& InBuffer, const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
 private:
-    ComPtr<ID3D11Buffer> CreateStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize);
+    ComPtr<ID3D11Buffer> CreateStructuredBuffer(const void* InData, UINT InDataSize, UINT InElementNum, UINT InElementSize, bool bGPUWritable);
     ComPtr<ID3D11ShaderResourceView> CreateStructuredBufferSRV(ID3D11Buffer* InBuffer, UINT InElementNum, UINT InElementSize);
+    ComPtr<ID3D11UnorderedAccessView> CreateStructuredBufferUAV(ID3D11Buffer* InBuffer, UINT InElementNum, UINT InElementSize);
 private:
     ID3D11Buffer* GetRawBuffer(MStructuredBuffer& InBuffer);
 protected:
     std::map<uint32, ComPtr<ID3D11Buffer>> StructuredBuffers;
     std::map<uint32, ComPtr<ID3D11ShaderResourceView>> StructuredBufferSRVs;
+    std::map<uint32, ComPtr<ID3D11UnorderedAccessView>> StructuredBufferUAVs;
 private:
     uint32 BufferCounter = 0;
     uint32 SRVCounter = 0;
+    uint32 UAVCounter = 0;
     std::map<uint32, uint32> BufferToSRV;
+
+    /*********************************
+        인스턴싱
+    *********************************/
+public:
+    //void AddInstanceData();
+public:
+    // 인스턴트 버퍼 - 데이터 쌍으로 관리, 대규모 정적 인스턴싱에 사용
+    // 인스턴트 버퍼2, 매번 만들지 않고 재사용 하는 용도로 사용. 큰 버퍼임
+    std::shared_ptr<MVertexBuffer> RecycleInstanceBuffer;
+
 
 
     REFLECT(GraphicDevice)
