@@ -34,8 +34,8 @@
 
 using namespace DirectX;
 
-MAssetEditor::MAssetEditor(MObject* InObject)
-    : AssetOwningObject(InObject)
+MAssetEditor::MAssetEditor()
+    //: AssetOwningObject(InObject)
 {
     WeakJolt = GetEngine()->GetModule<MJoltPhysics>();
 }
@@ -176,37 +176,37 @@ void MAssetEditor::RenderUI()
 {
     MEditorBase::RenderUI();
 
-    if (ImGui::Begin("t1", &bOpen))
-    {
-        const FTypeDesc* Current = AssetTypeDesc;
-        while (Current)
-        {
-            DispatchType(Current, WorkingAsset.get());
-            Current = Current->Parent;
-        }
+    //if (ImGui::Begin("t1", &bOpen))
+    //{
+    //    const FTypeDesc* Current = AssetTypeDesc;
+    //    while (Current)
+    //    {
+    //        DispatchType(Current, WorkingAsset.get());
+    //        Current = Current->Parent;
+    //    }
 
-        // 애셋 타입에 따라 추가 처리
-        if (std::shared_ptr<DynamicMesh> dynamicMesh = WorkingAsset->CastToShared<DynamicMesh>())
-        {
-            HandleDynamicMesh(dynamicMesh.get());
-            HandleSkeleton(dynamicMesh->GetSkeleton().get(), nullptr);
-        }
+    //    // 애셋 타입에 따라 추가 처리
+    //    if (std::shared_ptr<DynamicMesh> dynamicMesh = WorkingAsset->CastToShared<DynamicMesh>())
+    //    {
+    //        HandleDynamicMesh(dynamicMesh.get());
+    //        HandleSkeleton(dynamicMesh->GetSkeleton().get(), nullptr);
+    //    }
 
-        else if (WorkingAsset->IsA<StaticMesh>())
-        {
-            if (ImGui::Button("Make ConvexHull Collision"))
-            {
-                GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(WorkingAsset));
-            }
+    //    else if (WorkingAsset->IsA<StaticMesh>())
+    //    {
+    //        if (ImGui::Button("Make ConvexHull Collision"))
+    //        {
+    //            GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(WorkingAsset));
+    //        }
 
-            if (ImGui::Button("Make MeshShape Collision"))
-            {
-                GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(WorkingAsset));
-            }
-        }
+    //        if (ImGui::Button("Make MeshShape Collision"))
+    //        {
+    //            GetPhysics()->SaveTest(std::static_pointer_cast<StaticMesh>(WorkingAsset));
+    //        }
+    //    }
 
-        ImGui::End();
-    }
+    //}
+    //ImGui::End();
 }
 
 void MAssetEditor::HandleDynamicMesh(DynamicMesh* InDynamicMesh)

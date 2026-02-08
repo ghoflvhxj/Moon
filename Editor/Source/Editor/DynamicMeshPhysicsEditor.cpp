@@ -20,10 +20,10 @@
 using namespace DirectX;
 using namespace ImGui;
 
-MDynamicMeshPhysicsEditor::MDynamicMeshPhysicsEditor(MObject* InObject)
-    : MAssetEditor(InObject)
+MDynamicMeshPhysicsEditor::MDynamicMeshPhysicsEditor()
+    : MAssetEditor()
 {
-    dynamicMesh = static_cast<DynamicMesh*>(InObject);
+    //dynamicMesh = static_cast<DynamicMesh*>(InObject);
 }
 
 MDynamicMeshPhysicsEditor::~MDynamicMeshPhysicsEditor()

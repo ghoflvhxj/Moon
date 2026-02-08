@@ -13,7 +13,7 @@ class MWindow;
 class MAssetEditor : public MEditorBase
 {
 public:
-    MAssetEditor(MObject* InObject);
+    MAssetEditor();
 	virtual ~MAssetEditor() = default;
 
 public:
@@ -50,4 +50,8 @@ protected:
 
     bool bControl = false;
     Mat4 RotMat = {};
+
+    REFLECT(
+        MAssetEditor
+    )
 };

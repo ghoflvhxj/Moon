@@ -8,7 +8,7 @@ class MSkeleton;
 class MDynamicMeshPhysicsEditor : public MAssetEditor
 {
 public:
-    MDynamicMeshPhysicsEditor(MObject* InObject);
+    MDynamicMeshPhysicsEditor();
     virtual ~MDynamicMeshPhysicsEditor();
 
 public:

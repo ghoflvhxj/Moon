@@ -123,13 +123,14 @@ void PropertyUI(EType InType, const char* DisplayName, void* InData);
 void OpenEditor(MObject* InOwner, std::shared_ptr<MObject> InObject, const std::wstring& InPath);
 void OpenEditor(std::shared_ptr<MObject> InObject);
 
-class MEditorBase
+class MEditorBase : public MObject
 {
 public:
     MEditorBase();
     virtual ~MEditorBase() = default;
 
 public:
+    void Init();
     virtual const std::wstring& GetPath() const { static std::wstring Empty; return Empty; }
     virtual void Update() {}
     virtual void RenderUI();
@@ -163,4 +164,8 @@ protected:
     std::shared_ptr<class MEditorBaseWindow> T = nullptr;
     std::shared_ptr<MWorld> W = nullptr;
     std::shared_ptr<MActor> Light = nullptr;
+
+    REFLECT(
+        MEditorBase
+    )
 };
