@@ -84,9 +84,9 @@ PixelOut_LightPass main(PixelIn pIn)
     float3 CameraWorldPos = float3(InverseViewMatrix[3][0], InverseViewMatrix[3][1], InverseViewMatrix[3][2]);
     float3 PixelToCamera = normalize(CameraWorldPos - PixelPosInWorld);
 
-    float3 specularFactor = pow(saturate(dot(PixelToCamera, direction)), 10.f);
+    float3 SpecularFactor = pow(saturate(dot(PixelToCamera, direction)), 10.f) * intensity * attenuation;
     
-    float3 Specular = float4(specular.xyz * specularFactor * NonShadow, 1.f).xyz;
+    float3 Specular = float4(specular.xyz * SpecularFactor * NonShadow, 1.f).xyz;
     
     
     pOut.DirectDiffuse.xyz = color * Diffuse * NonShadow;
