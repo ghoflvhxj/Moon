@@ -2,126 +2,6 @@
     "MWorld": {
         "Actors": [
             {
-                "Key": "MStaticMeshActor_15",
-                "Value": {
-                    "MStaticMeshActor": {
-                        "StaticMeshComp": {
-                            "StaticMeshComponent": {
-                                "Mesh": {
-                                    "MAsset": {
-                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
-                                    }
-                                },
-                                "MeshVisibilities": {
-                                    "0": 1
-                                }
-                            },
-                            "MMeshComponent": {
-                                "bPhysicsSimulate": false,
-                                "PhysicsType": 0,
-                                "Materials": {
-                                    "0": {
-                                        "MAsset": {
-                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
-                                        }
-                                    }
-                                }
-                            },
-                            "MPrimitiveComponent": {
-                                "RenderMode": 0,
-                                "bRendering": true,
-                                "bShadowing": false
-                            },
-                            "MSceneComponent": {
-                                "Scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "Rotation": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "bWorldRotation": false,
-                                "Translation": [
-                                    -5.25649,
-                                    -2.2897,
-                                    -7.30548
-                                ],
-                                "bUpdated": false
-                            },
-                            "MComponent": {
-                                "Name": "RootComponent"
-                            },
-                            "MObject": {}
-                        }
-                    },
-                    "MActor": {
-                        "bUpdatable": false
-                    },
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MPointLightActor_1",
-                "Value": {
-                    "MPointLightActor": {
-                        "PointLightComponent": {
-                            "MPointLightComponent": {
-                                "Range": 15.0
-                            },
-                            "MLightComponent": {
-                                "Color": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "Direction": [
-                                    0.0,
-                                    0.0,
-                                    1.0
-                                ],
-                                "Intensity": 5.0,
-                                "bShow": true
-                            },
-                            "MPrimitiveComponent": {
-                                "RenderMode": 1,
-                                "bRendering": true,
-                                "bShadowing": false
-                            },
-                            "MSceneComponent": {
-                                "Scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "Rotation": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "bWorldRotation": false,
-                                "Translation": [
-                                    26.26935,
-                                    -5.80444,
-                                    16.63195
-                                ],
-                                "bUpdated": true
-                            },
-                            "MComponent": {
-                                "Name": "RootComponent"
-                            },
-                            "MObject": {}
-                        }
-                    },
-                    "MActor": {
-                        "bUpdatable": true
-                    },
-                    "MObject": {}
-                }
-            },
-            {
                 "Key": "Player_0",
                 "Value": {
                     "Player": {
@@ -281,7 +161,7 @@
                 }
             },
             {
-                "Key": "MStaticMeshActor_14",
+                "Key": "MStaticMeshActor_15",
                 "Value": {
                     "MStaticMeshActor": {
                         "StaticMeshComp": {
@@ -324,9 +204,9 @@
                                 ],
                                 "bWorldRotation": false,
                                 "Translation": [
-                                    -5.75194,
+                                    -5.25649,
                                     -2.2897,
-                                    -5.76873
+                                    -7.30548
                                 ],
                                 "bUpdated": false
                             },
@@ -343,7 +223,7 @@
                 }
             },
             {
-                "Key": "MPointLightActor_0",
+                "Key": "MPointLightActor_1",
                 "Value": {
                     "MPointLightActor": {
                         "PointLightComponent": {
@@ -352,9 +232,9 @@
                             },
                             "MLightComponent": {
                                 "Color": [
-                                    0.99,
-                                    0.97,
-                                    0.87998
+                                    1.0,
+                                    1.0,
+                                    1.0
                                 ],
                                 "Direction": [
                                     0.0,
@@ -382,9 +262,9 @@
                                 ],
                                 "bWorldRotation": false,
                                 "Translation": [
-                                    -4.12746,
-                                    -5.82918,
-                                    29.94054
+                                    26.26935,
+                                    -5.80444,
+                                    16.63195
                                 ],
                                 "bUpdated": true
                             },
@@ -564,6 +444,126 @@
                 }
             },
             {
+                "Key": "MStaticMeshActor_14",
+                "Value": {
+                    "MStaticMeshActor": {
+                        "StaticMeshComp": {
+                            "StaticMeshComponent": {
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Object\\bg0006_LunarTear\\bg0006_LunarTear.json"
+                                    }
+                                },
+                                "MeshVisibilities": {
+                                    "0": 1
+                                }
+                            },
+                            "MMeshComponent": {
+                                "bPhysicsSimulate": false,
+                                "PhysicsType": 0,
+                                "Materials": {
+                                    "0": {
+                                        "MAsset": {
+                                            "Path": "Object\\bg0006_LunarTear\\bg0006_flower_AAA1_tga.json"
+                                        }
+                                    }
+                                }
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 0,
+                                "bRendering": true,
+                                "bShadowing": false
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -5.75193,
+                                    -2.2897,
+                                    -5.76873
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {
+                        "bUpdatable": false
+                    },
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MPointLightActor_0",
+                "Value": {
+                    "MPointLightActor": {
+                        "PointLightComponent": {
+                            "MPointLightComponent": {
+                                "Range": 15.0
+                            },
+                            "MLightComponent": {
+                                "Color": [
+                                    0.99,
+                                    0.97,
+                                    0.87998
+                                ],
+                                "Direction": [
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Intensity": 5.0,
+                                "bShow": true
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 1,
+                                "bRendering": true,
+                                "bShadowing": false
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    -4.12746,
+                                    -5.82897,
+                                    29.94054
+                                ],
+                                "bUpdated": true
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {
+                        "bUpdatable": true
+                    },
+                    "MObject": {}
+                }
+            },
+            {
                 "Key": "MStaticMeshActor_16",
                 "Value": {
                     "MStaticMeshActor": {
@@ -607,7 +607,7 @@
                                 ],
                                 "bWorldRotation": false,
                                 "Translation": [
-                                    -5.45738,
+                                    -5.45735,
                                     -2.2897,
                                     -3.71427
                                 ],
@@ -870,33 +870,29 @@
                 }
             },
             {
-                "Key": "MFXActor_0",
+                "Key": "MPointLightActor_4",
                 "Value": {
-                    "MFXActor": {
-                        "FXComponent": {
-                            "MFXComponent": {
-                                "EmitterData": {
-                                    "MinNum": 1000,
-                                    "MaxNum": 1000,
-                                    "MinScale": 0.00498,
-                                    "MaxScale": 0.00999,
-                                    "MinLifeTime": 1.0,
-                                    "MaxLifeTime": 1.0,
-                                    "Radius": 30.0
-                                },
-                                "Material": {
-                                    "MAsset": {
-                                        "Path": "ParticleMaterial.json"
-                                    }
-                                },
-                                "Mesh": {
-                                    "MAsset": {
-                                        "Path": "Base\\Plane.json"
-                                    }
-                                }
+                    "MPointLightActor": {
+                        "PointLightComponent": {
+                            "MPointLightComponent": {
+                                "Range": 8.0
+                            },
+                            "MLightComponent": {
+                                "Color": [
+                                    0.2,
+                                    0.3,
+                                    0.3
+                                ],
+                                "Direction": [
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Intensity": 1.0,
+                                "bShow": true
                             },
                             "MPrimitiveComponent": {
-                                "RenderMode": 0,
+                                "RenderMode": 1,
                                 "bRendering": true,
                                 "bShadowing": true
                             },
@@ -913,9 +909,9 @@
                                 ],
                                 "bWorldRotation": false,
                                 "Translation": [
-                                    0.0,
-                                    0.0,
-                                    0.0
+                                    -5.56336,
+                                    -1.49669,
+                                    -1.23248
                                 ],
                                 "bUpdated": true
                             },
@@ -994,29 +990,33 @@
                 }
             },
             {
-                "Key": "MPointLightActor_4",
+                "Key": "MFXActor_0",
                 "Value": {
-                    "MPointLightActor": {
-                        "PointLightComponent": {
-                            "MPointLightComponent": {
-                                "Range": 8.0
-                            },
-                            "MLightComponent": {
-                                "Color": [
-                                    0.2,
-                                    0.3,
-                                    0.3
-                                ],
-                                "Direction": [
-                                    0.0,
-                                    0.0,
-                                    1.0
-                                ],
-                                "Intensity": 1.0,
-                                "bShow": true
+                    "MFXActor": {
+                        "FXComponent": {
+                            "MFXComponent": {
+                                "EmitterData": {
+                                    "MinNum": 1000,
+                                    "MaxNum": 1000,
+                                    "MinScale": 0.00498,
+                                    "MaxScale": 0.00999,
+                                    "MinLifeTime": 1.0,
+                                    "MaxLifeTime": 1.0,
+                                    "Radius": 30.0
+                                },
+                                "Material": {
+                                    "MAsset": {
+                                        "Path": "ParticleMaterial.json"
+                                    }
+                                },
+                                "Mesh": {
+                                    "MAsset": {
+                                        "Path": "Base\\Plane.json"
+                                    }
+                                }
                             },
                             "MPrimitiveComponent": {
-                                "RenderMode": 1,
+                                "RenderMode": 0,
                                 "bRendering": true,
                                 "bShadowing": true
                             },
@@ -1033,9 +1033,9 @@
                                 ],
                                 "bWorldRotation": false,
                                 "Translation": [
-                                    -5.56336,
-                                    -1.49669,
-                                    -1.23248
+                                    0.0,
+                                    0.0,
+                                    0.0
                                 ],
                                 "bUpdated": true
                             },
@@ -1407,7 +1407,7 @@
                                 "Translation": [
                                     -2.29819,
                                     -2.27237,
-                                    -4.68949
+                                    -4.68946
                                 ],
                                 "bUpdated": false
                             },
@@ -1531,7 +1531,7 @@
                                 "Translation": [
                                     -3.87594,
                                     -2.52431,
-                                    -7.07536
+                                    -7.07533
                                 ],
                                 "bUpdated": false
                             },
@@ -1715,7 +1715,7 @@
                                 ],
                                 "bWorldRotation": false,
                                 "Translation": [
-                                    -4.50756,
+                                    -4.50754,
                                     -2.2897,
                                     -5.76873
                                 ],
@@ -1796,6 +1796,64 @@
                 }
             },
             {
+                "Key": "MPointLightActor_13",
+                "Value": {
+                    "MPointLightActor": {
+                        "PointLightComponent": {
+                            "MPointLightComponent": {
+                                "Range": 5.0
+                            },
+                            "MLightComponent": {
+                                "Color": [
+                                    0.2,
+                                    0.3,
+                                    0.3
+                                ],
+                                "Direction": [
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Intensity": 15.0,
+                                "bShow": true
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 1,
+                                "bRendering": true,
+                                "bShadowing": false
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    6.27587,
+                                    -1.467,
+                                    -2.37069
+                                ],
+                                "bUpdated": false
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {
+                        "bUpdatable": true
+                    },
+                    "MObject": {}
+                }
+            },
+            {
                 "Key": "MPointLightActor_8",
                 "Value": {
                     "MPointLightActor": {
@@ -1814,7 +1872,7 @@
                                     0.0,
                                     1.0
                                 ],
-                                "Intensity": 5.0,
+                                "Intensity": 15.0,
                                 "bShow": true
                             },
                             "MPrimitiveComponent": {
@@ -1854,128 +1912,12 @@
                 }
             },
             {
-                "Key": "MPointLightActor_13",
-                "Value": {
-                    "MPointLightActor": {
-                        "PointLightComponent": {
-                            "MPointLightComponent": {
-                                "Range": 5.0
-                            },
-                            "MLightComponent": {
-                                "Color": [
-                                    0.2,
-                                    0.3,
-                                    0.3
-                                ],
-                                "Direction": [
-                                    0.0,
-                                    0.0,
-                                    1.0
-                                ],
-                                "Intensity": 1.0,
-                                "bShow": true
-                            },
-                            "MPrimitiveComponent": {
-                                "RenderMode": 1,
-                                "bRendering": true,
-                                "bShadowing": false
-                            },
-                            "MSceneComponent": {
-                                "Scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "Rotation": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "bWorldRotation": false,
-                                "Translation": [
-                                    6.2759,
-                                    -1.467,
-                                    -2.37072
-                                ],
-                                "bUpdated": true
-                            },
-                            "MComponent": {
-                                "Name": "RootComponent"
-                            },
-                            "MObject": {}
-                        }
-                    },
-                    "MActor": {
-                        "bUpdatable": true
-                    },
-                    "MObject": {}
-                }
-            },
-            {
-                "Key": "MPointLightActor_9",
-                "Value": {
-                    "MPointLightActor": {
-                        "PointLightComponent": {
-                            "MPointLightComponent": {
-                                "Range": 5.0
-                            },
-                            "MLightComponent": {
-                                "Color": [
-                                    0.2,
-                                    0.3,
-                                    0.3
-                                ],
-                                "Direction": [
-                                    0.0,
-                                    0.0,
-                                    1.0
-                                ],
-                                "Intensity": 1.0,
-                                "bShow": true
-                            },
-                            "MPrimitiveComponent": {
-                                "RenderMode": 1,
-                                "bRendering": true,
-                                "bShadowing": false
-                            },
-                            "MSceneComponent": {
-                                "Scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "Rotation": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "bWorldRotation": false,
-                                "Translation": [
-                                    2.48464,
-                                    -0.59535,
-                                    3.7266
-                                ],
-                                "bUpdated": true
-                            },
-                            "MComponent": {
-                                "Name": "RootComponent"
-                            },
-                            "MObject": {}
-                        }
-                    },
-                    "MActor": {
-                        "bUpdatable": true
-                    },
-                    "MObject": {}
-                }
-            },
-            {
                 "Key": "MPointLightActor_12",
                 "Value": {
                     "MPointLightActor": {
                         "PointLightComponent": {
                             "MPointLightComponent": {
-                                "Range": 1.0
+                                "Range": 5.0
                             },
                             "MLightComponent": {
                                 "Color": [
@@ -1988,7 +1930,7 @@
                                     0.0,
                                     1.0
                                 ],
-                                "Intensity": 10.0,
+                                "Intensity": 15.0,
                                 "bShow": true
                             },
                             "MPrimitiveComponent": {
@@ -2028,7 +1970,7 @@
                 }
             },
             {
-                "Key": "MPointLightActor_10",
+                "Key": "MPointLightActor_9",
                 "Value": {
                     "MPointLightActor": {
                         "PointLightComponent": {
@@ -2046,7 +1988,7 @@
                                     0.0,
                                     1.0
                                 ],
-                                "Intensity": 1.0,
+                                "Intensity": 15.0,
                                 "bShow": true
                             },
                             "MPrimitiveComponent": {
@@ -2067,7 +2009,65 @@
                                 ],
                                 "bWorldRotation": false,
                                 "Translation": [
-                                    2.87123,
+                                    2.48463,
+                                    -0.59535,
+                                    3.72657
+                                ],
+                                "bUpdated": true
+                            },
+                            "MComponent": {
+                                "Name": "RootComponent"
+                            },
+                            "MObject": {}
+                        }
+                    },
+                    "MActor": {
+                        "bUpdatable": true
+                    },
+                    "MObject": {}
+                }
+            },
+            {
+                "Key": "MPointLightActor_10",
+                "Value": {
+                    "MPointLightActor": {
+                        "PointLightComponent": {
+                            "MPointLightComponent": {
+                                "Range": 5.0
+                            },
+                            "MLightComponent": {
+                                "Color": [
+                                    0.2,
+                                    0.3,
+                                    0.3
+                                ],
+                                "Direction": [
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "Intensity": 15.0,
+                                "bShow": true
+                            },
+                            "MPrimitiveComponent": {
+                                "RenderMode": 1,
+                                "bRendering": true,
+                                "bShadowing": false
+                            },
+                            "MSceneComponent": {
+                                "Scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "Rotation": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "bWorldRotation": false,
+                                "Translation": [
+                                    2.87122,
                                     -1.74825,
                                     10.00669
                                 ],
@@ -2104,7 +2104,7 @@
                                     0.0,
                                     1.0
                                 ],
-                                "Intensity": 1.0,
+                                "Intensity": 15.0,
                                 "bShow": true
                             },
                             "MPrimitiveComponent": {

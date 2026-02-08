@@ -332,9 +332,11 @@ void MEngine::OpenLevel(const std::wstring& InPath)
     assert(MFileSystem::IsExist(InPath));
 
     GetLevelChangedDelegate().Broadcast();
-    GetPostLoopDelegate().Add([InPath]() {
+    GetPostLoopDelegate().Add([&, InPath]() {
         GetMainWorld()->GetActors().clear();
         GetMainWorld()->Load(InPath);
+
+        LevelPath = InPath;
     });
 }
 

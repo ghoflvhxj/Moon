@@ -175,9 +175,12 @@ void MEditorMainWindow::ImGuiRender()
     {
         if (ImGui::BeginMenu("Level"))
         {
-            if (ImGui::MenuItem("Save"))
+            std::wstring_view Path = GetEngine()->GetCurrentLevelPath();
+            bool bSelectable = false;
+            bool bEnable = Path.empty() == false;
+            if (ImGui::MenuItem("Save", nullptr, &bSelectable, bEnable))
             {
-
+                EditorModule->Save(*GetMainWorld(), Path);
             }
             if (ImGui::MenuItem("Save As"))
             {

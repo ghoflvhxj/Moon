@@ -57,11 +57,12 @@ public:
 public:
     // 리플렉션에 등록된 클래스나 구조체를 Json으로 만듬.
     template <class T>
-    void Serialize(T& Object, const std::wstring& InPath, bool bPretty)
+    void Serialize(T& Object, std::wstring_view InPath, bool bPretty)
     {
         if(InPath.empty())
         {
-            std::wstring Msg = TEXT("잘못된 경로: ") + InPath;
+            std::wstring Msg = TEXT("잘못된 경로: ");
+            Msg += InPath;
             MSGBOX(Msg);
             return;
         }
@@ -99,14 +100,14 @@ public:
 
     // 일반 포인터 타입 지원을 위한 오버로딩
     template <class T>
-    void Serialize(T* InObject, const std::wstring& InPath, bool bInPretty)
+    void Serialize(T* InObject, std::wstring_view InPath, bool bInPretty)
     {
         Serialize(*InObject, InPath, bInPretty);
     }
 
     // shared_ptr을 지원을 위한 오버로딩
     template <class T>
-    void Serialize(std::shared_ptr<T> InObject, const std::wstring& InPath, bool bInPretty)
+    void Serialize(std::shared_ptr<T> InObject, std::wstring_view InPath, bool bInPretty)
     {
         Serialize(*InObject, InPath, bInPretty);
     }

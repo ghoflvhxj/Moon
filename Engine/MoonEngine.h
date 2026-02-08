@@ -63,6 +63,10 @@ public:
 
 public:
     void OpenLevel(const std::wstring& InPath);
+public:
+    std::wstring_view GetCurrentLevelPath() const { return LevelPath; }
+protected:
+    std::wstring LevelPath;
 
 public:
     void WorldFunc(uint32 InIndex);

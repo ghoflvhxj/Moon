@@ -48,11 +48,26 @@ public:
 public:
     void Open(std::function<void(const TCHAR* InFileName)> InFunction, const wchar_t* InFormat = nullptr, std::shared_ptr<MWindow> InOwner = nullptr);
 
+public:
+    template <class T>
+    void SaveInternal(T& InObject, std::wstring_view InPath)
+    {
+        MJsonSerializer Serializer;
+        Serializer.Serialize(InObject, InPath, true);
+    }
+
     template <class T>
     void Save(T& InObject)
     {
         SaveInternal(InObject, InObject->GetAssetPath());
     }
+
+    template <class T>
+    void Save(T& InObject, std::wstring_view InPath)
+    {
+        SaveInternal(InObject, InPath);
+    }
+
     template <class T>
     void SaveAs(T& InObject, const wchar_t* InFormat = nullptr)
     {
@@ -70,12 +85,6 @@ public:
         {
             SaveInternal(InObject, FileName);
         }
-    }
-    template <class T>
-    void SaveInternal(T& InObject, const std::wstring& InPath)
-    {
-        MJsonSerializer Serializer;
-        Serializer.Serialize(InObject, InPath, true);
     }
 
 public:
