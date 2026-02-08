@@ -906,14 +906,16 @@ void OpenEditor(MObject* InOwner, std::shared_ptr<MObject> InObject, const std::
         {
             if (InObject->GetTypeDescStatic() == MDynamicMeshPhysics::GetTypeDescStatic())
             {
-                NewEditor = std::make_shared<MDynamicMeshPhysicsEditor>(InOwner);
+                //NewEditor = std::make_shared<MDynamicMeshPhysicsEditor>(InOwner);
             }
             else
             {
-                NewEditor = std::make_shared<MAssetEditor>(InOwner);
+                NewEditor = CreateObject<MAssetEditor>();
             }
         }
 
+        assert(NewEditor);
+        NewEditor->Init();
         NewEditor->SetObject(InObject);
 
         GetEngine()->GetModule<MEditor>()->Editors[NewEditor->GetTitle()] = NewEditor;
@@ -953,14 +955,18 @@ void OpenEditor(std::shared_ptr<MObject> InObject)
 MEditorBase::MEditorBase()
 {
     WeakRenderer = GetEngine()->GetModule<MRenderer>();
+}
 
+void MEditorBase::Init()
+{
     T = GetWindowManager()->AddWindow<MEditorBaseWindow>(StringToWString(Title), 300, 300, g_hWnd, TEXT("ShootingGame"));
     T->Initialize();
-    T->GetOnImGuiRenderedDelegate().Add(this, &MEditorBase::RenderUI);
+    T->GetOnImGuiRenderedDelegate().AddObject(shared_from_this(), &MEditorBase::RenderUI);
 
-    W = std::make_shared<MWorld>();
+    W = CreateObject<MWorld>();
     W->SetWorldType(EWorldType::WorkInEditor);
     W->Initialize();
+    W->PlayGame();
 
     GetEngine()->AddWorld(W, T);
 
@@ -1026,7 +1032,7 @@ void MEditorBase::RenderUI()
         }
 
         DispatchType2(WorkingObject->GetTypeDesc(), WorkingObject.get());
-
-        ImGui::End();
     }
+
+    ImGui::End();
 }
