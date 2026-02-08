@@ -53,12 +53,3 @@ protected:
 
     REFLECT_TOP(MObject);
 };
-
-template <class T>
-std::shared_ptr<T> CastTo(std::shared_ptr<MObject> InObject)
-{
-    return InObject->IsA<T>() ? std::static_pointer_cast<T>(InObject) : nullptr;
-}
-
-struct FTypeDesc;
-ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc);

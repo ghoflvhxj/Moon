@@ -197,5 +197,15 @@ ENGINE_DLL std::shared_ptr<MObject> DuplicateObject(std::shared_ptr<MObject> InO
 void RegistComponent(std::shared_ptr<class MComponent> InComponent);
 void UnRegistComponent(MComponent* InComponent);
 
-ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc);
+template <class T>
+std::shared_ptr<T> CreateObject()
+{
+    const FTypeDesc* TypeDesc = T::GetTypeDescStatic();
+    assert(TypeDesc);
+    assert(TypeDesc->IsA<MObject>());
+
+    return std::shared_ptr<T>(static_cast<T*>(CreateObject(TypeDesc)));
+}
+
+ENGINE_DLL MObject* CreateObject(const FTypeDesc* InTypeDesc);
 ENGINE_DLL void* CreateData(const FTypeDesc* InTypeDesc);

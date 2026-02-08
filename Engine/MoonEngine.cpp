@@ -258,17 +258,18 @@ void UnRegistComponent(MComponent* InComponent)
     }
 }
 
-ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc)
+ENGINE_DLL MObject* CreateObject(const FTypeDesc* InTypeDesc)
 {
-    if (GetFactory().find(InTypeDesc) != GetFactory().end())
-    {
-        MObject* NewObject = static_cast<MObject*>(GetFactory()[InTypeDesc]->Create());
-        NewObject->PostConstruct();
+    assert(InTypeDesc);
+    assert(InTypeDesc->IsA<MObject>());
 
-        return NewObject;
-    }
+    auto& Iter = GetFactory().find(InTypeDesc);
+    assert(Iter != GetFactory().end());
 
-    return nullptr;
+    MObject* NewObject = static_cast<MObject*>(GetFactory()[InTypeDesc]->Create());
+    NewObject->PostConstruct();
+
+    return NewObject;
 }
 
 ENGINE_DLL void* CreateData(const FTypeDesc* InTypeDesc)

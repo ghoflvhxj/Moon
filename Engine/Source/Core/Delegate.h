@@ -4,7 +4,7 @@
 #include "Object.h"
 
 template <class ReturnType, class... ParamTypes>
-struct ENGINE_DLL FDelegate
+struct FDelegate
 {
 public:
     FDelegate() = default;
@@ -15,7 +15,7 @@ public:
     struct FDelegateData
     {
         std::weak_ptr<MObject> Object;
-        std::function<ReturnType(ParamTypes...)> Func;
+        std::function<ReturnType(std::shared_ptr<MObject>, ParamTypes...)> Func;
     };
     struct FRawDelegateData
     {
@@ -34,8 +34,7 @@ public:
     };
 
 public:
-    template <class T>
-    void Add(std::shared_ptr<T> InObject, std::function<ReturnType(ParamTypes...)> InFunc)
+    void AddObjectInternal(std::shared_ptr<MObject> InObject, std::function<ReturnType(std::shared_ptr<MObject>, ParamTypes...)> InFunc)
     {
         FDelegateData NewData = {
             InObject,
@@ -57,12 +56,15 @@ public:
     }
 
     template <class T>
-    void Add(std::shared_ptr<T> InObject, ReturnType(T::* InFunc)(ParamTypes...))
+    void AddObject(std::shared_ptr<MObject> InObject, ReturnType(T::* InFunc)(ParamTypes...))
     {
-        Add(
+        std::shared_ptr<T> TObject = InObject->CastToShared<T>();
+        assert(TObject);
+
+        AddObjectInternal(
             InObject,
-            [&](ParamTypes... args)->ReturnType {
-                return (InObject.get()->*InFunc)(args...);
+            [&, InFunc](std::shared_ptr<MObject> Object, ParamTypes... args)->ReturnType {
+                return (Object->CastToShared<T>().get()->*InFunc)(args...);
             }
         );
     }
@@ -83,7 +85,7 @@ public:
         {
             if (std::shared_ptr<MObject> Object = DelegateData.Object.lock())
             {
-                DelegateData.Func(args...);
+                DelegateData.Func(Object, args...);
             }
         }
 

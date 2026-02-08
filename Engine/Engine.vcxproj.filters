@@ -242,6 +242,7 @@
     <ClCompile Include="Source\Framework\FXActor\FXActor.cpp" />
     <ClCompile Include="Source\Module\Render\Scene.cpp" />
     <ClCompile Include="Source\Module\Graphic\Shader\ComputeShader.cpp" />
+    <ClCompile Include="Source\Core\Delegate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">

@@ -1,7 +1,10 @@
 ﻿#include "ResourceManager.h"
+
+#include "MoonEngine.h"
+#include "Core/Asset.h"
+
 #include "ResourceLoader.h"
 
-#include "Core/Asset.h"
 #include "Mesh/DynamicMesh/DynamicMesh.h"
 
 MResourceManager::MResourceManager()
@@ -14,6 +17,9 @@ MResourceManager::MResourceManager()
 
 std::shared_ptr<MAsset> MResourceManager::Load(const std::wstring& InPath, const FTypeDesc* InTypeDesc)
 {
+    assert(InTypeDesc);
+    assert(InTypeDesc->IsA<MAsset>());
+
     std::filesystem::path Path(InPath);
     Path = Path.make_preferred();
 

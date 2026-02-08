@@ -59,9 +59,6 @@ struct FFactorProxy : public FFactoryBase
 ENGINE_DLL std::map<std::string, const FTypeDesc*>& GetTypeDescs();
 ENGINE_DLL std::map<const FTypeDesc*, FFactoryBase*>& GetFactory();
 
-// 인스턴스 생성
-ENGINE_DLL void* CreateObject(const FTypeDesc* InTypeDesc);
-
 // TypeDesc 컨테이너에 추가
 template <class T>
 void AddTypeDesc(const FTypeDesc* InTypeDesc)

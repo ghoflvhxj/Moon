@@ -497,3 +497,17 @@ void MWorld::ProjectVec2(const Vec2& InBase, const Vec2& InTarget, Vec2& Out) co
     XMVECTOR Proj = Base * (Dot * XMVector2Length(Target));
     XMStoreFloat2(&Out, Proj);
 }
+
+std::shared_ptr<MActor> CreateActor(std::shared_ptr<MWorld> InWorld, const FTypeDesc* InTypeDesc)
+{
+    assert(InWorld);
+    assert(InTypeDesc);
+    assert(InTypeDesc->IsA<MActor>());
+
+    std::shared_ptr<MActor> NewActor(static_cast<MActor*>(CreateObject(InTypeDesc)));
+    NewActor->SetOwner(InWorld);
+    NewActor->PostConstruct();
+    InWorld->addActor(NewActor);
+
+    return NewActor;
+}

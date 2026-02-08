@@ -172,27 +172,4 @@ std::shared_ptr<T> CreateActor(std::shared_ptr<MWorld> InWorld)
     return NewActor;
 }
 
-inline std::shared_ptr<MActor> CreateActor(std::shared_ptr<MWorld> InWorld, const FTypeDesc* InTypeDesc)
-{
-    if (InWorld == nullptr)
-    {
-        return nullptr;
-    }
-
-    if (InTypeDesc == nullptr)
-    {
-        return nullptr;
-    }
-
-    if (InTypeDesc->IsA<MActor>() == false)
-    {
-        return nullptr;
-    }
-
-    std::shared_ptr<MActor> NewActor(static_cast<MActor*>(CreateObject(InTypeDesc)));
-    NewActor->SetOwner(InWorld);
-    NewActor->PostConstruct();
-    InWorld->addActor(NewActor);
-
-    return NewActor;
-}
+std::shared_ptr<MActor> ENGINE_DLL CreateActor(std::shared_ptr<MWorld> InWorld, const FTypeDesc* InTypeDesc);

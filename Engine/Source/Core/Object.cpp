@@ -1,4 +1,6 @@
 ﻿#include "Object.h"
+#include "MoonEngine.h"
+
 #include "Asset.h"
 #include "Core/Reflection/TypeDesc.h"
 #include "Core/Serialize/JsonDeserializer.h"

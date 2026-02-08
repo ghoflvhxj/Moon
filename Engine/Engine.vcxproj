@@ -34,6 +34,7 @@
     <ClCompile Include="FBXLoader.cpp" />
     <ClCompile Include="FileFinder.cpp" />
     <ClCompile Include="FrameManager.cpp" />
+    <ClCompile Include="Source\Core\Delegate.cpp" />
     <ClCompile Include="Source\Module\Graphic\Shader\GeometryShader.cpp" />
     <ClCompile Include="GraphicDevice.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
