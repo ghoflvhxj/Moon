@@ -42,10 +42,10 @@ public:
 public:
     float NormalBiasScale = 0.1f;
     float DepthBias = 0.001f;
-    bool bDebugDirectionalLight = false;
+    bool bDebugDirectLight = false;
+    bool bDebugInDirectLight = false;
     bool bDebugDirectionalShadow = false;
     bool bDebugCascade = false;
-    bool bDebugPointLight = false;
     bool bDebugSSAO = false;
 
     /* 렌더링에 필요한 PrimitiveData를 관리함 */
@@ -118,10 +118,10 @@ public:
         , PROPERTY(bDrawCollision)
         , PROPERTY(NormalBiasScale)
         , PROPERTY(DepthBias)
-        , PROPERTY(bDebugDirectionalLight)
+        , PROPERTY(bDebugDirectLight)
+        , PROPERTY(bDebugInDirectLight)
         , PROPERTY(bDebugDirectionalShadow)
         , PROPERTY(bDebugCascade)
-        , PROPERTY(bDebugPointLight)
         , PROPERTY(bDebugSSAO)
     )
         /* 카메라 */

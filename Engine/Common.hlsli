@@ -43,10 +43,10 @@ cbuffer CBuffer_Global : register(CBUFFER_GLOBAL)
     bool bSSAO = true;
     
     // 디버깅
-    bool bDebugDirectionalLight = false;
+    bool bDebugDirectLight = false;
     bool bDebugDirectionalShadow = false;
     bool bDebugCascade = false;
-    bool bDebugPointLight = false;
+    bool bDebugInDirectLight = false;
     bool bDebugSSAO = true;
     
     float NormalBiasScale = 0.1f;

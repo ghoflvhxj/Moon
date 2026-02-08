@@ -86,8 +86,8 @@ PixelOut_LightPass main(PixelIn pIn)
     
     pOut.DirectDiffuse.xyz = color * Diffuse * NonShadow;
     pOut.DirectSpecular.xyz = color * Specular * NonShadow;
-    //pOut.InDirectDiffuse = Ambient;
-    pOut.InDirectDiffuse = Ambient + (Bright * 0.01f);
+    pOut.InDirectDiffuse = Ambient;
+    //pOut.InDirectDiffuse = Ambient + (Bright * 0.01f);
     
     bool bRim = G_RimLight.Sample(g_Sampler, pIn.uv).x > 0.f;
     float Rim = bRim * (1.f - saturate(dot(PixelToCamera, normalInWorld)));

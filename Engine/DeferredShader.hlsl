@@ -37,14 +37,14 @@ PixelOut_CombinePass main(PixelIn pIn)
     ******************/
     //pOut.color = Albedo;
     
-    if (bDebugDirectionalLight)
+    if (bDebugDirectLight)
     {
-        pOut.color = DirectDiffuse;
+        pOut.color = DirectDiffuse + DirectSpecular;
     }
     
-    if (bDebugPointLight)
+    if (bDebugInDirectLight)
     {
-        pOut.color = DirectSpecular;
+        pOut.color = InDirectDiffuse * AO;
     }
     
     if (bDebugSSAO)
