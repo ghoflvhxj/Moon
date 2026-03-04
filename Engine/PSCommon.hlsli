@@ -76,7 +76,7 @@ Texture2D G_LightDirectSpecular                 : register(t24);
 Texture2D G_IndirectDiffuse                     : register(t25);
 
 Texture2D G_Collision                           : register(t30); 
-Texture2D<uint2> T_Stencil                      : register(t31);
+Texture2D<uint> T_Stencil                       : register(t31);
 Texture2D G_Outline                             : register(t32);
 Texture2D G_RimLight                            : register(t33);
 
