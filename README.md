@@ -3,11 +3,11 @@ DirectX 11을 이용해 간단한 엔진을 만드는 것을 목표로 하는 �
 
 주요 특징은 다음과 같습니다.
 - 리플렉션에 기반한 에디터 편집, PIE 기능들.
+![AssetEdit](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/AssetEdit.webp)
+- JoltPhysics를 이용한 물리 시뮬레이션
 ![PIE](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/PIE.webp)
 - 디퍼드 렌더링, 스크린 스페이스 엠비언트 오클루젼(SSAO), Emissive, GPU Particle
 ![SSAO](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/SSAO.png)
-- JoltPhysics를 이용한 물리 시뮬레이션
-![AssetEdit](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/AssetEdit.webp)
 - Cascade Shadow, Normal Offet Bais Shadow Mapping
 ![CascadeShadow](https://github.com/ghoflvhxj/Moon/blob/main/ReadmeResource/CascadeShadow.gif)
 
